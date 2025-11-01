@@ -30,7 +30,13 @@ import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 import CreateTasksAuto from "./CreateTasksAuto";
 import CreateNextTasksAuto from "./CreateNextTasksAuto";
 import { RenewPostingTasksButton } from "./DateEntryRenew";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import ContentWritingModal from "./DataEntryContentWritingDialog";
 import ReviewRemovalModal from "./DataEmtryReviewRemovalDialog";
 import BacklinkingModal from "./DataEntryBacklinkingDialog";
@@ -187,7 +193,8 @@ export default function DataEntryCompleteTasksPanel({
           setPackageMonths(Number.isFinite(pm) && pm > 0 ? Math.floor(pm) : 1);
           const dueRaw = data?.dueDate;
           const due = dueRaw ? new Date(dueRaw) : null;
-          const over = !!due && !isNaN(due.getTime()) && due.getTime() < Date.now();
+          const over =
+            !!due && !isNaN(due.getTime()) && due.getTime() < Date.now();
           setIsDueOver(over);
         } else {
           setClientName(`Client ${clientId}`);
@@ -540,7 +547,8 @@ export default function DataEntryCompleteTasksPanel({
 
   // Monitoring modal state
   const [monitoringModalOpen, setMonitoringModalOpen] = useState(false);
-  const [selectedMonitoringTask, setSelectedMonitoringTask] = useState<DETask | null>(null);
+  const [selectedMonitoringTask, setSelectedMonitoringTask] =
+    useState<DETask | null>(null);
   const openMonitoringModal = (task: DETask) => {
     setSelectedMonitoringTask(task);
     setMonitoringModalOpen(true);
@@ -680,9 +688,11 @@ export default function DataEntryCompleteTasksPanel({
         const renewKey = `renewClicked_${clientId}`;
         const createNextKey = `createNextClicked_${clientId}`;
 
-        const createTasksClicked = localStorage.getItem(createTasksKey) === "true";
+        const createTasksClicked =
+          localStorage.getItem(createTasksKey) === "true";
         const renewClicked = localStorage.getItem(renewKey) === "true";
-        const createNextClicked = localStorage.getItem(createNextKey) === "true";
+        const createNextClicked =
+          localStorage.getItem(createNextKey) === "true";
 
         // CreateTasksAuto button: hide if clicked
         setShowCreateTasksButton(!createTasksClicked);
@@ -931,57 +941,41 @@ export default function DataEntryCompleteTasksPanel({
               </div>
             </div>
             <>
-             <div className="flex items-center gap-4">
-               {showCreateTasksButton && (
-                 <Button
-                  onClick={() => setCreateTasksChoiceOpen(true)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  Create Posting Tasks
-                </Button>
-               )}
+              <div className="flex items-center gap-4">
+                {showCreateTasksButton && (
+                  <Button
+                    onClick={() => setCreateTasksChoiceOpen(true)}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Create Posting Tasks
+                  </Button>
+                )}
 
-              {isDueOver && showRenewButton && (
-                <RenewPostingTasksButton
-                  clientId={clientId}
-                  templateId={undefined}
-                  packageMonths={packageMonths}
-                  onRenewComplete={() => {
-                    // Mark RenewButton as clicked
-                    try {
-                      if (typeof window !== "undefined") {
-                        const key = `renewClicked_${clientId}`;
-                        localStorage.setItem(key, "true");
-                        setShowRenewButton(false);
-                        setShowCreateNextButton(true);
+                {isDueOver && showRenewButton && (
+                  <RenewPostingTasksButton
+                    clientId={clientId}
+                    templateId={undefined}
+                    packageMonths={packageMonths}
+                    onRenewComplete={() => {
+                      // Mark RenewButton as clicked
+                      try {
+                        if (typeof window !== "undefined") {
+                          const key = `renewClicked_${clientId}`;
+                          localStorage.setItem(key, "true");
+                          setShowRenewButton(false);
+                          setShowCreateNextButton(true);
+                        }
+                      } catch {
+                        // Ignore localStorage errors
                       }
-                    } catch {
-                      // Ignore localStorage errors
-                    }
-                  }}
-                />
-              )}
-
-              {showCreateNextButton && (
-                <CreateNextTasksAuto
-                  clientId={clientId}
-                  onComplete={() => {
-                    // Mark CreateNextButton as clicked
-                    try {
-                      if (typeof window !== "undefined") {
-                        const key = `createNextClicked_${clientId}`;
-                        localStorage.setItem(key, "true");
-                        setShowCreateNextButton(false);
-                      }
-                    } catch {
-                      // Ignore localStorage errors
-                    }
-                  }}
-                />
-              )}
-
-             </div>
-              <Dialog open={createTasksChoiceOpen} onOpenChange={setCreateTasksChoiceOpen}>
+                    }}
+                  />
+                )}
+              </div>
+              <Dialog
+                open={createTasksChoiceOpen}
+                onOpenChange={setCreateTasksChoiceOpen}
+              >
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Choose generation mode</DialogTitle>
@@ -989,7 +983,10 @@ export default function DataEntryCompleteTasksPanel({
                   <div className="grid gap-4">
                     <div className="rounded-lg border p-4">
                       <div className="font-semibold mb-2">Auto</div>
-                      <p className="text-sm text-muted-foreground mb-3">Automatically generate posting tasks from assets and auto-assign to a data_entry user.</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Automatically generate posting tasks from assets and
+                        auto-assign to a data_entry user.
+                      </p>
                       <CreateTasksAuto
                         clientId={clientId}
                         onTaskCreationComplete={() => {
@@ -1024,7 +1021,12 @@ export default function DataEntryCompleteTasksPanel({
                     </div> */}
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setCreateTasksChoiceOpen(false)}>Close</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCreateTasksChoiceOpen(false)}
+                    >
+                      Close
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -1105,32 +1107,42 @@ export default function DataEntryCompleteTasksPanel({
                               criteria
                             </p>
                           </div>
-                            <>
-                              <Button
-                                onClick={() => setCreateNextChoiceOpen(true)}
-                                className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
-                              >
-                                Create Remaining Tasks
-                              </Button>
+                          <>
+                            <Button
+                              onClick={() => setCreateNextChoiceOpen(true)}
+                              className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
+                            >
+                              Create Remaining Tasks
+                            </Button>
 
-                              <Dialog open={createNextChoiceOpen} onOpenChange={setCreateNextChoiceOpen}>
-                                <DialogContent className="sm:max-w-lg">
-                                  <DialogHeader>
-                                    <DialogTitle>Choose generation mode</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="grid gap-4">
-                                    <div className="rounded-lg border p-4">
-                                      <div className="font-semibold mb-2">Auto</div>
-                                      <p className="text-sm text-muted-foreground mb-3">Create all remaining tasks and auto-assign to the top agent.</p>
-                                      <CreateNextTasksAuto
-                                        clientId={clientId}
-                                        onCreated={() => {
-                                          setCreateNextChoiceOpen(false);
-                                          load();
-                                        }}
-                                      />
+                            <Dialog
+                              open={createNextChoiceOpen}
+                              onOpenChange={setCreateNextChoiceOpen}
+                            >
+                              <DialogContent className="sm:max-w-lg">
+                                <DialogHeader>
+                                  <DialogTitle>
+                                    Choose generation mode
+                                  </DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4">
+                                  <div className="rounded-lg border p-4">
+                                    <div className="font-semibold mb-2">
+                                      Auto
                                     </div>
-                                    {/* <div className="rounded-lg border p-4">
+                                    <p className="text-sm text-muted-foreground mb-3">
+                                      Create all remaining tasks and auto-assign
+                                      to the top agent.
+                                    </p>
+                                    <CreateNextTasksAuto
+                                      clientId={clientId}
+                                      onCreated={() => {
+                                        setCreateNextChoiceOpen(false);
+                                        load();
+                                      }}
+                                    />
+                                  </div>
+                                  {/* <div className="rounded-lg border p-4">
                                       <div className="font-semibold mb-2">Manual</div>
                                       <p className="text-sm text-muted-foreground mb-3">Use the manual flow to create remaining tasks.</p>
                                       <CreateNextTask
@@ -1141,13 +1153,20 @@ export default function DataEntryCompleteTasksPanel({
                                         }}
                                       />
                                     </div> */}
-                                  </div>
-                                  <DialogFooter>
-                                    <Button variant="outline" onClick={() => setCreateNextChoiceOpen(false)}>Close</Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            </>
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                      setCreateNextChoiceOpen(false)
+                                    }
+                                  >
+                                    Close
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </>
                         </div>
                         {q ||
                         statusFilter !== "all" ||
