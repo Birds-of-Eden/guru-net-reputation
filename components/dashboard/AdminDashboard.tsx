@@ -47,7 +47,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-
 /* -------------------- Types -------------------- */
 interface DashboardStats {
   overview: {
@@ -233,7 +232,10 @@ export function AdminDashboard() {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/api/dashboardStats?range=${encodeURIComponent(timeRange)}` , { cache: "no-store" });
+        const res = await fetch(
+          `/api/dashboardStats?range=${encodeURIComponent(timeRange)}`,
+          { cache: "no-store" }
+        );
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const data = (await res.json()) as DashboardStats;
         setDashboardData(data);
@@ -367,11 +369,12 @@ export function AdminDashboard() {
               Dashboard Overview
             </h2>
             <p className="text-muted-foreground mt-2">
-              {rangeLabel} • Real-time insights into your operations & performance
+              {rangeLabel} • Real-time insights into your operations &
+              performance
             </p>
           </div>
         </div>
-       
+
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center w-full md:w-auto">
           <Select defaultValue={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-full sm:w-[180px] border-slate-300 bg-white/80 backdrop-blur">
@@ -392,7 +395,9 @@ export function AdminDashboard() {
         <MetricCard
           title="Clients Added"
           value={numberFmt(dashboardData.clients.total)}
-          change={`${dashboardData.clients.growthRate >= 0 ? '+' : ''}${dashboardData.clients.growthRate}%`}
+          change={`${dashboardData.clients.growthRate >= 0 ? "+" : ""}${
+            dashboardData.clients.growthRate
+          }%`}
           trend={dashboardData.clients.growthRate >= 0 ? "up" : "down"}
           description="vs previous period"
           icon={<Users className="h-6 w-6" />}
@@ -406,7 +411,6 @@ export function AdminDashboard() {
           description="completion rate"
           icon={<Layers className="h-6 w-6" />}
           gradient="from-violet-500 to-purple-500"
-
         />
         <MetricCard
           title="Avg Task Time"
@@ -476,19 +480,22 @@ export function AdminDashboard() {
         </TabsList>
 
         {/* ---------- TASKS TAB ---------- */}
-        <TabsContent value="tasks" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Status breakdown */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-blue-50/70 to-indigo-50/70">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+        <TabsContent value="tasks" className="space-y-8">
+          {/* Overview Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* STATUS BREAKDOWN */}
+            <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 backdrop-blur-sm">
+                <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-blue-600" />
                   Task Status Distribution
                 </CardTitle>
-                <CardDescription>Current task status breakdown</CardDescription>
+                <CardDescription className="text-slate-500 text-sm">
+                  Overview of current task progress
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {(dashboardData.tasks.byStatus || []).map((g) => {
                     const pct =
                       dashboardData.tasks.total > 0
@@ -506,14 +513,14 @@ export function AdminDashboard() {
                               {titleCase(g.status)}
                             </span>
                           </div>
-                          <span className="text-sm font-medium text-slate-900">
+                          <span className="text-sm font-semibold text-slate-800">
                             {g.count} ({pct.toFixed(1)}%)
                           </span>
                         </div>
                         <Progress
                           value={pct}
                           className={cn(
-                            "h-2.5 bg-slate-200 [&>div]:rounded-full",
+                            "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
                             `[&>div]:${color}`
                           )}
                         />
@@ -524,21 +531,23 @@ export function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Priority breakdown */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-purple-50/70 to-violet-50/70">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            {/* PRIORITY BREAKDOWN */}
+            <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-purple-50/70 to-violet-50/70 backdrop-blur-sm">
+                <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                   <Target className="h-5 w-5 text-purple-600" />
                   Task Priority Breakdown
                 </CardTitle>
-                <CardDescription>Tasks by urgency</CardDescription>
+                <CardDescription className="text-slate-500 text-sm">
+                  Breakdown by urgency and importance
+                </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {(dashboardData.tasks.byPriority || []).map((g) => {
                     const pct =
                       dashboardData.tasks.total > 0
-                        ? g.count / dashboardData.tasks.total + 100
+                        ? (g.count / dashboardData.tasks.total) * 100
                         : 0;
                     const color = PRIORITY_COLOR[g.priority] || "bg-slate-400";
                     return (
@@ -552,14 +561,14 @@ export function AdminDashboard() {
                               {g.priority}
                             </span>
                           </div>
-                          <span className="text-sm font-medium text-slate-900">
+                          <span className="text-sm font-semibold text-slate-800">
                             {g.count} ({pct.toFixed(1)}%)
                           </span>
                         </div>
                         <Progress
                           value={pct}
                           className={cn(
-                            "h-2.5 bg-slate-200 [&>div]:rounded-full",
+                            "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
                             `[&>div]:${color}`
                           )}
                         />
@@ -571,73 +580,78 @@ export function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Task Categories */}
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
-            <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70">
-              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          {/* TASK CATEGORIES */}
+          <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70 backdrop-blur-sm">
+              <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                 <Layers className="h-5 w-5 text-cyan-600" />
                 Task Categories
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-slate-500 text-sm">
                 Distribution of tasks by category
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-4">
-                {taskCategories.length === 0 ? (
-                  <div className="text-sm text-slate-500">
-                    No task categories found.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {taskCategories.map((category) => {
-                      const percentage = parseFloat(category.percentage);
-                      return (
-                        <div key={category.name} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "h-3 w-3 rounded-full",
-                                  category.color
-                                )}
-                              />
-                              <span className="text-sm font-medium text-slate-700">
-                                {category.name}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-slate-900">
-                              {category.count} ({percentage.toFixed(1)}%)
+              {taskCategories.length === 0 ? (
+                <p className="text-sm text-slate-500 italic">
+                  No task categories found.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  {taskCategories.map((category) => {
+                    const percentage = parseFloat(category.percentage);
+                    return (
+                      <div key={category.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "h-3 w-3 rounded-full",
+                                category.color
+                              )}
+                            />
+                            <span className="text-sm font-medium text-slate-700">
+                              {category.name}
                             </span>
                           </div>
-                          <Progress
-                            value={percentage}
-                            className={cn(
-                              "h-2.5 bg-slate-200 [&>div]:rounded-full",
-                              `[&>div]:${category.color}`
-                            )}
-                          />
+                          <span className="text-sm font-semibold text-slate-800">
+                            {category.count} ({percentage.toFixed(1)}%)
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                        <Progress
+                          value={percentage}
+                          className={cn(
+                            "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
+                            `[&>div]:${category.color}`
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Latest 5 tasks */}
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
-            <CardHeader className="border-b border-slate-200/70 py-5">
+          {/* RECENT TASKS */}
+          <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <CardHeader className="border-b border-slate-100 py-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-orange-600" />
                     Recent Tasks
                   </CardTitle>
-                  <CardDescription>Latest 5 task activities</CardDescription>
+                  <CardDescription className="text-slate-500 text-sm">
+                    Last 5 task updates
+                  </CardDescription>
                 </div>
-                <Button asChild variant="ghost" size="sm" className="gap-1">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                >
                   <Link href="/admin/tasks">
                     View all <ChevronDown className="h-4 w-4" />
                   </Link>
@@ -645,96 +659,101 @@ export function AdminDashboard() {
               </div>
             </CardHeader>
             <CardContent className="p-5">
-              <div className="space-y-4">
-                {recentTasks.length === 0 && (
-                  <div className="text-sm text-slate-500">No recent tasks.</div>
-                )}
-                {recentTasks.map((task) => {
-                  const isCompleted = task.status === "completed";
-                  const isInProgress = task.status === "in_progress";
-                  const isOverdue = task.status === "overdue";
-                  return (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-slate-100/60"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "h-10 w-10 rounded-full flex items-center justify-center shadow-sm",
-                            isCompleted
-                              ? "bg-emerald-100 text-emerald-600"
-                              : isInProgress
-                              ? "bg-blue-100 text-blue-600"
-                              : isOverdue
-                              ? "bg-red-100 text-red-600"
-                              : "bg-slate-100 text-slate-600"
-                          )}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle2 className="h-5 w-5" />
-                          ) : isInProgress ? (
-                            <Clock className="h-5 w-5" />
-                          ) : (
-                            <Calendar className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {task.name}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            {task.clientName && <span>{task.clientName}</span>}
-                            {task.assignedToName && (
-                              <span>• {task.assignedToName}</span>
+              <div className="space-y-3">
+                {recentTasks.length === 0 ? (
+                  <p className="text-sm text-slate-500 italic">
+                    No recent tasks.
+                  </p>
+                ) : (
+                  recentTasks.map((task) => {
+                    const isCompleted = task.status === "completed";
+                    const isInProgress = task.status === "in_progress";
+                    const isOverdue = task.status === "overdue";
+                    return (
+                      <div
+                        key={task.id}
+                        className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              "h-10 w-10 rounded-full flex items-center justify-center shadow-inner",
+                              isCompleted
+                                ? "bg-emerald-100 text-emerald-600"
+                                : isInProgress
+                                ? "bg-blue-100 text-blue-600"
+                                : isOverdue
+                                ? "bg-red-100 text-red-600"
+                                : "bg-slate-100 text-slate-600"
                             )}
-                            {task.categoryName && (
-                              <span>• {task.categoryName}</span>
-                            )}
-                            {task.dueDate && (
-                              <span>
-                                • Due{" "}
-                                {new Date(task.dueDate).toLocaleDateString()}
-                              </span>
+                          >
+                            {isCompleted ? (
+                              <CheckCircle2 className="h-5 w-5" />
+                            ) : isInProgress ? (
+                              <Clock className="h-5 w-5" />
+                            ) : (
+                              <Calendar className="h-5 w-5" />
                             )}
                           </div>
+                          <div>
+                            <p className="font-medium text-slate-800">
+                              {task.name}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                              {task.clientName && (
+                                <span>{task.clientName}</span>
+                              )}
+                              {task.assignedToName && (
+                                <span>• {task.assignedToName}</span>
+                              )}
+                              {task.categoryName && (
+                                <span>• {task.categoryName}</span>
+                              )}
+                              {task.dueDate && (
+                                <span>
+                                  • Due{" "}
+                                  {new Date(task.dueDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "font-medium border rounded-md px-2 py-0.5 text-xs tracking-wide",
+                              task.priority === "urgent"
+                                ? "bg-red-50 text-red-700 border-red-200"
+                                : task.priority === "high"
+                                ? "bg-orange-50 text-orange-700 border-orange-200"
+                                : task.priority === "medium"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                : "bg-green-50 text-green-700 border-green-200"
+                            )}
+                          >
+                            {task.priority.toUpperCase()}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "font-medium border rounded-md px-2 py-0.5 text-xs tracking-wide",
+                              isCompleted
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : isInProgress
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : isOverdue
+                                ? "bg-red-50 text-red-700 border-red-200"
+                                : "bg-slate-50 text-slate-700 border-slate-200"
+                            )}
+                          >
+                            {titleCase(task.status)}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "font-medium",
-                            task.priority === "urgent"
-                              ? "bg-red-50 text-red-700 border-red-200"
-                              : task.priority === "high"
-                              ? "bg-orange-50 text-orange-700 border-orange-200"
-                              : task.priority === "medium"
-                              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                              : "bg-green-50 text-green-700 border-green-200"
-                          )}
-                        >
-                          {task.priority.toUpperCase()}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "font-medium",
-                            isCompleted
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : isInProgress
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : isOverdue
-                              ? "bg-red-50 text-red-700 border-red-200"
-                              : "bg-slate-100 text-slate-700 border-slate-200"
-                          )}
-                        >
-                          {titleCase(task.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1271,38 +1290,45 @@ interface MetricCardProps {
 function MetricCard({
   title,
   value,
-  change,
-  trend,
   description,
   icon,
   gradient = "from-blue-500 to-cyan-500",
   subMetric,
 }: MetricCardProps) {
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/60 backdrop-blur-sm group">
+    <Card
+      className={cn(
+        "overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-sm",
+        "shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+      )}
+    >
       <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div
-            className={cn(
-              "p-3 rounded-xl text-white shadow-md flex items-center justify-center",
-              "bg-gradient-to-r",
-              gradient
-            )}
-          >
-            {icon}
-          </div>
-
+        {/* Icon */}
+        <div
+          className={cn(
+            "p-3 rounded-xl text-white shadow-md shadow-slate-300/30 w-fit",
+            "bg-gradient-to-r",
+            gradient
+          )}
+        >
+          {icon}
         </div>
 
+        {/* Value + Title */}
         <div className="mt-5">
-          <h3 className="text-3xl font-extrabold text-slate-900">{value}</h3>
+          <h3 className="text-4xl font-bold tracking-tight text-slate-900">
+            {value}
+          </h3>
           <p className="text-sm text-slate-600 mt-1 font-medium">{title}</p>
         </div>
 
-        <div className="flex items-center justify-between mt-4">
+        {/* Description */}
+        <div className="mt-6 border-t border-slate-100 pt-3">
           <p className="text-xs text-slate-500">{description}</p>
           {subMetric && (
-            <p className="text-xs text-slate-400 font-medium">{subMetric}</p>
+            <p className="text-xs text-slate-400 font-semibold mt-1">
+              {subMetric}
+            </p>
           )}
         </div>
       </CardContent>
