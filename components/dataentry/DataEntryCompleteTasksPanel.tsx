@@ -732,6 +732,27 @@ export default function DataEntryCompleteTasksPanel({
     }
   }, [link, username]); // Added username to dependencies to prevent unnecessary re-runs
 
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && clientId) {
+        const key = `lastUsedAgent_${clientId}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          setLastUsedAgent(saved);
+        }
+      }
+    } catch {}
+  }, [clientId]);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && clientId && lastUsedAgent) {
+        const key = `lastUsedAgent_${clientId}`;
+        localStorage.setItem(key, lastUsedAgent);
+      }
+    } catch {}
+  }, [clientId, lastUsedAgent]);
+
   const submit = async () => {
     if (!user?.id || !selected) return;
     if (!link.trim()) {
@@ -971,6 +992,25 @@ export default function DataEntryCompleteTasksPanel({
                     }}
                   />
                 )}
+
+                {showCreateNextButton && (
+                  <CreateNextTasksAuto
+                    clientId={clientId}
+                    assigneeId={lastUsedAgent || undefined}
+                    onComplete={() => {
+                      // Mark CreateNextButton as clicked
+                      try {
+                        if (typeof window !== "undefined") {
+                          const key = `createNextClicked_${clientId}`;
+                          localStorage.setItem(key, "true");
+                          setShowCreateNextButton(false);
+                        }
+                      } catch {
+                        // Ignore localStorage errors
+                      }
+                    }}
+                  />
+                )}
               </div>
               <Dialog
                 open={createTasksChoiceOpen}
@@ -1103,70 +1143,9 @@ export default function DataEntryCompleteTasksPanel({
                               No Tasks Found
                             </h3>
                             <p className="text-slate-500 font-medium">
-                              There are currently no tasks matching your
-                              criteria
+                              You have completed all tasks for this client.
                             </p>
                           </div>
-                          <>
-                            <Button
-                              onClick={() => setCreateNextChoiceOpen(true)}
-                              className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
-                            >
-                              Create Remaining Tasks
-                            </Button>
-
-                            <Dialog
-                              open={createNextChoiceOpen}
-                              onOpenChange={setCreateNextChoiceOpen}
-                            >
-                              <DialogContent className="sm:max-w-lg">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Choose generation mode
-                                  </DialogTitle>
-                                </DialogHeader>
-                                <div className="grid gap-4">
-                                  <div className="rounded-lg border p-4">
-                                    <div className="font-semibold mb-2">
-                                      Auto
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-3">
-                                      Create all remaining tasks and auto-assign
-                                      to the top agent.
-                                    </p>
-                                    <CreateNextTasksAuto
-                                      clientId={clientId}
-                                      onCreated={() => {
-                                        setCreateNextChoiceOpen(false);
-                                        load();
-                                      }}
-                                    />
-                                  </div>
-                                  {/* <div className="rounded-lg border p-4">
-                                      <div className="font-semibold mb-2">Manual</div>
-                                      <p className="text-sm text-muted-foreground mb-3">Use the manual flow to create remaining tasks.</p>
-                                      <CreateNextTask
-                                        clientId={clientId}
-                                        onCreated={() => {
-                                          setCreateNextChoiceOpen(false);
-                                          load();
-                                        }}
-                                      />
-                                    </div> */}
-                                </div>
-                                <DialogFooter>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() =>
-                                      setCreateNextChoiceOpen(false)
-                                    }
-                                  >
-                                    Close
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </>
                         </div>
                         {q ||
                         statusFilter !== "all" ||
