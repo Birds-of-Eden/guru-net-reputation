@@ -17,6 +17,7 @@ export async function GET(request: Request) {
           name: true,
           description: true,
           totalMonths: true,
+          type: true,
           createdAt: true,
           updatedAt: true,
           _count: { select: { clients: true, templates: true } },
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
         name: true,
         description: true,
         totalMonths: true,
+        type: true,
         createdAt: true,
         updatedAt: true,
         _count: { select: { clients: true, templates: true } },
@@ -118,6 +120,7 @@ export async function GET(request: Request) {
         name: p.name,
         description: p.description,
         totalMonths: p.totalMonths,
+        type: p.type,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
         stats: {
@@ -153,10 +156,11 @@ export async function POST(request: Request) {
       (typeof headerActor === "string" && headerActor) ||
       null;
 
-    let { name, description, totalMonths } = body as {
+    let { name, description, totalMonths, type } = body as {
       name?: string;
       description?: string | null;
       totalMonths?: number | string | null;
+      type?: string;
     };
 
     // Basic validation
@@ -194,7 +198,8 @@ export async function POST(request: Request) {
         data: {
           name: name.trim(),
           description: description?.trim() || null,
-          totalMonths: totalMonths as number | null, // ✅ save new field
+          totalMonths: totalMonths as number | null,
+          type: type || "INDIVIDUAL", // ✅ save package type
         },
       });
 
@@ -209,7 +214,8 @@ export async function POST(request: Request) {
           details: {
             name: pkg.name,
             description: pkg.description ?? null,
-            totalMonths: pkg.totalMonths ?? null, // ✅ include in log
+            totalMonths: pkg.totalMonths ?? null,
+            type: pkg.type ?? null, // ✅ include type in log
           },
         },
       });

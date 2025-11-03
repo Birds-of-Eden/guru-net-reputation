@@ -19,6 +19,8 @@ export async function GET(
         id: true,
         name: true,
         description: true,
+        totalMonths: true,
+        type: true,
         _count: {
           select: {
             clients: true,
@@ -50,7 +52,7 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { name, description } = body;
+    const { name, description, type, totalMonths } = body;
     const actorId =
       (typeof body.actorId === "string" && body.actorId) ||
       (typeof (req.headers.get("x-actor-id") || "") === "string" &&
@@ -70,6 +72,8 @@ export async function PUT(
           ...(description !== undefined
             ? { description: description || null }
             : {}),
+          ...(type !== undefined ? { type } : {}),
+          ...(totalMonths !== undefined ? { totalMonths } : {}),
         },
       });
 
@@ -117,7 +121,11 @@ export async function DELETE(
       (req.headers.get("x-actor-id") as string | null) ??
       null;
 
-    console.log(`[Package Delete Cascade] START packageId=${packageId}, actorId=${actorId || "null"}`);
+    console.log(
+      `[Package Delete Cascade] START packageId=${packageId}, actorId=${
+        actorId || "null"
+      }`
+    );
 
     await prisma.$transaction(async (tx) => {
       // Ensure package exists first (so we can log a nice 404 outside)
@@ -259,10 +267,15 @@ export async function DELETE(
 
     console.log(`[Package Delete Cascade] DONE packageId=${packageId}`);
 
-    return NextResponse.json({ message: "Package deleted successfully (cascade)." });
+    return NextResponse.json({
+      message: "Package deleted successfully (cascade).",
+    });
   } catch (error: any) {
     if (error?.message === "NOT_FOUND") {
-      return NextResponse.json({ error: "Package not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Package not found." },
+        { status: 404 }
+      );
     }
     console.error("[Package Delete Cascade] ERROR:", error);
     return NextResponse.json(
