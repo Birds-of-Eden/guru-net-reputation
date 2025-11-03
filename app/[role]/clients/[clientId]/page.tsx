@@ -51,7 +51,10 @@ async function fetchClient(clientId: string): Promise<Client | null> {
     h.get("x-forwarded-proto") ||
     (host.startsWith("localhost") ? "http" : "https");
 
-  const base = envBase || `${proto}://${host}`;
+  const base =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXTAUTH_URL ||
+    `${proto}://${host}`;
 
   const res = await fetch(`${base}/api/clients/${clientId}`, {
     cache: "no-store",
