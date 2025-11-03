@@ -1,11 +1,18 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +20,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -34,12 +47,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { toast } from "sonner"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
@@ -54,32 +67,32 @@ import {
   UserCheck,
   Building,
   Settings,
-} from "lucide-react"
-import Link from "next/link"
-import { useUserSession } from "@/lib/hooks/use-user-session"
-import { useRoleSegment } from "@/lib/hooks/use-role-segment"
+} from "lucide-react";
+import Link from "next/link";
+import { useUserSession } from "@/lib/hooks/use-user-session";
+import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 
 interface TeamMember {
   agent: {
-    id: string
-    firstName: string | null
-    lastName: string | null
-    email: string
-    image: string | null
-  }
-  role?: string | null
-  assignedDate?: string | null
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    image: string | null;
+  };
+  role?: string | null;
+  assignedDate?: string | null;
 }
 
 interface Team {
-  id: string
-  name: string
-  description: string | null
-  clientMembersCount: number
-  templateMembersCount: number
-  totalMembers: number
-  clientTeamMembers: TeamMember[]
-  templateTeamMembers: TeamMember[]
+  id: string;
+  name: string;
+  description: string | null;
+  clientMembersCount: number;
+  templateMembersCount: number;
+  totalMembers: number;
+  clientTeamMembers: TeamMember[];
+  templateTeamMembers: TeamMember[];
 }
 
 // Enhanced Team Card Component
@@ -89,12 +102,12 @@ function TeamCard({
   onEdit,
   onViewDetails,
 }: {
-  team: Team
-  onDelete: (id: string) => void
-  onEdit: (team: Team) => void
-  onViewDetails: (team: Team) => void
+  team: Team;
+  onDelete: (id: string) => void;
+  onEdit: (team: Team) => void;
+  onViewDetails: (team: Team) => void;
 }) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const getTeamColor = (teamName: string) => {
     const colors = [
@@ -104,10 +117,10 @@ function TeamCard({
       "from-orange-500 to-red-600",
       "from-indigo-500 to-purple-600",
       "from-teal-500 to-blue-600",
-    ]
-    const index = teamName.length % colors.length
-    return colors[index]
-  }
+    ];
+    const index = teamName.length % colors.length;
+    return colors[index];
+  };
 
   return (
     <Card className="group relative overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 hover:scale-[1.02]">
@@ -116,11 +129,17 @@ function TeamCard({
       <CardHeader className="relative pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${getTeamColor(team.name)} shadow-lg`}>
+            <div
+              className={`p-3 rounded-xl bg-gradient-to-br ${getTeamColor(
+                team.name
+              )} shadow-lg`}
+            >
               <TeamIcon className="h-6 w-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-50">{team.name}</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-50">
+                {team.name}
+              </CardTitle>
               <CardDescription className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {team.description || "No description provided"}
               </CardDescription>
@@ -136,33 +155,50 @@ function TeamCard({
       <CardContent className="relative space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{team.clientMembersCount}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">Client Teams</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {team.clientMembersCount}
+            </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">
+              Client Teams
+            </div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{team.templateMembersCount}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">Template Teams</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              {team.templateMembersCount}
+            </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">
+              Template Teams
+            </div>
           </div>
         </div>
 
         {/* Team Members Preview */}
         {team.totalMembers > 0 && (
           <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Recent Members</div>
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Recent Members
+            </div>
             <div className="flex -space-x-2">
-              {[...team.clientTeamMembers, ...team.templateTeamMembers].slice(0, 4).map((member, index) => (
-                <Avatar key={index} className="h-8 w-8 border-2 border-white shadow-sm">
-                  <AvatarImage src={member.agent.image || undefined} />
-                  <AvatarFallback
-                    firstName={member.agent.firstName ?? undefined}
-                    lastName={member.agent.lastName ?? undefined}
-                    className="text-white text-xs"
-                  />
-                </Avatar>
-              ))}
+              {[...team.clientTeamMembers, ...team.templateTeamMembers]
+                .slice(0, 4)
+                .map((member, index) => (
+                  <Avatar
+                    key={index}
+                    className="h-8 w-8 border-2 border-white shadow-sm"
+                  >
+                    <AvatarImage src={member.agent.image || undefined} />
+                    <AvatarFallback
+                      firstName={member.agent.firstName ?? undefined}
+                      lastName={member.agent.lastName ?? undefined}
+                      className="text-white text-xs"
+                    />
+                  </Avatar>
+                ))}
               {team.totalMembers > 4 && (
                 <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-white flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">+{team.totalMembers - 4}</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                    +{team.totalMembers - 4}
+                  </span>
                 </div>
               )}
             </div>
@@ -172,23 +208,35 @@ function TeamCard({
         <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-700">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onViewDetails(team)} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={() => onViewDetails(team)}
+                className="cursor-pointer"
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(team)} className="cursor-pointer">
+              <DropdownMenuItem
+                onClick={() => onEdit(team)}
+                className="cursor-pointer"
+              >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Team
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+              >
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
                     className="text-red-600 focus:text-red-600 cursor-pointer"
@@ -200,10 +248,15 @@ function TeamCard({
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the team "{team.name}"
-                      {team.totalMembers > 0 && ` and affect ${team.totalMembers} team member(s)`}.
+                      This action cannot be undone. This will permanently delete
+                      the team "{team.name}"
+                      {team.totalMembers > 0 &&
+                        ` and affect ${team.totalMembers} team member(s)`}
+                      .
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -223,7 +276,7 @@ function TeamCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // Team List View Component
@@ -233,40 +286,50 @@ function TeamListView({
   onEdit,
   onViewDetails,
 }: {
-  teams: Team[]
-  onDelete: (id: string) => void
-  onEdit: (team: Team) => void
-  onViewDetails: (team: Team) => void
+  teams: Team[];
+  onDelete: (id: string) => void;
+  onEdit: (team: Team) => void;
+  onViewDetails: (team: Team) => void;
 }) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [teamToDeleteId, setTeamToDeleteId] = useState<string | null>(null)
-  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [teamToDeleteId, setTeamToDeleteId] = useState<string | null>(null);
+  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null);
 
   const confirmDelete = (team: Team) => {
-    setTeamToDelete(team)
-    setTeamToDeleteId(team.id)
-    setIsDeleteDialogOpen(true)
-  }
+    setTeamToDelete(team);
+    setTeamToDeleteId(team.id);
+    setIsDeleteDialogOpen(true);
+  };
 
   const executeDelete = () => {
     if (teamToDeleteId) {
-      onDelete(teamToDeleteId)
-      setIsDeleteDialogOpen(false)
-      setTeamToDeleteId(null)
-      setTeamToDelete(null)
+      onDelete(teamToDeleteId);
+      setIsDeleteDialogOpen(false);
+      setTeamToDeleteId(null);
+      setTeamToDelete(null);
     }
-  }
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700">
-            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Team</TableHead>
-            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Members</TableHead>
-            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Client Teams</TableHead>
-            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Template Teams</TableHead>
-            <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
+            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+              Team
+            </TableHead>
+            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+              Members
+            </TableHead>
+            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+              Client Teams
+            </TableHead>
+            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
+              Template Teams
+            </TableHead>
+            <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -278,9 +341,12 @@ function TeamListView({
                     <TeamIcon className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">No teams found</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+                      No teams found
+                    </h3>
                     <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                      No teams match your search criteria. Try adjusting your search terms.
+                      No teams match your search criteria. Try adjusting your
+                      search terms.
                     </p>
                   </div>
                 </div>
@@ -298,7 +364,9 @@ function TeamListView({
                       <TeamIcon className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 dark:text-gray-50">{team.name}</div>
+                      <div className="font-semibold text-gray-900 dark:text-gray-50">
+                        {team.name}
+                      </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {team.description || "No description"}
                       </div>
@@ -313,16 +381,26 @@ function TeamListView({
                     </Badge>
                     {team.totalMembers > 0 && (
                       <div className="flex -space-x-1">
-                        {[...team.clientTeamMembers, ...team.templateTeamMembers].slice(0, 3).map((member, index) => (
-                          <Avatar key={index} className="h-6 w-6 border border-white">
-                            <AvatarImage src={member.agent.image || undefined} />
-                            <AvatarFallback
-                              firstName={member.agent.firstName ?? undefined}
-                              lastName={member.agent.lastName ?? undefined}
-                              className="text-white text-xs"
-                            />
-                          </Avatar>
-                        ))}
+                        {[
+                          ...team.clientTeamMembers,
+                          ...team.templateTeamMembers,
+                        ]
+                          .slice(0, 3)
+                          .map((member, index) => (
+                            <Avatar
+                              key={index}
+                              className="h-6 w-6 border border-white"
+                            >
+                              <AvatarImage
+                                src={member.agent.image || undefined}
+                              />
+                              <AvatarFallback
+                                firstName={member.agent.firstName ?? undefined}
+                                lastName={member.agent.lastName ?? undefined}
+                                className="text-white text-xs"
+                              />
+                            </Avatar>
+                          ))}
                       </div>
                     )}
                   </div>
@@ -346,18 +424,27 @@ function TeamListView({
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      >
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => onViewDetails(team)} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => onViewDetails(team)}
+                        className="cursor-pointer"
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit(team)} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => onEdit(team)}
+                        className="cursor-pointer"
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Team
                       </DropdownMenuItem>
@@ -379,12 +466,16 @@ function TeamListView({
         </TableBody>
       </Table>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the team "{teamToDelete?.name}"
+              This action cannot be undone. This will permanently delete the
+              team "{teamToDelete?.name}"
               {teamToDelete &&
                 teamToDelete.totalMembers > 0 &&
                 ` and affect ${teamToDelete.totalMembers} team member(s)`}
@@ -398,13 +489,15 @@ function TeamListView({
               className="bg-red-600 hover:bg-red-700"
               disabled={teamToDelete ? teamToDelete.totalMembers > 0 : false}
             >
-              {teamToDelete && teamToDelete.totalMembers > 0 ? "Cannot Delete" : "Delete"}
+              {teamToDelete && teamToDelete.totalMembers > 0
+                ? "Cannot Delete"
+                : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
 
 // Team Details Dialog
@@ -413,11 +506,11 @@ function TeamDetailsDialog({
   isOpen,
   onOpenChange,
 }: {
-  team: Team | null
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
+  team: Team | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  if (!team) return null
+  if (!team) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -428,7 +521,9 @@ function TeamDetailsDialog({
               <TeamIcon className="h-8 w-8 text-white" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">{team.name}</DialogTitle>
+              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
+                {team.name}
+              </DialogTitle>
               <DialogDescription className="text-gray-600 dark:text-gray-400 mt-1">
                 {team.description || "No description provided"}
               </DialogDescription>
@@ -445,8 +540,12 @@ function TeamDetailsDialog({
           <div className="grid grid-cols-2 gap-4">
             <Card className="border-green-200 dark:border-green-800">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{team.clientMembersCount}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Client Team Members</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {team.clientMembersCount}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Client Team Members
+                </div>
               </CardContent>
             </Card>
             <Card className="border-purple-200 dark:border-purple-800">
@@ -454,7 +553,9 @@ function TeamDetailsDialog({
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {team.templateMembersCount}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Template Team Members</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Template Team Members
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -486,10 +587,15 @@ function TeamDetailsDialog({
                       <div className="font-medium text-gray-900 dark:text-gray-50">
                         {member.agent.firstName} {member.agent.lastName}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{member.agent.email}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {member.agent.email}
+                      </div>
                     </div>
                     {member.role && (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-green-100 text-green-800 border-green-200"
+                      >
                         {member.role}
                       </Badge>
                     )}
@@ -524,10 +630,15 @@ function TeamDetailsDialog({
                       <div className="font-medium text-gray-900 dark:text-gray-50">
                         {member.agent.firstName} {member.agent.lastName}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{member.agent.email}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {member.agent.email}
+                      </div>
                     </div>
                     {member.role && (
-                      <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-purple-100 text-purple-800 border-purple-200"
+                      >
                         {member.role}
                       </Badge>
                     )}
@@ -542,13 +653,15 @@ function TeamDetailsDialog({
               <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-fit mx-auto mb-4">
                 <Users className="h-8 w-8 text-gray-400" />
               </div>
-              <p className="text-gray-500 dark:text-gray-400">No team members assigned yet</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                No team members assigned yet
+              </p>
             </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 // Edit Team Dialog
@@ -558,44 +671,44 @@ function EditTeamDialog({
   onOpenChange,
   onSave,
 }: {
-  team: Team | null
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (teamData: { id: string; name: string; description: string }) => void
+  team: Team | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (teamData: { id: string; name: string; description: string }) => void;
 }) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (team) {
       setFormData({
         name: team.name,
         description: team.description || "",
-      })
+      });
     }
-  }, [team])
+  }, [team]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!team || !formData.name.trim()) return
+    e.preventDefault();
+    if (!team || !formData.name.trim()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await onSave({
         id: team.id,
         name: formData.name.trim(),
         description: formData.description.trim(),
-      })
-      onOpenChange(false)
+      });
+      onOpenChange(false);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  if (!team) return null
+  if (!team) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -605,7 +718,9 @@ function EditTeamDialog({
             <Edit className="h-5 w-5 text-blue-500" />
             <span>Edit Team</span>
           </DialogTitle>
-          <DialogDescription>Update the team information below.</DialogDescription>
+          <DialogDescription>
+            Update the team information below.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -617,7 +732,9 @@ function EditTeamDialog({
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="Enter team name"
                 className="h-10 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-50 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
@@ -630,7 +747,12 @@ function EditTeamDialog({
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Enter team description (optional)"
                 rows={3}
                 className="resize-none"
@@ -639,7 +761,12 @@ function EditTeamDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button
@@ -660,63 +787,65 @@ function EditTeamDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export default function TeamsPage() {
-  const [teams, setTeams] = useState<Team[]>([])
-  const [avgCompletionTime, setAvgCompletionTime] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"list" | "card">("list")
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null)
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [avgCompletionTime, setAvgCompletionTime] = useState<number | null>(
+    null
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [teamToEdit, setTeamToEdit] = useState<Team | null>(null);
 
-  const { user, loading: sessionLoading } = useUserSession()
-  const roleSegment = useRoleSegment()
-  const teamsBasePath = `/${roleSegment}/teams`
+  const { user, loading: sessionLoading } = useUserSession();
+  const roleSegment = useRoleSegment();
+  const teamsBasePath = `/${roleSegment}/teams`;
 
   const fetchTeams = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/api/teams")
+      const response = await fetch("/api/teams");
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data: Team[] = await response.json()
-      setTeams(data)
+      const data: Team[] = await response.json();
+      setTeams(data);
     } catch (err: any) {
-      setError(err.message || "Failed to fetch teams.")
-      console.error("Failed to fetch teams:", err)
+      setError(err.message || "Failed to fetch teams.");
+      console.error("Failed to fetch teams:", err);
       toast.error(err.message || "Failed to fetch teams. Please try again.", {
         description: "Error fetching teams",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchTeams()
-  }, [fetchTeams])
+    fetchTeams();
+  }, [fetchTeams]);
 
   // Fetch avgCompletionTime once for display in the KPI card
   useEffect(() => {
     const fetchAvg = async () => {
       try {
-        const res = await fetch("/api/dashboardStats", { cache: "no-store" })
-        const json = await res.json().catch(() => null)
+        const res = await fetch("/api/dashboardStats", { cache: "no-store" });
+        const json = await res.json().catch(() => null);
         if (res.ok && json?.tasks?.avgCompletionTime != null) {
-          setAvgCompletionTime(Number(json.tasks.avgCompletionTime))
+          setAvgCompletionTime(Number(json.tasks.avgCompletionTime));
         }
       } catch {}
-    }
-    fetchAvg()
-  }, [])
+    };
+    fetchAvg();
+  }, []);
 
   const handleDeleteTeam = async (teamId: string) => {
     try {
@@ -726,32 +855,36 @@ export default function TeamsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: teamId }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to delete team")
+        throw new Error(result.message || "Failed to delete team");
       }
 
-      setTeams((prevTeams) => prevTeams.filter((team) => team.id !== teamId))
+      setTeams((prevTeams) => prevTeams.filter((team) => team.id !== teamId));
       toast.success("Team deleted successfully!", {
         description: "The team has been permanently removed.",
-      })
+      });
     } catch (err: any) {
-      console.error("Failed to delete team:", err)
+      console.error("Failed to delete team:", err);
       toast.error(err.message || "Failed to delete team. Please try again.", {
         description: "Error deleting team",
-      })
+      });
     }
-  }
+  };
 
   const handleEditTeam = (team: Team) => {
-    setTeamToEdit(team)
-    setIsEditDialogOpen(true)
-  }
+    setTeamToEdit(team);
+    setIsEditDialogOpen(true);
+  };
 
-  const handleSaveTeam = async (teamData: { id: string; name: string; description: string }) => {
+  const handleSaveTeam = async (teamData: {
+    id: string;
+    name: string;
+    description: string;
+  }) => {
     try {
       const response = await fetch("/api/teams", {
         method: "PUT",
@@ -759,50 +892,56 @@ export default function TeamsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(teamData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to update team")
+        throw new Error(result.message || "Failed to update team");
       }
 
-      setTeams((prevTeams) => prevTeams.map((team) => (team.id === teamData.id ? { ...team, ...result.team } : team)))
+      setTeams((prevTeams) =>
+        prevTeams.map((team) =>
+          team.id === teamData.id ? { ...team, ...result.team } : team
+        )
+      );
 
       toast.success("Team updated successfully!", {
         description: "The team information has been saved.",
-      })
+      });
     } catch (err: any) {
-      console.error("Failed to update team:", err)
+      console.error("Failed to update team:", err);
       toast.error(err.message || "Failed to update team. Please try again.", {
         description: "Error updating team",
-      })
+      });
     }
-  }
+  };
 
   const handleViewDetails = (team: Team) => {
-    setSelectedTeam(team)
-    setIsDetailsDialogOpen(true)
-  }
+    setSelectedTeam(team);
+    setIsDetailsDialogOpen(true);
+  };
 
   const filteredTeams = teams.filter(
     (team) =>
       team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (team.description && team.description.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+      (team.description &&
+        team.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
-  const totalTeams = teams.length
-  const totalMembers = teams.reduce((sum, team) => sum + team.totalMembers, 0)
-  const averageMembersPerTeam = totalTeams > 0 ? Math.round(totalMembers / totalTeams) : 0
+  const totalTeams = teams.length;
+  const totalMembers = teams.reduce((sum, team) => sum + team.totalMembers, 0);
+  const averageMembersPerTeam =
+    totalTeams > 0 ? Math.round(totalMembers / totalTeams) : 0;
 
   useEffect(() => {
     if (error) {
       toast.error(error, {
         description: "Failed to load teams. Please try again.",
-      })
-      setError(null) // Clear error after showing toast
+      });
+      setError(null); // Clear error after showing toast
     }
-  }, [error])
+  }, [error]);
 
   if (loading || sessionLoading) {
     return (
@@ -810,11 +949,13 @@ export default function TeamsPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-lg text-gray-600 dark:text-gray-400">Loading teams...</p>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Loading teams...
+            </p>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
@@ -826,13 +967,17 @@ export default function TeamsPage() {
               <TeamIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
             <div className="space-y-2">
-              <p className="text-lg font-medium text-red-600 dark:text-red-400">Access Denied</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Please log in to access team management.</p>
+              <p className="text-lg font-medium text-red-600 dark:text-red-400">
+                Access Denied
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Please log in to access team management.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -842,10 +987,12 @@ export default function TeamsPage() {
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent py-6">
                 Team Management
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">Create, manage, and organize your teams</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">
+                Create, manage, and organize your teams
+              </p>
             </div>
             <Link href={`${teamsBasePath}/create`}>
               <Button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 text-base">
@@ -860,35 +1007,49 @@ export default function TeamsPage() {
             <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-100">Total Teams</CardTitle>
+                <CardTitle className="text-sm font-medium text-blue-100">
+                  Total Teams
+                </CardTitle>
                 <div className="p-2 bg-white/20 rounded-lg">
                   <TeamIcon className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative">
-                <div className="text-3xl font-bold text-white">{totalTeams}</div>
-                <p className="text-xs text-blue-100 mt-1">Active teams in system</p>
+                <div className="text-3xl font-bold text-white">
+                  {totalTeams}
+                </div>
+                <p className="text-xs text-blue-100 mt-1">
+                  Active teams in system
+                </p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-emerald-100">Total Members</CardTitle>
+                <CardTitle className="text-sm font-medium text-emerald-100">
+                  Total Members
+                </CardTitle>
                 <div className="p-2 bg-white/20 rounded-lg">
                   <Users className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative">
-                <div className="text-3xl font-bold text-white">{totalMembers}</div>
-                <p className="text-xs text-emerald-100 mt-1">Across all teams</p>
+                <div className="text-3xl font-bold text-white">
+                  {totalMembers}
+                </div>
+                <p className="text-xs text-emerald-100 mt-1">
+                  Across all teams
+                </p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-purple-100">Avg. Completion Time</CardTitle>
+                <CardTitle className="text-sm font-medium text-purple-100">
+                  Avg. Completion Time
+                </CardTitle>
                 <div className="p-2 bg-white/20 rounded-lg">
                   <UserCheck className="h-5 w-5 text-white" />
                 </div>
@@ -898,7 +1059,9 @@ export default function TeamsPage() {
                   <div className="text-3xl font-bold text-white">
                     {avgCompletionTime != null ? `${avgCompletionTime}m` : "-"}
                   </div>
-                  <p className="text-xs text-purple-100 mt-1">Average completion time (minutes)</p>
+                  <p className="text-xs text-purple-100 mt-1">
+                    Average completion time (minutes)
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -913,7 +1076,9 @@ export default function TeamsPage() {
                     <TeamIcon className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">Teams Overview</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
+                      Teams Overview
+                    </CardTitle>
                     <CardDescription className="text-gray-600 dark:text-gray-400 text-base">
                       Search, manage, and organize your teams
                     </CardDescription>
@@ -980,9 +1145,12 @@ export default function TeamsPage() {
                           <TeamIcon className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="space-y-3">
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">No teams found</h3>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+                            No teams found
+                          </h3>
                           <p className="text-gray-500 dark:text-gray-400 max-w-md">
-                            No teams match your search criteria. Try adjusting your search terms.
+                            No teams match your search criteria. Try adjusting
+                            your search terms.
                           </p>
                         </div>
                       </div>
@@ -1006,8 +1174,14 @@ export default function TeamsPage() {
                 <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Showing{" "}
-                    <span className="font-semibold text-gray-900 dark:text-gray-50">{filteredTeams.length}</span> of{" "}
-                    <span className="font-semibold text-gray-900 dark:text-gray-50">{teams.length}</span> teams
+                    <span className="font-semibold text-gray-900 dark:text-gray-50">
+                      {filteredTeams.length}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-gray-900 dark:text-gray-50">
+                      {teams.length}
+                    </span>{" "}
+                    teams
                   </p>
                 </div>
               )}
@@ -1016,7 +1190,11 @@ export default function TeamsPage() {
         </div>
 
         {/* Dialogs */}
-        <TeamDetailsDialog team={selectedTeam} isOpen={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen} />
+        <TeamDetailsDialog
+          team={selectedTeam}
+          isOpen={isDetailsDialogOpen}
+          onOpenChange={setIsDetailsDialogOpen}
+        />
         <EditTeamDialog
           team={teamToEdit}
           isOpen={isEditDialogOpen}
@@ -1025,5 +1203,5 @@ export default function TeamsPage() {
         />
       </div>
     </div>
-  )
+  );
 }

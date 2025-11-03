@@ -9,12 +9,14 @@ interface CreateNextTaskProps {
   clientId: string;
   onCreated?: () => void;
   onComplete?: () => void;
+  assigneeId?: string;
 }
 
 export default function CreateNextTask({
   clientId,
   onCreated,
   onComplete,
+  assigneeId,
 }: CreateNextTaskProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,7 +27,7 @@ export default function CreateNextTask({
       const res = await fetch("/api/tasks/remain-tasks-create-and-distrubution", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId }),
+        body: JSON.stringify({ clientId, assigneeId }),
       });
 
       const json = await res.json().catch(() => ({}));

@@ -1,30 +1,34 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { CheckIcon, Sparkles } from 'lucide-react'
-import { cn } from "@/lib/utils"
+import type React from "react";
+import { CheckIcon, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Step {
-  id: number
-  title: string
-  component: React.ComponentType<any>
+  id: number;
+  title: string;
+  component: React.ComponentType<any>;
 }
 
 interface StepIndicatorProps {
-  steps: Step[]
-  currentStep: number
-  onStepClick?: (stepId: number) => void
+  steps: Step[];
+  currentStep: number;
+  onStepClick?: (stepId: number) => void;
 }
 
-export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicatorProps) {
-  const progress = ((currentStep - 1) / (steps.length - 1)) * 100
+export function StepIndicator({
+  steps,
+  currentStep,
+  onStepClick,
+}: StepIndicatorProps) {
+  const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
 
   return (
     <nav aria-label="Progress" className="mb-16">
       {/* Progress Bar */}
       <div className="max-w-5xl mx-auto mb-8 px-4">
         <div className="relative h-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
-          <div 
+          <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-full transition-all duration-700 ease-out shadow-lg"
             style={{ width: `${progress}%` }}
           >
@@ -45,20 +49,23 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
       <div className="overflow-x-auto pb-6 scrollbar-hide">
         <ol className="flex items-center justify-center gap-3 md:gap-6 min-w-max px-4">
           {steps.map((step, idx) => {
-            const isCompleted = step.id < currentStep
-            const isActive = step.id === currentStep
+            const isCompleted = step.id < currentStep;
+            const isActive = step.id === currentStep;
 
             return (
-              <li key={step.title} className="relative flex flex-col items-center min-w-0 group">
+              <li
+                key={step.title}
+                className="relative flex flex-col items-center min-w-0 group"
+              >
                 {/* Connector Line */}
                 {idx !== 0 && (
                   <div className="absolute -left-4 md:-left-8 top-6 w-8 md:w-16 h-[2px] flex items-center">
                     <div className="w-full h-full bg-gray-200 rounded-full" />
-                    <div 
+                    <div
                       className={cn(
                         "absolute inset-0 h-full rounded-full transition-all duration-500 ease-out",
-                        isCompleted 
-                          ? "bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 w-full" 
+                        isCompleted
+                          ? "bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 w-full"
                           : "w-0"
                       )}
                     />
@@ -71,7 +78,7 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                   {isActive && (
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 blur-xl opacity-60 animate-pulse" />
                   )}
-                  
+
                   {/* Step Circle */}
                   <div
                     className={cn(
@@ -79,8 +86,8 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                       isCompleted
                         ? "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 border-transparent shadow-xl text-white cursor-pointer hover:shadow-2xl hover:scale-110 hover:rotate-12"
                         : isActive
-                          ? "bg-white border-violet-500 shadow-2xl ring-4 ring-violet-100 scale-110"
-                          : "bg-white/80 border-gray-300 text-gray-400 hover:border-violet-300 hover:shadow-lg hover:scale-105",
+                        ? "bg-white border-violet-500 shadow-2xl ring-4 ring-violet-100 scale-110"
+                        : "bg-white/80 border-gray-300 text-gray-400 hover:border-violet-300 hover:shadow-lg hover:scale-105"
                     )}
                     onClick={() => isCompleted && onStepClick?.(step.id)}
                     role={isCompleted ? "button" : undefined}
@@ -97,7 +104,9 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs font-semibold text-gray-400">{step.id}</span>
+                      <span className="text-xs font-semibold text-gray-400">
+                        {step.id}
+                      </span>
                     )}
                   </div>
 
@@ -117,8 +126,8 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                       isCompleted
                         ? "text-violet-600 cursor-pointer group-hover:text-violet-700 group-hover:scale-105"
                         : isActive
-                          ? "text-gray-900 font-bold text-base"
-                          : "text-gray-500 group-hover:text-gray-700",
+                        ? "text-gray-900 font-bold text-base"
+                        : "text-gray-500 group-hover:text-gray-700"
                     )}
                     onClick={() => isCompleted && onStepClick?.(step.id)}
                     role={isCompleted ? "button" : undefined}
@@ -131,15 +140,19 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
                   )}
                 </div>
               </li>
-            )
+            );
           })}
         </ol>
       </div>
 
       <style jsx global>{`
         @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
         }
         .animate-shimmer {
           animation: shimmer 2s infinite;
@@ -153,5 +166,5 @@ export function StepIndicator({ steps, currentStep, onStepClick }: StepIndicator
         }
       `}</style>
     </nav>
-  )
+  );
 }
