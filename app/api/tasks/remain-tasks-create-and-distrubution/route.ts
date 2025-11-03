@@ -240,6 +240,7 @@ export async function POST(req: NextRequest) {
     const overridePriority = body?.priority
       ? normalizeTaskPriority(body?.priority)
       : undefined;
+    const assigneeIdRaw: string | undefined = body?.assigneeId;
 
     if (!clientId) {
       return NextResponse.json({ message: "clientId is required" }, { status: 400 });
@@ -252,13 +253,26 @@ export async function POST(req: NextRequest) {
       return fail("POST.db-preflight", e);
     }
 
-    // Assign to Top Agent
+    // Assign to requested agent if valid, else Top Agent
     const topAgent = await findTopAgentForClient(clientId);
     if (!topAgent) {
       return NextResponse.json(
         { message: "No available agent found to assign tasks" },
         { status: 400 }
       );
+    }
+
+    let assignedAgent = topAgent as { id: string; name: string | null; email: string | null };
+    if (assigneeIdRaw) {
+      try {
+        const candidate = await prisma.user.findUnique({
+          where: { id: assigneeIdRaw },
+          select: { id: true, name: true, email: true },
+        });
+        if (candidate) {
+          assignedAgent = candidate as any;
+        }
+      } catch {}
     }
 
     // Dates
@@ -481,7 +495,7 @@ export async function POST(req: NextRequest) {
         {
           message: "No remaining occurrences fall within the requested window (today+15WD to dueDate).",
           created: 0,
-          assignedTo: topAgent,
+          assignedTo: assignedAgent,
           tasks: [],
         },
         { status: 200 }
@@ -526,7 +540,7 @@ export async function POST(req: NextRequest) {
         assignment: { connect: { id: assignment.id } },
         client: { connect: { id: clientId } },
         category: { connect: { id: catId } },
-        assignedTo: { connect: { id: topAgent.id } }, // ✅ Top Agent
+        assignedTo: { connect: { id: assignedAgent.id } },
       });
     }
 
@@ -584,7 +598,7 @@ export async function POST(req: NextRequest) {
           assignment: { connect: { id: assignment.id } },
           client: { connect: { id: clientId } },
           category: { connect: { id: scCatId } },
-          assignedTo: { connect: { id: topAgent.id } }, // ✅ Top Agent
+          assignedTo: { connect: { id: assignedAgent.id } },
         });
       }
 
@@ -609,7 +623,7 @@ export async function POST(req: NextRequest) {
           assignment: { connect: { id: assignment.id } },
           client: { connect: { id: clientId } },
           category: { connect: { id: scCatId } },
-          assignedTo: { connect: { id: topAgent.id } }, // ✅ Top Agent
+          assignedTo: { connect: { id: assignedAgent.id } },
         });
       }
     }
@@ -619,7 +633,7 @@ export async function POST(req: NextRequest) {
         {
           message: "All remaining tasks already exist.",
           created: 0,
-          assignedTo: topAgent,
+          assignedTo: assignedAgent,
           tasks: [],
         },
         { status: 200 }
@@ -655,9 +669,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: `Created ${created.length} remaining task(s) with per-month frequency caps and assigned to ${topAgent.name}.`,
+        message: `Created ${created.length} remaining task(s) with per-month frequency caps and assigned to ${assignedAgent.name}.`,
         created: created.length,
-        assignedTo: topAgent,
+        assignedTo: assignedAgent,
         assignmentId: assignment.id,
         cadence: "first at today + 15 working days, then every +7 working days (per-month capped)",
         tasks: created,
