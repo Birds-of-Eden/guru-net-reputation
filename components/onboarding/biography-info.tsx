@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+// Removed Textarea in favor of JoditEditor
 import { Label } from "@/components/ui/label";
 import type { StepProps } from "@/types/onboarding";
 import { Sparkles, FileText, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { hasPermissionClient } from "@/lib/permissions-client";
 import { useAuth } from "@/context/auth-context";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export function BiographyInfo({
   formData,
@@ -129,13 +130,12 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
             <Sparkles className="w-4 h-4 text-amber-500" />
             Biography
           </Label>
-          <Textarea
-            id="biography"
+
+          {/* Replaced JoditEditor with TinyMCE-based RichTextEditor */}
+          <RichTextEditor
             value={formData.biography || ""}
-            onChange={(e) => updateFormData({ biography: e.target.value })}
-            placeholder="Write about yourself, your experience, achievements, and what makes you unique..."
-            className="min-h-[320px] resize-none border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl text-base leading-relaxed"
-            disabled={isGenerating}
+            onChange={(content: string) => updateFormData({ biography: content })}
+            height={320}
           />
 
           <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl">

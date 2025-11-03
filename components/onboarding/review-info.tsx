@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, FC, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import {
   Download,
   CheckCircle,
@@ -694,17 +695,22 @@ export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
           )}
 
           {/* Biography */}
-          {formData.biography && (
-            <ReviewSectionCard
-              icon={FileText}
-              title="Biography"
-              gradient="from-cyan-50 to-blue-50"
-            >
-              <p className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200">
-                {formData.biography}
-              </p>
-            </ReviewSectionCard>
-          )}
+{formData.biography && (
+  <ReviewSectionCard
+    icon={FileText}
+    title="Biography"
+    gradient="from-cyan-50 to-blue-50"
+  >
+    <div
+      className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(formData.biography, {
+          USE_PROFILES: { html: true },
+        }),
+      }}
+    />
+  </ReviewSectionCard>
+)}
 
           {/* Assets & Images */}
           {(avatarPreviewUrl || formData.imageDrivelink) && (
