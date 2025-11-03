@@ -9,7 +9,7 @@ import { Sparkles, FileText, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { hasPermissionClient } from "@/lib/permissions-client";
 import { useAuth } from "@/context/auth-context";
-import RichTextEditor from "@/components/RichTextEditor";
+import JoditEditorComponent from "@/components/JoditEditor";
 
 export function BiographyInfo({
   formData,
@@ -131,11 +131,12 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
             Biography
           </Label>
 
-          {/* Replaced JoditEditor with TinyMCE-based RichTextEditor */}
-          <RichTextEditor
-            value={formData.biography || ""}
-            onChange={(content: string) => updateFormData({ biography: content })}
+          {/* Replaced Textarea with JoditEditorComponent */}
+          <JoditEditorComponent
+            initialValue={formData.biography || ""}
+            onContentChange={(content: string) => updateFormData({ biography: content })}
             height={320}
+            placeholder="Write about yourself, your experience, achievements, and what makes you unique..."
           />
 
           <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl">
