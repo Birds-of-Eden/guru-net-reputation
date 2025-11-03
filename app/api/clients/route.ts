@@ -84,6 +84,49 @@ const normalizeArticleTopics = (input: unknown): ArticleTopic[] => {
     .filter(Boolean) as ArticleTopic[];
 };
 
+// New type for article categories
+type ArticleCategory = {
+  category: string;
+  titles: Array<{
+    title: string;
+    draftLink: string;
+    draftStatus: "Approved" | "Pending" | "Revision";
+  }>;
+};
+
+// Normalize and validate articleCategories input from request body
+const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((item) => {
+      const category = String((item as any)?.category ?? "").trim();
+      if (!category) return null;
+
+      const titles = Array.isArray((item as any)?.titles)
+        ? (item as any).titles
+            .map((t: any) => {
+              const title = String(t?.title ?? "").trim();
+              if (!title) return null;
+
+              const draftLink = String(t?.draftLink ?? "").trim();
+              const draftStatus = ["Approved", "Pending", "Revision"].includes(
+                t?.draftStatus
+              )
+                ? t.draftStatus
+                : "Pending";
+
+              return { title, draftLink, draftStatus };
+            })
+            .filter(Boolean)
+        : [];
+
+      if (titles.length === 0) return null;
+
+      return { category, titles } as ArticleCategory;
+    })
+    .filter(Boolean) as ArticleCategory[];
+};
+
 // GET /api/clients - Get all clients (with clientUserId attached) or a single client by id
 export async function GET(req: Request) {
   try {
@@ -198,6 +241,7 @@ export async function POST(req: NextRequest) {
       socialLinks = [],
       otherField = [],
       articleTopics,
+      articleCategories,
       amId,
     } = body;
 
@@ -297,7 +341,10 @@ export async function POST(req: NextRequest) {
                 }))
             : [],
 
-          articleTopics: normalizeArticleTopics(articleTopics),
+          // Use articleTopics field for both old structure and new categories structure
+          articleTopics: articleCategories 
+            ? normalizeArticleCategories(articleCategories)
+            : normalizeArticleTopics(articleTopics),
           amId: amId || undefined,
         } as any,
         include: {

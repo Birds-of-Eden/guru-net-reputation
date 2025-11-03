@@ -9,11 +9,23 @@ import {
   X,
   Trash2,
   Plus,
+  Link as LinkIcon,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { hasPermissionClient } from "@/lib/permissions-client";
 import { useAuth } from "@/context/auth-context";
+import { toast } from "sonner";
 
 interface ArticleTopic {
   status: string;
@@ -22,10 +34,19 @@ interface ArticleTopic {
   usedCount: number;
 }
 
+interface ArticleCategory {
+  category: string;
+  titles: Array<{
+    title: string;
+    draftLink: string;
+    draftStatus: "Approved" | "Pending" | "Revision";
+  }>;
+}
+
 interface ArticleTopicsProps {
   clientData: {
     id: string;
-    articleTopics?: ArticleTopic[];
+    articleTopics?: ArticleTopic[] | ArticleCategory[];
   };
 }
 
@@ -40,20 +61,52 @@ const getStatusBadgeClass = (status: string) => {
   }
 };
 
+// Helper function to detect structure type
+const isNewStructure = (data: any): data is ArticleCategory[] => {
+  return Array.isArray(data) && data.length > 0 && 'category' in data[0] && 'titles' in data[0];
+};
+
 export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
+  // Detect which structure is being used and initialize states accordingly
+  const dataIsNewStructure = isNewStructure(clientData.articleTopics);
+  
+  // State for old structure (backward compatibility)
   const [topics, setTopics] = useState<ArticleTopic[]>(
-    clientData.articleTopics || []
+    !dataIsNewStructure && Array.isArray(clientData.articleTopics) 
+      ? clientData.articleTopics as ArticleTopic[]
+      : []
   );
+  
+  // State for new structure
+  const [categories, setCategories] = useState<ArticleCategory[]>(
+    dataIsNewStructure 
+      ? clientData.articleTopics as ArticleCategory[]
+      : []
+  );
+  
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedTopic, setEditedTopic] = useState<ArticleTopic | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newTopic, setNewTopic] = useState<ArticleTopic>({
     topicname: "",
     status: "Not yet Used",
     usedCount: 0,
     usedDate: null,
   });
-    const { user } = useAuth();
+  
+  const [newCategory, setNewCategory] = useState<ArticleCategory>({
+    category: "",
+    titles: [],
+  });
+  
+  const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(null);
+  const [editingTitleIdx, setEditingTitleIdx] = useState<number | null>(null);
+  
+  const { user } = useAuth();
+  
+  // Check if using new structure
+  const hasNewStructure = categories.length > 0;
 
   // Function to handle enabling inline editing
   const handleEditClick = (topic: ArticleTopic, index: number) => {
@@ -165,31 +218,198 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
     }));
   };
+  
+  // --- NEW HANDLERS FOR ARTICLE CATEGORIES ---
+  
+  const handleAddCategory = async () => {
+    if (!newCategory.category.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+    
+    if (newCategory.titles.length === 0) {
+      toast.error("At least one title is required");
+      return;
+    }
+    
+    const updatedCategories = [...categories, newCategory];
+    setCategories(updatedCategories);
+    
+    try {
+      const res = await fetch(`/api/clients/${clientData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleCategories: updatedCategories }),
+      });
+      
+      if (!res.ok) throw new Error(`Failed to save: ${res.status}`);
+      
+      const data = await res.json();
+      if (Array.isArray(data.articleTopics)) {
+        setCategories(data.articleTopics as ArticleCategory[]);
+      }
+      
+      toast.success("Category added successfully!");
+      setNewCategory({ category: "", titles: [] });
+      setIsAddingCategory(false);
+    } catch (err) {
+      console.error(err);
+      setCategories(categories);
+      toast.error("Failed to add category");
+    }
+  };
+  
+  const handleDeleteCategory = async (categoryIdx: number) => {
+    const updatedCategories = categories.filter((_, i) => i !== categoryIdx);
+    setCategories(updatedCategories);
+    
+    try {
+      const res = await fetch(`/api/clients/${clientData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleTopics: updatedCategories }),
+      });
+      
+      if (!res.ok) throw new Error(`Failed to save`);
+      toast.success("Category deleted!");
+    } catch (err) {
+      console.error(err);
+      setCategories(categories);
+      toast.error("Failed to delete category");
+    }
+  };
+  
+  const handleAddTitleToNewCategory = () => {
+    setNewCategory(prev => ({
+      ...prev,
+      titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" }]
+    }));
+  };
+  
+  const handleRemoveTitleFromNewCategory = (titleIdx: number) => {
+    setNewCategory(prev => ({
+      ...prev,
+      titles: prev.titles.filter((_, i) => i !== titleIdx)
+    }));
+  };
+  
+  const handleUpdateNewCategoryTitle = (
+    titleIdx: number,
+    field: "title" | "draftLink" | "draftStatus",
+    value: string
+  ) => {
+    setNewCategory(prev => ({
+      ...prev,
+      titles: prev.titles.map((t, i) =>
+        i === titleIdx ? { ...t, [field]: value } : t
+      )
+    }));
+  };
 
   return (
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
-      <CardHeader className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+      <CardHeader className="bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
         <CardTitle className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-indigo-600" />
-          <span>Article Topics</span>
-          {topics.length > 0 && (
+          <BookOpen className="h-5 w-5 text-orange-600" />
+          <span>{hasNewStructure ? 'Article Categories from CQ' : 'Article Topics'}</span>
+          {hasNewStructure && categories.length > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {categories.length}
+            </Badge>
+          )}
+          {!hasNewStructure && topics.length > 0 && (
             <Badge variant="secondary" className="ml-2">
               {topics.length}
             </Badge>
           )}
           <button
             type="button"
-            onClick={() => setIsAdding(true)}
-            className="ml-auto inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
-            title="Add Topic"
+            onClick={() => hasNewStructure ? setIsAddingCategory(true) : setIsAdding(true)}
+            className="ml-auto inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
+            title={hasNewStructure ? "Add Topic From CQ" : "Add Topic"}
           >
             <Plus size={16} />
-            Add Topic
+            {hasNewStructure ? 'Add Topic From CQ' : 'Add Topic'}
           </button>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">
-        {topics.length > 0 ? (
+        {hasNewStructure ? (
+          // New Structure: Article Categories
+          categories.length > 0 ? (
+            <div className="space-y-6">
+              {categories.map((category, catIdx) => (
+                <div key={catIdx} className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-orange-700 dark:text-orange-400 flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      {category.category}
+                    </h3>
+                    {hasPermissionClient(user?.permissions, "delete_article_topic") && (
+                      <button
+                        onClick={() => handleDeleteCategory(catIdx)}
+                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        title="Delete Category"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3 ml-4">
+                    {category.titles.map((title, titleIdx) => (
+                      <div key={titleIdx} className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-200 dark:border-orange-700">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">
+                              {title.title}
+                            </p>
+                            <Badge
+                              className={
+                                title.draftStatus === "Approved"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200"
+                                  : title.draftStatus === "Revision"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-800/50 dark:text-amber-200"
+                                  : "bg-blue-100 text-blue-800 dark:bg-blue-800/50 dark:text-blue-200"
+                              }
+                            >
+                              {title.draftStatus}
+                            </Badge>
+                          </div>
+                          {title.draftLink && (
+                            <a
+                              href={title.draftLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline text-sm"
+                            >
+                              <LinkIcon className="h-3 w-3" />
+                              {title.draftLink}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 flex-col p-4 text-slate-500 dark:text-slate-400 italic">
+              <BookOpen className="h-8 w-8" />
+              <p className="text-base">No article categories found.</p>
+              <button
+                onClick={() => setIsAddingCategory(true)}
+                className="mt-4 flex items-center gap-2 rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
+              >
+                <Plus size={16} />
+                Add First Category
+              </button>
+            </div>
+          )
+        ) : (
+          // Old Structure: Article Topics (Backward Compatibility)
+          topics.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full table-auto border-collapse">
               <thead className="text-left text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -334,9 +554,130 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
               Add First Topic
             </button>
           </div>
-        )}
+        )
+      )}
       </CardContent>
-
+      
+      {/* Add New Category Modal */}
+      {isAddingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Add New Category
+              </h2>
+              <button
+                onClick={() => {
+                  setIsAddingCategory(false);
+                  setNewCategory({ category: "", titles: [] });
+                }}
+                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">Category Name</Label>
+                <Input
+                  value={newCategory.category}
+                  onChange={(e) => setNewCategory(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="e.g. Technology, Business..."
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Titles</Label>
+                <div className="space-y-3">
+                  {newCategory.titles.map((title, idx) => (
+                    <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm font-semibold">Title {idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTitleFromNewCategory(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Title</Label>
+                        <Input
+                          value={title.title}
+                          onChange={(e) => handleUpdateNewCategoryTitle(idx, "title", e.target.value)}
+                          placeholder="Article title..."
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Draft Link</Label>
+                        <Input
+                          value={title.draftLink}
+                          onChange={(e) => handleUpdateNewCategoryTitle(idx, "draftLink", e.target.value)}
+                          placeholder="https://..."
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Draft Status</Label>
+                        <Select
+                          value={title.draftStatus}
+                          onValueChange={(value) => handleUpdateNewCategoryTitle(idx, "draftStatus", value)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Approved">Approved</SelectItem>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Revision">Revision</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={handleAddTitleToNewCategory}
+                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={16} />
+                    Add Title
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingCategory(false);
+                    setNewCategory({ category: "", titles: [] });
+                  }}
+                  className="px-4 py-2 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddCategory}
+                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
+                >
+                  Add Category
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Add New Topic Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">

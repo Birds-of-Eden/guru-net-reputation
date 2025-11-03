@@ -3,13 +3,17 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import type { StepProps } from "@/types/onboarding";
+import { Input } from "@/components/ui/input";
+import type { StepProps, ArticleCategory } from "@/types/onboarding";
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Plus, Trash2, BookOpen } from "lucide-react";
-
-type ArticleTopic = {
-  topicname: string;
-};
+import { FileText, Plus, Trash2, BookOpen, Link as LinkIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ArticlesSelection({
   formData,
@@ -17,58 +21,109 @@ export function ArticlesSelection({
   onNext,
   onPrevious,
 }: StepProps) {
-  // Locally managed topics and selections
-  const [topics, setTopics] = useState<ArticleTopic[]>(() =>
-    Array.isArray(formData.articleTopics) ? [...formData.articleTopics] : []
-  );
-  const [selected, setSelected] = useState<number[]>(() =>
-    Array.isArray(formData.selectedArticles)
-      ? [...formData.selectedArticles]
-      : []
+  // Locally managed categories
+  const [categories, setCategories] = useState<ArticleCategory[]>(() =>
+    Array.isArray(formData.articleCategories) ? [...formData.articleCategories] : []
   );
 
-  // Sync local topics if parent formData changes while mounted
+  // Sync local categories if parent formData changes while mounted
   useEffect(() => {
-    setTopics(
-      Array.isArray(formData.articleTopics) ? [...formData.articleTopics] : []
+    setCategories(
+      Array.isArray(formData.articleCategories) ? [...formData.articleCategories] : []
     );
-  }, [formData.articleTopics]);
+  }, [formData.articleCategories]);
 
-  const handleUpdateTopic = (index: number, value: string) => {
-    setTopics((prev) =>
-      prev.map((t, i) => (i === index ? { ...t, topicname: value } : t))
+  const handleUpdateCategory = (index: number, value: string) => {
+    setCategories((prev) =>
+      prev.map((cat, i) => (i === index ? { ...cat, category: value } : cat))
     );
   };
 
-  const handleAddTopic = () => {
-    setTopics((prev) => [
+  const handleAddCategory = () => {
+    setCategories((prev) => [
       ...prev,
       {
-        topicname: "",
+        category: "",
+        titles: [],
       },
     ]);
   };
 
-  const handleRemoveTopic = (index: number) => {
-    setTopics((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveCategory = (index: number) => {
+    setCategories((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddTitle = (categoryIndex: number) => {
+    setCategories((prev) =>
+      prev.map((cat, i) =>
+        i === categoryIndex
+          ? {
+              ...cat,
+              titles: [
+                ...cat.titles,
+                { title: "", draftLink: "", draftStatus: "Pending" as const },
+              ],
+            }
+          : cat
+      )
+    );
+  };
+
+  const handleRemoveTitle = (categoryIndex: number, titleIndex: number) => {
+    setCategories((prev) =>
+      prev.map((cat, i) =>
+        i === categoryIndex
+          ? {
+              ...cat,
+              titles: cat.titles.filter((_, ti) => ti !== titleIndex),
+            }
+          : cat
+      )
+    );
+  };
+
+  const handleUpdateTitle = (
+    categoryIndex: number,
+    titleIndex: number,
+    field: "title" | "draftLink" | "draftStatus",
+    value: string
+  ) => {
+    setCategories((prev) =>
+      prev.map((cat, i) =>
+        i === categoryIndex
+          ? {
+              ...cat,
+              titles: cat.titles.map((title, ti) =>
+                ti === titleIndex ? { ...title, [field]: value } : title
+              ),
+            }
+          : cat
+      )
+    );
   };
 
   const handleNext = () => {
-    // Normalize topics: trim topicname
-    const normalizedTopics = topics
-      .map((t) => ({
-        topicname: (t.topicname || "").trim(),
+    // Normalize categories: trim and filter empty entries
+    const normalizedCategories = categories
+      .map((cat) => ({
+        category: (cat.category || "").trim(),
+        titles: cat.titles
+          .map((t) => ({
+            title: (t.title || "").trim(),
+            draftLink: (t.draftLink || "").trim(),
+            draftStatus: t.draftStatus,
+          }))
+          .filter((t) => t.title.length > 0),
       }))
-      .filter((t) => t.topicname.length > 0);
+      .filter((cat) => cat.category.length > 0 && cat.titles.length > 0);
 
     updateFormData({
-      articleTopics: normalizedTopics,
-      selectedArticles: [], // No longer used but keeping for backward compatibility
+      articleCategories: normalizedCategories,
     });
     onNext();
   };
 
-  const hasTopics = useMemo(() => (topics?.length ?? 0) > 0, [topics]);
+  const hasCategories = useMemo(() => (categories?.length ?? 0) > 0, [categories]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -78,78 +133,188 @@ export function ArticlesSelection({
           <BookOpen className="w-8 h-8 text-white" />
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 bg-clip-text text-transparent">
-          Article Topics
+          Article Topics from CQ
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Manage your article topics to organize and categorize your content
-          effectively.
+          Manage your article categories with titles, draft links, and status tracking.
         </p>
       </div>
 
-      {/* Topics Card */}
+      {/* Categories Card */}
       <div className="bg-gradient-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Your Topics</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Article Categories</h2>
             <p className="text-sm text-gray-600">
-              Add and manage article topics
+              Add categories with titles and draft information
             </p>
           </div>
         </div>
 
-        {!hasTopics && (
+        {!hasCategories && (
           <div className="text-center py-12 border-2 border-dashed border-orange-200 rounded-xl bg-orange-50/50">
             <BookOpen className="w-12 h-12 text-orange-400 mx-auto mb-3" />
             <p className="text-gray-600 font-medium">
-              No topics yet. Add topics to get started.
+              No categories yet. Add a topic from CQ to get started.
             </p>
           </div>
         )}
 
-        {hasTopics && (
-          <div className="space-y-4">
-            {topics!.map((topic, idx) => (
+        {hasCategories && (
+          <div className="space-y-6">
+            {categories.map((category, catIdx) => (
               <div
-                key={`${topic.topicname}-${idx}`}
-                className="bg-white rounded-xl border-2 border-gray-200 p-5 hover:border-orange-300 hover:shadow-lg transition-all duration-200"
+                key={`category-${catIdx}`}
+                className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-300 hover:shadow-lg transition-all duration-200"
               >
-                <div className="flex items-start gap-4">
+                {/* Category Header */}
+                <div className="flex items-start gap-4 mb-4">
                   <div className="flex-1">
                     <Label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                       <FileText className="w-4 h-4 text-orange-500" />
-                      Article Topic
+                      Category Name
                     </Label>
-                    <textarea
-                      className="w-full border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-4 py-3 transition-all duration-200 resize-none"
-                      value={topic.topicname}
-                      onChange={(e) => handleUpdateTopic(idx, e.target.value)}
-                      placeholder="e.g. Leadership, Technology, Marketing..."
-                      rows={2}
+                    <Input
+                      className="w-full border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-4 py-3"
+                      value={category.category}
+                      onChange={(e) =>
+                        handleUpdateCategory(catIdx, e.target.value)
+                      }
+                      placeholder="e.g. Technology, Business, Health..."
                     />
                   </div>
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => handleRemoveTopic(idx)}
+                    onClick={() => handleRemoveCategory(catIdx)}
                     className="h-10 w-10 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 flex-shrink-0 mt-7"
                   >
                     <Trash2 className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* Titles under this category */}
+                <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200">
+                  {category.titles.length === 0 && (
+                    <p className="text-sm text-gray-500 italic py-2">
+                      No titles yet. Add titles to this category.
+                    </p>
+                  )}
+                  
+                  {category.titles.map((title, titleIdx) => (
+                    <div
+                      key={`title-${catIdx}-${titleIdx}`}
+                      className="bg-orange-50/50 rounded-lg p-4 space-y-3 border border-orange-100"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 space-y-3">
+                          {/* Title */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Title
+                            </Label>
+                            <Input
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.title}
+                              onChange={(e) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Article title..."
+                            />
+                          </div>
+
+                          {/* Draft Link */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                              <LinkIcon className="w-3 h-3" />
+                              Draft Link
+                            </Label>
+                            <Input
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.draftLink}
+                              onChange={(e) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "draftLink",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="https://..."
+                            />
+                          </div>
+
+                          {/* Draft Status */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Draft Status
+                            </Label>
+                            <Select
+                              value={title.draftStatus}
+                              onValueChange={(value) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "draftStatus",
+                                  value
+                                )
+                              }
+                            >
+                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm">
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Approved">Approved</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Revision">Revision</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleRemoveTitle(catIdx, titleIdx)}
+                          className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 flex-shrink-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add Title Button */}
+                  <Button
+                    onClick={() => handleAddTitle(catIdx)}
+                    variant="outline"
+                    className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Title
                   </Button>
                 </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* Add Category Button */}
         <div className="mt-6">
           <Button
-            onClick={handleAddTopic}
+            onClick={handleAddCategory}
             className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <Plus className="h-5 w-5 mr-2" />
-            Add New Topic
+            Add Topic From CQ
           </Button>
         </div>
       </div>

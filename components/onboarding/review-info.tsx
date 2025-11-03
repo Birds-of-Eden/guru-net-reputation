@@ -39,6 +39,14 @@ type AMUser = { id: string; name: string | null; email: string | null };
 type SocialLink = { platform: string; url: string };
 type OtherField = { category: string; title: string; data: string[] };
 type ArticleTopic = { topicname: string };
+type ArticleCategory = {
+  category: string;
+  titles: Array<{
+    title: string;
+    draftLink: string;
+    draftStatus: "Approved" | "Pending" | "Revision";
+  }>;
+};
 
 interface OnboardingData {
   name: string;
@@ -65,6 +73,7 @@ interface OnboardingData {
   startDate?: string;
   dueDate?: string;
   articleTopics?: ArticleTopic[];
+  articleCategories?: ArticleCategory[];
   amId?: string;
   socialLinks?: SocialLink[];
   otherField?: OtherField[];
@@ -351,7 +360,7 @@ export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
       ].filter((item) => item.value),
     });
 
-    // Article Topics
+    // Article Topics (old structure - keeping for backward compatibility)
     if (formData.articleTopics && formData.articleTopics.length > 0) {
       reviewSections.push({
         id: "articles",
@@ -365,6 +374,17 @@ export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
             icon: FileText,
           })
         ),
+      });
+    }
+
+    // Article Categories (new structure)
+    if (formData.articleCategories && formData.articleCategories.length > 0) {
+      reviewSections.push({
+        id: "articleCategories",
+        icon: BookOpen,
+        title: "Article Categories from CQ",
+        gradient: "from-orange-50 to-red-50",
+        items: [],
       });
     }
 
@@ -752,6 +772,72 @@ export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
           )}
         </div>
       </div>
+
+      {/* Article Categories from CQ - Full Width */}
+      {formData.articleCategories && formData.articleCategories.length > 0 && (
+        <ReviewSectionCard
+          icon={BookOpen}
+          title="Article Categories from CQ"
+          gradient="from-orange-50 to-red-50"
+        >
+          <div className="space-y-4">
+            {formData.articleCategories.map((category, catIdx) => (
+              <div
+                key={catIdx}
+                className="bg-white rounded-xl border-2 border-orange-200 p-5"
+              >
+                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  {category.category}
+                  <Badge variant="secondary" className="ml-2">
+                    {category.titles.length} {category.titles.length === 1 ? 'title' : 'titles'}
+                  </Badge>
+                </h3>
+                <div className="space-y-3 ml-6">
+                  {category.titles.map((title, titleIdx) => (
+                    <div
+                      key={titleIdx}
+                      className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900">
+                              {title.title}
+                            </p>
+                          </div>
+                          <Badge
+                            className={
+                              title.draftStatus === "Approved"
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : title.draftStatus === "Revision"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : "bg-blue-100 text-blue-800 border-blue-200"
+                            }
+                          >
+                            {title.draftStatus}
+                          </Badge>
+                        </div>
+                        {title.draftLink && (
+                          <a
+                            href={title.draftLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+                          >
+                            <LinkIcon className="h-3 w-3" />
+                            {title.draftLink}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ReviewSectionCard>
+      )}
 
       {/* Assignment Preview */}
       {formData.templateId && (

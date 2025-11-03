@@ -68,6 +68,9 @@ export interface OnboardingFormData {
 
   // Locally managed article topics (for ArticlesSelection step)
   articleTopics?: ArticleTopic[];
+  
+  // New: Article categories with titles and drafts
+  articleCategories?: ArticleCategory[];
 }
 
 // Shared type for article topics used in onboarding flows
@@ -76,6 +79,16 @@ export type ArticleTopic = {
   status?: string;
   usedDate?: string | null;
   usedCount?: number;
+};
+
+// New structure for article categories with titles and drafts
+export type ArticleCategory = {
+  category: string;
+  titles: Array<{
+    title: string;
+    draftLink: string;
+    draftStatus: "Approved" | "Pending" | "Revision";
+  }>;
 };
 
 export interface StepProps {

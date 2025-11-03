@@ -194,6 +194,7 @@ export async function PUT(
       dueDate,
 
       articleTopics,
+      articleCategories,
 
       // ⬇️ নতুন ফিল্ডগুলো (contact/credentials + AM)
       email,
@@ -225,8 +226,10 @@ export async function PUT(
         // নতুন ফিল্ডগুলো সংরক্ষণ
         email,
         phone,
-        // Persist articleTopics JSON if provided
-        articleTopics: articleTopics
+        // Persist articleTopics JSON if provided (supports both old and new structure)
+        articleTopics: articleCategories
+          ? JSON.parse(JSON.stringify(articleCategories))
+          : articleTopics
           ? JSON.parse(JSON.stringify(articleTopics))
           : undefined,
         password,
