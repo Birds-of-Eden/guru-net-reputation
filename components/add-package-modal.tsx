@@ -195,7 +195,7 @@ export function AddPackageModal({
               className="text-sm font-medium text-gray-700 flex items-center gap-2"
             >
               <Tag className="h-4 w-4" />
-              Package Type *
+              Orm Type *
             </Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="transition-all duration-200 focus:border-blue-500 focus:ring-blue-200">
