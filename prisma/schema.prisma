@@ -89,6 +89,12 @@ enum MessageType {
   system
 }
 
+enum PackageType {
+  INDIVIDUAL
+  BUSINESS
+  CUSTOM
+}
+
 // ========== AUTHENTICATION MODELS ==========
 model User {
   id            String   @id @default(cuid())
@@ -308,6 +314,7 @@ model Package {
   name        String?    @unique
   description String?
   totalMonths Int?
+  type        PackageType @default(INDIVIDUAL)
   clients     Client[]
   templates   Template[]
 

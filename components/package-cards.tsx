@@ -52,6 +52,7 @@ interface Package {
   createdAt?: string;
   updatedAt?: string;
   totalMonths?: number;
+  type?: string;
   stats?: PackageStats;
 }
 
@@ -129,7 +130,7 @@ export function PackageCards() {
 
   const updatePackage = async (
     id: string,
-    updatedData: { name: string; description?: string }
+    updatedData: { name: string; description?: string; type?: string }
   ) => {
     try {
       const response = await fetch(`/api/zisanpackages/${id}`, {
@@ -346,9 +347,27 @@ export function PackageCards() {
                         <PackageIcon className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
-                          {pkg.name || `Package ${pkg.id.slice(0, 8)}`}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
+                            {pkg.name || `Package ${pkg.id.slice(0, 8)}`}
+                          </h3>
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 rounded-full text-[10px] font-semibold",
+                              pkg.type === "BUSINESS"
+                                ? "bg-blue-100 text-blue-700"
+                                : pkg.type === "CUSTOM"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-green-100 text-green-700"
+                            )}
+                          >
+                            {pkg.type === "BUSINESS"
+                              ? "Business"
+                              : pkg.type === "CUSTOM"
+                              ? "Custom"
+                              : "Individual"}
+                          </span>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
                           ID: {pkg.id.slice(0, 8)}...
                         </p>
