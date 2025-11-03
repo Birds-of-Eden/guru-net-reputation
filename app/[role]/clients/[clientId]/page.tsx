@@ -72,9 +72,9 @@ async function fetchClient(clientId: string): Promise<Client | null> {
 export default async function ClientPage({
   params,
 }: {
-  params: { clientId: string };
+  params: Promise<{ clientId: string }>;
 }) {
-  const { clientId } = params;
+  const { clientId } = await params;
   const clientData = await fetchClient(clientId);
 
   if (!clientData) {
