@@ -197,17 +197,42 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       ].filter((item) => item.value),
     });
 
-    reviewSections.push({
-      id: "articles",
-      icon: FileText,
-      title: "Article Topics",
-      gradient: "from-purple-50 to-indigo-50",
-      items: formData.articleTopics.map((topic: any, index: number) => ({
-        label: `Topic ${index + 1}`,
-        value: topic.topicname,
-        icon: FileText,
-      })),
-    });
+    // Article Topics - support both old and new structure
+    if (formData.articleTopics && Array.isArray(formData.articleTopics) && formData.articleTopics.length > 0) {
+      // Check if it's the new structure (categories with titles)
+      const isNewStructure = formData.articleTopics[0] && 'category' in formData.articleTopics[0];
+      
+      if (isNewStructure) {
+        // New structure: categories with titles
+        reviewSections.push({
+          id: "articles",
+          icon: FileText,
+          title: "Article Categories from CQ",
+          gradient: "from-orange-50 to-red-50",
+          items: formData.articleTopics.flatMap((cat: any) =>
+            cat.titles?.map((title: any, idx: number) => ({
+              label: `${cat.category} - ${title.title}`,
+              value: title.draftLink || 'No link',
+              icon: FileText,
+              badge: title.draftStatus,
+            })) || []
+          ),
+        });
+      } else {
+        // Old structure: simple topics
+        reviewSections.push({
+          id: "articles",
+          icon: FileText,
+          title: "Article Topics",
+          gradient: "from-purple-50 to-indigo-50",
+          items: formData.articleTopics.map((topic: any, index: number) => ({
+            label: `Topic ${index + 1}`,
+            value: topic.topicname,
+            icon: FileText,
+          })),
+        });
+      }
+    }
 
     // Contact & Credentials
     reviewSections.push({
