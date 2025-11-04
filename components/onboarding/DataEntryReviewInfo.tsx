@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import {
   Download,
   CheckCircle,
@@ -573,18 +574,23 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
         {/* Right Column - Additional Content */}
         <div className="space-y-6">
-          {/* Biography */}
-          {formData.biography && (
-            <ReviewSectionCard
-              icon={FileText}
-              title="Biography"
-              gradient="from-cyan-50 to-blue-50"
-            >
-              <p className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200">
-                {formData.biography}
-              </p>
-            </ReviewSectionCard>
-          )}
+            {/* Biography */}
+{formData.biography && (
+  <ReviewSectionCard
+    icon={FileText}
+    title="Biography"
+    gradient="from-cyan-50 to-blue-50"
+  >
+    <div
+      className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+      dangerouslySetInnerHTML={{
+        __html: DOMPurify.sanitize(formData.biography, {
+          USE_PROFILES: { html: true },
+        }),
+      }}
+    />
+  </ReviewSectionCard>
+)}
 
           {/* Social Links */}
           {formData.socialLinks && formData.socialLinks.length > 0 && (
