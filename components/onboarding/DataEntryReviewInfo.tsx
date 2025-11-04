@@ -342,6 +342,11 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         })),
       };
 
+      // Debug: Log article data being sent
+      console.log("Submitting client with articleTopics:", clientData.articleTopics);
+      console.log("formData.articleCategories:", formData.articleCategories);
+      console.log("formData.articleTopics:", formData.articleTopics);
+
       const clientRes = await fetch("/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

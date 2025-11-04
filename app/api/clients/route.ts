@@ -245,6 +245,10 @@ export async function POST(req: NextRequest) {
       amId,
     } = body;
 
+    // Debug: Log received article data
+    console.log("POST /api/clients - Received articleTopics:", articleTopics);
+    console.log("POST /api/clients - Received articleCategories:", articleCategories);
+
     // (Optional) enforce AM role server-side
     if (amId) {
       const am = await prisma.user.findUnique({
@@ -342,15 +346,24 @@ export async function POST(req: NextRequest) {
             : [],
 
           // Use articleTopics field for both old structure and new categories structure
+          // Check both articleCategories and articleTopics parameters
           articleTopics: articleCategories 
             ? normalizeArticleCategories(articleCategories)
-            : normalizeArticleTopics(articleTopics),
+            : articleTopics && Array.isArray(articleTopics) && articleTopics.length > 0
+              ? (articleTopics[0] && 'category' in articleTopics[0] 
+                  ? normalizeArticleCategories(articleTopics)  // New structure in articleTopics
+                  : normalizeArticleTopics(articleTopics))     // Old structure in articleTopics
+              : undefined,
           amId: amId || undefined,
         } as any,
         include: {
           accountManager: { select: { id: true, name: true, email: true } },
         },
       });
+
+      // Debug: Log saved client data
+      console.log("POST /api/clients - Client created with ID:", client.id);
+      console.log("POST /api/clients - Saved articleTopics:", client.articleTopics);
     } catch (err: any) {
       console.error(
         "POST /api/clients prisma create error:",
