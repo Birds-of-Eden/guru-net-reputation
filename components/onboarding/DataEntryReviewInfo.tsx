@@ -100,7 +100,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
   // Aggregate websites once for reuse in UI and payload (dynamic, unlimited)
   const websiteList = useMemo(() => {
     return Array.isArray((formData as any)?.websites)
-      ? (((formData as any).websites as string[]) || [])
+      ? ((formData as any).websites as string[]) || []
       : [];
   }, [formData]);
 
@@ -198,40 +198,81 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
     });
 
     // Article Topics - support both old and new structure
-    if (formData.articleTopics && Array.isArray(formData.articleTopics) && formData.articleTopics.length > 0) {
-      // Check if it's the new structure (categories with titles)
-      const isNewStructure = formData.articleTopics[0] && 'category' in formData.articleTopics[0];
-      
-      if (isNewStructure) {
-        // New structure: categories with titles
-        reviewSections.push({
-          id: "articles",
-          icon: FileText,
-          title: "Article Categories from CQ",
-          gradient: "from-orange-50 to-red-50",
-          items: formData.articleTopics.flatMap((cat: any) =>
-            cat.titles?.map((title: any, idx: number) => ({
-              label: `${cat.category} - ${title.title}`,
-              value: title.draftLink || 'No link',
-              icon: FileText,
-              badge: title.draftStatus,
-            })) || []
-          ),
-        });
-      } else {
-        // Old structure: simple topics
-        reviewSections.push({
-          id: "articles",
-          icon: FileText,
-          title: "Article Topics",
-          gradient: "from-purple-50 to-indigo-50",
-          items: formData.articleTopics.map((topic: any, index: number) => ({
-            label: `Topic ${index + 1}`,
-            value: topic.topicname,
-            icon: FileText,
-          })),
-        });
-      }
+    // Check both articleTopics and articleCategories (they should be same data, just different naming in form flow)
+    const articleData = formData.articleTopics || formData.articleCategories;
+
+    // Article Topics / Categories Section
+    if (
+      formData.articleCategories &&
+      Array.isArray(formData.articleCategories) &&
+      formData.articleCategories.length > 0
+    ) {
+      reviewSections.push({
+        id: "articleCategories",
+        icon: FileText,
+        title: "Article Categories from CQ",
+        gradient: "from-orange-50 to-red-50",
+        items: [],
+        render: (
+          <div className="space-y-4">
+            {formData.articleCategories.map((category: any, catIdx: number) => (
+              <div
+                key={catIdx}
+                className="bg-white rounded-xl border-2 border-orange-200 p-5"
+              >
+                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  {category.category}
+                  <Badge variant="secondary" className="ml-2">
+                    {category.titles.length}{" "}
+                    {category.titles.length === 1 ? "title" : "titles"}
+                  </Badge>
+                </h3>
+                <div className="space-y-3 ml-6">
+                  {category.titles.map((title: any, titleIdx: number) => (
+                    <div
+                      key={titleIdx}
+                      className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900">
+                              {title.title}
+                            </p>
+                          </div>
+                          <Badge
+                            className={
+                              title.draftStatus === "Approved"
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : title.draftStatus === "Revision"
+                                ? "bg-amber-100 text-amber-800 border-amber-200"
+                                : "bg-blue-100 text-blue-800 border-blue-200"
+                            }
+                          >
+                            {title.draftStatus}
+                          </Badge>
+                        </div>
+                        {title.draftLink && (
+                          <a
+                            href={title.draftLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+                          >
+                            <LinkIcon className="h-3 w-3" />
+                            {title.draftLink}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ),
+      });
     }
 
     // Contact & Credentials
@@ -252,7 +293,8 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       ].filter((item) => item.value),
     });
 
-    return reviewSections.filter((s) => s.items.length > 0);
+    // Filter sections: keep if has items OR has custom render
+    return reviewSections.filter((s) => (s.items && s.items.length > 0) || s.render);
   }, [formData, fetchedData]);
 
   const avatarPreviewUrl = useMemo(() => {
@@ -288,7 +330,9 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         packageId: formData.packageId,
         startDate: formData.startDate,
         dueDate: formData.dueDate,
-        articleTopics: formData.articleTopics || [],
+        // Support both articleTopics and articleCategories field names
+        articleTopics:
+          formData.articleTopics || formData.articleCategories || [],
         amId: formData.amId || null,
         socialLinks: formData.socialLinks || [],
         otherField: (formData.otherField || []).map((r: any) => ({
@@ -372,7 +416,9 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                 });
 
                 if (distRes.ok) {
-                  toast.success(`Tasks assigned to ${user?.name} successfully.`);
+                  toast.success(
+                    `Tasks assigned to ${user?.name} successfully.`
+                  );
                 } else {
                   const j = await distRes.json().catch(() => ({}));
                   console.error("Distribute failed", j);
@@ -512,11 +558,15 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
               title={section.title}
               gradient={section.gradient}
             >
-              <div className="space-y-3">
-                {section.items.map((item: any, idx: number) => (
-                  <InfoItem key={idx} {...item} />
-                ))}
-              </div>
+              {section.render ? (
+                section.render
+              ) : (
+                <div className="space-y-3">
+                  {section.items.map((item: any, idx: number) => (
+                    <InfoItem key={idx} {...item} />
+                  ))}
+                </div>
+              )}
             </ReviewSectionCard>
           ))}
         </div>
