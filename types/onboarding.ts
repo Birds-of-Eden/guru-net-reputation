@@ -96,4 +96,5 @@ export interface StepProps {
   updateFormData: (data: Partial<OnboardingFormData>) => void;
   onNext: () => void;
   onPrevious: () => void;
+  clearDraft?: () => void;
 }

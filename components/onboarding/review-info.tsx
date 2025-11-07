@@ -83,6 +83,7 @@ interface OnboardingData {
 interface ReviewInfoProps {
   formData: OnboardingData;
   onPrevious: () => void;
+  clearDraft?: () => void;
 }
 
 interface InfoItemProps {
@@ -218,7 +219,7 @@ const StatusBadge: FC<{ status?: string; progress?: number }> = ({
 
 // --- MAIN COMPONENT ---
 
-export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
+export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [fetchedData, setFetchedData] = useState({
@@ -505,6 +506,12 @@ export function ReviewInfo({ formData, onPrevious }: ReviewInfoProps) {
           toast.warning("Client created but template assignment failed.");
         }
       }
+      
+      // Clear draft on successful submission
+      if (clearDraft) {
+        clearDraft();
+      }
+      
       setIsSubmitted(true);
     } catch (err) {
       console.error(err);

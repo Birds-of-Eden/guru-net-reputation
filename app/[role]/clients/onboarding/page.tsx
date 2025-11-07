@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { GeneralInfo } from "@/components/onboarding/general-info";
 import { WebsiteInfo } from "@/components/onboarding/website-info";
@@ -17,6 +17,8 @@ import { TemplateSelection } from "@/components/onboarding/template-selection";
 import { ArticlesSelection } from "@/components/onboarding/articles-selection";
 import type { OnboardingFormData } from "@/types/onboarding";
 import { AddClientAskPage } from "@/components/onboarding/AddClientAsk";
+import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
+import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
 
 const steps = [
   { id: 1, title: "Add Client", component: AddClientAskPage },
@@ -41,6 +43,7 @@ export default function OnboardingPage() {
     socialLinks: [],
     selectedArticles: [],
   });
+  const [draftRestored, setDraftRestored] = useState(false);
 
   // Auto-advance to step 2 if user is starting new client
   useEffect(() => {
@@ -89,6 +92,23 @@ export default function OnboardingPage() {
     setFormData((prev) => ({ ...prev, ...data }));
   };
 
+  // Callback for draft restoration
+  const handleRestoreDraft = useCallback((restoredData: OnboardingFormData) => {
+    setFormData(restoredData);
+    setDraftRestored(true);
+  }, []);
+
+  // Auto-save hook
+  const { saveStatus, hasDraft, clearDraft, lastSavedAt } = useOnboardingAutosave(
+    formData,
+    currentStep,
+    {
+      storageKey: "onboarding-draft-clients",
+      debounceMs: 2000,
+      onRestore: handleRestoreDraft,
+    }
+  );
+
   const nextStep = () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
@@ -114,7 +134,16 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <>
+      {/* Auto-save Indicator */}
+      <AutosaveIndicator
+        status={saveStatus}
+        hasDraft={hasDraft}
+        lastSavedAt={lastSavedAt}
+        onClearDraft={clearDraft}
+      />
+
+      <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
         {/* Animated Gradient Orbs */}
@@ -157,6 +186,7 @@ export default function OnboardingPage() {
                 updateFormData={updateFormData}
                 onNext={nextStep}
                 onPrevious={previousStep}
+                clearDraft={clearDraft}
               />
             </div>
           </div>
@@ -178,6 +208,7 @@ export default function OnboardingPage() {
           background-size: 40px 40px;
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { GeneralInfo } from "@/components/onboarding/general-info";
 import { WebsiteInfo } from "@/components/onboarding/website-info";
 import { SocialMediaInfo } from "@/components/onboarding/social-media-info";
@@ -14,6 +14,8 @@ import { PackageInfo } from "@/components/onboarding/package-info";
 import { TemplateSelection } from "@/components/onboarding/template-selection";
 import { ArticlesSelection } from "@/components/onboarding/articles-selection";
 import type { OnboardingFormData } from "@/types/onboarding";
+import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
+import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
 
 const steps = [
   { id: 1, title: "General Info", component: GeneralInfo },
@@ -32,11 +34,31 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState<OnboardingFormData>({
     name: "",
     progress: 0,
+    socialLinks: [],
+    selectedArticles: [],
   });
+  const [draftRestored, setDraftRestored] = useState(false);
 
   const updateFormData = (data: Partial<OnboardingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
   };
+
+  // Callback for draft restoration
+  const handleRestoreDraft = useCallback((restoredData: OnboardingFormData) => {
+    setFormData(restoredData);
+    setDraftRestored(true);
+  }, []);
+
+  // Auto-save hook
+  const { saveStatus, hasDraft, clearDraft, lastSavedAt } = useOnboardingAutosave(
+    formData,
+    currentStep,
+    {
+      storageKey: "onboarding-draft-general",
+      debounceMs: 2000,
+      onRestore: handleRestoreDraft,
+    }
+  );
 
   const nextStep = () => {
     if (currentStep < steps.length) {
@@ -63,7 +85,15 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
+    <>
+      <AutosaveIndicator
+        status={saveStatus}
+        hasDraft={hasDraft}
+        lastSavedAt={lastSavedAt}
+        onClearDraft={clearDraft}
+      />
+
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
       <div>
         <StepIndicator
           steps={steps}
@@ -76,9 +106,11 @@ export default function OnboardingPage() {
             updateFormData={updateFormData}
             onNext={nextStep}
             onPrevious={previousStep}
+            clearDraft={clearDraft}
           />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
