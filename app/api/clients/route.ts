@@ -162,12 +162,39 @@ export async function GET(req: Request) {
         packageId: packageId || undefined,
         amId: amId || undefined,
       },
-      include: {
+      // Only select fields needed for the client list view
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        designation: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        status: true,
+        progress: true,
+        packageId: true,
+        amId: true,
+        startDate: true,
+        dueDate: true,
+        createdAt: true,
+        socialMedia: true,
         accountManager: { select: { id: true, name: true, email: true } },
-        // (optional) include other relations if needed
-        // package: { select: { id: true, name: true } },
-        // tasks: true,
+        package: { select: { id: true, name: true } },
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            dueDate: true,
+            completedAt: true,
+          },
+        },
       },
+      // Sort by recent first for better UX
+      orderBy: { createdAt: 'desc' },
+      // Limit to prevent overwhelming response (optional based on your needs)
+      take: 1000,
     });
 
     if (clients.length === 0) {
@@ -199,7 +226,12 @@ export async function GET(req: Request) {
       clientUserId: clientIdToUserId.get(c.id) ?? null,
     }));
 
-    return NextResponse.json(result);
+    // Add cache headers for better performance (cache for 10 seconds, revalidate in background)
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+      },
+    });
   } catch (error) {
     console.error("POST /api/clients error:", error);
     return NextResponse.json(

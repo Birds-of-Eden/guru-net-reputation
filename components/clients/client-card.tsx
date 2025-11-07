@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
@@ -41,7 +41,8 @@ import {
 } from "@/components/ui/tooltip";
 
 interface ClientCardProps {
-  clientId: string;
+  /** Pass the full client object to avoid N+1 queries */
+  client: Client;
   /** The linked client-role user's ID for this client (needed for impersonation). */
   clientUserId?: string | null;
   onViewDetails?: () => void;
@@ -51,16 +52,14 @@ interface ClientCardProps {
   onToggleFavorite?: (clientId: string) => void;
 }
 
-export function ClientCard({
-  clientId,
+const ClientCardComponent = function ClientCard({
+  client,
   clientUserId,
   onViewDetails,
   isFavorite = false,
   onToggleFavorite,
 }: ClientCardProps) {
   const { user, loading: permsLoading } = useUserSession();
-  const [client, setClient] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const [deleted, setDeleted] = useState(false);
@@ -68,31 +67,15 @@ export function ClientCard({
   const [openDanger, setOpenDanger] = useState(false);
   const [openUpgrade, setOpenUpgrade] = useState(false);
 
-  // Fetch full client details from API
-  useEffect(() => {
-    const fetchClient = async () => {
-      try {
-        const response = await fetch(`/api/clients/${clientId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setDeleted(true);
-            return;
-          }
-          throw new Error("Failed to fetch client");
-        }
-        const data: Client = await response.json();
-        setClient(data);
-      } catch (error) {
-        console.error("Error fetching client:", error);
-        toast.error("Failed to load client details.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchClient();
-  }, [clientId]);
-
   if (deleted) return null;
+
+  if (!client) {
+    return (
+      <Card className="p-6 text-center text-gray-500">
+        Invalid client data
+      </Card>
+    );
+  }
 
   // Normalize task statuses and compute counts dynamically
   const normalizeStatus = (raw?: string | null) => {
@@ -150,22 +133,6 @@ export function ClientCard({
     return counts;
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <Card className="p-6 flex items-center justify-center">
-        <div className="animate-spin h-6 w-6 border-2 border-gray-300 border-t-cyan-500 rounded-full"></div>
-      </Card>
-    );
-  }
-
-  if (!client) {
-    return (
-      <Card className="p-6 text-center text-gray-500">
-        Failed to load client data
-      </Card>
-    );
-  }
 
   const taskCounts = getTaskStatusCounts(client.tasks);
   const totalTasks = client.tasks?.length || 0;
@@ -254,7 +221,7 @@ export function ClientCard({
 
   async function handleDelete() {
     setIsDeleting(true);
-    const ok = await handleDeleteClient(clientId, swrKey);
+    const ok = await handleDeleteClient(client.id, swrKey);
     if (ok) {
       setDeleted(true);
       router.refresh();
@@ -266,17 +233,17 @@ export function ClientCard({
   const handleViewDetails = () => {
     if (onViewDetails) return onViewDetails();
     if (segment === "data_entry") {
-      router.push(`/data_entry/clients/${clientId}`);
+      router.push(`/data_entry/clients/${client.id}`);
     } else {
-      router.push(`/${segment}/clients/${clientId}`);
+      router.push(`/${segment}/clients/${client.id}`);
     }
   };
 
   const handleViewTasks = () => {
     if (segment === "data_entry") {
-      router.push(`/data_entry/data_entry/clients/${clientId}/tasks`);
+      router.push(`/data_entry/data_entry/clients/${client.id}/tasks`);
     } else {
-      router.push(`/${segment}/clients/${clientId}/tasks`);
+      router.push(`/${segment}/clients/${client.id}/tasks`);
     }
   };
 
@@ -316,7 +283,7 @@ export function ClientCard({
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => onToggleFavorite?.(clientId)}
+                      onClick={() => onToggleFavorite?.(client.id)}
                       className={`p-2 rounded-full border transition-all ${
                         isFavorite
                           ? "bg-rose-50 border-rose-200 text-rose-600"
@@ -511,7 +478,7 @@ export function ClientCard({
       <DangerDeleteClientModal
         open={openDanger}
         onOpenChange={setOpenDanger}
-        clientId={clientId}
+        clientId={client.id}
         clientName={client.name}
         isDeleting={isDeleting}
         onConfirm={handleDelete}
@@ -520,7 +487,7 @@ export function ClientCard({
       <PackageUpgradeDialog
         open={openUpgrade}
         onOpenChange={setOpenUpgrade}
-        clientId={clientId}
+        clientId={client.id}
         currentPackageId={client?.package?.id ?? null}
         onUpgraded={() => {
           toast.success("Package upgraded");
@@ -529,4 +496,7 @@ export function ClientCard({
       />
     </Card>
   );
-}
+};
+
+// Memoize to prevent unnecessary re-renders
+export const ClientCard = memo(ClientCardComponent);

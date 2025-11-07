@@ -2,6 +2,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { ClientCard } from "@/components/clients/client-card";
 import type { Client } from "@/types/client";
 
@@ -13,7 +14,7 @@ interface ClientGridProps {
   onToggleFavorite?: (clientId: string) => void;
 }
 
-export function ClientGrid({
+const ClientGridComponent = function ClientGrid({
   clients,
   onViewDetails,
   favoriteIds,
@@ -24,7 +25,7 @@ export function ClientGrid({
       {clients.map((client) => (
         <ClientCard
           key={client.id}
-          clientId={client.id}
+          client={client}
           clientUserId={(client as any).clientUserId ?? null}
           onViewDetails={() => onViewDetails(client)}
           isFavorite={favoriteIds?.has(client.id) ?? false}
@@ -33,4 +34,6 @@ export function ClientGrid({
       ))}
     </div>
   );
-}
+};
+
+export const ClientGrid = memo(ClientGridComponent);
