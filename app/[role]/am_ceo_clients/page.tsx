@@ -2,16 +2,19 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 // Import necessary components
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
+import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
 import type { Client } from "@/types/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { useClients } from "@/lib/hooks/use-clients";
 import { AmCeoClientOverviewHeader } from "@/components/clients/am-ceo-client-overview-header";
-import { AmGroupedClientView } from "@/components/clients/am-grouped-client-view"; // ✅ The key component for the new UI
+// Lazy load heavy component
+const AmGroupedClientView = lazy(() => import("@/components/clients/am-grouped-client-view").then(m => ({ default: m.AmGroupedClientView })));
 
 // Type definition for a single AM Group
 type AmGroup = {
@@ -25,16 +28,25 @@ export default function ClientsPage() {
   // Session State
   const { user, loading: sessionLoading } = useUserSession();
 
-  // Data and UI State
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use optimized custom hook for client fetching with caching
+  const { clients, loading } = useClients();
+  
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [packageFilter, setPackageFilter] = useState("all");
   const [amFilter, setAmFilter] = useState("all");
+
+  // Debounce search input to reduce filtering operations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const [packages, setPackages] = useState<{ id: string; name: string }[]>([]);
 
@@ -56,60 +68,11 @@ export default function ClientsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionLoading, isAM, currentUserId]);
 
-  // --- Clients Fetch ---
-  const fetchClients = useCallback(async () => {
-    if (sessionLoading) return;
-    setLoading(true);
-    try {
-      // Apply server-side scope for AM role
-      const url =
-        isAM && currentUserId
-          ? `/api/clients?amId=${encodeURIComponent(currentUserId)}`
-          : "/api/clients";
 
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) throw new Error("Failed to fetch clients");
-
-      const raw = await response.json();
-
-      const list =
-        (Array.isArray(raw) && raw) ||
-        (Array.isArray(raw?.clients) && raw.clients) ||
-        (Array.isArray(raw?.data) && raw.data) ||
-        (Array.isArray(raw?.data?.clients) && raw.data.clients) ||
-        [];
-
-      // Normalize IDs to strings
-      const normalized: Client[] = (list as any[]).map((c) => ({
-        ...c,
-        id: String(c.id),
-        amId: c?.amId != null ? String(c.amId) : c?.amId,
-        packageId: c?.packageId != null ? String(c.packageId) : c?.packageId,
-        accountManager: c?.accountManager
-          ? {
-              ...c.accountManager,
-              id:
-                c.accountManager.id != null
-                  ? String(c.accountManager.id)
-                  : c.accountManager.id,
-            }
-          : c?.accountManager,
-      }));
-
-      setClients(normalized);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      toast.error("Failed to load clients data.");
-      setClients([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionLoading, isAM, currentUserId]);
-
-  // --- Packages Fetch ---
+  // --- Packages Fetch - Memoized ---
   const fetchPackages = useCallback(async () => {
     try {
-      const resp = await fetch("/api/packages", { cache: "no-store" });
+      const resp = await fetch("/api/packages");
       if (!resp.ok) throw new Error("Failed to fetch packages");
 
       const raw = await resp.json();
@@ -141,19 +104,21 @@ export default function ClientsPage() {
     }
   }, [clients]);
 
-  // Effects for fetching data
+  // Fetch packages only when clients are loaded
   useEffect(() => {
-    if (!sessionLoading) fetchClients();
-  }, [sessionLoading, fetchClients]);
+    if (!sessionLoading && clients.length > 0) {
+      fetchPackages();
+    }
+  }, [sessionLoading, clients.length, fetchPackages]);
 
-  useEffect(() => {
-    if (!sessionLoading) fetchPackages();
-  }, [sessionLoading, fetchPackages]);
-
-  // Navigation handler
+  // Navigation handlers
   const handleViewClientDetails = (client: Client) => {
     router.push(`/am_ceo/clients/${client.id}`);
   };
+
+  const handleAddNewClient = useCallback(() => {
+    router.push(`/am_ceo/clients/onboarding`);
+  }, [router]);
 
   // Build list of Account Managers for the filter dropdown
   const accountManagers = useMemo(
@@ -174,8 +139,8 @@ export default function ClientsPage() {
     [clients]
   );
 
-  // --- Client-side filtering logic ---
-  const filteredClients = clients.filter((client) => {
+  // --- Client-side filtering logic with useMemo ---
+  const filteredClients = useMemo(() => clients.filter((client) => {
     // Status filter
     if (
       statusFilter !== "all" &&
@@ -206,9 +171,9 @@ export default function ClientsPage() {
       return false;
     }
 
-    // Search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    // Search filter using debounced search
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       const hit =
         client.name?.toLowerCase().includes(q) ||
         client.company?.toLowerCase().includes(q) ||
@@ -217,7 +182,7 @@ export default function ClientsPage() {
       if (!hit) return false;
     }
     return true;
-  });
+  }), [clients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
 
   // --- Core: Grouping filtered clients by AM ID ---
   const groupedClients: AmGroup[] = useMemo(() => {
@@ -275,11 +240,39 @@ export default function ClientsPage() {
     return groupsArray;
   }, [filteredClients, accountManagers]);
 
-  // Loading UI
+  // Loading UI with skeleton
   if (sessionLoading || loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+      <div className="py-8 px-4 md:px-6">
+        {/* Header skeleton */}
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex gap-4 mb-4">
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* AM Groups skeleton */}
+        <div className="space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="flex-1">
+                  <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, j) => (
+                  <ClientCardSkeleton key={j} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -304,12 +297,13 @@ export default function ClientsPage() {
           currentUserRole={currentUserRole}
           viewMode={viewMode}
           setViewMode={setViewMode}
+          onAddNewClient={handleAddNewClient}
         />
         {/* Note: Summary uses ALL clients, not filtered ones, for overall stats */}
         <ClientStatusSummary clients={clients} />
       </div>
 
-      {/* Clients Grouped by AM (The new professional view) */}
+      {/* Clients Grouped by AM with Suspense for lazy loading */}
       {groupedClients.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
           <p className="text-lg font-medium mb-2">
@@ -318,13 +312,36 @@ export default function ClientsPage() {
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
       ) : (
-        <AmGroupedClientView
-          groupedClients={groupedClients}
-          onViewDetails={handleViewClientDetails}
-          viewMode={viewMode}
-          canImpersonateAm={isAMCeo}
-          currentUserId={currentUserId}
-        />
+        <Suspense
+          fallback={
+            <div className="space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(3)].map((_, j) => (
+                      <ClientCardSkeleton key={j} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <AmGroupedClientView
+            groupedClients={groupedClients}
+            onViewDetails={handleViewClientDetails}
+            viewMode={viewMode}
+            canImpersonateAm={isAMCeo}
+            currentUserId={currentUserId}
+          />
+        </Suspense>
       )}
     </div>
   );

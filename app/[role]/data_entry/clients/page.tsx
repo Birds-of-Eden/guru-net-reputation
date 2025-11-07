@@ -2,19 +2,21 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ClientOverviewHeader } from "@/components/clients/client-overview-header";
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
-import { ClientGrid } from "@/components/clients/client-grid";
-import { ClientList } from "@/components/clients/client-list";
+import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
 import type { Client } from "@/types/client";
 
 // ✅ useSession এর বদলে তোমার কাস্টম হুক
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import DataEntryClientStats from "@/components/dataentry/DataEntryClientStats";
+// Lazy load heavy components
+const ClientGrid = lazy(() => import("@/components/clients/client-grid").then(m => ({ default: m.ClientGrid })));
+const ClientList = lazy(() => import("@/components/clients/client-list").then(m => ({ default: m.ClientList })));
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -27,9 +29,18 @@ export default function ClientsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [packageFilter, setPackageFilter] = useState("all");
   const [amFilter, setAmFilter] = useState("all");
+
+  // Debounce search input to reduce filtering operations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const [packages, setPackages] = useState<{ id: string; name: string }[]>([]);
 
@@ -66,7 +77,7 @@ export default function ClientsPage() {
       if (!isAM && currentUserId)
         url.searchParams.set("assignedAgentId", currentUserId);
 
-      const response = await fetch(url.toString(), { cache: "no-store" });
+      const response = await fetch(url.toString());
       if (!response.ok) throw new Error("Failed to fetch clients");
 
       const payload = await response.json();
@@ -87,7 +98,7 @@ export default function ClientsPage() {
   // --- Fetch packages (for filter names) ---
   const fetchPackages = useCallback(async () => {
     try {
-      const resp = await fetch("/api/packages", { cache: "no-store" });
+      const resp = await fetch("/api/packages");
       if (!resp.ok) throw new Error("Failed to fetch packages");
 
       const raw = await resp.json();
@@ -132,12 +143,12 @@ export default function ClientsPage() {
     router.push(`/data_entry/clients/${client.id}`);
   };
 
-  const handleAddNewClient = () => {
+  const handleAddNewClient = useCallback(() => {
     const role = (currentUserRole ?? "").toLowerCase();
     if (role === "data_entry") {
       router.push(`/${role}/data_entry/clients/onboarding`);
     }
-  };
+  }, [currentUserRole, router]);
 
   // Build account manager options safely
   const accountManagers = useMemo(() => {
@@ -155,8 +166,8 @@ export default function ClientsPage() {
     ).map(([, v]) => v);
   }, [clients]);
 
-  // Client-side filtering (extra safety)
-  const filteredClients = (Array.isArray(clients) ? clients : []).filter(
+  // Client-side filtering with useMemo
+  const filteredClients = useMemo(() => (Array.isArray(clients) ? clients : []).filter(
     (client) => {
       if (
         statusFilter !== "all" &&
@@ -176,8 +187,8 @@ export default function ClientsPage() {
       )
         return false;
 
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         const hit =
           client?.name?.toLowerCase().includes(q) ||
           client?.company?.toLowerCase().includes(q) ||
@@ -188,13 +199,33 @@ export default function ClientsPage() {
 
       return true;
     }
-  );
+  ), [clients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
 
-  // ✅ loading UI: সেশন লোড + ডেটা লোড—দুটোই কভার
+  // ✅ loading UI with skeleton
   if (loading || sessionLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+      <div className="py-8 px-4 md:px-6">
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex gap-4 mb-4">
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+          <div className="h-8 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex gap-4">
+            <div className="h-20 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-20 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-20 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <ClientCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -228,7 +259,7 @@ export default function ClientsPage() {
         <DataEntryClientStats clients={Array.isArray(clients) ? clients : []} />
       </div>
 
-      {/* Clients Grid or List */}
+      {/* Clients Grid or List with Suspense for lazy loading */}
       {filteredClients.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
           <p className="text-lg font-medium mb-2">
@@ -236,16 +267,28 @@ export default function ClientsPage() {
           </p>
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
-      ) : viewMode === "grid" ? (
-        <ClientGrid
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
       ) : (
-        <ClientList
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
+        <Suspense
+          fallback={
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <ClientCardSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          {viewMode === "grid" ? (
+            <ClientGrid
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          ) : (
+            <ClientList
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          )}
+        </Suspense>
       )}
     </div>
   );

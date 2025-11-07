@@ -2,16 +2,19 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ClientOverviewHeader } from "@/components/clients/client-overview-header";
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
-import { ClientGrid } from "@/components/clients/client-grid";
-import { ClientList } from "@/components/clients/client-list";
+import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
 import type { Client } from "@/types/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { useClients } from "@/lib/hooks/use-clients";
+// Lazy load heavy components
+const ClientGrid = lazy(() => import("@/components/clients/client-grid").then(m => ({ default: m.ClientGrid })));
+const ClientList = lazy(() => import("@/components/clients/client-list").then(m => ({ default: m.ClientList })));
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -19,14 +22,24 @@ export default function ClientsPage() {
   // ✅ হুক থেকে user / loading সঠিকভাবে নাও
   const { user, loading: sessionLoading } = useUserSession();
 
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use optimized custom hook for client fetching with caching
+  const { clients, loading } = useClients();
+  
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [packageFilter, setPackageFilter] = useState("all");
   const [amFilter, setAmFilter] = useState("all");
+
+  // Debounce search input to reduce filtering operations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const [packages, setPackages] = useState<{ id: string; name: string }[]>([]);
 
@@ -47,60 +60,11 @@ export default function ClientsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionLoading, isAM, currentUserId]);
 
-  // --- Clients ফেচ (AM হলে server-side স্কোপিং) ---
-  const fetchClients = useCallback(async () => {
-    if (sessionLoading) return; // session না আসা পর্যন্ত অপেক্ষা
-    setLoading(true);
-    try {
-      const url =
-        isAM && currentUserId
-          ? `/api/clients?amId=${encodeURIComponent(currentUserId)}`
-          : "/api/clients";
 
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) throw new Error("Failed to fetch clients");
-
-      const raw = await response.json();
-
-      // 🔒 shape-agnostic extract: [], {clients:[]}, {data:[]}, {data:{clients:[]}}
-      const list =
-        (Array.isArray(raw) && raw) ||
-        (Array.isArray(raw?.clients) && raw.clients) ||
-        (Array.isArray(raw?.data) && raw.data) ||
-        (Array.isArray(raw?.data?.clients) && raw.data.clients) ||
-        [];
-
-      // 🔧 id-গুলো string normalize করে নাও (amId, packageId, accountManager.id)
-      const normalized: Client[] = (list as any[]).map((c) => ({
-        ...c,
-        id: String(c.id),
-        amId: c?.amId != null ? String(c.amId) : c?.amId,
-        packageId: c?.packageId != null ? String(c.packageId) : c?.packageId,
-        accountManager: c?.accountManager
-          ? {
-              ...c.accountManager,
-              id:
-                c.accountManager.id != null
-                  ? String(c.accountManager.id)
-                  : c.accountManager.id,
-            }
-          : c?.accountManager,
-      }));
-
-      setClients(normalized);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      toast.error("Failed to load clients data.");
-      setClients([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionLoading, isAM, currentUserId]);
-
-  // --- Packages ফেচ (shape-agnostic) ---
+  // --- Packages ফেচ - Memoized ---
   const fetchPackages = useCallback(async () => {
     try {
-      const resp = await fetch("/api/packages", { cache: "no-store" });
+      const resp = await fetch("/api/packages");
       if (!resp.ok) throw new Error("Failed to fetch packages");
 
       const raw = await resp.json();
@@ -132,23 +96,21 @@ export default function ClientsPage() {
     }
   }, [clients]);
 
-  // session লোড হওয়ার পরেই ফেচ করো
+  // Fetch packages only when clients are loaded
   useEffect(() => {
-    if (!sessionLoading) fetchClients();
-  }, [sessionLoading, fetchClients]);
-
-  useEffect(() => {
-    if (!sessionLoading) fetchPackages();
-  }, [sessionLoading, fetchPackages]);
+    if (!sessionLoading && clients.length > 0) {
+      fetchPackages();
+    }
+  }, [sessionLoading, clients.length, fetchPackages]);
 
   // Navigate to details
   const handleViewClientDetails = (client: Client) => {
     router.push(`/am/clients/${client.id}`);
   };
 
-  const handleAddNewClient = () => {
+  const handleAddNewClient = useCallback(() => {
     router.push("/am/clients/onboarding");
-  };
+  }, [router]);
 
   // Account manager options build (AM হলে নিজেরটাই থাকবে)
   const accountManagers = useMemo(
@@ -168,8 +130,8 @@ export default function ClientsPage() {
     [clients]
   );
 
-  // Client-side নিরাপত্তা ফিল্টার (server-side ছাড়াও)
-  const filteredClients = clients.filter((client) => {
+  // Client-side নিরাপত্তা ফিল্টার with useMemo
+  const filteredClients = useMemo(() => clients.filter((client) => {
     // status filter
     if (
       statusFilter !== "all" &&
@@ -200,9 +162,9 @@ export default function ClientsPage() {
       return false;
     }
 
-    // search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    // search filter using debounced search
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       const hit =
         client.name?.toLowerCase().includes(q) ||
         client.company?.toLowerCase().includes(q) ||
@@ -211,13 +173,25 @@ export default function ClientsPage() {
       if (!hit) return false;
     }
     return true;
-  });
+  }), [clients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
 
-  // Loading UI: session বা data যেকোনওটা লোডিং হলে
+  // Loading UI with skeleton
   if (sessionLoading || loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+      <div className="py-8 px-4 md:px-6">
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4"></div>
+          <div className="flex gap-4 mb-4">
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <ClientCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -246,7 +220,7 @@ export default function ClientsPage() {
         <ClientStatusSummary clients={clients} />
       </div>
 
-      {/* Clients Grid or List */}
+      {/* Clients Grid or List with Suspense for lazy loading */}
       {filteredClients.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
           <p className="text-lg font-medium mb-2">
@@ -254,16 +228,28 @@ export default function ClientsPage() {
           </p>
           <p className="text-sm">Try adjusting your search or filters.</p>
         </div>
-      ) : viewMode === "grid" ? (
-        <ClientGrid
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
       ) : (
-        <ClientList
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
+        <Suspense
+          fallback={
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <ClientCardSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          {viewMode === "grid" ? (
+            <ClientGrid
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          ) : (
+            <ClientList
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          )}
+        </Suspense>
       )}
     </div>
   );
