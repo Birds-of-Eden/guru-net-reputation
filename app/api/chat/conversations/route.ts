@@ -75,6 +75,15 @@ export async function POST(req: Request) {
     taskId,
   } = (await req.json()) || {};
 
+  const normalizedTitle =
+    typeof title === "string" ? title.trim() : "";
+  if (type === "group" && !normalizedTitle) {
+    return NextResponse.json(
+      { message: "Group title is required" },
+      { status: 400 }
+    );
+  }
+
   // Enforce: clients may only create a DM with their assigned AM
   const roleName = (me as any)?.role?.name?.toLowerCase?.() || "";
   if (roleName === "client") {
@@ -157,7 +166,7 @@ export async function POST(req: Request) {
   const conv = await prisma.conversation.create({
     data: {
       type,
-      title: title || null,
+      title: normalizedTitle || null,
       createdBy: { connect: { id: me.id } },
       ...(contextPayload ? { conversation_field_06: contextPayload } : {}),
       participants: {

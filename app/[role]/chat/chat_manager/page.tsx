@@ -108,6 +108,7 @@ export default function ChatPage() {
   // Group creation modal state
   const [groupOpen, setGroupOpen] = useState(false);
   const [groupTitle, setGroupTitle] = useState("");
+  const [groupError, setGroupError] = useState<string | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
 
   function handleCreateGroup() {
@@ -125,15 +126,21 @@ export default function ChatPage() {
 
   async function submitCreateGroup() {
     const memberIds = Array.from(selectedMembers);
+    const trimmedTitle = groupTitle.trim();
+    if (!trimmedTitle) {
+      setGroupError("Group name is required");
+      return;
+    }
     try {
-      const conv = await createConversation({ type: "group", title: groupTitle || undefined, memberIds });
+      const conv = await createConversation({ type: "group", title: trimmedTitle, memberIds });
       setGroupOpen(false);
       setGroupTitle("");
+      setGroupError(null);
       setSelectedMembers(new Set());
       await refetchConvos();
       setActiveId(conv.id);
     } catch (e) {
-      // silently fail; API will guard permissions
+      setGroupError("Failed to create group. Please try again.");
     }
   }
 
@@ -377,9 +384,15 @@ export default function ChatPage() {
               <label className="text-xs text-gray-600">Group title</label>
               <Input
                 value={groupTitle}
-                onChange={(e) => setGroupTitle(e.target.value)}
+                onChange={(e) => {
+                  setGroupTitle(e.target.value);
+                  if (groupError) setGroupError(null);
+                }}
                 placeholder="e.g. Design Team"
               />
+              {groupError && (
+                <p className="text-xs text-red-600 mt-1">{groupError}</p>
+              )}
             </div>
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2">Select members</div>
@@ -405,7 +418,12 @@ export default function ChatPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setGroupOpen(false)}>Cancel</Button>
-            <Button onClick={submitCreateGroup} disabled={selectedMembers.size === 0}>Create</Button>
+            <Button
+              onClick={submitCreateGroup}
+              disabled={selectedMembers.size === 0 || !groupTitle.trim()}
+            >
+              Create
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

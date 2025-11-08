@@ -45,6 +45,59 @@ export async function GET(_req: Request, ctx: Ctx) {
   return NextResponse.json(conv);
 }
 
+// ---------- PATCH: rename group ----------
+export async function PATCH(req: Request, ctx: Ctx) {
+  const me = await getAuthUser();
+  if (!me)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const { id } = await ctx.params;
+  const payload = (await req.json().catch(() => ({}))) as {
+    title?: string;
+  };
+  const nextTitle = typeof payload?.title === "string" ? payload.title.trim() : "";
+  if (!nextTitle) {
+    return NextResponse.json(
+      { message: "Group title is required" },
+      { status: 400 }
+    );
+  }
+
+  const conv = await prisma.conversation.findUnique({
+    where: { id },
+    select: { id: true, type: true },
+  });
+  if (!conv)
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+
+  const membership = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId: id, userId: me.id } },
+    select: { userId: true },
+  });
+  if (!membership)
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+
+  if (conv.type !== "group") {
+    return NextResponse.json(
+      { message: "Only group conversations can be renamed" },
+      { status: 400 }
+    );
+  }
+
+  const updated = await prisma.conversation.update({
+    where: { id },
+    data: { title: nextTitle },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      updatedAt: true,
+    },
+  });
+
+  return NextResponse.json(updated);
+}
+
 // ---------- DELETE: leave/self or delete/all ----------
 export async function DELETE(req: Request, ctx: Ctx) {
   const me = await getAuthUser();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { Send } from "lucide-react";
 import { pusherClient } from "@/lib/pusher/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { useRoster } from "@/hooks/useRoster";
 import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 function near(aIso: string, bIso: string, ms = 8000) {
   return Math.abs(new Date(aIso).getTime() - new Date(bIso).getTime()) <= ms;
@@ -60,6 +61,12 @@ export default function ChatWindow({
     `/api/chat/conversations/${conversationId}`,
     fetcher
   );
+  const { mutate: globalMutate } = useSWRConfig();
+
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
 
   // participants (for read pointers)
   const [participants, setParticipants] = useState<
@@ -73,6 +80,13 @@ export default function ChatWindow({
       })) || [];
     setParticipants(arr);
   }, [convDetail]);
+
+  useEffect(() => {
+    if (renameOpen) {
+      setRenameValue(convDetail?.title || "");
+      setRenameError(null);
+    }
+  }, [renameOpen, convDetail?.title]);
 
   // other user (dm)
   const otherUser = useMemo(() => {
@@ -435,6 +449,7 @@ export default function ChatWindow({
   }
 
   const isDM = convDetail?.type === "dm";
+  const isGroup = convDetail?.type === "group";
 
   // Optimistic reaction toggling
   async function handleToggleReaction(messageId: string, emoji: string) {
@@ -494,6 +509,32 @@ export default function ChatWindow({
     }
   }
 
+  async function handleRenameSubmit() {
+    const trimmed = renameValue.trim();
+    if (!trimmed) {
+      setRenameError("Group name is required");
+      return;
+    }
+    setRenaming(true);
+    try {
+      const res = await fetch(`/api/chat/conversations/${conversationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: trimmed }),
+      });
+      if (!res.ok) throw new Error("Failed to rename");
+      await mutateConv();
+      await globalMutate((key) =>
+        typeof key === "string" && key.startsWith("/api/chat/conversations")
+      );
+      setRenameOpen(false);
+    } catch {
+      setRenameError("Failed to rename group. Please try again.");
+    } finally {
+      setRenaming(false);
+    }
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -530,13 +571,24 @@ export default function ChatWindow({
           ) : null}
 
           {/* Members management for group/team */}
-          {convDetail?.type !== "dm" && (
+          {!isDM && (
             <BackgroundGradient>
               <button
                 className="px-2 py-1 text-xs rounded bg-transparent text-white"
                 onClick={() => setMembersOpen(true)}
               >
                 Members
+              </button>
+            </BackgroundGradient>
+          )}
+
+          {isGroup && (
+            <BackgroundGradient>
+              <button
+                className="px-2 py-1 text-xs rounded bg-transparent text-white"
+                onClick={() => setRenameOpen(true)}
+              >
+                Rename
               </button>
             </BackgroundGradient>
           )}
@@ -630,6 +682,40 @@ export default function ChatWindow({
         conversationId={conversationId}
         onJump={(id: string) => goToMessage(id)}
       />
+
+      {isGroup && (
+        <Dialog open={renameOpen} onOpenChange={(v) => (!v ? setRenameOpen(false) : null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Rename group</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Input
+                value={renameValue}
+                onChange={(e) => {
+                  setRenameValue(e.target.value);
+                  if (renameError) setRenameError(null);
+                }}
+                placeholder="Enter a group name"
+              />
+              {renameError && (
+                <p className="text-xs text-red-600">{renameError}</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRenameOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRenameSubmit}
+                disabled={renaming || !renameValue.trim()}
+              >
+                {renaming ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
