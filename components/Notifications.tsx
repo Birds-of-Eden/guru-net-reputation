@@ -1,3 +1,5 @@
+// components/Notifications.tsx
+
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -44,7 +46,9 @@ type NotificationsProps = {
   apiBase?: string; // defaults to "/api/notifications"
 };
 
-export default function Notifications({ apiBase = "/api/notifications" }: NotificationsProps) {
+export default function Notifications({
+  apiBase = "/api/notifications",
+}: NotificationsProps) {
   // filters state
   const [type, setType] = useState<string>("all");
   const [readState, setReadState] = useState<string>("all");
@@ -109,7 +113,6 @@ export default function Notifications({ apiBase = "/api/notifications" }: Notifi
     sort !== "desc";
 
   return (
-
     <Card className="border-0 shadow-md">
       <CardHeader>
         <div className="flex flex-col gap-4">
@@ -262,8 +265,9 @@ export default function Notifications({ apiBase = "/api/notifications" }: Notifi
                 {items.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3 flex items-start justify-between ${n.isRead ? "" : "bg-blue-50/60"
-                      }`}
+                    className={`p-3 flex items-start justify-between ${
+                      n.isRead ? "" : "bg-blue-50/60"
+                    }`}
                   >
                     <div className="pr-3">
                       <div className="text-sm">{n.message}</div>
@@ -310,6 +314,5 @@ export default function Notifications({ apiBase = "/api/notifications" }: Notifi
           ))}
       </CardContent>
     </Card>
-
   );
 }

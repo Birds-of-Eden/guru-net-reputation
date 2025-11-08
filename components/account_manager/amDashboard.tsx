@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, memo } from "react";
 import {
   Users,
   Activity,
@@ -86,7 +86,11 @@ const GRADIENTS = {
   slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
 };
 
-export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
+// In-memory cache for dashboard data
+const dashboardCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds
+
+const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
   const [selectedAmId, setSelectedAmId] = useState<string>(defaultAmId);
   const { user, loading: sessionLoading } = useUserSession();
 
@@ -115,12 +119,22 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     }
   }, [sessionLoading, isAM, user?.id, defaultAmId, selectedAmId]);
 
-  // Load packages → map id→name (once)
+  // Load packages → map id→name (once) with caching
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         setPkgLoading(true);
+
+        // Check cache first
+        const cacheKey = "packages";
+        const cached = dashboardCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          if (mounted) setPkgMap(cached.data);
+          if (mounted) setPkgLoading(false);
+          return;
+        }
+
         const res = await fetch("/api/packages", { cache: "no-store" });
         const raw = await res.json();
         const list = safeParse<any[]>(raw);
@@ -128,6 +142,8 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
         (Array.isArray(list) ? list : Array.isArray((raw as any)?.data) ? (raw as any).data : []).forEach((p: any) => {
           if (p?.id) map[String(p.id)] = String(p.name ?? "Unnamed");
         });
+        // Cache the result
+        dashboardCache.set(cacheKey, { data: map, timestamp: Date.now() });
         if (mounted) setPkgMap(map);
       } catch {
         if (mounted) setPkgMap({});
@@ -140,61 +156,69 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     };
   }, []);
 
-  // ---- Load clients (session-based & server-side scoped) ----
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (sessionLoading) return; // wait for session
-      try {
-        if (!mounted) return;
-        setClients({ data: [], loading: true, error: null });
+  // ---- Load clients (session-based & server-side scoped) with caching ----
+  const fetchClients = useCallback(async () => {
+    if (sessionLoading) return;
 
-        // Build URL
-        let url = "/api/clients";
-        if (isAM) {
-          const am = selectedAmId || user?.id || "";
-          if (!am) {
-            if (mounted) setClients({ data: [], loading: false, error: null });
-            return;
-          }
-          url = `/api/clients?amId=${encodeURIComponent(am)}`;
-        } else if (selectedAmId) {
-          url = `/api/clients?amId=${encodeURIComponent(selectedAmId)}`;
+    try {
+      setClients({ data: [], loading: true, error: null });
+
+      // Build URL
+      let url = "/api/clients";
+      if (isAM) {
+        const am = selectedAmId || user?.id || "";
+        if (!am) {
+          setClients({ data: [], loading: false, error: null });
+          return;
         }
-
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load clients");
-        const raw = await res.json();
-
-        // Robust parsing: supports [ ... ], { clients: [...] }, { data: [...] }, { data: { clients: [...] } }
-        const arrLike =
-          (Array.isArray(raw) && raw) ||
-          (Array.isArray((raw as any)?.clients) && (raw as any).clients) ||
-          (Array.isArray((raw as any)?.data) && (raw as any).data) ||
-          (Array.isArray((raw as any)?.data?.clients) && (raw as any).data.clients) ||
-          [];
-
-        const mapped: ClientLite[] = (arrLike as any[]).map((c) => ({
-          id: String(c.id),
-          name: String(c.name ?? "Unnamed"),
-          status: c.status ?? null,
-          progress: typeof c.progress === "number" ? c.progress : c.progress ? Number(c.progress) : null,
-          startDate: c.startDate ?? null,
-          dueDate: c.dueDate ?? null,
-          amId: c.amId ?? null,
-          packageId: c.packageId ?? null,
-          accountManager: c.accountManager ?? null,
-        }));
-
-        if (mounted) setClients({ data: mapped, loading: false, error: null });
-      } catch (e: any) {
-        if (mounted) setClients({ data: [], loading: false, error: e?.message ?? "Failed to load clients" });
+        url = `/api/clients?amId=${encodeURIComponent(am)}`;
+      } else if (selectedAmId) {
+        url = `/api/clients?amId=${encodeURIComponent(selectedAmId)}`;
       }
-    })();
-    return () => {
-      mounted = false;
-    };
+
+      // Check cache
+      const cacheKey = `clients-${selectedAmId || "all"}`;
+      const cached = dashboardCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        setClients({ data: cached.data, loading: false, error: null });
+        return;
+      }
+
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load clients");
+      const raw = await res.json();
+
+      // Robust parsing: supports [ ... ], { clients: [...] }, { data: [...] }, { data: { clients: [...] } }
+      const arrLike =
+        (Array.isArray(raw) && raw) ||
+        (Array.isArray((raw as any)?.clients) && (raw as any).clients) ||
+        (Array.isArray((raw as any)?.data) && (raw as any).data) ||
+        (Array.isArray((raw as any)?.data?.clients) && (raw as any).data.clients) ||
+        [];
+
+      const mapped: ClientLite[] = (arrLike as any[]).map((c: any) => ({
+        id: String(c.id),
+        name: String(c.name ?? "Unnamed"),
+        status: c.status ?? null,
+        progress: typeof c.progress === "number" ? c.progress : c.progress ? Number(c.progress) : null,
+        startDate: c.startDate ?? null,
+        dueDate: c.dueDate ?? null,
+        amId: c.amId ?? null,
+        packageId: c.packageId ?? null,
+        accountManager: c.accountManager ?? null,
+      }));
+
+      // Cache the result
+      dashboardCache.set(cacheKey, { data: mapped, timestamp: Date.now() });
+      setClients({ data: mapped, loading: false, error: null });
+    } catch (e: any) {
+      setClients({ data: [], loading: false, error: e?.message ?? "Failed to load clients" });
+    }
   }, [sessionLoading, isAM, selectedAmId, user?.id]);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   // ---------- Derived metrics ----------
   const now = new Date();
@@ -303,8 +327,8 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     return selectedAmId ? "Selected AM" : "All AMs";
   }, [isAM, user, selectedAmId, clients.data]);
 
-  const formatDate = (s?: string | null) =>
-    s ? new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
+  const formatDate = useCallback((s?: string | null) =>
+    s ? new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—", []);
 
   return (
     <div className="space-y-6 px-4 bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen">
@@ -379,7 +403,6 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
               </CardContent>
             </Card>
 
-
             <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -422,10 +445,10 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                       <defs>
                         {pieData.map((entry, index) => (
                           <filter key={index} id={`glow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                             <feMerge>
-                              <feMergeNode in="coloredBlur"/>
-                              <feMergeNode in="SourceGraphic"/>
+                              <feMergeNode in="coloredBlur" />
+                              <feMergeNode in="SourceGraphic" />
                             </feMerge>
                           </filter>
                         ))}
@@ -438,26 +461,26 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                         outerRadius={90}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => 
+                        label={({ name, percent }) =>
                           `${name}: ${(percent * 100).toFixed(0)}%`
                         }
                         labelLine={false}
                       >
                         {pieData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={entry.fill}
                             filter={`url(#glow-${index})`}
                           />
                         ))}
                       </Pie>
-                      <RTooltip 
-                        formatter={(value: number) => [`${value} clients`, 'Count']}
+                      <RTooltip
+                        formatter={(value: number) => [`${value} clients`, "Count"]}
                         contentStyle={{
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                          backgroundColor: "#f8fafc",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                         }}
                       />
                     </PieChart>
@@ -485,18 +508,18 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                   <BarChart data={enhancedProgressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.4}/>
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.4} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis 
-                      dataKey="label" 
+                    <XAxis
+                      dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
@@ -509,18 +532,18 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
-                      formatter={(value: number) => [value, 'Clients']}
+                      formatter={(value: number) => [value, "Clients"]}
                     />
-                    <Bar 
-                      dataKey="count" 
-                      fill="url(#progressGradient)" 
+                    <Bar
+                      dataKey="count"
+                      fill="url(#progressGradient)"
                       radius={[4, 4, 0, 0]}
                       barSize={30}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="trend" 
-                      stroke="#f59e0b" 
+                    <Line
+                      type="monotone"
+                      dataKey="trend"
+                      stroke="#f59e0b"
                       strokeWidth={2}
                       dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
                       strokeDasharray="3 3"
@@ -545,22 +568,22 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                   <AreaChart data={startsByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <defs>
                       <linearGradient id="colorStarts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
                       </linearGradient>
                       <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.5}/>
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.5} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis 
-                      dataKey="label" 
+                    <XAxis
+                      dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
@@ -573,14 +596,14 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
-                      formatter={(value: number) => [value, 'New Clients']}
+                      formatter={(value: number) => [value, "New Clients"]}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="count" 
+                    <Area
+                      type="monotone"
+                      dataKey="count"
                       stroke="url(#colorLine)"
                       strokeWidth={3}
-                      fill="url(#colorStarts)" 
+                      fill="url(#colorStarts)"
                       dot={{ fill: "#6366f1", strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6, fill: "#6366f1" }}
                     />
@@ -672,4 +695,7 @@ export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
       )}
     </div>
   );
-}
+};
+
+// Export memoized version
+export const AMDashboard = memo(AMDashboardComponent);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, memo } from "react";
 import {
   Users,
   Activity,
@@ -122,7 +122,11 @@ const GRADIENTS = {
   slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
 };
 
-export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
+// In-memory cache for AM CEO dashboard data
+const amCeoDashboardCache = new Map<string, { data: any; timestamp: number }>();
+const AM_CEO_CACHE_DURATION = 30000; // 30 seconds
+
+const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
   const [selectedAmCeoId, setSelectedAmCeoId] = useState<string>(defaultAmId);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientOpen, setClientOpen] = useState<boolean>(false);
@@ -159,6 +163,16 @@ export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     (async () => {
       try {
         setPkgLoading(true);
+        
+        // Check cache first
+        const cacheKey = 'am-ceo-packages';
+        const cached = amCeoDashboardCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
+          if (mounted) setPkgMap(cached.data);
+          if (mounted) setPkgLoading(false);
+          return;
+        }
+        
         const res = await fetch("/api/packages", { cache: "no-store" });
         const raw = await res.json();
         const list = safeParse<any[]>(raw);
@@ -166,6 +180,8 @@ export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
         (Array.isArray(list) ? list : []).forEach((p) => {
           if (p?.id) map[String(p.id)] = String(p.name ?? "Unnamed");
         });
+        // Cache the result
+        amCeoDashboardCache.set(cacheKey, { data: map, timestamp: Date.now() });
         if (mounted) setPkgMap(map);
       } catch {
         if (mounted) setPkgMap({});
@@ -178,83 +194,100 @@ export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     };
   }, []);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        if (!mounted) return;
-        setClients({ data: [], loading: true, error: null });
+  const fetchClients = useCallback(async () => {
+    try {
+      setClients({ data: [], loading: true, error: null });
 
-        const url = selectedAmCeoId
-          ? `/api/clients?am_ceoId=${encodeURIComponent(selectedAmCeoId)}`
-          : "/api/clients";
-        const res = await fetch(url, { cache: "no-store" });
-        const raw = await res.json();
-        const arr = safeParse<any[]>(raw);
-
-        const mapped: ClientLite[] = (Array.isArray(arr) ? arr : []).map(
-          (c) => ({
-            id: String(c.id),
-            name: String(c.name ?? "Unnamed"),
-            status: c.status ?? null,
-            progress:
-              typeof c.progress === "number"
-                ? c.progress
-                : c.progress
-                ? Number(c.progress)
-                : null,
-            startDate: c.startDate ?? null,
-            dueDate: c.dueDate ?? null,
-            amCeoId: c.amCeoId ?? null,
-            packageId: c.packageId ?? null,
-            accountManager: c.accountManager ?? null,
-          })
-        );
-
-        setClients({ data: mapped, loading: false, error: null });
-        const exists = mapped.some((c) => c.id === selectedClientId);
+      const url = selectedAmCeoId
+        ? `/api/clients?am_ceoId=${encodeURIComponent(selectedAmCeoId)}`
+        : "/api/clients";
+      
+      // Check cache
+      const cacheKey = `am-ceo-clients-${selectedAmCeoId || 'all'}`;
+      const cached = amCeoDashboardCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
+        setClients({ data: cached.data, loading: false, error: null });
+        const exists = cached.data.some((c: any) => c.id === selectedClientId);
         if (!exists) setSelectedClientId("");
-      } catch {
-        setClients({
-          data: [],
-          loading: false,
-          error: "Failed to load clients",
-        });
+        return;
       }
-    })();
-    return () => {
-      mounted = false;
-    };
+      
+      const res = await fetch(url, { cache: "no-store" });
+      const raw = await res.json();
+      const arr = safeParse<any[]>(raw);
+
+      const mapped: ClientLite[] = (Array.isArray(arr) ? arr : []).map(
+        (c: any) => ({
+          id: String(c.id),
+          name: String(c.name ?? "Unnamed"),
+          status: c.status ?? null,
+          progress:
+            typeof c.progress === "number"
+              ? c.progress
+              : c.progress
+              ? Number(c.progress)
+              : null,
+          startDate: c.startDate ?? null,
+          dueDate: c.dueDate ?? null,
+          amCeoId: c.amCeoId ?? null,
+          packageId: c.packageId ?? null,
+          accountManager: c.accountManager ?? null,
+        })
+      );
+
+      // Cache the result
+      amCeoDashboardCache.set(cacheKey, { data: mapped, timestamp: Date.now() });
+      setClients({ data: mapped, loading: false, error: null });
+      const exists = mapped.some((c) => c.id === selectedClientId);
+      if (!exists) setSelectedClientId("");
+    } catch {
+      setClients({
+        data: [],
+        loading: false,
+        error: "Failed to load clients",
+      });
+    }
   }, [selectedAmCeoId, selectedClientId]);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        if (!mounted) return;
-        setSummary({ data: null, loading: true, error: null });
-        const url = selectedAmCeoId
-          ? `/api/clients/summary?am_ceoId=${encodeURIComponent(
-              selectedAmCeoId
-            )}&limitUpcoming=8`
-          : `/api/clients/summary?limitUpcoming=8`;
-        const res = await fetch(url, { cache: "no-store" });
-        const raw = await res.json();
-        const data = safeParse<Summary>(raw);
-        if (mounted) setSummary({ data, loading: false, error: null });
-      } catch {
-        if (mounted)
-          setSummary({
-            data: null,
-            loading: false,
-            error: "Failed to load summary",
-          });
+    fetchClients();
+  }, [fetchClients]);
+
+  const fetchSummary = useCallback(async () => {
+    try {
+      setSummary({ data: null, loading: true, error: null });
+      const url = selectedAmCeoId
+        ? `/api/clients/summary?am_ceoId=${encodeURIComponent(
+            selectedAmCeoId
+          )}&limitUpcoming=8`
+        : `/api/clients/summary?limitUpcoming=8`;
+      
+      // Check cache
+      const cacheKey = `am-ceo-summary-${selectedAmCeoId || 'all'}`;
+      const cached = amCeoDashboardCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
+        setSummary({ data: cached.data, loading: false, error: null });
+        return;
       }
-    })();
-    return () => {
-      mounted = false;
-    };
+      
+      const res = await fetch(url, { cache: "no-store" });
+      const raw = await res.json();
+      const data = safeParse<Summary>(raw);
+      // Cache the result
+      amCeoDashboardCache.set(cacheKey, { data, timestamp: Date.now() });
+      setSummary({ data, loading: false, error: null });
+    } catch {
+      setSummary({
+        data: null,
+        loading: false,
+        error: "Failed to load summary",
+      });
+    }
   }, [selectedAmCeoId]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   // Enhanced chart data with unique visual treatments
   const pieData = useMemo(
@@ -305,14 +338,14 @@ export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
     );
   }, [selectedClientId, clients.data]);
 
-  const formatDate = (s?: string | null) =>
+  const formatDate = useCallback((s?: string | null) =>
     s
       ? new Date(s).toLocaleDateString(undefined, {
           year: "numeric",
           month: "short",
           day: "numeric",
         })
-      : "—";
+      : "—", []);
 
   const isLoading = clients.loading || summary.loading;
   const errorMsg = clients.error || summary.error;
@@ -748,4 +781,7 @@ export function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
       )}
     </div>
   );
-}
+};
+
+// Export memoized version
+export const AMCeoDashboard = memo(AMCeoDashboardComponent);
