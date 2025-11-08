@@ -13,16 +13,35 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get("limit") || "10");
     const offset = Number.parseInt(searchParams.get("offset") || "0");
     const q = (searchParams.get("q") || "").trim();
+    const status = searchParams.get("status") || "";
+    const category = searchParams.get("category") || "";
+    const role = searchParams.get("role") || "";
 
-    const where: any = q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
-            { phone: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {};
+    const where: any = {};
+    
+    // Search filter
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { phone: { contains: q, mode: "insensitive" } },
+      ];
+    }
+    
+    // Status filter
+    if (status && status !== "all") {
+      where.status = status;
+    }
+    
+    // Category filter
+    if (category && category !== "all") {
+      where.category = category;
+    }
+    
+    // Role filter
+    if (role && role !== "all") {
+      where.role = { name: role };
+    }
 
     const roleName = (me as any)?.role?.name?.toLowerCase?.() || "";
 
@@ -116,8 +135,20 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(
-      { users: usersWithStatus, total, limit, offset, q },
-      { status: 200 }
+      { 
+        users: usersWithStatus, 
+        total, 
+        limit, 
+        offset, 
+        q,
+        filters: { status, category, role }
+      },
+      { 
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30'
+        }
+      }
     );
   } catch (error) {
     console.error("Error fetching users:", error);

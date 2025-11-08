@@ -78,9 +78,19 @@ export default function UsersPage() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPageIndex(0); // Reset to first page on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Dialogs
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -110,13 +120,22 @@ export default function UsersPage() {
   const showActions =
     canViewUser || canEditUser || canDeleteUser || canImpersonate;
 
-  // Fetch users with pagination
+  // Fetch users with pagination and filters
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `/api/users?limit=${pageSize}&offset=${pageIndex * pageSize}`
-      );
+      // Build query params with all filters
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        offset: (pageIndex * pageSize).toString(),
+      });
+      
+      if (debouncedSearch) params.append("q", debouncedSearch);
+      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
+      if (categoryFilter && categoryFilter !== "all") params.append("category", categoryFilter);
+      if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
+      
+      const response = await fetch(`/api/users?${params.toString()}`);
       const result = await response.json();
       if (response.ok) {
         setUsers(result.users || []);
@@ -135,7 +154,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [pageIndex, pageSize]);
+  }, [pageIndex, pageSize, debouncedSearch, statusFilter, categoryFilter, roleFilter]);
 
   // Fetch stats
   const fetchStats = useCallback(async () => {
@@ -206,13 +225,32 @@ export default function UsersPage() {
     fetchRoles();
   }, [fetchStats, fetchRoles]);
 
-  // Categories for team filter
-  const categories = useMemo(() => {
-    if (!Array.isArray(users)) return [];
-    return Array.from(new Set(users.map((u) => u.category).filter(Boolean)));
-  }, [users]);
+  // Categories for team filter - memoized
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  
+  // Fetch all categories (not filtered)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/users?limit=1000");
+        const result = await response.json();
+        if (response.ok && result.users) {
+          const cats = Array.from(
+            new Set(result.users.map((u: any) => u.category).filter(Boolean))
+          ) as string[];
+          setAllCategories(cats);
+        }
+      } catch {
+        // Fallback to current users
+        setAllCategories(
+          Array.from(new Set(users.map((u) => u.category).filter(Boolean))) as string[]
+        );
+      }
+    };
+    fetchCategories();
+  }, []); // Only once on mount
 
-  const getStatusBadge = (status: UserStatus | undefined) => {
+  const getStatusBadge = useCallback((status: UserStatus | undefined) => {
     const safeStatus = status || "active";
     const colors: Record<UserStatus, string> = {
       active: "bg-green-100 text-green-800 hover:bg-green-100",
@@ -224,60 +262,49 @@ export default function UsersPage() {
         {safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1)}
       </Badge>
     );
-  };
+  }, []);
 
-  const formatDate = (dateString: string) =>
+  const formatDate = useCallback((dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    });
+    }), []);
 
-  const nextPage = () => {
+  const nextPage = useCallback(() => {
     if ((pageIndex + 1) * pageSize < totalUsers) {
       setPageIndex(pageIndex + 1);
     }
-  };
-  const prevPage = () => {
+  }, [pageIndex, pageSize, totalUsers]);
+  
+  const prevPage = useCallback(() => {
     if (pageIndex > 0) setPageIndex(pageIndex - 1);
-  };
+  }, [pageIndex]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     toast.promise(Promise.all([fetchUsers(), fetchStats()]), {
       loading: "Refreshing data...",
       success: "Data refreshed successfully",
       error: "Failed to refresh data",
     });
-  };
+  }, [fetchUsers, fetchStats]);
 
-  const filteredUsers = useMemo(() => {
-    if (!Array.isArray(users)) return [];
-    return users.filter((user) => {
-      const matchesSearch =
-        !searchTerm ||
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const userStatus = user.status || "active";
-      const matchesStatus =
-        statusFilter === "all" || userStatus === statusFilter;
-      const matchesCategory =
-        categoryFilter === "all" || user.category === categoryFilter;
-      const matchesRole =
-        roleFilter === "all" || user.role?.name === roleFilter;
-      return matchesSearch && matchesStatus && matchesCategory && matchesRole;
-    });
-  }, [users, searchTerm, statusFilter, categoryFilter, roleFilter]);
+  // No client-side filtering needed - backend handles it all!
+  // Just ensure users is an array
+  const displayUsers = useMemo(() => {
+    return Array.isArray(users) ? users : [];
+  }, [users]);
 
-  const openDeleteConfirmation = (userId: string) => {
+  const openDeleteConfirmation = useCallback((userId: string) => {
     if (!canDeleteUser) {
       toast.error("You don't have permission to delete users.");
       return;
     }
     setUserToDelete(userId);
     setOpenDeleteDialog(true);
-  };
+  }, [canDeleteUser]);
 
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = useCallback(async () => {
     if (!userToDelete) return;
     if (!canDeleteUser) {
       toast.error("You don't have permission to delete users.");
@@ -305,7 +332,7 @@ export default function UsersPage() {
     } finally {
       setActionLoading(false);
     }
-  };
+  }, [userToDelete, canDeleteUser, currentUser?.id, fetchUsers, fetchStats]);
 
   return (
     <div className="p-6 space-y-6 ">
@@ -457,7 +484,7 @@ export default function UsersPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPageIndex(0); }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -468,14 +495,14 @@ export default function UsersPage() {
                   <SelectItem value="suspended">Suspended</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val); setPageIndex(0); }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Team" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Teams</SelectItem>
-                  {categories && categories.length > 0 ? (
-                    categories.map((category) => (
+                  {allCategories && allCategories.length > 0 ? (
+                    allCategories.map((category) => (
                       <SelectItem key={category} value={category!}>
                         {category}
                       </SelectItem>
@@ -487,7 +514,7 @@ export default function UsersPage() {
                   )}
                 </SelectContent>
               </Select>
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <Select value={roleFilter} onValueChange={(val) => { setRoleFilter(val); setPageIndex(0); }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
@@ -537,8 +564,8 @@ export default function UsersPage() {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            ) : displayUsers.length > 0 ? (
+              displayUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="p-3 text-left truncate max-w-[250px] text-base">
                     {user.name || "N/A"}
