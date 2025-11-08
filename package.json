@@ -10,7 +10,14 @@
     "seed": "tsx prisma/seed.ts",
     "prisma:seed": "npx prisma db seed",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma migrate deploy && next build"
+    "vercel-build": "prisma migrate deploy && next build",
+    "perf:lighthouse": "lighthouse http://localhost:6175 --view",
+    "perf:lighthouse-mobile": "lighthouse http://localhost:6175 --preset=mobile --view",
+    "perf:lighthouse-ci": "lighthouse http://localhost:6175 --only-categories=performance --output=json --output-path=./lighthouse-results.json",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "type-check": "tsc --noEmit"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -84,6 +91,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
+    "lighthouse": "^12.8.2",
     "prisma": "^6.5.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
