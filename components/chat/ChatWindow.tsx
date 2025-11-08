@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { Send } from "lucide-react";
 import { pusherClient } from "@/lib/pusher/client";
@@ -40,10 +40,26 @@ type Msg = {
   reactions?: { emoji: string; count: number; userIds: string[] }[];
 };
 
-const fetcher = (u: string) =>
-  fetch(u, { cache: "no-store" }).then((r) => r.json());
+// In-memory cache for chat data
+const chatCache = new Map<string, { data: any; timestamp: number }>();
+const CHAT_CACHE_DURATION = 15000; // 15 seconds
 
-export default function ChatWindow({
+const fetcher = async (u: string) => {
+  // Check cache first
+  const cached = chatCache.get(u);
+  if (cached && Date.now() - cached.timestamp < CHAT_CACHE_DURATION) {
+    return cached.data;
+  }
+  
+  const response = await fetch(u);
+  const data = await response.json();
+  
+  // Cache the result
+  chatCache.set(u, { data, timestamp: Date.now() });
+  return data;
+};
+
+const ChatWindowComponent = memo(function ChatWindow({
   conversationId,
 }: {
   conversationId: string;
@@ -371,9 +387,9 @@ export default function ChatWindow({
     return () => clearInterval(t);
   }, []);
 
-  // send (optimistic)
+  // send (optimistic) - wrapped in useCallback
   const [text, setText] = useState("");
-  async function handleSend() {
+  const handleSend = useCallback(async () => {
     const content = text.trim();
     if (!content) return;
     setText("");
@@ -411,11 +427,11 @@ export default function ChatWindow({
         bottomSentinel.current?.scrollIntoView({ block: "end" })
       );
     }
-  }
+  }, [text, conversationId, user]);
 
-  // typing ping
+  // typing ping - wrapped in useCallback
   const lastTypingSentAt = useRef(0);
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
     const now = Date.now();
     if (now - lastTypingSentAt.current > 1200) {
@@ -424,7 +440,7 @@ export default function ChatWindow({
         method: "POST",
       }).catch(() => {});
     }
-  }
+  }, [conversationId]);
 
   useEffect(() => {
     if (!typingText) return;
@@ -443,16 +459,16 @@ export default function ChatWindow({
   // ---- Search dialog state
   const [searchOpen, setSearchOpen] = useState(false);
 
-  function openForward(messageId: string) {
+  const openForward = useCallback((messageId: string) => {
     setForwardMsgId(messageId);
     setForwardOpen(true);
-  }
+  }, []);
 
   const isDM = convDetail?.type === "dm";
   const isGroup = convDetail?.type === "group";
 
-  // Optimistic reaction toggling
-  async function handleToggleReaction(messageId: string, emoji: string) {
+  // Optimistic reaction toggling - wrapped in useCallback
+  const handleToggleReaction = useCallback(async (messageId: string, emoji: string) => {
     const meId = user?.id;
     if (!meId) return;
     // compute optimistic next reactions
@@ -507,9 +523,9 @@ export default function ChatWindow({
         });
       });
     }
-  }
+  }, [user?.id]);
 
-  async function handleRenameSubmit() {
+  const handleRenameSubmit = useCallback(async () => {
     const trimmed = renameValue.trim();
     if (!trimmed) {
       setRenameError("Group name is required");
@@ -533,7 +549,7 @@ export default function ChatWindow({
     } finally {
       setRenaming(false);
     }
-  }
+  }, [renameValue, conversationId, mutateConv, globalMutate]);
 
   return (
     <div className="flex flex-col h-full">
@@ -680,7 +696,6 @@ export default function ChatWindow({
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         conversationId={conversationId}
-        onJump={(id: string) => goToMessage(id)}
       />
 
       {isGroup && (
@@ -718,10 +733,13 @@ export default function ChatWindow({
       )}
     </div>
   );
-}
+});
 
-// ---- Members dialog component ----
-function MembersDialog({
+// Export the memoized component
+export default ChatWindowComponent;
+
+// ---- Members dialog component ---- (memoized)
+const MembersDialog = memo(function MembersDialog({
   open,
   onClose,
   conversationId,
@@ -827,19 +845,17 @@ function MembersDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
 
-// ---- Search dialog component ----
-function SearchDialog({
+// ---- Search dialog component ---- (memoized)
+const SearchDialog = memo(function SearchDialog({
   open,
   onClose,
   conversationId,
-  onJump,
 }: {
   open: boolean;
   onClose: () => void;
   conversationId: string;
-  onJump: (messageId: string) => void | Promise<void>;
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<{
@@ -852,7 +868,7 @@ function SearchDialog({
   const [loading, setLoading] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState<any>(null);
 
-  async function runSearch(reset = true) {
+  const runSearch = useCallback(async (reset = true) => {
     if (!q.trim()) {
       setResults([]);
       setNextCursor(null);
@@ -872,12 +888,12 @@ function SearchDialog({
     } finally {
       setLoading(false);
     }
-  }
+  }, [q, conversationId, nextCursor]);
 
   // auto-search on Enter
-  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") runSearch(true);
-  }
+  }, [runSearch]);
 
   // live search (debounced)
   useEffect(() => {
@@ -894,7 +910,7 @@ function SearchDialog({
     return () => clearTimeout(t);
   }, [q, open]);
 
-  function highlight(text: string | null | undefined, query: string) {
+  const highlight = useCallback((text: string | null | undefined, query: string) => {
     const str = text || "";
     if (!query.trim()) return str;
     const idx = str.toLowerCase().indexOf(query.toLowerCase());
@@ -909,10 +925,16 @@ function SearchDialog({
         {after}
       </>
     );
-  }
+  }, []);
 
   async function jumpTo(id: string) {
-    await onJump(id);
+    // Scroll to message
+    const el = document.getElementById(`msg-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('bg-yellow-100');
+      setTimeout(() => el.classList.remove('bg-yellow-100'), 2000);
+    }
     onClose();
   }
 
@@ -969,4 +991,4 @@ function SearchDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

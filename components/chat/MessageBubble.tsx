@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo, useCallback } from "react";
 import { SmilePlus, Eye, Check, Forward as ForwardIcon } from "lucide-react";
 
 type ReactionAgg = { emoji: string; count: number; userIds: string[] };
@@ -10,7 +10,7 @@ type Receipt = {
   readAt?: string | null;
 };
 
-export default function MessageBubble({
+const MessageBubbleComponent = function MessageBubble({
   meId,
   msg,
   onForward,
@@ -48,7 +48,7 @@ export default function MessageBubble({
 
   const defaultSet = ["👍", "❤️", "😂", "😮", "😢", "🙏", "👟"];
 
-  async function toggleReaction(emoji: string) {
+  const toggleReaction = useCallback(async (emoji: string) => {
     setPickerOpen(false);
     if (onToggleReaction) {
       await onToggleReaction(emoji);
@@ -63,7 +63,7 @@ export default function MessageBubble({
     } catch {
       // no-op
     }
-  }
+  }, [msg.id, onToggleReaction]);
 
   // Sort reactions (mine first, then by count)
   const reactions = useMemo(() => {
@@ -299,4 +299,7 @@ export default function MessageBubble({
       </div>
     </div>
   );
-}
+};
+
+// Export memoized version
+export default memo(MessageBubbleComponent);
