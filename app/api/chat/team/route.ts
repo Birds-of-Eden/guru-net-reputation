@@ -39,7 +39,13 @@ export async function POST(req: Request) {
 
   // If a team conversation already exists, return it (and ensure the requester is a participant)
   const existing = await prisma.conversation.findFirst({
-    where: { type: "team", teamId },
+    where: {
+      type: "team",
+      conversation_field_06: {
+        path: ["teamId"],
+        equals: teamId,
+      },
+    },
     include: { participants: true },
   });
 
@@ -72,9 +78,9 @@ export async function POST(req: Request) {
   const created = await prisma.conversation.create({
     data: {
       type: "team",
-      teamId,
       title: title || `Team: ${team.name}`,
-      createdById: me.id,
+      createdBy: { connect: { id: me.id } },
+      conversation_field_06: { teamId },
       participants: { create: participantsCreate },
     },
     select: { id: true },

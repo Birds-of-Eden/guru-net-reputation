@@ -3,8 +3,61 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
+import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+type ConversationContext = {
+  clientId?: string | null;
+  teamId?: string | null;
+  assignmentId?: string | null;
+  taskId?: string | null;
+};
+
+const CONTEXT_KEYS: (keyof ConversationContext)[] = [
+  "clientId",
+  "teamId",
+  "assignmentId",
+  "taskId",
+];
+
+function buildConversationContext(context: ConversationContext) {
+  const payload: Record<string, string> = {};
+  for (const key of CONTEXT_KEYS) {
+    const value = context[key];
+    if (typeof value === "string" && value.trim().length > 0) {
+      payload[key] = value;
+    }
+  }
+  return Object.keys(payload).length ? payload : undefined;
+}
+
+function applyConversationContext<
+  T extends { conversation_field_06?: Prisma.JsonValue | null }
+>(conversation: T) {
+  const raw = conversation.conversation_field_06;
+  const meta =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
+  return {
+    ...conversation,
+    clientId: (meta.clientId as string | null | undefined) ?? null,
+    teamId: (meta.teamId as string | null | undefined) ?? null,
+    assignmentId: (meta.assignmentId as string | null | undefined) ?? null,
+    taskId: (meta.taskId as string | null | undefined) ?? null,
+  };
+}
+
+function contextFilter(field: keyof ConversationContext, value?: string) {
+  if (!value) return undefined;
+  return {
+    conversation_field_06: {
+      path: [field],
+      equals: value,
+    },
+  };
+}
 
 // POST /api/chat/conversations  → create
 export async function POST(req: Request) {
@@ -94,15 +147,19 @@ export async function POST(req: Request) {
     }
   }
 
+  const contextPayload = buildConversationContext({
+    clientId,
+    teamId,
+    assignmentId,
+    taskId,
+  });
+
   const conv = await prisma.conversation.create({
     data: {
       type,
       title: title || null,
-      createdById: me.id,
-      clientId: clientId || null,
-      teamId: teamId || null,
-      assignmentId: assignmentId || null,
-      taskId: taskId || null,
+      createdBy: { connect: { id: me.id } },
+      ...(contextPayload ? { conversation_field_06: contextPayload } : {}),
       participants: {
         create: uniqueMemberIds.map((uid) => ({
           userId: uid,
@@ -117,7 +174,7 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json(conv, { status: 201 });
+  return NextResponse.json(applyConversationContext(conv), { status: 201 });
 }
 
 // GET /api/chat/conversations  → my list
@@ -156,11 +213,11 @@ export async function GET(req: Request) {
   });
 
   const convIds = cps.map((c) => c.conversationId);
-  const conversations = await prisma.conversation.findMany({
+  const conversationsRaw = await prisma.conversation.findMany({
     where: {
       id: { in: convIds },
       ...(filterType ? { type: filterType } : {}),
-      ...(filterTeamId ? { teamId: filterTeamId } : {}),
+      ...(contextFilter("teamId", filterTeamId) || {}),
     },
     include: {
       participants: {
@@ -169,6 +226,8 @@ export async function GET(req: Request) {
       messages: { take: 1, orderBy: { createdAt: "desc" } },
     },
   });
+
+  const conversations = conversationsRaw.map(applyConversationContext);
 
   const lastReadBy: Record<string, Date | null> = {};
   cps.forEach((c) => (lastReadBy[c.conversationId] = c.lastReadAt ?? null));
