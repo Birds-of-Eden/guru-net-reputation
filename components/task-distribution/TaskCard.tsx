@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import {
   Card,
   CardContent,
@@ -62,7 +62,7 @@ interface TaskCardProps {
   onNoteChange: (note: string) => void;
 }
 
-export function TaskCard({
+const TaskCardComponent = function TaskCard({
   task,
   siteType,
   teamAgents,
@@ -468,4 +468,7 @@ export function TaskCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+// Memoize to prevent unnecessary re-renders
+export const TaskCard = memo(TaskCardComponent);

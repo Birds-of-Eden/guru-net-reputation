@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -184,11 +184,19 @@ function makeDisplayLabel(
     s.O
   } | R:${s.R}) • W:${weight}`;
 }
+// In-memory cache for agent loads
+const agentLoadCache = new Map<string, { data: AgentWithLoad; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds
+
 async function fetchOverallForAgent(a: Agent): Promise<AgentWithLoad> {
+  // Check cache first
+  const cached = agentLoadCache.get(a.id);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
-    const res = await fetch(`/api/tasks/agents/${a.id}?t=${Date.now()}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`/api/tasks/agents/${a.id}`);
     if (!res.ok) throw new Error("agent fetch failed");
     const data = await res.json();
 
@@ -199,7 +207,7 @@ async function fetchOverallForAgent(a: Agent): Promise<AgentWithLoad> {
 
     const { activeCount, weightedScore, P, IP, O, R } =
       computeWeighted(byStatus);
-    return {
+    const enriched = {
       ...a,
       byStatus: { pending: P, in_progress: IP, overdue: O, reassigned: R },
       activeCount,
@@ -211,6 +219,9 @@ async function fetchOverallForAgent(a: Agent): Promise<AgentWithLoad> {
         R,
       }),
     };
+    // Cache the result
+    agentLoadCache.set(a.id, { data: enriched, timestamp: Date.now() });
+    return enriched;
   } catch {
     return {
       ...a,
@@ -340,14 +351,26 @@ interface CategoryAssignment {
 }
 
 // ✅ NEW: fetch helpers for team/all
+// Cache for agent lists
+const agentListCache = new Map<string, { data: AgentWithLoad[]; timestamp: number }>();
+
 async function getAgents(teamId?: string): Promise<AgentWithLoad[]> {
+  const cacheKey = teamId || "all";
+  const cached = agentListCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
   try {
     const url = teamId
       ? `/api/tasks/agents?teamId=${encodeURIComponent(teamId)}`
       : `/api/tasks/agents`;
-    const response = await fetch(url, { cache: "no-store" });
+    const response = await fetch(url);
     const baseAgents: Agent[] = await response.json();
-    return await enrichAgentsWithOverallLoad(baseAgents);
+    const enriched = await enrichAgentsWithOverallLoad(baseAgents);
+    // Cache the result
+    agentListCache.set(cacheKey, { data: enriched, timestamp: Date.now() });
+    return enriched;
   } catch (error) {
     console.error("Error fetching agents:", error);
     toast.error("Failed to load agents");
@@ -421,11 +444,9 @@ export default function TaskDistributionForClient() {
     return result;
   };
 
-  const fetchClient = async () => {
+  const fetchClient = useCallback(async () => {
     try {
-      const res = await fetch(`/api/clients/${clientId}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(`/api/clients/${clientId}`);
       if (!res.ok) throw new Error("Failed to fetch client");
       const data = await res.json();
       setClient(data);
@@ -433,14 +454,12 @@ export default function TaskDistributionForClient() {
       console.error(e);
       toast.error("Failed to load client profile");
     }
-  };
+  }, [clientId]);
 
-  const fetchClientTasks = async (cid: string) => {
+  const fetchClientTasks = useCallback(async (cid: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/tasks/client/${cid}`, {
-        cache: "no-store",
-      });
+      const response = await fetch(`/api/tasks/client/${cid}`);
       const data = await response.json();
       setAllTasks(data);
 
@@ -455,7 +474,7 @@ export default function TaskDistributionForClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // -------- Effects --------
 
@@ -490,7 +509,7 @@ export default function TaskDistributionForClient() {
     iso ? format(new Date(iso), "PPP") : undefined;
 
   // Buckets for Asset Creation only
-  const categorizedTasksForAssetCreation = {
+  const categorizedTasksForAssetCreation = useMemo(() => ({
     social_site: tasks.filter(
       (task) => (task as any)?.templateSiteAsset?.type === "social_site"
     ),
@@ -500,7 +519,7 @@ export default function TaskDistributionForClient() {
     other_asset: tasks.filter(
       (task) => (task as any)?.templateSiteAsset?.type === "other_asset"
     ),
-  };
+  }), [tasks]);
 
   const getAgentName = (id: string | undefined) => {
     if (!id) return "Unassigned";
@@ -512,7 +531,7 @@ export default function TaskDistributionForClient() {
     );
   };
 
-  const handleTaskSelection = (taskId: string, checked: boolean) => {
+  const handleTaskSelection = useCallback((taskId: string, checked: boolean) => {
     setSelectedTasks((prev) => {
       const newSet = new Set(prev);
       if (checked) newSet.add(taskId);
@@ -532,9 +551,9 @@ export default function TaskDistributionForClient() {
           : [...prev, taskId]
         : prev.filter((id) => id !== taskId)
     );
-  };
+  }, []);
 
-  const handleSelectAllTasks = (taskIds: string[], checked: boolean) => {
+  const handleSelectAllTasks = useCallback((taskIds: string[], checked: boolean) => {
     if (checked) {
       setSelectedTasks(new Set(taskIds));
       setSelectedTasksOrder(taskIds);
@@ -552,9 +571,9 @@ export default function TaskDistributionForClient() {
         assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
       );
     }
-  };
+  }, [selectedTasks]);
 
-  const handleTaskAssignment = (
+  const handleTaskAssignment = useCallback((
     taskId: string,
     agentId: string,
     isMultipleSelected: boolean,
@@ -595,11 +614,11 @@ export default function TaskDistributionForClient() {
       setSelectedTasks(new Set());
       setSelectedTasksOrder([]);
     }
-  };
+  }, [selectedTasks, tasks]);
 
-  const handleNoteChange = (taskId: string, note: string) => {
+  const handleNoteChange = useCallback((taskId: string, note: string) => {
     setTaskNotes((prev) => ({ ...prev, [taskId]: note }));
-  };
+  }, []);
 
   const submitTaskDistribution = async () => {
     if (categoryAssignments.length === 0) {
