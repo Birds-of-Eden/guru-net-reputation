@@ -1,22 +1,23 @@
-//app/admin/clients/onboarding/page.tsx
-
+// app/[role]/data_entry/clients/onboarding/page.tsx
 "use client";
 
-import { useState, useCallback } from "react";
-import { GeneralInfo } from "@/components/onboarding/general-info";
-import { WebsiteInfo } from "@/components/onboarding/website-info";
-import { SocialMediaInfo } from "@/components/onboarding/social-media-info";
-import { DataEntryReviewInfo } from "@/components/onboarding/DataEntryReviewInfo";
-import { OtherInfo } from "@/components/onboarding/other-info";
-import { StepIndicator } from "@/components/onboarding/step-indicator";
-import { BiographyInfo } from "@/components/onboarding/biography-info";
-import { ImageGallery } from "@/components/onboarding/image-gallery";
-import { PackageInfo } from "@/components/onboarding/package-info";
-import { ArticlesSelection } from "@/components/onboarding/articles-selection";
-import { TemplateSelection } from "@/components/onboarding/template-selection";
+import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import type { OnboardingFormData } from "@/types/onboarding";
 import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
 import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
+import { StepIndicator } from "@/components/onboarding/step-indicator";
+
+// ⚡ OPTIMIZED: Dynamic imports - Load components only when needed!
+const GeneralInfo = lazy(() => import("@/components/onboarding/general-info").then(m => ({ default: m.GeneralInfo })));
+const WebsiteInfo = lazy(() => import("@/components/onboarding/website-info").then(m => ({ default: m.WebsiteInfo })));
+const BiographyInfo = lazy(() => import("@/components/onboarding/biography-info").then(m => ({ default: m.BiographyInfo })));
+const ImageGallery = lazy(() => import("@/components/onboarding/image-gallery").then(m => ({ default: m.ImageGallery })));
+const SocialMediaInfo = lazy(() => import("@/components/onboarding/social-media-info").then(m => ({ default: m.SocialMediaInfo })));
+const OtherInfo = lazy(() => import("@/components/onboarding/other-info").then(m => ({ default: m.OtherInfo })));
+const PackageInfo = lazy(() => import("@/components/onboarding/package-info").then(m => ({ default: m.PackageInfo })));
+const TemplateSelection = lazy(() => import("@/components/onboarding/template-selection").then(m => ({ default: m.TemplateSelection })));
+const ArticlesSelection = lazy(() => import("@/components/onboarding/articles-selection").then(m => ({ default: m.ArticlesSelection })));
+const DataEntryReviewInfo = lazy(() => import("@/components/onboarding/DataEntryReviewInfo").then(m => ({ default: m.DataEntryReviewInfo })));
 
 const steps = [
   { id: 1, title: "General Info", component: GeneralInfo },
@@ -41,9 +42,10 @@ export default function OnboardingPage() {
   });
   const [draftRestored, setDraftRestored] = useState(false);
 
-  const updateFormData = (data: Partial<OnboardingFormData>) => {
+  // ⚡ OPTIMIZED: Memoize handler to prevent re-creation
+  const updateFormData = useCallback((data: Partial<OnboardingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
   // Callback for draft restoration
   const handleRestoreDraft = useCallback((restoredData: OnboardingFormData) => {
@@ -52,35 +54,35 @@ export default function OnboardingPage() {
   }, []);
 
   // Auto-save hook
-  const { saveStatus, hasDraft, clearDraft, lastSavedAt } = useOnboardingAutosave(
-    formData,
-    currentStep,
-    {
+  const { saveStatus, hasDraft, clearDraft, lastSavedAt } =
+    useOnboardingAutosave(formData, currentStep, {
       storageKey: "onboarding-draft-data-entry",
       debounceMs: 2000,
       onRestore: handleRestoreDraft,
-    }
-  );
+    });
 
-  const nextStep = () => {
+  // ⚡ OPTIMIZED: Memoize navigation handlers
+  const nextStep = useCallback(() => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
-  };
+  }, [currentStep]);
 
-  const previousStep = () => {
+  const previousStep = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep]);
 
-  const goToStep = (stepId: number) => {
+  const goToStep = useCallback((stepId: number) => {
     setCurrentStep(stepId);
-  };
+  }, []);
 
-  const CurrentStepComponent = steps.find(
-    (step) => step.id === currentStep
-  )?.component;
+  // ⚡ OPTIMIZED: Memoize component lookup (only recalculates when step changes)
+  const CurrentStepComponent = useMemo(
+    () => steps.find((step) => step.id === currentStep)?.component,
+    [currentStep]
+  );
 
   if (!CurrentStepComponent) {
     return <div>Step not found</div>;
@@ -96,22 +98,29 @@ export default function OnboardingPage() {
       />
 
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
-      <div>
-        <StepIndicator
-          steps={steps}
-          currentStep={currentStep}
-          onStepClick={goToStep}
-        />
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12">
-          <CurrentStepComponent
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={nextStep}
-            onPrevious={previousStep}
-            clearDraft={clearDraft}
+        <div>
+          <StepIndicator
+            steps={steps}
+            currentStep={currentStep}
+            onStepClick={goToStep}
           />
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12">
+            {/* ⚡ OPTIMIZED: Suspense wrapper for lazy-loaded components */}
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600" />
+              </div>
+            }>
+              <CurrentStepComponent
+                formData={formData}
+                updateFormData={updateFormData}
+                onNext={nextStep}
+                onPrevious={previousStep}
+                clearDraft={clearDraft}
+              />
+            </Suspense>
+          </div>
         </div>
-      </div>
       </div>
     </>
   );
