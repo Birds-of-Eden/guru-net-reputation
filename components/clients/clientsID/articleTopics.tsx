@@ -13,6 +13,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +62,12 @@ const getStatusBadgeClass = (status: string) => {
   }
 };
 
-// Helper function to detect structure type
+// Helper function to get status from used count
+const getStatusFromCount = (count: number): string => {
+  if (count === 0) return "Not yet Used";
+  if (count >= 11) return "More then 10";
+  return `Used ${count}`;
+};
 const isNewStructure = (data: any): data is ArticleCategory[] => {
   return Array.isArray(data) && data.length > 0 && 'category' in data[0] && 'titles' in data[0];
 };
@@ -95,7 +101,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
     usedDate: null,
   });
   
-  const [newCategory, setNewCategory] = useState<ArticleCategory>({
+  const [newTopicCategory, setNewTopicCategory] = useState<ArticleCategory>({
     category: "",
     titles: [],
   });
@@ -120,9 +126,14 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setEditedTopic((prevTopic) =>
-      prevTopic ? { ...prevTopic, [name]: value } : null
-    );
+    setEditedTopic((prevTopic) => {
+      if (!prevTopic) return null;
+      const updated = { ...prevTopic, [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value };
+      if (name === "usedCount") {
+        updated.status = getStatusFromCount(updated.usedCount);
+      }
+      return updated;
+    });
   };
 
   // Function to handle saving the edited topic
@@ -213,26 +224,32 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setNewTopic((prevTopic) => ({
-      ...prevTopic,
-      [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
-    }));
+    setNewTopic((prevTopic) => {
+      const updated = {
+        ...prevTopic,
+        [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
+      };
+      if (name === "usedCount") {
+        updated.status = getStatusFromCount(updated.usedCount);
+      }
+      return updated;
+    });
   };
   
   // --- NEW HANDLERS FOR ARTICLE CATEGORIES ---
   
   const handleAddCategory = async () => {
-    if (!newCategory.category.trim()) {
+    if (!newTopicCategory.category.trim()) {
       toast.error("Category name is required");
       return;
     }
     
-    if (newCategory.titles.length === 0) {
+    if (newTopicCategory.titles.length === 0) {
       toast.error("At least one title is required");
       return;
     }
     
-    const updatedCategories = [...categories, newCategory];
+    const updatedCategories = [...categories, newTopicCategory];
     setCategories(updatedCategories);
     
     try {
@@ -250,7 +267,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       }
       
       toast.success("Category added successfully!");
-      setNewCategory({ category: "", titles: [] });
+      setNewTopicCategory({ category: "", titles: [] });
       setIsAddingCategory(false);
     } catch (err) {
       console.error(err);
@@ -280,30 +297,78 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
   };
   
   const handleAddTitleToNewCategory = () => {
-    setNewCategory(prev => ({
+    setNewTopicCategory(prev => ({
       ...prev,
-      titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" }]
+      titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" as const }]
     }));
   };
-  
-  const handleRemoveTitleFromNewCategory = (titleIdx: number) => {
-    setNewCategory(prev => ({
-      ...prev,
-      titles: prev.titles.filter((_, i) => i !== titleIdx)
-    }));
+
+  // === Inline Edit for Existing Categories (mirror onboarding behavior) ===
+  const handleUpdateCategoryName = (catIdx: number, value: string) => {
+    setCategories(prev => prev.map((c, i) => (i === catIdx ? { ...c, category: value } : c)));
   };
-  
-  const handleUpdateNewCategoryTitle = (
+
+  const handleAddTitleToCategory = (catIdx: number) => {
+    setCategories(prev => prev.map((c, i) => (
+      i === catIdx
+        ? { ...c, titles: [...c.titles, { title: "", draftLink: "", draftStatus: "Pending" as const }] }
+        : c
+    )));
+  };
+
+  const handleRemoveTitleFromCategory = (catIdx: number, titleIdx: number) => {
+    setCategories(prev => prev.map((c, i) => (
+      i === catIdx ? { ...c, titles: c.titles.filter((_, ti) => ti !== titleIdx) } : c
+    )));
+  };
+
+  const handleUpdateTitleInCategory = (
+    catIdx: number,
     titleIdx: number,
     field: "title" | "draftLink" | "draftStatus",
     value: string
   ) => {
-    setNewCategory(prev => ({
-      ...prev,
-      titles: prev.titles.map((t, i) =>
-        i === titleIdx ? { ...t, [field]: value } : t
-      )
-    }));
+    setCategories(prev => prev.map((c, i) => (
+      i === catIdx
+        ? {
+            ...c,
+            titles: c.titles.map((t, ti) => (ti === titleIdx ? { ...t, [field]: value } : t)),
+          }
+        : c
+    )));
+  };
+
+  const saveCategories = async () => {
+    try {
+      // Normalize before save: trim strings, drop empty titles
+      const normalized = categories
+        .map(cat => ({
+          category: (cat.category || "").trim(),
+          titles: cat.titles
+            .map(t => ({
+              title: (t.title || "").trim(),
+              draftLink: (t.draftLink || "").trim(),
+              draftStatus: t.draftStatus,
+            }))
+            .filter(t => t.title.length > 0),
+        }))
+        .filter(cat => cat.category.length > 0);
+
+      const res = await fetch(`/api/clients/${clientData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleCategories: normalized }),
+      });
+      if (!res.ok) throw new Error("Failed to save categories");
+      const data = await res.json();
+      if (Array.isArray(data.articleTopics)) {
+        setCategories(data.articleTopics as ArticleCategory[]);
+      }
+      toast.success("Saved successfully");
+    } catch (e) {
+      console.error(e);
+      toast.error("Save failed");
+    }
   };
 
   return (
@@ -340,59 +405,88 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
             <div className="space-y-6">
               {categories.map((category, catIdx) => (
                 <div key={catIdx} className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-orange-700 dark:text-orange-400 flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      {category.category}
-                    </h3>
+                  <div className="flex items-start gap-3 mb-4">
+                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-orange-600" /> Category Name
+                    </Label>
+                    <Input
+                      className="flex-1 border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-3 py-2"
+                      value={category.category}
+                      onChange={(e) => handleUpdateCategoryName(catIdx, e.target.value)}
+                      placeholder="e.g. Technology"
+                    />
                     {hasPermissionClient(user?.permissions, "delete_article_topic") && (
                       <button
                         onClick={() => handleDeleteCategory(catIdx)}
-                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        className="ml-auto text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                         title="Delete Category"
                       >
                         <Trash2 size={18} />
                       </button>
                     )}
                   </div>
-                  
-                  <div className="space-y-3 ml-4">
+
+                  <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200">
                     {category.titles.map((title, titleIdx) => (
                       <div key={titleIdx} className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-200 dark:border-orange-700">
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-3">
-                            <p className="font-semibold text-slate-900 dark:text-slate-100">
-                              {title.title}
-                            </p>
-                            <Badge
-                              className={
-                                title.draftStatus === "Approved"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-800/50 dark:text-green-200"
-                                  : title.draftStatus === "Revision"
-                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-800/50 dark:text-amber-200"
-                                  : "bg-blue-100 text-blue-800 dark:bg-blue-800/50 dark:text-blue-200"
-                              }
-                            >
-                              {title.draftStatus}
-                            </Badge>
+                        <div className="grid md:grid-cols-3 gap-3 items-end">
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">Title</Label>
+                            <Input
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.title}
+                              onChange={(e) => handleUpdateTitleInCategory(catIdx, titleIdx, "title", e.target.value)}
+                              placeholder="Article title..."
+                            />
                           </div>
-                          {title.draftLink && (
-                            <a
-                              href={title.draftLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline text-sm"
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                              <LinkIcon className="w-3 h-3" /> Draft Link
+                            </Label>
+                            <Input
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.draftLink}
+                              onChange={(e) => handleUpdateTitleInCategory(catIdx, titleIdx, "draftLink", e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">Draft Status</Label>
+                            <Select
+                              value={title.draftStatus}
+                              onValueChange={(value) => handleUpdateTitleInCategory(catIdx, titleIdx, "draftStatus", value)}
                             >
-                              <LinkIcon className="h-3 w-3" />
-                              {title.draftLink}
-                            </a>
-                          )}
+                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm">
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Approved">Approved</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Revision">Revision</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="flex justify-end mt-3">
+                          <Button variant="outline" size="icon" onClick={() => handleRemoveTitleFromCategory(catIdx, titleIdx)} className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
+
+                    <Button onClick={() => handleAddTitleToCategory(catIdx)} variant="outline" className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg">
+                      <Plus className="h-4 w-4 mr-2" /> Add Title
+                    </Button>
                   </div>
                 </div>
               ))}
+
+              <div className="flex justify-end">
+                <Button onClick={saveCategories} className="mt-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                  <Save className="h-4 w-4 mr-2" /> Save Changes
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2 flex-col p-4 text-slate-500 dark:text-slate-400 italic">
@@ -449,7 +543,17 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                           className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm p-1"
                         >
                           <option value="Not yet Used">Not yet Used</option>
-                          <option value="Used">Used</option>
+                          <option value="Used 1">Used 1</option>
+                          <option value="Used 2">Used 2</option>
+                          <option value="Used 3">Used 3</option>
+                          <option value="Used 4">Used 4</option>
+                          <option value="Used 5">Used 5</option>
+                          <option value="Used 6">Used 6</option>
+                          <option value="Used 7">Used 7</option>
+                          <option value="Used 8">Used 8</option>
+                          <option value="Used 9">Used 9</option>
+                          <option value="Used 10">Used 10</option>
+                          <option value="More then 10">More then 10</option>
                         </select>
                       ) : (
                         <Badge
@@ -560,8 +664,8 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       
       {/* Add New Category Modal */}
       {isAddingCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Add New Category
@@ -569,7 +673,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
               <button
                 onClick={() => {
                   setIsAddingCategory(false);
-                  setNewCategory({ category: "", titles: [] });
+                  setNewTopicCategory({ category: "", titles: [] });
                 }}
                 className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               >
@@ -581,8 +685,8 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
               <div>
                 <Label className="text-sm font-medium">Category Name</Label>
                 <Input
-                  value={newCategory.category}
-                  onChange={(e) => setNewCategory(prev => ({ ...prev, category: e.target.value }))}
+                  value={newTopicCategory.category}
+                  onChange={(e) => setNewTopicCategory(prev => ({ ...prev, category: e.target.value }))}
                   placeholder="e.g. Technology, Business..."
                   className="mt-1"
                 />
@@ -591,13 +695,18 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
               <div>
                 <Label className="text-sm font-medium mb-2 block">Titles</Label>
                 <div className="space-y-3">
-                  {newCategory.titles.map((title, idx) => (
+                  {newTopicCategory.titles.map((title: { title: string; draftLink: string; draftStatus: "Approved" | "Pending" | "Revision" }, idx: number) => (
                     <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-start">
                         <span className="text-sm font-semibold">Title {idx + 1}</span>
                         <button
                           type="button"
-                          onClick={() => handleRemoveTitleFromNewCategory(idx)}
+                          onClick={() => {
+                            setNewTopicCategory((prev: ArticleCategory) => ({
+                              ...prev,
+                              titles: prev.titles.filter((_, i) => i !== idx)
+                            }));
+                          }}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
@@ -608,7 +717,12 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                         <Label className="text-xs">Title</Label>
                         <Input
                           value={title.title}
-                          onChange={(e) => handleUpdateNewCategoryTitle(idx, "title", e.target.value)}
+                          onChange={(e) => setNewTopicCategory((prev: ArticleCategory) => ({
+                            ...prev,
+                            titles: prev.titles.map((t, i) =>
+                              i === idx ? { ...t, title: e.target.value } : t
+                            )
+                          }))}
                           placeholder="Article title..."
                           className="mt-1"
                         />
@@ -618,7 +732,12 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                         <Label className="text-xs">Draft Link</Label>
                         <Input
                           value={title.draftLink}
-                          onChange={(e) => handleUpdateNewCategoryTitle(idx, "draftLink", e.target.value)}
+                          onChange={(e) => setNewTopicCategory((prev: ArticleCategory) => ({
+                            ...prev,
+                            titles: prev.titles.map((t, i) =>
+                              i === idx ? { ...t, draftLink: e.target.value } : t
+                            )
+                          }))}
                           placeholder="https://..."
                           className="mt-1"
                         />
@@ -628,7 +747,12 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                         <Label className="text-xs">Draft Status</Label>
                         <Select
                           value={title.draftStatus}
-                          onValueChange={(value) => handleUpdateNewCategoryTitle(idx, "draftStatus", value)}
+                          onValueChange={(value: "Approved" | "Pending" | "Revision") => setNewTopicCategory((prev: ArticleCategory) => ({
+                            ...prev,
+                            titles: prev.titles.map((t, i) =>
+                              i === idx ? { ...t, draftStatus: value } : t
+                            )
+                          }))}
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue />
@@ -659,7 +783,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                   type="button"
                   onClick={() => {
                     setIsAddingCategory(false);
-                    setNewCategory({ category: "", titles: [] });
+                    setNewTopicCategory({ category: "", titles: [] });
                   }}
                   className="px-4 py-2 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                 >
@@ -681,80 +805,193 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       {/* Add New Topic Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Add New Topic
               </h2>
               <button
-                onClick={() => setIsAdding(false)}
+                onClick={() => {
+                  setIsAdding(false);
+                  setNewTopic({ topicname: "", status: "Not yet Used", usedCount: 0, usedDate: null });
+                }}
                 className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               >
                 <X size={24} />
               </button>
             </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddTopic();
-              }}
-              className="space-y-4"
-            >
+
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Topic Name
-                </label>
-                <textarea
-                  name="topicname"
-                  value={newTopic.topicname}
-                  onChange={handleNewTopicInputChange}
-                  className="w-full p-1 rounded-md border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
+                <Label className="text-sm font-medium">Category Name</Label>
+                <Input
+                  value={newTopicCategory.category}
+                  onChange={(e) => setNewTopicCategory(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="e.g. Technology, Business..."
+                  className="mt-1"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={newTopic.status}
-                  onChange={handleNewTopicInputChange}
-                  className="w-full rounded-md border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="Not yet Used">Not yet Used</option>
-                  <option value="Used">Used</option>
-                </select>
+                <Label className="text-sm font-medium mb-2 block">Titles</Label>
+                <div className="space-y-3">
+                  {newTopicCategory.titles.map((title, idx) => (
+                    <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm font-semibold">Title {idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewTopicCategory(prev => ({
+                              ...prev,
+                              titles: prev.titles.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">Title</Label>
+                        <Input
+                          value={title.title}
+                          onChange={(e) => {
+                            setNewTopicCategory(prev => ({
+                              ...prev,
+                              titles: prev.titles.map((t, i) =>
+                                i === idx ? { ...t, title: e.target.value } : t
+                              )
+                            }));
+                          }}
+                          placeholder="Article title..."
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">Draft Link</Label>
+                        <Input
+                          value={title.draftLink}
+                          onChange={(e) => {
+                            setNewTopicCategory(prev => ({
+                              ...prev,
+                              titles: prev.titles.map((t, i) =>
+                                i === idx ? { ...t, draftLink: e.target.value } : t
+                              )
+                            }));
+                          }}
+                          placeholder="https://..."
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs">Draft Status</Label>
+                        <Select
+                          value={title.draftStatus}
+                          onValueChange={(value: "Approved" | "Pending" | "Revision") => {
+                            setNewTopicCategory(prev => ({
+                              ...prev,
+                              titles: prev.titles.map((t, i) =>
+                                i === idx ? { ...t, draftStatus: value } : t
+                              )
+                            }));
+                          }}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Approved">Approved</SelectItem>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Revision">Revision</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTopicCategory(prev => ({
+                        ...prev,
+                        titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" }]
+                      }));
+                    }}
+                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={16} />
+                    Add Title
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Used Count
-                </label>
-                <input
-                  type="number"
-                  name="usedCount"
-                  value={newTopic.usedCount}
-                  onChange={handleNewTopicInputChange}
-                  className="w-full rounded-md border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 mt-4">
+
+              <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={() => setIsAdding(false)}
+                  onClick={() => {
+                    setIsAdding(false);
+                    setNewTopicCategory({ category: "", titles: [] });
+                  }}
                   className="px-4 py-2 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
+                  type="button"
+                  onClick={() => {
+                    // Create category with titles
+                    const categoryName = newTopicCategory.category.trim();
+                    const titles = newTopicCategory.titles;
+
+                    if (!categoryName) {
+                      toast.error("Category name is required");
+                      return;
+                    }
+
+                    if (titles.length === 0) {
+                      toast.error("At least one title is required");
+                      return;
+                    }
+
+                    const newCategoryData = {
+                      category: categoryName,
+                      titles: titles.filter((t) => t.title.trim()).map((t) => ({
+                        title: t.title.trim(),
+                        draftLink: t.draftLink.trim(),
+                        draftStatus: t.draftStatus,
+                      })),
+                    };
+
+                    const updatedCategories = [...categories, newCategoryData];
+                    setCategories(updatedCategories);
+
+                    fetch(`/api/clients/${clientData.id}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ articleCategories: updatedCategories }),
+                    })
+                      .then(res => {
+                        if (!res.ok) throw new Error("Failed to save");
+                        toast.success("Category added successfully!");
+                        setIsAdding(false);
+                        setNewTopicCategory({ category: "", titles: [] });
+                      })
+                      .catch(err => {
+                        console.error(err);
+                        setCategories(categories);
+                        toast.error("Failed to add category");
+                      });
+                  }}
+                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
                 >
-                  Add Topic
+                  Add Category
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

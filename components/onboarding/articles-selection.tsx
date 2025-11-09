@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { StepProps, ArticleCategory } from "@/types/onboarding";
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Plus, Trash2, BookOpen, Link as LinkIcon } from "lucide-react";
+import { FileText, Plus, Trash2, BookOpen, Link as LinkIcon, Calendar } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Helper function to get status from used count
+const getStatusFromCount = (count: number): string => {
+  if (count === 0) return "Not yet Used";
+  if (count >= 11) return "More then 10";
+  return `Used ${count}`;
+};
 
 export function ArticlesSelection({
   formData,
@@ -61,7 +68,14 @@ export function ArticlesSelection({
               ...cat,
               titles: [
                 ...cat.titles,
-                { title: "", draftLink: "", draftStatus: "Pending" as const },
+                { 
+                  title: "", 
+                  draftLink: "", 
+                  draftStatus: "Pending" as const,
+                  status: "Not yet Used",
+                  usedCount: 0,
+                  usedDate: null,
+                },
               ],
             }
           : cat
@@ -85,7 +99,7 @@ export function ArticlesSelection({
   const handleUpdateTitle = (
     categoryIndex: number,
     titleIndex: number,
-    field: "title" | "draftLink" | "draftStatus",
+    field: "title" | "draftLink" | "draftStatus" | "status" | "usedCount" | "usedDate",
     value: string
   ) => {
     setCategories((prev) =>
@@ -93,9 +107,17 @@ export function ArticlesSelection({
         i === categoryIndex
           ? {
               ...cat,
-              titles: cat.titles.map((title, ti) =>
-                ti === titleIndex ? { ...title, [field]: value } : title
-              ),
+              titles: cat.titles.map((title, ti) => {
+                if (ti === titleIndex) {
+                  const updated = { ...title, [field]: field === "usedCount" ? (value === "" ? 0 : Number(value)) : value };
+                  if (field === "usedCount") {
+                    const count = Number(updated.usedCount) || 0;
+                    updated.status = getStatusFromCount(count);
+                  }
+                  return updated;
+                }
+                return title;
+              }),
             }
           : cat
       )
@@ -112,6 +134,9 @@ export function ArticlesSelection({
             title: (t.title || "").trim(),
             draftLink: (t.draftLink || "").trim(),
             draftStatus: t.draftStatus,
+            status: t.status,
+            usedCount: t.usedCount,
+            usedDate: t.usedDate,
           }))
           .filter((t) => t.title.length > 0),
       }))
@@ -209,7 +234,7 @@ export function ArticlesSelection({
                       key={`title-${catIdx}-${titleIdx}`}
                       className="bg-orange-50/50 rounded-lg p-4 space-y-3 border border-orange-100"
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="grid md:grid-cols-2 gap-3 items-end">
                         <div className="flex-1 space-y-3">
                           {/* Title */}
                           <div>
@@ -277,6 +302,72 @@ export function ArticlesSelection({
                                 <SelectItem value="Revision">Revision</SelectItem>
                               </SelectContent>
                             </Select>
+                          </div>
+
+                          {/* Status */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Status
+                            </Label>
+                            <Input
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.status || "Not yet Used"}
+                              onChange={(e) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "status",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Status"
+                            />
+                          </div>
+
+                          {/* Used Count */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Used Count
+                            </Label>
+                            <Input
+                              type="number"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={title.usedCount ?? 0}
+                              onChange={(e) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "usedCount",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="0"
+                            />
+                          </div>
+
+                          {/* Used Date */}
+                          <div>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              Used Date
+                            </Label>
+                            <Input
+                              type="date"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              value={
+                                title.usedDate
+                                  ? new Date(title.usedDate).toISOString().split("T")[0]
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                handleUpdateTitle(
+                                  catIdx,
+                                  titleIdx,
+                                  "usedDate",
+                                  e.target.value
+                                )
+                              }
+                            />
                           </div>
                         </div>
 
