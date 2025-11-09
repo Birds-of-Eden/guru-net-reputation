@@ -1,5 +1,4 @@
-// app/%5Brole%5D/onboarding/package-info.tsx
-
+// components/onboarding/package-info.tsx
 "use client";
 
 import { useEffect, useState, useCallback } from "react";

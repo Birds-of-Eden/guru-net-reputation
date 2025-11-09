@@ -1,3 +1,5 @@
+// components/onboarding/assignment-preview.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";

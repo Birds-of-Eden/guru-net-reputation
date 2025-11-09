@@ -1,3 +1,5 @@
+// components/onboarding/DataEntryReviewInfo.tsx
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -295,7 +297,9 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
     });
 
     // Filter sections: keep if has items OR has custom render
-    return reviewSections.filter((s) => (s.items && s.items.length > 0) || s.render);
+    return reviewSections.filter(
+      (s) => (s.items && s.items.length > 0) || s.render
+    );
   }, [formData, fetchedData]);
 
   const avatarPreviewUrl = useMemo(() => {
@@ -343,7 +347,10 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       };
 
       // Debug: Log article data being sent
-      console.log("Submitting client with articleTopics:", clientData.articleTopics);
+      console.log(
+        "Submitting client with articleTopics:",
+        clientData.articleTopics
+      );
       console.log("formData.articleCategories:", formData.articleCategories);
       console.log("formData.articleTopics:", formData.articleTopics);
 
@@ -579,23 +586,23 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
         {/* Right Column - Additional Content */}
         <div className="space-y-6">
-            {/* Biography */}
-{formData.biography && (
-  <ReviewSectionCard
-    icon={FileText}
-    title="Biography"
-    gradient="from-cyan-50 to-blue-50"
-  >
-    <div
-      className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
-      dangerouslySetInnerHTML={{
-        __html: DOMPurify.sanitize(formData.biography, {
-          USE_PROFILES: { html: true },
-        }),
-      }}
-    />
-  </ReviewSectionCard>
-)}
+          {/* Biography */}
+          {formData.biography && (
+            <ReviewSectionCard
+              icon={FileText}
+              title="Biography"
+              gradient="from-cyan-50 to-blue-50"
+            >
+              <div
+                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(formData.biography, {
+                    USE_PROFILES: { html: true },
+                  }),
+                }}
+              />
+            </ReviewSectionCard>
+          )}
 
           {/* Social Links */}
           {formData.socialLinks && formData.socialLinks.length > 0 && (
