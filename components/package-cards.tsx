@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,29 +60,28 @@ interface Package {
 export function PackageCards() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [packageList, setPackageList] = useState<Package[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user, loading } = useUserSession();
 
-  const fetchPackages = useCallback(async () => {
-    try {
-      const response = await fetch("/api/zisanpackages?include=stats", {
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to fetch packages");
-      const data = await response.json();
-      setPackageList(data);
-    } catch (error) {
-      console.error("Error fetching packages:", error);
-    }
-  }, []);
+  // ⚡ OPTIMIZED: Use SWR for automatic caching and revalidation
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
 
-  useEffect(() => {
-    fetchPackages();
-  }, [fetchPackages]);
+  const { data: packageList = [], isLoading, mutate: mutatePackages } = useSWR<Package[]>(
+    "/api/zisanpackages?include=stats",
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
+  );
 
   const addPackage = async (newPackage: Omit<Package, "id" | "stats">) => {
     try {
@@ -102,26 +102,10 @@ export function PackageCards() {
         throw new Error(err?.error || "Failed to create package");
       }
 
-      const createdPackage = await response.json();
-      setPackageList((prev) => [
-        {
-          ...createdPackage,
-          stats: {
-            clients: 0,
-            templates: 0,
-            activeTemplates: 0,
-            sitesAssets: 0,
-            teamMembers: 0,
-            assignments: 0,
-            tasks: 0,
-          },
-        },
-        ...prev,
-      ]);
+      await response.json();
       setIsModalOpen(false);
-
-      // source of truth
-      fetchPackages();
+      // ⚡ OPTIMIZED: Use SWR mutate for instant refresh
+      await mutatePackages();
     } catch (error: any) {
       console.error("Error adding package:", error);
       alert(error.message || "Error adding package");
@@ -150,14 +134,10 @@ export function PackageCards() {
         throw new Error(err?.error || "Failed to update package");
       }
 
-      const updated = await response.json();
-
-      setPackageList((prev) =>
-        prev.map((pkg) => (pkg.id === id ? { ...pkg, ...updated } : pkg))
-      );
+      await response.json();
       setEditingPackage(null);
-
-      fetchPackages();
+      // ⚡ OPTIMIZED: Use SWR mutate for instant refresh
+      await mutatePackages();
     } catch (error: any) {
       console.error("Error updating package:", error);
       alert(error.message || "Error updating package");
@@ -202,8 +182,8 @@ export function PackageCards() {
         );
       }
 
-      setPackageList((prev) => prev.filter((pkg) => pkg.id !== id));
-      fetchPackages();
+      // ⚡ OPTIMIZED: Use SWR mutate for instant refresh
+      await mutatePackages();
     } catch (error: any) {
       console.error("Error deleting package:", error);
       alert(error.message || "Something went wrong while deleting.");
@@ -243,6 +223,53 @@ export function PackageCards() {
   const canEdit =
     !loading && hasPermissionClient(user?.permissions, "package_edit");
 
+  // ⚡ OPTIMIZED: Memoize statistics to prevent recalculation
+  const totalStats = useMemo(() => {
+    return {
+      templates: packageList.reduce((t, p) => t + (p.stats?.templates ?? 0), 0),
+      clients: packageList.reduce((t, p) => t + (p.stats?.clients ?? 0), 0),
+      activeTemplates: packageList.reduce((t, p) => t + (p.stats?.activeTemplates ?? 0), 0),
+    };
+  }, [packageList]);
+
+  // Show loading skeleton
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-10 w-96 bg-gray-200 animate-pulse rounded" />
+            <div className="h-6 w-64 bg-gray-200 animate-pulse rounded" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="border-0 shadow-lg">
+              <CardContent className="p-4 text-center">
+                <div className="h-16 w-16 bg-gray-200 animate-pulse rounded-full mx-auto mb-4" />
+                <div className="h-10 w-20 bg-gray-200 animate-pulse rounded mx-auto mb-2" />
+                <div className="h-4 w-32 bg-gray-200 animate-pulse rounded mx-auto" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-4">
+                <div className="h-6 w-3/4 bg-gray-200 animate-pulse rounded" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="h-4 w-full bg-gray-200 animate-pulse rounded" />
+                <div className="h-20 bg-gray-200 animate-pulse rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -274,7 +301,7 @@ export function PackageCards() {
               <PackageIcon className="w-8 h-8 text-blue-700" />
             </div>
             <div className="text-3xl font-bold text-blue-900 mb-2">
-              {packageList.length}
+              {packageList?.length ?? 0}
             </div>
             <div className="text-sm text-blue-700 font-medium">
               Total Packages
@@ -288,7 +315,7 @@ export function PackageCards() {
               <FileText className="w-8 h-8 text-green-700" />
             </div>
             <div className="text-3xl font-bold text-green-900 mb-2">
-              {packageList.reduce((t, p) => t + (p.stats?.templates ?? 0), 0)}
+              {totalStats.templates}
             </div>
             <div className="text-sm text-green-700 font-medium">
               Total Templates
@@ -302,7 +329,7 @@ export function PackageCards() {
               <Users className="w-8 h-8 text-purple-700" />
             </div>
             <div className="text-3xl font-bold text-purple-900 mb-2">
-              {packageList.reduce((t, p) => t + (p.stats?.clients ?? 0), 0)}
+              {totalStats.clients}
             </div>
             <div className="text-sm text-purple-700 font-medium">
               Total Clients
@@ -316,10 +343,7 @@ export function PackageCards() {
               <Activity className="w-8 h-8 text-orange-700" />
             </div>
             <div className="text-3xl font-bold text-orange-900 mb-2">
-              {packageList.reduce(
-                (t, p) => t + (p.stats?.activeTemplates ?? 0),
-                0
-              )}
+              {totalStats.activeTemplates}
             </div>
             <div className="text-sm text-orange-700 font-medium">
               Active Templates
@@ -561,7 +585,7 @@ export function PackageCards() {
       </div>
 
       {/* Empty State */}
-      {packageList.length === 0 && (
+      {!isLoading && packageList.length === 0 && (
         <Card className="border-dashed border-2 border-gray-300 bg-white/50 backdrop-blur-sm">
           <CardContent className="flex flex-col items-center justify-center py-20 text-center">
             <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6">

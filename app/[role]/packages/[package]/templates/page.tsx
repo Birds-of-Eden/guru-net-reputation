@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import useSWR from "swr";
 import { useParams } from "next/navigation";
 import {
   Card,
@@ -107,14 +108,10 @@ type FilterStatus = "all" | "active" | "draft" | "inactive";
 export default function TemplateListPage() {
   const { package: slug } = useParams();
   const packageId = String(slug).replace("id-", "");
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [packageName, setPackageName] = useState<string>("");
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [viewingTemplate, setViewingTemplate] = useState<Template | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [currentPackageId, setCurrentPackageId] = useState<string>("");
   const { user: currentUser, loading: sessionLoading } = useUserSession();
 
   const canViewTemplate =
@@ -150,61 +147,45 @@ export default function TemplateListPage() {
   const [targetTemplate, setTargetTemplate] = useState<Template | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchPackageName = async (pkgId: string) => {
-    try {
-      const res = await fetch(`/api/zisanpackages/${pkgId}`);
-      if (!res.ok) {
-        throw new Error("Package not found");
-      }
-      const packageData = await res.json();
-      setPackageName(packageData.name || "Unnamed Package");
-    } catch (error) {
-      console.error("Error loading package name:", error);
-      setPackageName("Package Not Found");
-    }
+  // ⚡ OPTIMIZED: Use SWR for parallel data fetching with caching
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
   };
 
-  const fetchTemplates = async (pkgId: string) => {
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `/api/zisanpackages/${pkgId}/templates?include=full`
-      );
+  // Fetch package name
+  const { data: packageData, error: packageError } = useSWR(
+    packageId ? `/api/zisanpackages/${packageId}` : null,
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch templates");
-      }
-      const data = await res.json();
+  const packageName = packageData?.name || (packageError ? "Package Not Found" : "Loading...");
 
-      // Additional frontend filtering to ensure data isolation
-      const filteredData = data.filter((template: Template) => {
-        return template.packageId === pkgId || template.package?.id === pkgId;
-      });
-      setTemplates(filteredData);
-    } catch (error) {
-      console.error("Error loading templates:", error);
-      setTemplates([]);
-    } finally {
-      setLoading(false);
+  // Fetch templates
+  const {
+    data: rawTemplates = [],
+    isLoading: templatesLoading,
+    mutate: mutateTemplates,
+  } = useSWR<Template[]>(
+    packageId ? `/api/zisanpackages/${packageId}/templates?include=full` : null,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
     }
-  };
+  );
 
-  // Effect to handle package changes
-  useEffect(() => {
-    if (packageId && packageId !== currentPackageId) {
-      // Clear previous data when switching packages
-      setTemplates([]);
-      setPackageName("");
-      setSearchQuery("");
-      setStatusFilter("all");
-      setEditingTemplate(null);
-      setViewingTemplate(null);
-      setCurrentPackageId(packageId);
-      // Fetch new data
-      fetchPackageName(packageId);
-      fetchTemplates(packageId);
-    }
-  }, [packageId, currentPackageId]);
+  // ⚡ OPTIMIZED: Memoize filtered templates for current package
+  const templates = useMemo(() => {
+    return rawTemplates.filter((template: Template) => {
+      return template.packageId === packageId || template.package?.id === packageId;
+    });
+  }, [rawTemplates, packageId]);
+
+  const loading = templatesLoading || !packageData;
 
   // Filtered and searched templates with additional packageId validation
   const filteredTemplates = useMemo(() => {
@@ -236,11 +217,10 @@ export default function TemplateListPage() {
     return filtered;
   }, [templates, searchQuery, statusFilter, packageId]);
 
-  const reloadTemplates = () => {
-    if (packageId) {
-      fetchTemplates(packageId);
-    }
-  };
+  // ⚡ OPTIMIZED: Use SWR mutate instead of manual fetch
+  const reloadTemplates = useCallback(() => {
+    mutateTemplates();
+  }, [mutateTemplates]);
 
   // NO browser confirm/alert here
   const handleDeleteTemplate = async () => {
@@ -261,7 +241,8 @@ export default function TemplateListPage() {
       toast.success("Template deleted successfully");
       setOpenDeleteModal(false);
       setTargetTemplate(null);
-      reloadTemplates();
+      // ⚡ OPTIMIZED: Use SWR mutate
+      await mutateTemplates();
     } catch (e: any) {
       toast.error(e?.message || "Delete failed");
     } finally {
@@ -294,8 +275,9 @@ export default function TemplateListPage() {
         throw new Error(e?.message || "Duplication failed");
       }
 
-      // success: reload list
-      await fetchTemplates(packageId);
+      // ⚡ OPTIMIZED: Use SWR mutate
+      await mutateTemplates();
+      toast.success("Template duplicated successfully");
     } catch (err: any) {
       alert(err?.message || "Duplication failed");
       console.error(err);
