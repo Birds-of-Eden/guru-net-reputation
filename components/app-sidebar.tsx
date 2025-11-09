@@ -824,7 +824,8 @@ export function AppSidebar({ className }: { className?: string }) {
    Pieces
 ========================= */
 
-function GroupItem({
+// ⚡ OPTIMIZED: Memoize GroupItem to prevent unnecessary re-renders
+const GroupItem = React.memo(function GroupItem({
   item,
   active,
   expanded,
@@ -912,9 +913,10 @@ function GroupItem({
       </AnimatePresence>
     </div>
   );
-}
+});
 
-function LeafItem({
+// ⚡ OPTIMIZED: Memoize LeafItem and add prefetch for instant navigation
+const LeafItem = React.memo(function LeafItem({
   item,
   active,
   chatUnread,
@@ -930,6 +932,7 @@ function LeafItem({
   return (
     <Link
       href={item.url}
+      prefetch={true}
       className={cn(
         "flex items-center gap-3 p-2.5 rounded-lg",
         "transition-all duration-200 hover:bg-gray-50",
@@ -954,9 +957,10 @@ function LeafItem({
       )}
     </Link>
   );
-}
+});
 
-function MobileItem({
+// ⚡ OPTIMIZED: Memoize MobileItem
+const MobileItem = React.memo(function MobileItem({
   item,
   active,
   role,
@@ -1025,13 +1029,13 @@ function MobileItem({
       </AnimatePresence>
     </div>
   );
-}
+});
 
 /* =========================
    Sidebar Footer (Impersonation-aware)
 ========================= */
 
-function SidebarFooter({
+const SidebarFooter = React.memo(function SidebarFooter({
   userName,
   userEmail,
   userImage,
@@ -1115,13 +1119,13 @@ function SidebarFooter({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem asChild>
-            <Link href="/profile" className="w-full flex items-center gap-2">
+            <Link href="/profile" prefetch={true} className="w-full flex items-center gap-2">
               <BadgeCheck className="h-4 w-4" /> Profile
             </Link>
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <Link href="/settings" className="w-full flex items-center gap-2">
+            <Link href="/settings" prefetch={true} className="w-full flex items-center gap-2">
               <Settings className="h-4 w-4" /> Settings
             </Link>
           </DropdownMenuItem>
@@ -1156,13 +1160,13 @@ function SidebarFooter({
       </DropdownMenu>
     </div>
   );
-}
+});
 
 /* =========================
    Settings Menu (Chat Sound toggle)
 ========================= */
 
-function SettingsMenu({
+const SettingsMenu = React.memo(function SettingsMenu({
   chatSoundEnabled,
   setChatSoundEnabled,
   onTryUnlockAudio,
@@ -1215,13 +1219,13 @@ function SettingsMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
 
 /* =========================
    Loading Skeleton
 ========================= */
 
-function SidebarSkeleton() {
+const SidebarSkeleton = React.memo(function SidebarSkeleton() {
   return (
     <div className="space-y-2 p-2">
       {Array.from({ length: 7 }).map((_, i) => (
@@ -1229,4 +1233,4 @@ function SidebarSkeleton() {
       ))}
     </div>
   );
-}
+});
