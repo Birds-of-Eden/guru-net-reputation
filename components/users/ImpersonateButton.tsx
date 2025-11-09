@@ -1,7 +1,8 @@
 // components/users/ImpersonateButton.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -35,19 +36,22 @@ export default function ImpersonateButton({
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const [loading, setLoading] = useState(false);
-  const [selfId, setSelfId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    fetch("/api/auth/me", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => mounted && setSelfId(d?.user?.id || null))
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // ⚡ OPTIMIZED: Use SWR instead of manual fetch
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  };
 
+  const { data: meData } = useSWR("/api/auth/me", jsonFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 10000,
+  });
+
+  const selfId = meData?.user?.id || null;
+
+  // Don't show button if impersonating self
   if (selfId && selfId === targetUserId) return null;
 
   const start = async () => {

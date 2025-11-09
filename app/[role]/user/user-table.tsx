@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -64,15 +65,9 @@ import { hasPermissionClient } from "@/lib/permissions-client";
 export default function UsersPage() {
   const { user: currentUser, loading: sessionLoading } = useUserSession();
 
-  const [users, setUsers] = useState<UserInterface[]>([]);
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
   // Pagination
-  const [totalUsers, setTotalUsers] = useState(0);
   const [pageSize] = useState(10);
   const [pageIndex, setPageIndex] = useState(0);
 
@@ -120,135 +115,105 @@ export default function UsersPage() {
   const showActions =
     canViewUser || canEditUser || canDeleteUser || canImpersonate;
 
-  // Fetch users with pagination and filters
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Build query params with all filters
-      const params = new URLSearchParams({
-        limit: pageSize.toString(),
-        offset: (pageIndex * pageSize).toString(),
-      });
-      
-      if (debouncedSearch) params.append("q", debouncedSearch);
-      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
-      if (categoryFilter && categoryFilter !== "all") params.append("category", categoryFilter);
-      if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
-      
-      const response = await fetch(`/api/users?${params.toString()}`);
-      const result = await response.json();
-      if (response.ok) {
-        setUsers(result.users || []);
-        setTotalUsers(result.total || 0);
-      } else {
-        setUsers([]);
-        toast.error("Failed to fetch users", {
-          description: result.error || "An error occurred while fetching users",
-        });
-      }
-    } catch (error) {
-      setUsers([]);
-      toast.error("Network Error", {
-        description: "Failed to connect to the server",
-      });
-    } finally {
-      setLoading(false);
-    }
+  // ⚡ OPTIMIZED: SWR fetcher
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
+
+  // ⚡ OPTIMIZED: Build query params as SWR key
+  const usersKey = useMemo(() => {
+    const params = new URLSearchParams({
+      limit: pageSize.toString(),
+      offset: (pageIndex * pageSize).toString(),
+    });
+    if (debouncedSearch) params.append("q", debouncedSearch);
+    if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
+    if (categoryFilter && categoryFilter !== "all") params.append("category", categoryFilter);
+    if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
+    return `/api/users?${params.toString()}`;
   }, [pageIndex, pageSize, debouncedSearch, statusFilter, categoryFilter, roleFilter]);
 
-  // Fetch stats
-  const fetchStats = useCallback(async () => {
-    setStatsLoading(true);
-    try {
-      const response = await fetch("/api/users/stats");
-      const result = await response.json();
-      if (result.success && result.data && result.data.overview) {
-        setStats(result.data.overview);
-      } else {
-        setStats({
-          totalUsers: users.length,
-          activeUsers: users.filter((u) => (u.status || "active") === "active")
-            .length,
-          inactiveUsers: users.filter(
-            (u) => (u.status || "active") === "inactive"
-          ).length,
-          suspendedUsers: users.filter(
-            (u) => (u.status || "active") === "suspended"
-          ).length,
-          verifiedUsers: users.filter((u) => u.emailVerified).length,
-          unverifiedUsers: users.filter((u) => !u.emailVerified).length,
-          recentUsers: 0,
-        });
-      }
-    } catch {
-      setStats({
-        totalUsers: users.length,
-        activeUsers: users.filter((u) => (u.status || "active") === "active")
-          .length,
-        inactiveUsers: users.filter(
-          (u) => (u.status || "active") === "inactive"
-        ).length,
-        suspendedUsers: users.filter(
-          (u) => (u.status || "active") === "suspended"
-        ).length,
-        verifiedUsers: users.filter((u) => u.emailVerified).length,
-        unverifiedUsers: users.filter((u) => !u.emailVerified).length,
-        recentUsers: 0,
-      });
-    } finally {
-      setStatsLoading(false);
+  // ⚡ OPTIMIZED: Fetch users with SWR
+  const {
+    data: usersData,
+    isLoading: loading,
+    mutate: mutateUsers,
+    error: usersError,
+  } = useSWR(usersKey, jsonFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 10000,
+  });
+
+  const users = usersData?.users || [];
+  const totalUsers = usersData?.total || 0;
+
+  // ⚡ OPTIMIZED: Fetch stats with SWR (parallel)
+  const { data: statsData, isLoading: statsLoading, mutate: mutateStats } = useSWR(
+    "/api/users/stats",
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
     }
-  }, [users]);
+  );
 
-  // Fetch roles (for role filter dropdown)
-  const fetchRoles = useCallback(async () => {
-    try {
-      const response = await fetch("/api/roles");
-      const result = await response.json();
-      if (result.success && result.data) {
-        setRoles(Array.isArray(result.data) ? result.data : []);
-      } else {
-        setRoles([]);
-      }
-    } catch {
-      setRoles([]);
+  const stats = useMemo(() => {
+    if (statsData?.success && statsData?.data?.overview) {
+      return statsData.data.overview;
     }
-  }, []);
-
-  // Initial
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  useEffect(() => {
-    fetchStats();
-    fetchRoles();
-  }, [fetchStats, fetchRoles]);
-
-  // Categories for team filter - memoized
-  const [allCategories, setAllCategories] = useState<string[]>([]);
-  
-  // Fetch all categories (not filtered)
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/api/users?limit=1000");
-        const result = await response.json();
-        if (response.ok && result.users) {
-          const cats = Array.from(
-            new Set(result.users.map((u: any) => u.category).filter(Boolean))
-          ) as string[];
-          setAllCategories(cats);
-        }
-      } catch {
-        // Fallback to current users
-        setAllCategories(
-          Array.from(new Set(users.map((u) => u.category).filter(Boolean))) as string[]
-        );
-      }
+    // Fallback calculation from current users
+    return {
+      totalUsers: users.length,
+      activeUsers: users.filter((u: UserInterface) => (u.status || "active") === "active").length,
+      inactiveUsers: users.filter((u: UserInterface) => (u.status || "active") === "inactive").length,
+      suspendedUsers: users.filter((u: UserInterface) => (u.status || "active") === "suspended").length,
+      verifiedUsers: users.filter((u: UserInterface) => u.emailVerified).length,
+      unverifiedUsers: users.filter((u: UserInterface) => !u.emailVerified).length,
+      recentUsers: 0,
     };
-    fetchCategories();
-  }, []); // Only once on mount
+  }, [statsData, users]);
+
+  // ⚡ OPTIMIZED: Fetch roles with SWR (parallel)
+  const { data: rolesData } = useSWR(
+    "/api/roles",
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
+  const roles = useMemo(() => {
+    if (rolesData?.success && rolesData?.data) {
+      return Array.isArray(rolesData.data) ? rolesData.data : [];
+    }
+    return [];
+  }, [rolesData]);
+
+  // ⚡ OPTIMIZED: Fetch categories with SWR (parallel)
+  const { data: categoriesData } = useSWR(
+    "/api/users?limit=1000",
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
+  const allCategories = useMemo(() => {
+    if (categoriesData?.users) {
+      return Array.from(
+        new Set(categoriesData.users.map((u: any) => u.category).filter(Boolean))
+      ) as string[];
+    }
+    return Array.from(new Set(users.map((u) => u.category).filter(Boolean))) as string[];
+  }, [categoriesData, users]);
+
+  // Show error toast if fetch fails
+  useEffect(() => {
+    if (usersError) {
+      toast.error("Failed to fetch users", {
+        description: "An error occurred while fetching users",
+      });
+    }
+  }, [usersError]);
 
   const getStatusBadge = useCallback((status: UserStatus | undefined) => {
     const safeStatus = status || "active";
@@ -281,13 +246,17 @@ export default function UsersPage() {
     if (pageIndex > 0) setPageIndex(pageIndex - 1);
   }, [pageIndex]);
 
+  // ⚡ OPTIMIZED: Use SWR mutate for refresh
   const handleRefresh = useCallback(() => {
-    toast.promise(Promise.all([fetchUsers(), fetchStats()]), {
-      loading: "Refreshing data...",
-      success: "Data refreshed successfully",
-      error: "Failed to refresh data",
-    });
-  }, [fetchUsers, fetchStats]);
+    toast.promise(
+      Promise.all([mutateUsers(), mutateStats()]),
+      {
+        loading: "Refreshing data...",
+        success: "Data refreshed successfully",
+        error: "Failed to refresh data",
+      }
+    );
+  }, [mutateUsers, mutateStats]);
 
   // No client-side filtering needed - backend handles it all!
   // Just ensure users is an array
@@ -325,14 +294,15 @@ export default function UsersPage() {
       toast.success("User deleted successfully");
       setOpenDeleteDialog(false);
       setUserToDelete(null);
-      fetchUsers();
-      fetchStats();
+      // ⚡ OPTIMIZED: Use SWR mutate
+      await mutateUsers();
+      await mutateStats();
     } catch (error: any) {
       toast.error(error?.message || "Failed to delete user");
     } finally {
       setActionLoading(false);
     }
-  }, [userToDelete, canDeleteUser, currentUser?.id, fetchUsers, fetchStats]);
+  }, [userToDelete, canDeleteUser, currentUser?.id, mutateUsers, mutateStats]);
 
   return (
     <div className="p-6 space-y-6 ">
@@ -369,9 +339,10 @@ export default function UsersPage() {
             open={openCreateDialog}
             onOpenChange={setOpenCreateDialog}
             mode="create"
-            onSuccess={() => {
-              fetchUsers();
-              fetchStats();
+            onSuccess={async () => {
+              // ⚡ OPTIMIZED: Use SWR mutate
+              await mutateUsers();
+              await mutateStats();
             }}
           />
 
@@ -381,9 +352,10 @@ export default function UsersPage() {
             onOpenChange={setOpenEditDialog}
             mode="edit"
             initialUser={editUser || undefined}
-            onSuccess={() => {
-              fetchUsers();
-              fetchStats();
+            onSuccess={async () => {
+              // ⚡ OPTIMIZED: Use SWR mutate
+              await mutateUsers();
+              await mutateStats();
             }}
           />
         </div>
