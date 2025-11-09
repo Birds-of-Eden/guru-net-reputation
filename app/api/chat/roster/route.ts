@@ -47,7 +47,7 @@ export async function GET(req: Request) {
             }
           : {}),
       },
-      select: { id: true, name: true, email: true, image: true, lastSeenAt: true },
+      select: { id: true, name: true, email: true, image: true, lastSeenAt: true, role: { select: { name: true } } },
     });
 
     const now = Date.now();
@@ -96,6 +96,7 @@ export async function GET(req: Request) {
         email: true,
         image: true,
         lastSeenAt: true,
+        role: { select: { name: true } },
       },
       orderBy: { name: "asc" },
     });
@@ -143,7 +144,7 @@ export async function GET(req: Request) {
             }
           : {}),
       },
-      select: { id: true, name: true, email: true, image: true, lastSeenAt: true },
+      select: { id: true, name: true, email: true, image: true, lastSeenAt: true, role: { select: { name: true } } },
     });
 
     // AM's clients (users whose clientId belongs to a client managed by this AM)
@@ -168,6 +169,7 @@ export async function GET(req: Request) {
             email: true,
             image: true,
             lastSeenAt: true,
+            role: { select: { name: true } },
           },
         })
       : [];
@@ -216,6 +218,7 @@ export async function GET(req: Request) {
       email: true,
       image: true,
       lastSeenAt: true,
+      role: { select: { name: true } },
     },
     orderBy: { name: "asc" },
   });
