@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Filter, Search, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function formatDateHeader(iso: string) {
   const d = new Date(iso);
@@ -348,7 +349,36 @@ export default function Notifications({
         {error && (
           <div className="text-red-600">Failed to load notifications.</div>
         )}
-        {isLoading && <div className="text-gray-500">Loading…</div>}
+        
+        {isLoading && (
+          // Skeleton loader for notifications
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, dateIndex) => (
+              <div key={`skeleton-date-${dateIndex}`} className="mb-6">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <div className="divide-y rounded-lg border">
+                  {Array.from({ length: 3 }).map((_, itemIndex) => (
+                    <div key={`skeleton-item-${itemIndex}`} className="p-3 flex items-start justify-between">
+                      <div className="pr-3 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-32" />
+                        <div className="flex gap-2 mt-1">
+                          <Skeleton className="h-5 w-20 rounded-full" />
+                          <Skeleton className="h-5 w-24 rounded-full" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-20 rounded" />
+                        <Skeleton className="h-8 w-16 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {!isLoading && !error && notifications.length === 0 && (
           <div className="text-gray-500">No notifications found.</div>

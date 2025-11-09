@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Search,
   Plus,
@@ -945,13 +946,89 @@ export default function TeamsPage() {
 
   if (loading || sessionLoading) {
     return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Loading teams...
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="p-4">
+          <div className="flex flex-col space-y-8">
+            {/* Header Skeleton */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-12 w-64" />
+                <Skeleton className="h-6 w-96" />
+              </div>
+              <Skeleton className="h-12 w-48" />
+            </div>
+
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Card key={`stat-skeleton-${index}`} className="border-0 shadow-lg">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-10 rounded-lg" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-10 w-20" />
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Search and View Toggle Skeleton */}
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="pb-6">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-8 w-48" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-10 w-10 rounded" />
+                    <Skeleton className="h-10 w-10 rounded" />
+                  </div>
+                </div>
+                <Skeleton className="h-10 w-full mt-4" />
+              </CardHeader>
+              <CardContent>
+                {/* Grid View Skeleton */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Card key={`team-skeleton-${index}`} className="border-0 shadow-md">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Skeleton className="h-14 w-14 rounded-xl" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-32" />
+                              <Skeleton className="h-4 w-48" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-3 rounded-lg">
+                            <Skeleton className="h-8 w-12 mx-auto mb-1" />
+                            <Skeleton className="h-3 w-20 mx-auto" />
+                          </div>
+                          <div className="p-3 rounded-lg">
+                            <Skeleton className="h-8 w-12 mx-auto mb-1" />
+                            <Skeleton className="h-3 w-24 mx-auto" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <div className="flex -space-x-2">
+                            {Array.from({ length: 4 }).map((_, idx) => (
+                              <Skeleton key={idx} className="h-8 w-8 rounded-full" />
+                            ))}
+                          </div>
+                        </div>
+                        <Skeleton className="h-10 w-full rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

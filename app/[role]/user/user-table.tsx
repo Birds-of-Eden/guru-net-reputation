@@ -203,7 +203,7 @@ export default function UsersPage() {
         new Set(categoriesData.users.map((u: any) => u.category).filter(Boolean))
       ) as string[];
     }
-    return Array.from(new Set(users.map((u) => u.category).filter(Boolean))) as string[];
+    return Array.from(new Set(users.map((u: UserInterface) => u.category).filter(Boolean))) as string[];
   }, [categoriesData, users]);
 
   // Show error toast if fetch fails
@@ -443,70 +443,84 @@ export default function UsersPage() {
       {/* Filters */}
       <Card>
         <CardContent>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users by name, email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+          {loading && !usersData ? (
+            // Skeleton for filters during initial load
+            <div className="flex flex-col gap-4 md:flex-row md:items-center py-4">
+              <div className="flex-1">
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-[140px]" />
+                <Skeleton className="h-10 w-[140px]" />
+                <Skeleton className="h-10 w-[140px]" />
               </div>
             </div>
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPageIndex(0); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val); setPageIndex(0); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Teams</SelectItem>
-                  {allCategories && allCategories.length > 0 ? (
-                    allCategories.map((category) => (
-                      <SelectItem key={category} value={category!}>
-                        {category}
+          ) : (
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users by name, email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPageIndex(0); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val); setPageIndex(0); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Teams</SelectItem>
+                    {allCategories && allCategories.length > 0 ? (
+                      allCategories.map((category) => (
+                        <SelectItem key={category} value={category!}>
+                          {category}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem disabled value="none">
+                        No Teams
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem disabled value="none">
-                      No Teams
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              <Select value={roleFilter} onValueChange={(val) => { setRoleFilter(val); setPageIndex(0); }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  {roles && roles.length > 0 ? (
-                    roles.map((role) => (
-                      <SelectItem key={role.id} value={role.name}>
-                        {role.name}
+                    )}
+                  </SelectContent>
+                </Select>
+                <Select value={roleFilter} onValueChange={(val) => { setRoleFilter(val); setPageIndex(0); }}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    {roles && roles.length > 0 ? (
+                      roles.map((role: Role) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem disabled value="none">
+                        No Roles
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem disabled value="none">
-                      No Roles
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -531,11 +545,36 @@ export default function UsersPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
+              // Skeleton rows for table during loading
+              Array.from({ length: pageSize }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  <TableCell className="p-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <Skeleton className="h-4 w-48" />
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <Skeleton className="h-4 w-28" />
+                  </TableCell>
+                  <TableCell className={`p-3 ${!showActions ? "hidden" : ""}`}>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-16" />
+                      <Skeleton className="h-8 w-16" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : displayUsers.length > 0 ? (
               displayUsers.map((user) => (
                 <TableRow key={user.id}>
@@ -613,35 +652,48 @@ export default function UsersPage() {
 
         {/* Pagination */}
         <div className="flex items-center justify-between space-x-2 px-3 border-t pt-5">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {totalUsers > 0 && (
-              <>
-                Showing {pageIndex * pageSize + 1} to{" "}
-                {Math.min((pageIndex + 1) * pageSize, totalUsers)} of{" "}
-                {totalUsers} users
-              </>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              disabled={pageIndex === 0}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              disabled={(pageIndex + 1) * pageSize >= totalUsers}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          {loading ? (
+            // Skeleton for pagination
+            <>
+              <Skeleton className="h-4 w-48" />
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-20" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex-1 text-sm text-muted-foreground">
+                {totalUsers > 0 && (
+                  <>
+                    Showing {pageIndex * pageSize + 1} to{" "}
+                    {Math.min((pageIndex + 1) * pageSize, totalUsers)} of{" "}
+                    {totalUsers} users
+                  </>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={prevPage}
+                  disabled={pageIndex === 0}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nextPage}
+                  disabled={(pageIndex + 1) * pageSize >= totalUsers}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -719,8 +771,8 @@ export default function UsersPage() {
                           : "secondary"
                       }
                     >
-                      {selectedUser.status?.charAt(0).toUpperCase() +
-                        selectedUser.status?.slice(1)}
+                      {(selectedUser.status || "active").charAt(0).toUpperCase() +
+                        (selectedUser.status || "active").slice(1)}
                     </Badge>
                     <Badge
                       variant={

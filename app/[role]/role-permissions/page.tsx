@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Toaster, toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSWRConfig } from "swr";
 import {
   Search,
@@ -639,7 +640,19 @@ export default function RolePermissionPage() {
           </div>
 
           <ul className="divide-y max-h-[70vh] overflow-auto">
-            {filteredRoles.map((role) => (
+            {rolesLoading ? (
+              // Skeleton for roles
+              Array.from({ length: 5 }).map((_, index) => (
+                <li key={`skeleton-${index}`} className="p-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </li>
+              ))
+            ) : (
+              filteredRoles.map((role) => (
               <li
                 key={role.id}
                 className={cn(
@@ -695,7 +708,8 @@ export default function RolePermissionPage() {
                   </div>
                 </div>
               </li>
-            ))}
+            ))
+            )}
 
             {!rolesLoading && filteredRoles.length === 0 && (
               <li className="p-4 text-sm text-gray-500 text-center">
@@ -787,7 +801,38 @@ export default function RolePermissionPage() {
               </div>
             )}
 
-            {selectedRole && (
+            {permLoading && selectedRole && (
+              // Skeleton for permissions grid
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={`skeleton-cat-${index}`} className="border rounded-lg overflow-hidden">
+                    <div className="p-4 bg-gray-50 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-5 w-5 rounded-md" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-4 w-48" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-5 w-5" />
+                    </div>
+                    <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Array.from({ length: 4 }).map((_, idx) => (
+                        <div key={`skeleton-perm-${idx}`} className="flex items-start gap-3 rounded-lg border p-3">
+                          <Skeleton className="h-5 w-5 mt-0.5" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-48" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selectedRole && !permLoading && (
               <div className="space-y-4">
                 {Object.entries(filteredPermissions).map(
                   ([categoryId, perms]) => {

@@ -20,6 +20,7 @@ import { AgentDetailsDialog } from "@/components/agents/agent-details-dialog";
 import { EmptyState } from "@/components/agents/empty-state";
 import { Agent } from "@/components/task-distribution/distribution-types";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AllAgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -115,20 +116,84 @@ export default function AllAgentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto py-8 px-4">
-          <div className="flex items-center justify-center min-h-[500px]">
-            <div className="text-center space-y-6">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-              <div className="space-y-2">
-                <p className="text-xl font-medium text-gray-900 dark:text-gray-50">
-                  Loading agents...
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Please wait while we fetch your data
-                </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="p-4">
+          <div className="flex flex-col space-y-8">
+            {/* Header Skeleton */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-64" />
+                <Skeleton className="h-6 w-96" />
               </div>
+              <Skeleton className="h-12 w-48 rounded-md" />
             </div>
+
+            {/* Stats Cards Skeleton */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Card key={`stat-skeleton-${index}`} className="border-0 shadow-lg">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                    <Skeleton className="h-10 w-10 rounded-xl" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-10 w-16" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Management Card Skeleton */}
+            <Card className="border-0 shadow-xl">
+              <CardHeader className="pb-8">
+                <div className="flex items-center space-x-4">
+                  <Skeleton className="h-14 w-14 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-7 w-48" />
+                    <Skeleton className="h-5 w-96" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                {/* Filters Skeleton */}
+                <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Skeleton className="h-10 w-full col-span-2" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+
+                {/* Agent Cards Skeleton */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Card key={`agent-skeleton-${index}`} className="border-0 shadow-md overflow-hidden">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center space-x-4">
+                          <Skeleton className="h-16 w-16 rounded-full" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-5 w-32" />
+                            <Skeleton className="h-4 w-40" />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                          <Skeleton className="h-6 w-16 rounded-full" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-4 w-3/4" />
+                        </div>
+                        <Skeleton className="h-10 w-full rounded" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

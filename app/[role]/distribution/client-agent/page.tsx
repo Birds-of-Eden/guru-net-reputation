@@ -36,6 +36,7 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getInitialsFromName, nameToColor } from "@/utils/avatar";
 import { toast } from "sonner";
 import {
@@ -343,11 +344,56 @@ export default function ClientUnifiedDashboard() {
 
             {/* Client Grid */}
             {isLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent" />
-                <span className="ml-4 text-lg text-slate-600">
-                  Loading clients...
-                </span>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Card
+                    key={`skeleton-${index}`}
+                    className="border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                  >
+                    <CardContent className="p-6">
+                      {/* Identity Skeleton */}
+                      <div className="flex items-start gap-4 mb-4">
+                        <Skeleton className="h-16 w-16 rounded-full" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                      </div>
+
+                      {/* Status & Package Skeleton */}
+                      <div className="space-y-3 mb-4">
+                        <Skeleton className="h-6 w-48 rounded-full" />
+                        <div className="flex flex-wrap gap-2">
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                          <Skeleton className="h-6 w-28 rounded-full" />
+                        </div>
+                      </div>
+
+                      {/* Progress Bars Skeleton */}
+                      <div className="mb-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-4 w-16" />
+                        </div>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                        </div>
+                        <Skeleton className="h-2 w-full rounded-full" />
+                        <Skeleton className="h-3 w-24 ml-auto" />
+                      </div>
+
+                      {/* Buttons Skeleton */}
+                      <div className="mt-6 flex flex-col sm:flex-row gap-2">
+                        <Skeleton className="h-11 flex-1 rounded-xl" />
+                        <Skeleton className="h-11 flex-1 rounded-xl" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16">

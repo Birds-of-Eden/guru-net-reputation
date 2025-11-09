@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import useSWR, { mutate } from "swr";
 import { pusherClient } from "@/lib/pusher/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ActionType = "create" | "update" | "delete" | "sign_in" | "sign_out" | "onboarded" | "task_assigned";
 type Log = {
@@ -214,32 +215,49 @@ export default function ActivityPage() {
         </div>
       )}
 
-      {/* Error / Loading */}
+      {/* Error */}
       {error && (
         <div className="rounded border border-red-200 bg-red-50 text-red-700 px-3 py-2">
           {error.message || "Failed to load logs"}
         </div>
       )}
-      {isLoading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600" />
-        </div>
-      )}
 
-      {!isLoading && (
-        <div className="overflow-x-auto border rounded-lg shadow">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100 text-left">
-              <tr>
-                <th className="p-3">User</th>
-                <th className="p-3">Entity</th>
-                <th className="p-3">Action</th>
-                <th className="p-3">Details</th>
-                <th className="p-3">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.length === 0 ? (
+      <div className="overflow-x-auto border rounded-lg shadow">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-left">
+            <tr>
+              <th className="p-3">User</th>
+              <th className="p-3">Entity</th>
+              <th className="p-3">Action</th>
+              <th className="p-3">Details</th>
+              <th className="p-3">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              // Skeleton rows for loading
+              Array.from({ length: 10 }).map((_, index) => (
+                <tr key={`skeleton-${index}`} className="border-b">
+                  <td className="p-3">
+                    <Skeleton className="h-4 w-32 mb-2" />
+                    <Skeleton className="h-3 w-40" />
+                  </td>
+                  <td className="p-3">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-36" />
+                  </td>
+                  <td className="p-3">
+                    <Skeleton className="h-6 w-20 rounded" />
+                  </td>
+                  <td className="p-3">
+                    <Skeleton className="h-20 w-full rounded" />
+                  </td>
+                  <td className="p-3">
+                    <Skeleton className="h-4 w-20" />
+                  </td>
+                </tr>
+              ))
+            ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-3 text-center text-gray-500">
                     No matching logs found
@@ -292,9 +310,8 @@ export default function ActivityPage() {
                 ))
               )}
             </tbody>
-          </table>
-        </div>
-      )}
+        </table>
+      </div>
 
       {pagination && pagination.totalPages > 1 && !isLoading && (
         <div className="flex items-center justify-between pt-4">
