@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState, memo } from "react";
+import { useMemo, useState, memo, useDeferredValue } from "react";
 import {
   Card,
   CardContent,
@@ -97,6 +97,25 @@ const TaskCardComponent = function TaskCard({
     });
   }, [baseList, siteType]);
 
+  // Defer large lists to keep the UI responsive while typing/scrolling
+  const deferredAgents = useDeferredValue(filteredAgents);
+
+  // Precompute lightweight view models to avoid per-item heavy work during render
+  const agentOptions = useMemo(() => {
+    return (deferredAgents || []).map((agent: any) => {
+      const dn = displayName(agent);
+      return {
+        id: agent.id,
+        dn,
+        image: agent.image || undefined,
+        byStatus: agent.byStatus,
+        activeCount: agent.activeCount,
+        weightedScore: agent.weightedScore,
+        bg: nameToColor(dn),
+      };
+    });
+  }, [deferredAgents]);
+
   const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
@@ -145,6 +164,51 @@ const TaskCardComponent = function TaskCard({
       </div>
     );
   };
+
+  // Memoized agent option row to avoid re-rendering unchanged rows
+  const AgentOption = memo(function AgentOption({
+    option,
+  }: {
+    option: {
+      id: string;
+      dn: string;
+      image?: string;
+      bg: string;
+      byStatus?: any;
+      activeCount?: number;
+      weightedScore?: number;
+    };
+  }) {
+    return (
+      <SelectItem
+        key={option.id}
+        value={option.id}
+        className="p-2 hover:bg-slate-100 rounded-md text-xs"
+      >
+        <div className="flex items-center gap-2.5">
+          <Avatar className="h-6 w-6 ring-1 ring-slate-300">
+            <AvatarImage src={option.image} alt={option.dn} />
+            <AvatarFallback
+              className="text-xs font-semibold"
+              style={{ backgroundColor: option.bg }}
+            >
+              {getInitialsFromName(option.dn)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-slate-900 truncate">
+              {option.dn}
+            </div>
+            <LoadIndicator
+              byStatus={option.byStatus}
+              activeCount={option.activeCount}
+              weightedScore={option.weightedScore}
+            />
+          </div>
+        </div>
+      </SelectItem>
+    );
+  });
 
   return (
     <Card
@@ -381,37 +445,9 @@ const TaskCardComponent = function TaskCard({
                       </SelectTrigger>
 
                       <SelectContent className="rounded-md border shadow-lg p-1.5 max-h-[300px]">
-                        {filteredAgents.map((agent: any) => {
-                          const dn = displayName(agent);
-                          return (
-                            <SelectItem
-                              key={agent.id}
-                              value={agent.id}
-                              className="p-2 hover:bg-slate-100 rounded-md text-xs"
-                            >
-                              <div className="flex items-center gap-2.5">
-                                <Avatar className="h-6 w-6 ring-1 ring-slate-300">
-                                  <AvatarImage
-                                    src={agent.image || undefined}
-                                    alt={dn}
-                                  />
-                                  <AvatarFallback
-                                    className="text-xs font-semibold"
-                                    style={{ backgroundColor: nameToColor(dn) }}
-                                  >
-                                    {getInitialsFromName(dn)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-xs font-semibold text-slate-900 truncate">
-                                    {dn}
-                                  </div>
-                                  <LoadIndicator {...agent} />
-                                </div>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
+                        {agentOptions.map((option) => (
+                          <AgentOption key={option.id} option={option} />
+                        ))}
                       </SelectContent>
                     </Select>
 
