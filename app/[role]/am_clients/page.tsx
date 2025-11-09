@@ -22,8 +22,8 @@ export default function ClientsPage() {
   // ✅ হুক থেকে user / loading সঠিকভাবে নাও
   const { user, loading: sessionLoading } = useUserSession();
 
-  // Use optimized custom hook for client fetching with caching
-  const { clients, loading } = useClients();
+  // Use enhanced hook with SWR + pre-indexed filtering
+  const { clients, loading, index, getFilteredClients } = useClients();
   
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -130,50 +130,17 @@ export default function ClientsPage() {
     [clients]
   );
 
-  // Client-side নিরাপত্তা ফিল্টার with useMemo
-  const filteredClients = useMemo(() => clients.filter((client) => {
-    // status filter
-    if (
-      statusFilter !== "all" &&
-      (client.status ?? "").toLowerCase() !== statusFilter.toLowerCase()
-    ) {
-      return false;
-    }
-
-    // package filter (string compare)
-    const clientPkgId =
-      client.packageId != null ? String(client.packageId) : null;
-    if (packageFilter !== "all" && clientPkgId !== String(packageFilter)) {
-      return false;
-    }
-
-    // AM scope (string compare)
-    const effectiveAmFilter =
-      isAM && currentUserId
-        ? String(currentUserId)
-        : amFilter === "all"
-        ? "all"
-        : String(amFilter);
-    const clientAm = client.amId ?? client.accountManager?.id ?? null;
-    if (
-      effectiveAmFilter !== "all" &&
-      String(clientAm ?? "") !== effectiveAmFilter
-    ) {
-      return false;
-    }
-
-    // search filter using debounced search
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      const hit =
-        client.name?.toLowerCase().includes(q) ||
-        client.company?.toLowerCase().includes(q) ||
-        client.designation?.toLowerCase().includes(q) ||
-        client.email?.toLowerCase().includes(q);
-      if (!hit) return false;
-    }
-    return true;
-  }), [clients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
+  // ✅ Use pre-indexed optimized filtering - O(1) lookups
+  const filteredClients = useMemo(() => {
+    const effectiveAmFilter = isAM && currentUserId ? String(currentUserId) : amFilter;
+    
+    return getFilteredClients({
+      status: statusFilter,
+      packageId: packageFilter,
+      amId: effectiveAmFilter,
+      searchQuery: debouncedSearch,
+    });
+  }, [getFilteredClients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
 
   // Loading UI with skeleton
   if (sessionLoading || loading) {

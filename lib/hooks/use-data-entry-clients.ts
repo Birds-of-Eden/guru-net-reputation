@@ -1,5 +1,5 @@
-// lib/hooks/use-clients.ts
-// Enhanced custom hook with SWR integration and pre-indexed data for super-fast filtering
+// lib/hooks/use-data-entry-clients.ts
+// Enhanced hook for data entry clients with SWR integration and pre-indexed filtering
 
 "use client";
 
@@ -15,14 +15,14 @@ interface ClientIndex {
   all: Client[];
 }
 
-interface UseClientsReturn {
+interface UseDataEntryClientsReturn {
   clients: Client[];
   loading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
-  // New: Pre-indexed data for super-fast filtering
+  // Pre-indexed data for super-fast filtering
   index: ClientIndex;
-  // New: Optimized filter function
+  // Optimized filter function
   getFilteredClients: (filters: {
     status?: string;
     packageId?: string;
@@ -31,18 +31,24 @@ interface UseClientsReturn {
   }) => Client[];
 }
 
+interface FetchParams {
+  amId?: string;
+  assignedAgentId?: string;
+}
+
 // Fetcher function for SWR
 const fetcher = async (url: string): Promise<Client[]> => {
   const response = await fetch(url, {
     cache: "force-cache",
     next: { revalidate: 10 },
   });
-  
+
   if (!response.ok) {
-    throw new Error("Failed to fetch clients");
+    throw new Error("Failed to fetch data entry clients");
   }
-  
-  return response.json();
+
+  const payload = await response.json();
+  return Array.isArray(payload?.clients) ? payload.clients : [];
 };
 
 // Helper function to build pre-indexed data structure
@@ -71,10 +77,22 @@ function buildClientIndex(clients: Client[]): ClientIndex {
   return { byStatus, byPackage, byAM, all: clients };
 }
 
-export function useClients(): UseClientsReturn {
+// Build SWR key with params
+function buildSwrKey(params?: FetchParams): string | null {
+  if (!params) return null;
+
+  const url = new URL("/api/dataentryclient", window.location.origin);
+  if (params.amId) url.searchParams.set("amId", params.amId);
+  if (params.assignedAgentId) url.searchParams.set("assignedAgentId", params.assignedAgentId);
+
+  return url.toString();
+}
+
+export function useDataEntryClients(params?: FetchParams): UseDataEntryClientsReturn {
   // ✅ SWR integration with auto-revalidation
+  const swrKey = buildSwrKey(params);
   const { data, error, mutate, isLoading } = useSWR<Client[]>(
-    "/api/clients",
+    swrKey,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -139,7 +157,7 @@ export function useClients(): UseClientsReturn {
           const q = filters.searchQuery.toLowerCase();
           result = result.filter(
             (client) =>
-              client.name.toLowerCase().includes(q) ||
+              client.name?.toLowerCase().includes(q) ||
               client.company?.toLowerCase().includes(q) ||
               client.designation?.toLowerCase().includes(q) ||
               client.email?.toLowerCase().includes(q)

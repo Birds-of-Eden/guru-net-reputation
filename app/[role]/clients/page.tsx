@@ -19,8 +19,8 @@ export default function ClientsPage() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
 
-  // Use optimized custom hook for client fetching with caching
-  const { clients, loading } = useClients();
+  // Use enhanced hook with SWR + pre-indexed filtering
+  const { clients, loading, index, getFilteredClients } = useClients();
   
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,29 +86,15 @@ export default function ClientsPage() {
     router.push(`/${roleSegment}/clients/onboarding`);
   }, [router, roleSegment]);
 
-  // Memoize filtering to prevent re-computation on every render
+  // ✅ Use pre-indexed optimized filtering - O(1) lookups instead of O(n)
   const filteredClients = useMemo(() => {
-    return clients.filter((client) => {
-      if (statusFilter !== "all" && client.status !== statusFilter) return false;
-      if (packageFilter !== "all" && client.packageId !== packageFilter)
-        return false;
-      if (
-        amFilter !== "all" &&
-        (client.amId ?? client.accountManager?.id) !== amFilter
-      )
-        return false;
-      if (debouncedSearch) {
-        const q = debouncedSearch.toLowerCase();
-        return (
-          client.name.toLowerCase().includes(q) ||
-          client.company?.toLowerCase().includes(q) ||
-          client.designation?.toLowerCase().includes(q) ||
-          client.email?.toLowerCase().includes(q)
-        );
-      }
-      return true;
+    return getFilteredClients({
+      status: statusFilter,
+      packageId: packageFilter,
+      amId: amFilter,
+      searchQuery: debouncedSearch,
     });
-  }, [clients, statusFilter, packageFilter, amFilter, debouncedSearch]);
+  }, [getFilteredClients, statusFilter, packageFilter, amFilter, debouncedSearch]);
 
   // packages come from API/state to ensure names are accurate
 

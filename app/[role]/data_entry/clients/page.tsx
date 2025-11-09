@@ -11,8 +11,9 @@ import { ClientStatusSummary } from "@/components/clients/client-status-summary"
 import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
 import type { Client } from "@/types/client";
 
-// ✅ useSession এর বদলে তোমার কাস্টম হুক
+// ✅ Enhanced hooks with SWR integration
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { useDataEntryClients } from "@/lib/hooks/use-data-entry-clients";
 import DataEntryClientStats from "@/components/dataentry/DataEntryClientStats";
 // Lazy load heavy components
 const ClientGrid = lazy(() => import("@/components/clients/client-grid").then(m => ({ default: m.ClientGrid })));
@@ -23,9 +24,6 @@ export default function ClientsPage() {
 
   // ✅ কাস্টম সেশন হুক
   const { user: sessionUser, loading: sessionLoading } = useUserSession();
-
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +49,16 @@ export default function ClientsPage() {
     (sessionUser?.roleId as string | undefined);
   const isAM = (currentUserRole ?? "").toLowerCase() === "am";
 
+  // ✅ Enhanced hook with SWR + pre-indexed filtering
+  const { clients, loading, getFilteredClients } = useDataEntryClients(
+    !sessionLoading && currentUserId
+      ? {
+          amId: isAM ? currentUserId : undefined,
+          assignedAgentId: !isAM ? currentUserId : undefined,
+        }
+      : undefined
+  );
+
   // ✅ AM হলে ফিল্টার অটো-সেট (session লোড হওয়ার পর)
   useEffect(() => {
     if (
@@ -62,38 +70,6 @@ export default function ClientsPage() {
       setAmFilter(currentUserId);
     }
   }, [sessionLoading, isAM, currentUserId, amFilter]);
-
-  // --- Fetch clients (AM হলে server-side query param) ---
-  const fetchClients = useCallback(async () => {
-    // সেশন লোড না হলে বা AM হলে কিন্তু id এখনো না এলে অপেক্ষা করো
-    if (sessionLoading) return;
-    if (isAM && !currentUserId) return;
-
-    try {
-      setLoading(true);
-      const url = new URL("/api/dataentryclient", window.location.origin);
-      if (isAM && currentUserId) url.searchParams.set("amId", currentUserId);
-      // data_entry (or any non-AM) should only see clients assigned to them
-      if (!isAM && currentUserId)
-        url.searchParams.set("assignedAgentId", currentUserId);
-
-      const response = await fetch(url.toString());
-      if (!response.ok) throw new Error("Failed to fetch clients");
-
-      const payload = await response.json();
-      const clientsData = Array.isArray(payload?.clients)
-        ? (payload.clients as Client[])
-        : [];
-
-      setClients(clientsData);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      toast.error("Failed to load clients data.");
-      setClients([]); // ✅ guard
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionLoading, isAM, currentUserId]);
 
   // --- Fetch packages (for filter names) ---
   const fetchPackages = useCallback(async () => {
@@ -129,11 +105,7 @@ export default function ClientsPage() {
     }
   }, [clients]);
 
-  // সেশন-ডিপেন্ডেন্ট ক্লায়েন্ট ফেচ
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
-
+  // ফেচ packages
   useEffect(() => {
     fetchPackages();
   }, [fetchPackages]);
@@ -166,40 +138,17 @@ export default function ClientsPage() {
     ).map(([, v]) => v);
   }, [clients]);
 
-  // Client-side filtering with useMemo
-  const filteredClients = useMemo(() => (Array.isArray(clients) ? clients : []).filter(
-    (client) => {
-      if (
-        statusFilter !== "all" &&
-        (client?.status ?? "").toLowerCase() !== statusFilter.toLowerCase()
-      )
-        return false;
-
-      if (packageFilter !== "all" && client?.packageId !== packageFilter)
-        return false;
-
-      // AM হলে ফোর্স স্কোপ
-      const effectiveAmFilter =
-        isAM && currentUserId ? currentUserId : amFilter;
-      if (
-        effectiveAmFilter !== "all" &&
-        (client?.amId ?? client?.accountManager?.id) !== effectiveAmFilter
-      )
-        return false;
-
-      if (debouncedSearch) {
-        const q = debouncedSearch.toLowerCase();
-        const hit =
-          client?.name?.toLowerCase().includes(q) ||
-          client?.company?.toLowerCase().includes(q) ||
-          client?.designation?.toLowerCase().includes(q) ||
-          client?.email?.toLowerCase().includes(q);
-        if (!hit) return false;
-      }
-
-      return true;
-    }
-  ), [clients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
+  // ✅ Use pre-indexed optimized filtering - O(1) lookups
+  const filteredClients = useMemo(() => {
+    const effectiveAmFilter = isAM && currentUserId ? currentUserId : amFilter;
+    
+    return getFilteredClients({
+      status: statusFilter,
+      packageId: packageFilter,
+      amId: effectiveAmFilter,
+      searchQuery: debouncedSearch,
+    });
+  }, [getFilteredClients, statusFilter, packageFilter, isAM, currentUserId, amFilter, debouncedSearch]);
 
   // ✅ loading UI with skeleton
   if (loading || sessionLoading) {
