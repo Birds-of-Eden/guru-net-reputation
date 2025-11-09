@@ -13,9 +13,19 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, Package, Sparkles, Clock, Users, FileText, Layers, TrendingUp, Star } from "lucide-react";
+import {
+  CheckCircle,
+  Sparkles,
+  FileText,
+  Layers,
+  TrendingUp,
+  Star,
+  Users,
+  Eye,
+} from "lucide-react";
 import type { StepProps } from "@/types/onboarding";
 import { toast } from "sonner";
+import { TemplateViewModal } from "@/components/package/Template-View-Modal";
 
 interface Template {
   id: string;
@@ -23,6 +33,8 @@ interface Template {
   description: string;
   status: string;
   packageId: string;
+  sitesAssets?: any[];
+  templateTeamMembers?: any[];
   _count?: {
     sitesAssets: number;
     templateTeamMembers: number;
@@ -40,6 +52,7 @@ export function TemplateSelection({
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
     formData.templateId || ""
   );
+  const [viewingTemplate, setViewingTemplate] = useState<Template | null>(null);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -51,7 +64,7 @@ export function TemplateSelection({
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/packages/templates?packageId=${formData.packageId}`
+          `/api/zisanpackages/${formData.packageId}/templates?include=full`
         );
         const data = await res.json();
 
@@ -131,7 +144,7 @@ export function TemplateSelection({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header Section */}
+      {/* Header */}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-4">
           <FileText className="w-8 h-8 text-white" />
@@ -140,7 +153,8 @@ export function TemplateSelection({
           Select Your Template
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Choose a template that perfectly aligns with your project requirements and business goals.
+          Choose a template that perfectly aligns with your project requirements
+          and business goals.
         </p>
       </div>
 
@@ -160,90 +174,80 @@ export function TemplateSelection({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {templates.map((template, index) => {
-            // Detect if customized template
-            const isCustomized = template.description?.includes("Custom template for client:") || false;
-            
+            const isCustomized = template.description?.includes(
+              "Custom template for client:"
+            );
+
             return (
-            <Card
-              key={template.id}
-              className={`relative overflow-hidden cursor-pointer transition-all duration-500 group ${
-                selectedTemplate === template.id
-                  ? isCustomized
-                    ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-gradient-to-br from-purple-100 via-pink-100 to-purple-100"
-                    : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50"
-                  : isCustomized
+              <Card
+                key={template.id}
+                className={`relative overflow-hidden cursor-pointer transition-all duration-500 group ${
+                  selectedTemplate === template.id
+                    ? isCustomized
+                      ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-gradient-to-br from-purple-100 via-pink-100 to-purple-100"
+                      : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50"
+                    : isCustomized
                     ? "hover:shadow-xl hover:-translate-y-2 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
                     : "hover:shadow-xl hover:-translate-y-2 bg-white border-2 border-blue-200"
-              }`}
-              onClick={() => handleTemplateSelect(template.id)}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Selection Badge */}
-              {selectedTemplate === template.id && (
-                <div className="absolute top-4 right-4 z-10 animate-in zoom-in duration-300">
-                  <div className={`rounded-full p-2 shadow-lg ${
-                    isCustomized
-                      ? "bg-gradient-to-br from-purple-500 to-pink-600"
-                      : "bg-gradient-to-br from-blue-500 to-indigo-600"
-                  }`}>
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
+                }`}
+                onClick={() => handleTemplateSelect(template.id)}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* View Button */}
+                <div className="absolute top-4 right-4 z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 bg-white/70 backdrop-blur-sm rounded-full shadow-md px-2.5 py-1.5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingTemplate(template);
+                    }}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
 
-              {/* Top Gradient Bar */}
-              <div className={`absolute top-0 left-0 w-full h-3 ${
-                isCustomized
-                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500"
-                  : "bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500"
-              }`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
-              </div>
-
-              {/* Template Type Badge */}
-              <div className="absolute top-6 left-4 z-10 animate-in zoom-in duration-300">
-                {isCustomized ? (
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg px-3 py-1 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span className="font-semibold">Customized</span>
-                  </Badge>
-                ) : (
-                  <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0 shadow-lg px-3 py-1 flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5" />
-                    <span className="font-semibold">Main Template</span>
-                  </Badge>
-                )}
-              </div>
-
-              {/* Glow Effect on Hover */}
-              <div className={`absolute inset-0 transition-all duration-500 ${
-                isCustomized
-                  ? "bg-gradient-to-br from-purple-400/0 to-pink-400/0 group-hover:from-purple-400/10 group-hover:to-pink-400/10"
-                  : "bg-gradient-to-br from-blue-400/0 to-indigo-400/0 group-hover:from-blue-400/10 group-hover:to-indigo-400/10"
-              }`} />
-
-              <CardHeader className="pb-4 pt-10">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
-                    isCustomized
-                      ? "bg-gradient-to-br from-purple-500 to-pink-600"
-                      : "bg-gradient-to-br from-blue-500 to-indigo-600"
-                  }`}>
-                    {isCustomized ? (
-                      <Sparkles className="w-6 h-6 text-white" />
-                    ) : (
-                      <Layers className="w-6 h-6 text-white" />
-                    )}
+                {/* Selection Badge */}
+                {selectedTemplate === template.id && (
+                  <div className="absolute top-4 left-4 z-10 animate-in zoom-in duration-300">
+                    <div
+                      className={`rounded-full p-2 shadow-lg ${
+                        isCustomized
+                          ? "bg-gradient-to-br from-purple-500 to-pink-600"
+                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                      }`}
+                    >
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className={`text-xl font-bold mb-2 transition-colors ${
-                      isCustomized
-                        ? "text-purple-900 group-hover:text-purple-600"
-                        : "text-gray-900 group-hover:text-blue-600"
-                    }`}>
-                      {template.name}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 mb-2">
+                )}
+
+                <CardHeader className="pb-4 pt-10">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                        isCustomized
+                          ? "bg-gradient-to-br from-purple-500 to-pink-600"
+                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                      }`}
+                    >
+                      {isCustomized ? (
+                        <Sparkles className="w-6 h-6 text-white" />
+                      ) : (
+                        <Layers className="w-6 h-6 text-white" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle
+                        className={`text-xl font-bold mb-2 transition-colors ${
+                          isCustomized
+                            ? "text-purple-900 group-hover:text-purple-600"
+                            : "text-gray-900 group-hover:text-blue-600"
+                        }`}
+                      >
+                        {template.name}
+                      </CardTitle>
                       <Badge
                         variant="outline"
                         className={`text-xs font-semibold ${getStatusColor(
@@ -254,82 +258,60 @@ export function TemplateSelection({
                       </Badge>
                     </div>
                   </div>
-                </div>
-                {isCustomized ? (
-                  <div className="p-3 bg-purple-50 border-l-4 border-purple-500 rounded-lg">
-                    <p className="text-xs font-semibold text-purple-900 mb-1 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Customized Template
-                    </p>
-                    <CardDescription className="text-sm text-purple-700 line-clamp-2 leading-relaxed">
-                      {template.description?.replace("Custom template for client: ", "").split(".")[0] ||
-                        "A customized template tailored for specific client needs."}
-                    </CardDescription>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                    <p className="text-xs font-semibold text-blue-900 mb-1 flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5" />
-                      Main Template
-                    </p>
-                    <CardDescription className="text-sm text-blue-700 line-clamp-2 leading-relaxed">
-                      {template.description ||
-                        "A comprehensive template designed to meet your project needs and deliver exceptional results."}
-                    </CardDescription>
-                  </div>
-                )}
-              </CardHeader>
+                  <CardDescription
+                    className={`text-sm ${
+                      isCustomized ? "text-purple-700" : "text-blue-700"
+                    } line-clamp-2`}
+                  >
+                    {template.description ||
+                      "A template designed to meet your project needs."}
+                  </CardDescription>
+                </CardHeader>
 
-              <CardContent className="pt-0 pb-6">
-                {/* Stats Section */}
-                <div className="flex items-center gap-3 mb-5">
-                  {template._count?.sitesAssets && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      <span>{template._count.sitesAssets} Assets</span>
-                    </div>
-                  )}
-                  {template._count?.templateTeamMembers && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold">
-                      <Users className="w-3.5 h-3.5" />
-                      <span>
-                        {template._count.templateTeamMembers} Members
+                <CardContent className="pt-0 pb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    {template._count?.sitesAssets && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>{template._count.sitesAssets} Assets</span>
+                      </div>
+                    )}
+                    {template._count?.templateTeamMembers && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>
+                          {template._count.templateTeamMembers} Members
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    className={`w-full h-12 font-semibold transition-all duration-300 ${
+                      selectedTemplate === template.id
+                        ? isCustomized
+                          ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white"
+                          : "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white"
+                        : isCustomized
+                        ? "bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-2 border-purple-200"
+                        : "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-2 border-blue-200"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTemplateSelect(template.id);
+                    }}
+                  >
+                    {selectedTemplate === template.id ? (
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        Selected
                       </span>
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  className={`w-full h-12 font-semibold transition-all duration-300 ${
-                    selectedTemplate === template.id
-                      ? isCustomized
-                        ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 text-white shadow-xl"
-                        : "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 hover:from-blue-700 hover:via-indigo-700 hover:to-blue-700 text-white shadow-xl"
-                      : isCustomized
-                        ? "bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 hover:text-purple-800 border-2 border-purple-200 hover:border-purple-300"
-                        : "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 hover:text-blue-800 border-2 border-blue-200 hover:border-blue-300"
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTemplateSelect(template.id);
-                  }}
-                >
-                  {selectedTemplate === template.id ? (
-                    <span className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Selected
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      Select Template
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+                    ) : (
+                      "Select Template"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -340,24 +322,25 @@ export function TemplateSelection({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 hover:border-purple-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 rounded-xl"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-          </svg>
           Previous
         </Button>
         <Button
           onClick={onNext}
           disabled={!selectedTemplate}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-700 hover:via-fuchsia-700 hover:to-pink-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-xl shadow-xl disabled:opacity-50"
         >
           Continue to Next Step
-          <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
         </Button>
       </div>
+
+      {/* View Modal */}
+      <TemplateViewModal
+        isOpen={!!viewingTemplate}
+        onClose={() => setViewingTemplate(null)}
+        template={viewingTemplate}
+      />
     </div>
   );
 }
