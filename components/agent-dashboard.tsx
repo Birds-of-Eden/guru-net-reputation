@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
 import {
   Card,
   CardContent,
@@ -140,30 +141,36 @@ interface AgentDashboardProps {
   agentId: string;
 }
 
+// Fetcher for agent dashboard
+const agentDashboardFetcher = async (url: string): Promise<AgentClient[]> => {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to fetch agent data: ${response.statusText}`);
+  return response.json();
+};
+
 export function AgentDashboard({ agentId }: AgentDashboardProps) {
   const [timeRange, setTimeRange] = useState("month");
-  const [dashboardData, setDashboardData] = useState<AgentDashboardData | null>(
-    null
+  
+  // ✅ Use SWR for agent dashboard data
+  const { data: rawClients, isLoading: loading, error: fetchError } = useSWR<AgentClient[]>(
+    agentId ? `/api/tasks/clients/agents/${agentId}` : null,
+    agentDashboardFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000, // Auto-refresh every 1 min
+    }
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAgentDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/tasks/clients/agents/${agentId}`, {
-          cache: "no-store",
-        });
-        if (!response.ok)
-          throw new Error(`Failed to fetch agent data: ${response.statusText}`);
-
-        const rawClients: AgentClient[] = await response.json();
-
-        // Normalize counts + progress per client
-        const clients = rawClients.map((c) => {
+  
+  const error = fetchError ? (fetchError instanceof Error ? fetchError.message : "Failed to fetch dashboard data") : null;
+  
+  // ✅ Process dashboard data with useMemo
+  const dashboardData = useMemo(() => {
+    if (!rawClients) return null;
+    
+    try {
+      // Normalize counts + progress per client
+      const clients = rawClients.map((c) => {
           const counts = normalizeCounts(
             c.agentTaskCounts ?? c.taskCounts ?? EMPTY_COUNTS
           );
@@ -238,32 +245,25 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         const averageClientProgress =
           clients.length > 0 ? Math.round(totalProgress / clients.length) : 0;
 
-        setDashboardData({
-          totalAssignedClients: clients.length,
-          totalTasks,
-          completedTasks,
-          pendingTasks,
-          inProgressTasks,
-          reassignedTasks,
-          overallCompletionRate,
-          averageClientProgress,
-          recentClients: clients.slice(0, 5),
-          recentTasks,
-          highPriorityTasks,
-          clientsNeedingAttention: clientsNeedingAttention.slice(0, 5),
-        });
-      } catch (e) {
-        console.error("Error fetching agent dashboard data:", e);
-        setError(
-          e instanceof Error ? e.message : "Failed to fetch dashboard data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (agentId) fetchAgentDashboardData();
-  }, [agentId, timeRange]);
+      return {
+        totalAssignedClients: clients.length,
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        inProgressTasks,
+        reassignedTasks,
+        overallCompletionRate,
+        averageClientProgress,
+        recentClients: clients.slice(0, 5),
+        recentTasks,
+        highPriorityTasks,
+        clientsNeedingAttention: clientsNeedingAttention.slice(0, 5),
+      };
+    } catch (e) {
+      console.error("Error processing agent dashboard data:", e);
+      return null;
+    }
+  }, [rawClients, timeRange]);
 
   if (loading) return <DashboardSkeleton />;
 

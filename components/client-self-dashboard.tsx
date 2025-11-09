@@ -1,7 +1,9 @@
 // components/client-self-dashboard.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useUserSession } from "@/lib/hooks/use-user-session";
+import useSWR from "swr";
 import { ClientDashboard } from "@/components/clients/clientsID/client-dashboard";
 import { Client } from "@/types/client";
 
@@ -35,47 +37,36 @@ function normalizeClientData(apiData: any): Client {
   };
 }
 
+// Fetcher for client data
+const clientFetcher = async (url: string): Promise<any> => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch client");
+  return res.json();
+};
+
 export default function ClientSelfDashboard() {
-  const [clientId, setClientId] = useState<string | null>(null);
-  const [clientData, setClientData] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    async function run() {
-      try {
-        setLoading(true);
-        const sRes = await fetch("/api/auth/me", {
-          cache: "no-store",
-        });
-        if (!sRes.ok) throw new Error("Failed to fetch session");
-        const sData = await sRes.json();
-        const cid: string | null = sData?.user?.clientId ?? null;
-        if (!mounted) return;
-        setClientId(cid);
-
-        if (!cid) {
-          setClientData(null);
-          return;
-        }
-        const cRes = await fetch(`/api/clients/${cid}`, { cache: "no-store" });
-        if (!cRes.ok) throw new Error("Failed to fetch client");
-        const raw = await cRes.json();
-        if (!mounted) return;
-        setClientData(normalizeClientData(raw));
-      } catch (e: any) {
-        if (!mounted) return;
-        setError(e?.message || "Something went wrong");
-      } finally {
-        if (mounted) setLoading(false);
-      }
+  // ✅ Use optimized hooks with SWR
+  const { user, loading: sessionLoading } = useUserSession();
+  const clientId = user?.clientId ?? null;
+  
+  // ✅ Fetch client data only if clientId exists
+  const { data: rawClientData, error: clientError, isLoading: clientLoading } = useSWR(
+    clientId ? `/api/clients/${clientId}` : null,
+    clientFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+      refreshInterval: 300000, // Auto-refresh every 5 min
     }
-    run();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  );
+  
+  // ✅ Process client data with useMemo
+  const clientData = useMemo(() => {
+    return rawClientData ? normalizeClientData(rawClientData) : null;
+  }, [rawClientData]);
+  
+  const loading = sessionLoading || clientLoading;
+  const error = clientError ? (clientError instanceof Error ? clientError.message : "Something went wrong") : null;
 
   return (
     <div className="min-h-[300px] p-4">

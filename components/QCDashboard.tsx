@@ -3,6 +3,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import useSWR from "swr";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -205,8 +206,25 @@ function RangeControls({
   );
 }
 
+// Fetcher for tasks
+const tasksFetcher = async (url: string): Promise<AnyTask[]> => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
 // ---------- Main ----------
-export default function QCDashboardPro({ tasks = [] }: { tasks: AnyTask[] }) {
+export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: AnyTask[] }) {
+  // ✅ Use SWR for real-time task updates
+  const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>("/api/tasks", tasksFetcher, {
+    fallbackData: initialTasks, // Use server data as fallback
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+    refreshInterval: 60000, // Auto-refresh every 1 min
+  });
+  
+  const tasks = fetchedTasks || initialTasks;
   // --- helpers
   const now = new Date();
   const toISODate = (d: Date) => d.toISOString().slice(0, 10);

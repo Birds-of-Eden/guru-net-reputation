@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, memo } from "react";
+import { useMemo, useState, useCallback, memo } from "react";
+import { useClients } from "@/lib/hooks/use-clients";
+import useSWR from "swr";
 import {
   Users,
   Activity,
@@ -122,9 +124,23 @@ const GRADIENTS = {
   slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
 };
 
-// In-memory cache for AM CEO dashboard data
-const amCeoDashboardCache = new Map<string, { data: any; timestamp: number }>();
-const AM_CEO_CACHE_DURATION = 30000; // 30 seconds
+// Fetcher for packages
+const packagesFetcher = async (url: string): Promise<Array<{id: string; name: string}>> => {
+  const res = await fetch(url, { cache: "no-store" });
+  const raw = await res.json();
+  const list = safeParse<any[]>(raw);
+  return (Array.isArray(list) ? list : []).map((p: any) => ({
+    id: String(p?.id ?? ""),
+    name: String(p?.name ?? "Unnamed"),
+  }));
+};
+
+// Fetcher for summary
+const summaryFetcher = async (url: string): Promise<Summary> => {
+  const res = await fetch(url, { cache: "no-store" });
+  const raw = await res.json();
+  return safeParse<Summary>(raw);
+};
 
 const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
   const [selectedAmCeoId, setSelectedAmCeoId] = useState<string>(defaultAmId);
@@ -132,162 +148,59 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
   const [clientOpen, setClientOpen] = useState<boolean>(false);
   const { user, loading: sessionLoading } = useUserSession();
 
-  const [clients, setClients] = useState<FetchState<ClientLite[]>>({
-    data: [],
-    loading: false,
-    error: null,
+  // ✅ Use optimized hooks with SWR
+  const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
+  
+  const { data: packages, isLoading: pkgLoading } = useSWR("/api/packages", packagesFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+    refreshInterval: 300000,
   });
-
-  const [summary, setSummary] = useState<FetchState<Summary | null>>({
-    data: null,
-    loading: false,
-    error: null,
-  });
-
-  const [pkgMap, setPkgMap] = useState<Record<string, string>>({});
-  const [pkgLoading, setPkgLoading] = useState(false);
-
-  useEffect(() => {
-    if (sessionLoading) return;
-    if (user?.role === "am_ceo" && user?.id) {
-      setSelectedAmCeoId(user.id);
-      return;
+  
+  const summaryUrl = selectedAmCeoId
+    ? `/api/clients/summary?am_ceoId=${encodeURIComponent(selectedAmCeoId)}&limitUpcoming=8`
+    : `/api/clients/summary?limitUpcoming=8`;
+  
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useSWR(
+    summaryUrl,
+    summaryFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
     }
-    if (!user?.id && defaultAmId && !selectedAmCeoId) {
-      setSelectedAmCeoId(defaultAmId);
-    }
-  }, [user, sessionLoading, defaultAmId, selectedAmCeoId]);
+  );
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setPkgLoading(true);
-        
-        // Check cache first
-        const cacheKey = 'am-ceo-packages';
-        const cached = amCeoDashboardCache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
-          if (mounted) setPkgMap(cached.data);
-          if (mounted) setPkgLoading(false);
-          return;
-        }
-        
-        const res = await fetch("/api/packages", { cache: "no-store" });
-        const raw = await res.json();
-        const list = safeParse<any[]>(raw);
-        const map: Record<string, string> = {};
-        (Array.isArray(list) ? list : []).forEach((p) => {
-          if (p?.id) map[String(p.id)] = String(p.name ?? "Unnamed");
-        });
-        // Cache the result
-        amCeoDashboardCache.set(cacheKey, { data: map, timestamp: Date.now() });
-        if (mounted) setPkgMap(map);
-      } catch {
-        if (mounted) setPkgMap({});
-      } finally {
-        if (mounted) setPkgLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
+  // ✅ Filter clients by AM CEO (client-side filtering)
+  const clients = useMemo(() => {
+    const data = allClients.filter((c: any) => {
+      if (!selectedAmCeoId) return true;
+      const cAmId = c.amCeoId || c.accountManager?.id;
+      return cAmId === selectedAmCeoId;
+    });
+    
+    return {
+      data,
+      loading: clientsLoading,
+      error: clientsError ? clientsError.message : null,
     };
-  }, []);
+  }, [allClients, selectedAmCeoId, clientsLoading, clientsError]);
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setClients({ data: [], loading: true, error: null });
+  // ✅ Create packages map
+  const pkgMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    (packages || []).forEach((p) => {
+      if (p?.id) map[p.id] = p.name;
+    });
+    return map;
+  }, [packages]);
 
-      const url = selectedAmCeoId
-        ? `/api/clients?am_ceoId=${encodeURIComponent(selectedAmCeoId)}`
-        : "/api/clients";
-      
-      // Check cache
-      const cacheKey = `am-ceo-clients-${selectedAmCeoId || 'all'}`;
-      const cached = amCeoDashboardCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
-        setClients({ data: cached.data, loading: false, error: null });
-        const exists = cached.data.some((c: any) => c.id === selectedClientId);
-        if (!exists) setSelectedClientId("");
-        return;
-      }
-      
-      const res = await fetch(url, { cache: "no-store" });
-      const raw = await res.json();
-      const arr = safeParse<any[]>(raw);
-
-      const mapped: ClientLite[] = (Array.isArray(arr) ? arr : []).map(
-        (c: any) => ({
-          id: String(c.id),
-          name: String(c.name ?? "Unnamed"),
-          status: c.status ?? null,
-          progress:
-            typeof c.progress === "number"
-              ? c.progress
-              : c.progress
-              ? Number(c.progress)
-              : null,
-          startDate: c.startDate ?? null,
-          dueDate: c.dueDate ?? null,
-          amCeoId: c.amCeoId ?? null,
-          packageId: c.packageId ?? null,
-          accountManager: c.accountManager ?? null,
-        })
-      );
-
-      // Cache the result
-      amCeoDashboardCache.set(cacheKey, { data: mapped, timestamp: Date.now() });
-      setClients({ data: mapped, loading: false, error: null });
-      const exists = mapped.some((c) => c.id === selectedClientId);
-      if (!exists) setSelectedClientId("");
-    } catch {
-      setClients({
-        data: [],
-        loading: false,
-        error: "Failed to load clients",
-      });
-    }
-  }, [selectedAmCeoId, selectedClientId]);
-
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
-
-  const fetchSummary = useCallback(async () => {
-    try {
-      setSummary({ data: null, loading: true, error: null });
-      const url = selectedAmCeoId
-        ? `/api/clients/summary?am_ceoId=${encodeURIComponent(
-            selectedAmCeoId
-          )}&limitUpcoming=8`
-        : `/api/clients/summary?limitUpcoming=8`;
-      
-      // Check cache
-      const cacheKey = `am-ceo-summary-${selectedAmCeoId || 'all'}`;
-      const cached = amCeoDashboardCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
-        setSummary({ data: cached.data, loading: false, error: null });
-        return;
-      }
-      
-      const res = await fetch(url, { cache: "no-store" });
-      const raw = await res.json();
-      const data = safeParse<Summary>(raw);
-      // Cache the result
-      amCeoDashboardCache.set(cacheKey, { data, timestamp: Date.now() });
-      setSummary({ data, loading: false, error: null });
-    } catch {
-      setSummary({
-        data: null,
-        loading: false,
-        error: "Failed to load summary",
-      });
-    }
-  }, [selectedAmCeoId]);
-
-  useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+  // ✅ Summary state
+  const summary = useMemo(() => ({
+    data: summaryData || null,
+    loading: summaryLoading,
+    error: summaryError ? "Failed to load summary" : null,
+  }), [summaryData, summaryLoading, summaryError]);
 
   // Enhanced chart data with unique visual treatments
   const pieData = useMemo(
@@ -347,7 +260,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
         })
       : "—", []);
 
-  const isLoading = clients.loading || summary.loading;
+  const isLoading = clients.loading || summary.loading || sessionLoading;
   const errorMsg = clients.error || summary.error;
 
   return (

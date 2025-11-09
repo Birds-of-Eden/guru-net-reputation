@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, memo } from "react";
+import { useMemo, useState, useEffect, useCallback, memo } from "react";
+import { useClients } from "@/lib/hooks/use-clients";
+import useSWR from "swr";
 import {
   Users,
   Activity,
@@ -86,9 +88,17 @@ const GRADIENTS = {
   slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
 };
 
-// In-memory cache for dashboard data
-const dashboardCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 30000; // 30 seconds
+// Fetcher for packages
+const packagesFetcher = async (url: string): Promise<PackageLite[]> => {
+  const res = await fetch(url, { cache: "no-store" });
+  const raw = await res.json();
+  const list = safeParse<any[]>(raw);
+  const packages = (Array.isArray(list) ? list : Array.isArray((raw as any)?.data) ? (raw as any).data : []);
+  return packages.map((p: any) => ({
+    id: String(p?.id ?? ""),
+    name: String(p?.name ?? "Unnamed"),
+  }));
+};
 
 const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
   const [selectedAmId, setSelectedAmId] = useState<string>(defaultAmId);
@@ -98,16 +108,13 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   const role = (user?.role ?? "").toLowerCase();
   const isAM = role === "am";
 
-  // Clients (filtered by AM server-side)
-  const [clients, setClients] = useState<FetchState<ClientLite[]>>({
-    data: [],
-    loading: false,
-    error: null,
+  // Use optimized hooks with SWR
+  const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
+  const { data: packages, isLoading: pkgLoading } = useSWR<PackageLite[]>("/api/packages", packagesFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000, // 1 minute
+    refreshInterval: 300000, // 5 minutes
   });
-
-  // Packages map for pretty names in table
-  const [pkgMap, setPkgMap] = useState<Record<string, string>>({});
-  const [pkgLoading, setPkgLoading] = useState(false);
 
   // Set selection from session (AM users see their own clients)
   useEffect(() => {
@@ -119,109 +126,32 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     }
   }, [sessionLoading, isAM, user?.id, defaultAmId, selectedAmId]);
 
-  // Load packages → map id→name (once) with caching
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setPkgLoading(true);
+  // Filter clients by selected AM (client-side filtering on cached data)
+  const clients = useMemo(() => {
+    const data = allClients.filter((c) => {
+      if (!selectedAmId) return true;
+      const cAmId = c.amId || c.accountManager?.id;
+      return cAmId === selectedAmId;
+    });
 
-        // Check cache first
-        const cacheKey = "packages";
-        const cached = dashboardCache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          if (mounted) setPkgMap(cached.data);
-          if (mounted) setPkgLoading(false);
-          return;
-        }
-
-        const res = await fetch("/api/packages", { cache: "no-store" });
-        const raw = await res.json();
-        const list = safeParse<any[]>(raw);
-        const map: Record<string, string> = {};
-        (Array.isArray(list) ? list : Array.isArray((raw as any)?.data) ? (raw as any).data : []).forEach((p: any) => {
-          if (p?.id) map[String(p.id)] = String(p.name ?? "Unnamed");
-        });
-        // Cache the result
-        dashboardCache.set(cacheKey, { data: map, timestamp: Date.now() });
-        if (mounted) setPkgMap(map);
-      } catch {
-        if (mounted) setPkgMap({});
-      } finally {
-        if (mounted) setPkgLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
+    return {
+      data,
+      loading: clientsLoading,
+      error: clientsError ? clientsError.message : null,
     };
-  }, []);
+  }, [allClients, selectedAmId, clientsLoading, clientsError]);
 
-  // ---- Load clients (session-based & server-side scoped) with caching ----
-  const fetchClients = useCallback(async () => {
-    if (sessionLoading) return;
+  // Create packages map for table display
+  const pkgMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    (packages || []).forEach((p) => {
+      if (p?.id) map[p.id] = p.name;
+    });
+    return map;
+  }, [packages]);
 
-    try {
-      setClients({ data: [], loading: true, error: null });
-
-      // Build URL
-      let url = "/api/clients";
-      if (isAM) {
-        const am = selectedAmId || user?.id || "";
-        if (!am) {
-          setClients({ data: [], loading: false, error: null });
-          return;
-        }
-        url = `/api/clients?amId=${encodeURIComponent(am)}`;
-      } else if (selectedAmId) {
-        url = `/api/clients?amId=${encodeURIComponent(selectedAmId)}`;
-      }
-
-      // Check cache
-      const cacheKey = `clients-${selectedAmId || "all"}`;
-      const cached = dashboardCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setClients({ data: cached.data, loading: false, error: null });
-        return;
-      }
-
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load clients");
-      const raw = await res.json();
-
-      // Robust parsing: supports [ ... ], { clients: [...] }, { data: [...] }, { data: { clients: [...] } }
-      const arrLike =
-        (Array.isArray(raw) && raw) ||
-        (Array.isArray((raw as any)?.clients) && (raw as any).clients) ||
-        (Array.isArray((raw as any)?.data) && (raw as any).data) ||
-        (Array.isArray((raw as any)?.data?.clients) && (raw as any).data.clients) ||
-        [];
-
-      const mapped: ClientLite[] = (arrLike as any[]).map((c: any) => ({
-        id: String(c.id),
-        name: String(c.name ?? "Unnamed"),
-        status: c.status ?? null,
-        progress: typeof c.progress === "number" ? c.progress : c.progress ? Number(c.progress) : null,
-        startDate: c.startDate ?? null,
-        dueDate: c.dueDate ?? null,
-        amId: c.amId ?? null,
-        packageId: c.packageId ?? null,
-        accountManager: c.accountManager ?? null,
-      }));
-
-      // Cache the result
-      dashboardCache.set(cacheKey, { data: mapped, timestamp: Date.now() });
-      setClients({ data: mapped, loading: false, error: null });
-    } catch (e: any) {
-      setClients({ data: [], loading: false, error: e?.message ?? "Failed to load clients" });
-    }
-  }, [sessionLoading, isAM, selectedAmId, user?.id]);
-
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
-
-  // ---------- Derived metrics ----------
-  const now = new Date();
+  // ---------- Derived metrics with memoization ----------
+  const now = useMemo(() => new Date(), []);
 
   const statusCounts = useMemo(() => {
     const acc: Record<string, number> = {};

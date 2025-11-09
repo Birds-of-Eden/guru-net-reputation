@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useDashboardStats } from "@/lib/hooks/use-dashboard-stats";
 import {
   Card,
   CardContent,
@@ -47,129 +48,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/* -------------------- Types -------------------- */
-interface DashboardStats {
-  overview: {
-    totalClients: number;
-    totalTasks: number;
-    totalUsers: number;
-    totalTeams: number;
-    totalPackages: number;
-    totalTemplates: number;
-    totalAssignments: number;
-    totalNotifications: number;
-    totalConversations: number;
-    totalMessages: number;
-    unreadNotifications: number;
-  };
-  tasks: {
-    total: number;
-    completed: number;
-    pending: number;
-    inProgress: number;
-    overdue: number;
-    completionRate: number;
-    avgCompletionTime: number;
-    byPriority: Array<{ priority: string; count: number }>;
-    byStatus: Array<{ status: string; count: number }>;
-    performanceRatings: Array<{ rating: string; count: number }>;
-  };
-  // Range information
-  rangeInfo?: {
-    range: string;
-    start: string | Date;
-    end: string | Date;
-    label: string;
-  };
-  clients: {
-    total: number;
-    growthRate: number;
-    addedThisWeek: number;
-    addedThisMonth: number;
-    byStatus: Array<{ status: string; count: number }>;
-  };
-  teams: {
-    total: number;
-    efficiency: number;
-    data: Array<{
-      id: string;
-      name: string;
-      totalMembers: number;
-      clientMembers: number;
-      templateMembers: number;
-    }>;
-  };
-  users: {
-    total: number;
-    roleDistribution: Array<{ role: string; count: number }>;
-  };
-  timeMetrics: {
-    tasksCompletedThisWeek: number;
-    tasksCompletedThisMonth: number;
-    clientsAddedThisWeek: number;
-    clientsAddedThisMonth: number;
-    currentRange?: {
-      range: string;
-      start: string | Date;
-      end: string | Date;
-      tasksCompleted: number;
-      clientsAdded: number;
-    };
-  };
-  recent: {
-    clients: Array<{
-      id: string;
-      name: string;
-      company?: string;
-      status?: string;
-      progress?: number | null;
-      packageName?: string;
-      accountManager?: string;
-      taskCount: number;
-      createdAt: string;
-      avatar?: string | null;
-    }>;
-    tasks: Array<{
-      id: string;
-      name: string;
-      status: string;
-      priority: string;
-      dueDate?: string | null;
-      clientName?: string;
-      assignedToName?: string;
-      categoryName?: string;
-      completedAt?: string | null;
-      createdAt: string;
-    }>;
-    users: Array<{
-      id: string;
-      name?: string | null;
-      email: string;
-      roleName?: string | null;
-      status: string;
-      taskCount: number;
-      createdAt: string;
-      image?: string | null;
-    }>;
-    notifications: Array<{
-      id: number;
-      type: string;
-      message: string;
-      isRead: boolean;
-      userName?: string;
-      taskName?: string;
-      createdAt: string;
-    }>;
-    activities: Array<{
-      id: string;
-      entityType: string;
-      action: string;
-      userName?: string;
-      timestamp: string;
-    }>;
-  };
-}
-
 /* -------------------- Helpers -------------------- */
 const numberFmt = (n: number) =>
   Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
@@ -202,75 +80,34 @@ const RATING_COLOR: Record<string, string> = {
 const titleCase = (s: string) =>
   s.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 
-/** Sort by a date key desc and take latest N (default 5). */
-function takeLatest<T extends Record<string, any>>(
-  arr: T[] | undefined,
-  dateKey: keyof T,
-  n = 5
-): T[] {
-  if (!Array.isArray(arr)) return [];
-  return [...arr]
-    .sort(
-      (a, b) =>
-        new Date(b[dateKey] as string).getTime() -
-        new Date(a[dateKey] as string).getTime()
-    )
-    .slice(0, n);
-}
-
 export function AdminDashboard() {
   const [timeRange, setTimeRange] = useState("this_month");
-  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  // ✅ Use optimized SWR hook with auto-revalidation
+  const { stats: dashboardData, loading, error: fetchError, getLatestItems } = useDashboardStats(timeRange);
+  
+  const error = fetchError ? fetchError.message : null;
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await fetch(
-          `/api/dashboardStats?range=${encodeURIComponent(timeRange)}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data = (await res.json()) as DashboardStats;
-        setDashboardData(data);
-      } catch (e) {
-        console.error(e);
-        setError(e instanceof Error ? e.message : "Failed to load dashboard.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [timeRange]);
-
-  /* ---- ensure every recent list is latest 5 ---- */
+  /* ---- ✅ Use helper from hook for latest items ---- */
   const recentTasks = useMemo(
-    () => takeLatest(dashboardData?.recent?.tasks, "createdAt", 5) || [],
-    [dashboardData]
+    () => getLatestItems(dashboardData?.recent?.tasks, "createdAt", 5),
+    [dashboardData, getLatestItems]
   );
   const recentClients = useMemo(
-    () => takeLatest(dashboardData?.recent?.clients, "createdAt", 5) || [],
-    [dashboardData]
+    () => getLatestItems(dashboardData?.recent?.clients, "createdAt", 5),
+    [dashboardData, getLatestItems]
   );
   const recentUsers = useMemo(
-    () => takeLatest(dashboardData?.recent?.users, "createdAt", 5) || [],
-    [dashboardData]
+    () => getLatestItems(dashboardData?.recent?.users, "createdAt", 5),
+    [dashboardData, getLatestItems]
   );
   const recentNotifications = useMemo(
-    () =>
-      takeLatest(dashboardData?.recent?.notifications, "createdAt", 5) || [],
-    [dashboardData]
+    () => getLatestItems(dashboardData?.recent?.notifications, "createdAt", 5),
+    [dashboardData, getLatestItems]
   );
   const recentActivities = useMemo(
-    () => takeLatest(dashboardData?.recent?.activities, "timestamp", 5) || [],
-    [dashboardData]
+    () => getLatestItems(dashboardData?.recent?.activities, "timestamp", 5),
+    [dashboardData, getLatestItems]
   );
   // Get all teams without limiting the count
   const allTeams = useMemo(
