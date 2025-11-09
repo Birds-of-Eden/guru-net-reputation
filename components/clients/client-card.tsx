@@ -13,6 +13,7 @@ import {
   ArrowUpCircle,
   UserRoundCheck,
   Heart,
+  Calendar,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitialsFromName, nameToColor } from "@/utils/avatar";
@@ -41,13 +42,9 @@ import {
 } from "@/components/ui/tooltip";
 
 interface ClientCardProps {
-  /** Pass the full client object to avoid N+1 queries */
   client: Client;
-  /** The linked client-role user's ID for this client (needed for impersonation). */
   clientUserId?: string | null;
   onViewDetails?: () => void;
-
-  /** Favorites (am_ceo only) */
   isFavorite?: boolean;
   onToggleFavorite?: (clientId: string) => void;
 }
@@ -68,7 +65,6 @@ const ClientCardComponent = function ClientCard({
   const [openUpgrade, setOpenUpgrade] = useState(false);
 
   if (deleted) return null;
-
   if (!client) {
     return (
       <Card className="p-6 text-center text-gray-500">
@@ -77,7 +73,7 @@ const ClientCardComponent = function ClientCard({
     );
   }
 
-  // Normalize task statuses and compute counts dynamically
+  // === Utility functions ===
   const normalizeStatus = (raw?: string | null) => {
     const s = (raw ?? "")
       .toString()
@@ -85,39 +81,19 @@ const ClientCardComponent = function ClientCard({
       .toLowerCase()
       .replace(/[\-\s]+/g, "_");
     if (
-      [
-        "done",
-        "complete",
-        "completed",
-        "finished",
-        "qc_approved",
-        "approved",
-      ].includes(s)
+      ["done", "complete", "completed", "finished", "qc_approved", "approved"].includes(s)
     )
       return "completed";
-    if (
-      ["in_progress", "in-progress", "progress", "doing", "working"].includes(s)
-    )
+    if (["in_progress", "in-progress", "progress", "doing", "working"].includes(s))
       return "in_progress";
     if (["overdue", "late"].includes(s)) return "overdue";
-    if (
-      [
-        "pending",
-        "todo",
-        "not_started",
-        "on_hold",
-        "paused",
-        "backlog",
-      ].includes(s)
-    )
+    if (["pending", "todo", "not_started", "on_hold", "paused", "backlog"].includes(s))
       return "pending";
     if (["cancelled", "canceled"].includes(s)) return "cancelled";
     return s || "pending";
   };
 
-  const getTaskStatusCounts = (
-    tasks: Client["tasks"] = []
-  ): TaskStatusCounts => {
+  const getTaskStatusCounts = (tasks: Client["tasks"] = []): TaskStatusCounts => {
     const counts: TaskStatusCounts = {
       pending: 0,
       in_progress: 0,
@@ -133,17 +109,16 @@ const ClientCardComponent = function ClientCard({
     return counts;
   };
 
-
   const taskCounts = getTaskStatusCounts(client.tasks);
   const totalTasks = client.tasks?.length || 0;
   const derivedProgress = totalTasks
     ? Math.round((taskCounts.completed / totalTasks) * 100)
     : 0;
 
-  // This Month Progress
+  // === Month-based progress ===
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1); // exclusive
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   const parseDate = (v?: string | Date | null) => {
     if (!v) return null;
@@ -154,7 +129,7 @@ const ClientCardComponent = function ClientCard({
   const getBestDate = (task: any): Date | null => {
     return (
       parseDate(task?.createdAt) ||
-      parseDate((task as any)?.startDate) ||
+      parseDate(task?.startDate) ||
       parseDate(task?.dueDate)
     );
   };
@@ -169,11 +144,7 @@ const ClientCardComponent = function ClientCard({
   const totalThisMonth = tasksThisMonth.length;
 
   const rawStatus = (raw?: string | null) =>
-    (raw ?? "")
-      .toString()
-      .trim()
-      .toLowerCase()
-      .replace(/[\-\s]+/g, "_");
+    (raw ?? "").toString().trim().toLowerCase().replace(/[\-\s]+/g, "_");
 
   let completedThisMonth = 0;
   let approvedThisMonth = 0;
@@ -191,32 +162,33 @@ const ClientCardComponent = function ClientCard({
 
     const isApproved = sRaw === "qc_approved" || sRaw === "approved";
 
-    const isPending =
-      sNorm === "pending" ||
-      (!isCompleted &&
-        !isApproved &&
-        (!!dueDate ? dueDate >= monthStart && dueDate < monthEnd : true));
-
     if (isCompleted) completedThisMonth++;
     if (isApproved) approvedThisMonth++;
-    void isPending;
   }
 
   const derivedProgressThisMonth = totalThisMonth
-    ? Math.round(
-        ((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100
-      )
+    ? Math.round(((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100)
     : 0;
 
-  const displayOverall = Math.min(100, Math.max(0, derivedProgress));
-  const displayThisMonth = Math.min(100, Math.max(0, derivedProgressThisMonth));
+  // === Format start/due date ===
+  const formatDate = (v?: string | Date | null) => {
+    const d = parseDate(v);
+    return d
+      ? d.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "—";
+  };
 
-  // Role normalization
+  const clientStart = parseDate((client as any)?.startDate);
+  const clientDue = parseDate((client as any)?.dueDate);
+
+  // === Role normalization ===
   const roleRaw = (user as any)?.role?.name ?? (user as any)?.role;
   const role = typeof roleRaw === "string" ? roleRaw.toLowerCase() : undefined;
   const segment = role && /^[a-z0-9_-]+$/.test(role) ? role : "admin";
-
-  // SWR key for list page
   const swrKey = "/api/clients";
 
   async function handleDelete() {
@@ -247,10 +219,7 @@ const ClientCardComponent = function ClientCard({
     }
   };
 
-  function handleUpgrade() {
-    setOpenUpgrade(true);
-  }
-
+  const handleUpgrade = () => setOpenUpgrade(true);
   const isAmCeo = role === "am_ceo";
 
   return (
@@ -276,7 +245,6 @@ const ClientCardComponent = function ClientCard({
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            {/* ⭐ Favorite (am_ceo only) */}
             {isAmCeo && (
               <TooltipProvider>
                 <Tooltip>
@@ -289,14 +257,8 @@ const ClientCardComponent = function ClientCard({
                           ? "bg-rose-50 border-rose-200 text-rose-600"
                           : "bg-white border-gray-200 text-gray-500 hover:text-gray-700"
                       }`}
-                      aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                      aria-pressed={isFavorite}
                     >
-                      <Heart
-                        className={`h-5 w-5 ${
-                          isFavorite ? "fill-current" : ""
-                        }`}
-                      />
+                      <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
@@ -317,6 +279,7 @@ const ClientCardComponent = function ClientCard({
             >
               {client.status || "Pending"}
             </Badge>
+
             <Badge
               variant="outline"
               className="bg-gray-50 text-gray-700 font-medium border-gray-200 px-3 py-1.5 rounded-full"
@@ -337,37 +300,55 @@ const ClientCardComponent = function ClientCard({
           </span>
         </div>
 
+        {/* Timeline */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="h-5 w-5 text-cyan-600" />
+            <h3 className="font-semibold text-gray-800">Package Timeline</h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-y-2 text-sm">
+            <div className="text-gray-600">Start Date:</div>
+            <div className="font-medium text-gray-800">
+              {formatDate((client as any)?.startDate)}
+            </div>
+
+            <div className="text-gray-600">End Date:</div>
+            <div className="font-medium text-gray-800">
+              {formatDate((client as any)?.dueDate)}
+            </div>
+          </div>
+        </div>
+
         {/* Progress */}
         <div className="p-2">
           <div className="flex items-center justify-between text-sm mb-2 gap-2">
-            <span className="text-gray-700 dark:text-slate-200 font-medium whitespace-nowrap">
+            <span className="text-gray-700 font-medium whitespace-nowrap">
               Overall Progress
             </span>
-            <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
-              {Math.min(100, Math.max(0, Math.round((taskCounts.completed / (totalTasks || 1)) * 100)))}%
+            <span className="font-bold text-gray-900 whitespace-nowrap">
+              {derivedProgress}%
             </span>
           </div>
-
-          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden mb-2">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2">
             <div
               className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-              style={{ width: `${Math.min(100, Math.max(0, Math.round((taskCounts.completed / (totalTasks || 1)) * 100)))}%` }}
+              style={{ width: `${derivedProgress}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between text-sm mb-2 gap-2">
-            <span className="text-gray-700 dark:text-slate-200 font-medium whitespace-nowrap">
+            <span className="text-gray-700 font-medium whitespace-nowrap">
               This Month Progress
             </span>
-            <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
-              {Math.min(100, Math.max(0, derivedProgressThisMonth))}%
+            <span className="font-bold text-gray-900 whitespace-nowrap">
+              {derivedProgressThisMonth}%
             </span>
           </div>
-
-          <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div
               className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-              style={{ width: `${Math.min(100, Math.max(0, derivedProgressThisMonth))}%` }}
+              style={{ width: `${derivedProgressThisMonth}%` }}
             />
           </div>
         </div>
@@ -409,35 +390,26 @@ const ClientCardComponent = function ClientCard({
         </div>
       </CardContent>
 
-      {/* Footer (unchanged) */}
+      {/* Footer */}
       <CardFooter className="border-t border-gray-100 bg-gray-50 p-6">
         <div className="flex flex-wrap gap-3 w-full">
           {!permsLoading &&
-            hasPermissionClient(
-              user?.permissions,
-              "client_card_client_view"
-            ) && (
+            hasPermissionClient(user?.permissions, "client_card_client_view") && (
               <Button
-                variant="default"
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
                 onClick={handleViewDetails}
+                className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
+                <Eye className="h-4 w-4 mr-2" /> View Details
               </Button>
             )}
 
           {!permsLoading &&
-            hasPermissionClient(
-              user?.permissions,
-              "client_card_Upgrade_Package"
-            ) && (
+            hasPermissionClient(user?.permissions, "client_card_Upgrade_Package") && (
               <Button
                 onClick={handleUpgrade}
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+                className="flex-1 min-w-[150px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
-                <ArrowUpCircle className="h-4 w-4 mr-2" />
-                Upgrade Package
+                <ArrowUpCircle className="h-4 w-4 mr-2" /> Upgrade Package
               </Button>
             )}
 
@@ -446,22 +418,19 @@ const ClientCardComponent = function ClientCard({
               <Button
                 onClick={() => setOpenDanger(true)}
                 disabled={isDeleting}
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+                className="flex-1 min-w-[150px] bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
               </Button>
             )}
 
           {!permsLoading &&
             hasPermissionClient(user?.permissions, "client_card_task_view") && (
               <Button
-                variant="default"
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
                 onClick={handleViewTasks}
+                className="flex-1 min-w-[150px] bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
-                <ListChecks className="h-4 w-4 mr-2" />
-                View Tasks
+                <ListChecks className="h-4 w-4 mr-2" /> View Tasks
               </Button>
             )}
 
@@ -469,7 +438,7 @@ const ClientCardComponent = function ClientCard({
             <ImpersonateButton
               targetUserId={clientUserId}
               targetName={client.name}
-              className="flex-1 min-w-[150px] bg-gradient-to-r from-gray-900 to-black hover:from-black hover:to-gray-800 text-white font-medium shadow-lg rounded-lg px-5 py-2.5 transition-all duration-300"
+              className="flex-1 min-w-[150px] bg-gradient-to-r from-gray-900 to-black text-white shadow-lg rounded-lg px-5 py-2.5 transition-all duration-300"
             />
           )}
         </div>
@@ -498,5 +467,4 @@ const ClientCardComponent = function ClientCard({
   );
 };
 
-// Memoize to prevent unnecessary re-renders
 export const ClientCard = memo(ClientCardComponent);
