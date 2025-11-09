@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, memo, useCallback } from "react";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,66 +40,60 @@ type AMUser = { id: string; name: string | null; email: string | null };
 export function DataEntryReviewInfo({ formData, onPrevious }: any) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [fetchedData, setFetchedData] = useState({
-    packageName: "",
-    templateName: "",
-    amName: "",
-  });
   const router = useRouter();
   const { user } = useAuth();
 
-  useEffect(() => {
-    let mounted = true;
+  // ⚡ OPTIMIZED: Use SWR for parallel fetches
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  };
 
-    const fetchData = async () => {
-      try {
-        const [pkgRes, tplRes, amsRes] = await Promise.all([
-          formData.packageId
-            ? fetch(`/api/packages/${formData.packageId}`)
-            : Promise.resolve(null),
-          formData.templateId
-            ? fetch(`/api/packages/templates/${formData.templateId}`)
-            : Promise.resolve(null),
-          fetch(`/api/users?role=am&limit=100`, { cache: "no-store" }),
-        ]);
+  // Parallel fetch #1: Package
+  const { data: pkgData } = useSWR(
+    formData.packageId ? `/api/packages/${formData.packageId}` : null,
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
 
-        const pkgJson = pkgRes ? await pkgRes.json() : null;
-        const tplJson = tplRes ? await tplRes.json() : null;
-        const amsJson = amsRes ? await amsRes.json() : { data: [] };
+  // Parallel fetch #2: Template
+  const { data: tplData } = useSWR(
+    formData.templateId ? `/api/packages/templates/${formData.templateId}` : null,
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
 
-        if (!mounted) return;
+  // Parallel fetch #3: AM users
+  const { data: amsData } = useSWR(
+    "/api/users?role=am&limit=100",
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000 }
+  );
 
-        const amsList: AMUser[] = (amsJson?.users ?? amsJson?.data ?? [])
-          .filter((u: any) => u?.role?.name === "am")
-          .map((u: any) => ({
-            id: u.id,
-            name: u.name ?? null,
-            email: u.email ?? null,
-          }));
+  // ⚡ OPTIMIZED: Memoize fetched data
+  const fetchedData = useMemo(() => {
+    const amsList: AMUser[] = (amsData?.users ?? amsData?.data ?? [])
+      .filter((u: any) => u?.role?.name === "am")
+      .map((u: any) => ({
+        id: u.id,
+        name: u.name ?? null,
+        email: u.email ?? null,
+      }));
 
-        const foundAm = formData.amId
-          ? amsList.find((u) => u.id === formData.amId)
-          : null;
-        const amName = foundAm
-          ? foundAm.name || foundAm.email || foundAm.id
-          : formData.amId || "";
+    const foundAm = formData.amId
+      ? amsList.find((u) => u.id === formData.amId)
+      : null;
+    const amName = foundAm
+      ? foundAm.name || foundAm.email || foundAm.id
+      : formData.amId || "";
 
-        setFetchedData({
-          packageName: pkgJson?.name || "",
-          templateName: tplJson?.name || "",
-          amName: amName,
-        });
-      } catch (error) {
-        console.error("Failed to fetch review data:", error);
-        toast.warning("Could not fetch some details like package or AM name.");
-      }
+    return {
+      packageName: pkgData?.name || "",
+      templateName: tplData?.name || "",
+      amName: amName,
     };
-
-    fetchData();
-    return () => {
-      mounted = false;
-    };
-  }, [formData.packageId, formData.templateId, formData.amId]);
+  }, [pkgData, tplData, amsData, formData.amId]);
 
   // Aggregate websites once for reuse in UI and payload (dynamic, unlimited)
   const websiteList = useMemo(() => {

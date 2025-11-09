@@ -1,7 +1,8 @@
 // components/onboarding/package-info.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import useSWR from "swr";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -46,38 +47,45 @@ export function PackageInfo({
   onNext,
   onPrevious,
 }: any) {
-  const [packages, setPackages] = useState<PackageData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedPackage, setSelectedPackage] = useState<string>(
     formData.packageId || ""
   );
-  const [selectedPackageData, setSelectedPackageData] =
-    useState<PackageData | null>(null);
 
-  useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        const res = await fetch("/api/packages");
-        const data = await res.json();
-        setPackages(data);
-        toast.success("Packages loaded successfully!");
-      } catch (error) {
-        console.error("Error fetching packages:", error);
+  // ⚡ OPTIMIZED: Use SWR for automatic caching
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
+
+  const { data: packages = [], isLoading: loading, error } = useSWR<PackageData[]>(
+    "/api/packages",
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+      onSuccess: () => {
+        if (!error) {
+          toast.success("Packages loaded successfully!");
+        }
+      },
+      onError: (err) => {
+        console.error("Error fetching packages:", err);
         toast.error("Failed to load packages");
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+    }
+  );
 
-    fetchPackages();
-  }, []);
+  // ⚡ OPTIMIZED: Memoize selected package data
+  const selectedPackageData = useMemo(() => {
+    return packages.find((p) => p.id === selectedPackage) || null;
+  }, [packages, selectedPackage]);
 
-  const handlePackageSelect = (packageId: string) => {
+  const handlePackageSelect = useCallback((packageId: string) => {
     const pkg = packages.find((p) => p.id === packageId);
     if (!pkg) return;
 
     setSelectedPackage(packageId);
-    setSelectedPackageData(pkg);
 
     // If there's a start date, update the due date based on package duration
     if (formData.startDate) {
@@ -97,7 +105,7 @@ export function PackageInfo({
     }
 
     toast.success("Package selected successfully!");
-  };
+  }, [packages, formData.startDate, updateFormData]);
 
   // Helper function to calculate and format duration text
   const calculateDurationText = useCallback(

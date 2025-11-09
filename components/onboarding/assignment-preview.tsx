@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,44 +43,40 @@ export function AssignmentPreview({
   packageId,
   templateName,
 }: AssignmentPreviewProps) {
-  const [templateDetails, setTemplateDetails] =
-    useState<TemplateDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [existingAssignments, setExistingAssignments] = useState<number>(0);
 
-  useEffect(() => {
-    const fetchTemplateDetails = async () => {
-      if (!templateId) return;
+  // ⚡ OPTIMIZED: Use SWR for automatic caching with parallel fetches
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
 
-      setLoading(true);
-      try {
-        // Fetch template details with related data
-        const templateRes = await fetch(
-          `/api/packages/templates/${templateId}?include=sitesAssets,templateTeamMembers`
-        );
-        if (templateRes.ok) {
-          const templateData = await templateRes.json();
-          setTemplateDetails(templateData);
-        }
-
-        // Fetch existing assignments count
-        const assignmentsRes = await fetch(
-          `/api/assignments?templateId=${templateId}`
-        );
-        if (assignmentsRes.ok) {
-          const assignmentsData = await assignmentsRes.json();
-          setExistingAssignments(assignmentsData.length);
-        }
-      } catch (error) {
-        console.error("Error fetching template details:", error);
+  // Fetch template details (parallel fetch #1)
+  const { data: templateDetails, isLoading: templateLoading } = useSWR<TemplateDetails>(
+    templateId ? `/api/packages/templates/${templateId}?include=sitesAssets,templateTeamMembers` : null,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      onError: (err) => {
+        console.error("Error fetching template details:", err);
         toast.error("Failed to load template details");
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+    }
+  );
 
-    fetchTemplateDetails();
-  }, [templateId]);
+  // Fetch assignments count (parallel fetch #2)
+  const { data: assignmentsData = [], isLoading: assignmentsLoading } = useSWR(
+    templateId ? `/api/assignments?templateId=${templateId}` : null,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  );
+
+  const loading = templateLoading || assignmentsLoading;
+  const existingAssignments = Array.isArray(assignmentsData) ? assignmentsData.length : 0;
 
   if (loading) {
     return (

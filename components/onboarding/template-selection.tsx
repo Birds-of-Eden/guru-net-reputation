@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -47,45 +48,45 @@ export function TemplateSelection({
   onNext,
   onPrevious,
 }: StepProps) {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
     formData.templateId || ""
   );
   const [viewingTemplate, setViewingTemplate] = useState<Template | null>(null);
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      if (!formData.packageId) {
-        toast.error("Please select a package first");
-        return;
-      }
+  // ⚡ OPTIMIZED: Use SWR for automatic caching
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
 
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/zisanpackages/${formData.packageId}/templates?include=full`
-        );
-        const data = await res.json();
-
-        if (res.ok) {
-          setTemplates(data);
-          if (data.length === 0) {
-            toast.info("No templates found for this package");
-          }
-        } else {
-          toast.error("Failed to fetch templates");
-        }
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-        toast.error("Something went wrong while fetching templates");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTemplates();
+  const swrKey = useMemo(() => {
+    if (!formData.packageId) return null;
+    return `/api/zisanpackages/${formData.packageId}/templates?include=full`;
   }, [formData.packageId]);
+
+  const { data: templates = [], isLoading: loading, error } = useSWR<Template[]>(
+    swrKey,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      onSuccess: (data) => {
+        if (data.length === 0) {
+          toast.info("No templates found for this package");
+        }
+      },
+      onError: (err) => {
+        console.error("Error fetching templates:", err);
+        toast.error("Something went wrong while fetching templates");
+      },
+    }
+  );
+
+  // Show error if no package selected
+  if (!formData.packageId && !loading) {
+    toast.error("Please select a package first");
+  }
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
