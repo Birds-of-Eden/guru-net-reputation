@@ -35,9 +35,11 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   const isAdmin = String(roleName).toLowerCase().includes("admin");
 
   // Safely derive package months (fallback 1)
-  const packageMonths = Number(((clientData as any)?.package?.totalMonths)) && Number(((clientData as any)?.package?.totalMonths)) > 0
-    ? Math.floor(Number(((clientData as any)?.package?.totalMonths)))
-    : 1;
+  const packageMonths =
+    Number((clientData as any)?.package?.totalMonths) &&
+    Number((clientData as any)?.package?.totalMonths) > 0
+      ? Math.floor(Number((clientData as any)?.package?.totalMonths))
+      : 1;
 
   // Due date over? Strictly in the past
   const isDueOver = (() => {
@@ -72,6 +74,37 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
+
+  // === FIXED: timezone-safe date formatter (uses DB string directly if YYYY-MM-DD) ===
+  const formatDateStrict = (v?: string | Date | null) => {
+    if (!v) return "—";
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    // If DB stores date-only string like "2025-11-09" (no time), use it as-is (no TZ shift)
+    if (typeof v === "string") {
+      const m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        const y = Number(m[1]);
+        const mm = Number(m[2]);
+        const dd = Number(m[3]);
+        if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+          return `${monthNames[mm - 1]} ${dd}, ${y}`;
+        }
+      }
+    }
+
+    // Fallback: parse and format using UTC components to avoid local offset issues
+    const d = new Date(v as any);
+    if (isNaN(d.getTime())) return "—";
+    const y = d.getUTCFullYear();
+    const mIdx = d.getUTCMonth();
+    const day = d.getUTCDate();
+    return `${monthNames[mIdx]} ${day}, ${y}`;
+  };
+
+  // Explicit mapping: start = DB startDate, end = dueDate
+  const startDisplay = formatDateStrict(clientData.startDate);
+  const dueDisplay = formatDateStrict(clientData.dueDate);
 
   // Derived progress from tasks with normalized statuses (overall)
   const normalizeStatus = (raw?: string | null) => {
@@ -225,6 +258,8 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {clientData.name}
                 </h1>
+
+                {/* Company / Location / Status */}
                 <div className="flex items-center space-x-4 mt-1">
                   <div className="flex items-center text-slate-600 dark:text-slate-400">
                     <Building className="h-4 w-4 mr-1" />
@@ -242,6 +277,22 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                     {clientData.status ?? "inactive"}
                   </Badge>
                 </div>
+
+                {/* === Added: Package Timeline (start = startDate, end = dueDate) === */}
+                <div className="mt-2">
+                  <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
+                    Package Timeline
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+                      Start: {startDisplay}
+                    </Badge>
+                    <Badge className="bg-purple-50 text-purple-700 border border-purple-200">
+                      End: {dueDisplay}
+                    </Badge>
+                  </div>
+                </div>
+                {/* === End Added === */}
               </div>
             </div>
 
@@ -252,7 +303,6 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                   {displayOverall}%
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">
-                  {" "}
                   Overall Progress
                 </div>
               </div>
@@ -369,12 +419,12 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                 </Button>
               </div>
             )}
-            {(isAgent) && (
-            <div>
-              <ExportClientTxtButton clientData={clientData} />
-            </div>
+            {isAgent && (
+              <div>
+                <ExportClientTxtButton clientData={clientData} />
+              </div>
             )}
-            {(isAdmin && isDueOver) && (
+            {isAdmin && isDueOver && (
               <div>
                 <RenewPostingTasksButton
                   clientId={clientData.id}
@@ -383,7 +433,6 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                 />
               </div>
             )}
-            
           </div>
 
           <TabsContent value="profile">
