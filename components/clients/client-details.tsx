@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import useSWR from "swr";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import type { Client, TaskStatusCounts } from "@/types/client";
@@ -69,9 +70,6 @@ export default function ClientDetailsPage({
   const router = useRouter();
   const roleSegment = useRoleSegment();
 
-  const [client, setClient] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true);
-
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -92,22 +90,25 @@ export default function ClientDetailsPage({
     }));
   };
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`/api/clients/${clientId}`);
-        if (!res.ok) throw new Error("Failed to load client");
-        const data: Client = await res.json();
-        setClient(data);
-      } catch (e) {
-        console.error(e);
+  // ⚡ OPTIMIZED: Use SWR for automatic caching and instant loads
+  const jsonFetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load client");
+    return res.json();
+  };
+
+  const { data: client, isLoading: loading, error } = useSWR<Client>(
+    clientId ? `/api/clients/${clientId}` : null,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // Cache for 60 seconds
+      onError: (err) => {
+        console.error(err);
         toast.error("Failed to load client details");
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [clientId]);
+      },
+    }
+  );
 
   const taskCounts = useMemo(() => getTaskStatusCounts(client?.tasks), [client]);
 

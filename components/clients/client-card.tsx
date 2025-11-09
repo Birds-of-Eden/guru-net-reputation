@@ -2,8 +2,9 @@
 
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   FileText,
   Eye,
@@ -73,8 +74,8 @@ const ClientCardComponent = function ClientCard({
     );
   }
 
-  // === Utility functions ===
-  const normalizeStatus = (raw?: string | null) => {
+  // ⚡ OPTIMIZED: Memoize utility functions
+  const normalizeStatus = useCallback((raw?: string | null) => {
     const s = (raw ?? "")
       .toString()
       .trim()
@@ -91,9 +92,17 @@ const ClientCardComponent = function ClientCard({
       return "pending";
     if (["cancelled", "canceled"].includes(s)) return "cancelled";
     return s || "pending";
-  };
+  }, []);
 
-  const getTaskStatusCounts = (tasks: Client["tasks"] = []): TaskStatusCounts => {
+  const parseDate = useCallback((v?: string | Date | null) => {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }, []);
+
+  // ⚡ OPTIMIZED: Memoize task counts (runs only when tasks change)
+  const taskCounts = useMemo(() => {
+    const tasks = client.tasks || [];
     const counts: TaskStatusCounts = {
       pending: 0,
       in_progress: 0,
@@ -107,89 +116,102 @@ const ClientCardComponent = function ClientCard({
       else counts.pending++;
     }
     return counts;
-  };
+  }, [client.tasks, normalizeStatus]);
 
-  const taskCounts = getTaskStatusCounts(client.tasks);
   const totalTasks = client.tasks?.length || 0;
-  const derivedProgress = totalTasks
-    ? Math.round((taskCounts.completed / totalTasks) * 100)
-    : 0;
+  
+  const derivedProgress = useMemo(
+    () => (totalTasks ? Math.round((taskCounts.completed / totalTasks) * 100) : 0),
+    [totalTasks, taskCounts.completed]
+  );
 
-  // === Month-based progress ===
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  // ⚡ OPTIMIZED: Memoize month boundaries (only recalculates when month changes)
+  const { monthStart, monthEnd } = useMemo(() => {
+    const now = new Date();
+    return {
+      monthStart: new Date(now.getFullYear(), now.getMonth(), 1),
+      monthEnd: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+    };
+  }, []);
 
-  const parseDate = (v?: string | Date | null) => {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  };
+  // ⚡ OPTIMIZED: Memoize month progress calculation
+  const { derivedProgressThisMonth, completedThisMonth, totalThisMonth } = useMemo(() => {
+    const tasks = client.tasks ?? [];
+    
+    const getBestDate = (task: any): Date | null => {
+      return (
+        parseDate(task?.createdAt) ||
+        parseDate(task?.startDate) ||
+        parseDate(task?.dueDate)
+      );
+    };
 
-  const getBestDate = (task: any): Date | null => {
-    return (
-      parseDate(task?.createdAt) ||
-      parseDate(task?.startDate) ||
-      parseDate(task?.dueDate)
-    );
-  };
+    const inThisMonth = (task: any) => {
+      const d = getBestDate(task);
+      if (!d) return false;
+      return d >= monthStart && d < monthEnd;
+    };
 
-  const inThisMonth = (task: any) => {
-    const d = getBestDate(task);
-    if (!d) return false;
-    return d >= monthStart && d < monthEnd;
-  };
+    const tasksThisMonth = tasks.filter(inThisMonth);
+    const totalThisMonth = tasksThisMonth.length;
 
-  const tasksThisMonth = (client.tasks ?? []).filter(inThisMonth);
-  const totalThisMonth = tasksThisMonth.length;
+    let completedThisMonth = 0;
+    let approvedThisMonth = 0;
 
-  const rawStatus = (raw?: string | null) =>
-    (raw ?? "").toString().trim().toLowerCase().replace(/[\-\s]+/g, "_");
+    for (const t of tasksThisMonth) {
+      const sRaw = (t as any)?.status?.toString().trim().toLowerCase().replace(/[\-\s]+/g, "_") || "";
+      const sNorm = normalizeStatus((t as any)?.status);
+      const completedAt = parseDate((t as any)?.completedAt);
 
-  let completedThisMonth = 0;
-  let approvedThisMonth = 0;
+      const isCompleted =
+        (completedAt ? completedAt >= monthStart && completedAt < monthEnd : false) ||
+        sNorm === "completed";
 
-  for (const t of tasksThisMonth) {
-    const sRaw = rawStatus((t as any)?.status);
-    const sNorm = normalizeStatus((t as any)?.status);
-    const completedAt = parseDate((t as any)?.completedAt);
-    const dueDate = parseDate((t as any)?.dueDate);
+      const isApproved = sRaw === "qc_approved" || sRaw === "approved";
 
-    const isCompleted =
-      (completedAt
-        ? completedAt >= monthStart && completedAt < monthEnd
-        : false) || sNorm === "completed";
+      if (isCompleted) completedThisMonth++;
+      if (isApproved) approvedThisMonth++;
+    }
 
-    const isApproved = sRaw === "qc_approved" || sRaw === "approved";
+    const derivedProgressThisMonth = totalThisMonth
+      ? Math.round(((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100)
+      : 0;
 
-    if (isCompleted) completedThisMonth++;
-    if (isApproved) approvedThisMonth++;
-  }
+    return { derivedProgressThisMonth, completedThisMonth, totalThisMonth };
+  }, [client.tasks, monthStart, monthEnd, normalizeStatus, parseDate]);
 
-  const derivedProgressThisMonth = totalThisMonth
-    ? Math.round(((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100)
-    : 0;
+  // ⚡ OPTIMIZED: Memoize date formatting
+  const formatDate = useCallback(
+    (v?: string | Date | null) => {
+      const d = parseDate(v);
+      return d
+        ? d.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "—";
+    },
+    [parseDate]
+  );
 
-  // === Format start/due date ===
-  const formatDate = (v?: string | Date | null) => {
-    const d = parseDate(v);
-    return d
-      ? d.toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
-      : "—";
-  };
-
-  const clientStart = parseDate((client as any)?.startDate);
-  const clientDue = parseDate((client as any)?.dueDate);
-
-  // === Role normalization ===
-  const roleRaw = (user as any)?.role?.name ?? (user as any)?.role;
-  const role = typeof roleRaw === "string" ? roleRaw.toLowerCase() : undefined;
-  const segment = role && /^[a-z0-9_-]+$/.test(role) ? role : "admin";
+  // ⚡ OPTIMIZED: Memoize role and segment
+  const { role, segment } = useMemo(() => {
+    const roleRaw = (user as any)?.role?.name ?? (user as any)?.role;
+    const role = typeof roleRaw === "string" ? roleRaw.toLowerCase() : undefined;
+    const segment = role && /^[a-z0-9_-]+$/.test(role) ? role : "admin";
+    return { role, segment };
+  }, [user]);
+  
   const swrKey = "/api/clients";
+
+  // ⚡ OPTIMIZED: Memoize detail URL for prefetching
+  const detailUrl = useMemo(() => {
+    if (segment === "data_entry") {
+      return `/data_entry/clients/${client.id}`;
+    }
+    return `/${segment}/clients/${client.id}`;
+  }, [segment, client.id]);
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -202,14 +224,10 @@ const ClientCardComponent = function ClientCard({
     setIsDeleting(false);
   }
 
-  const handleViewDetails = () => {
+  const handleViewDetails = useCallback(() => {
     if (onViewDetails) return onViewDetails();
-    if (segment === "data_entry") {
-      router.push(`/data_entry/clients/${client.id}`);
-    } else {
-      router.push(`/${segment}/clients/${client.id}`);
-    }
-  };
+    router.push(detailUrl);
+  }, [onViewDetails, router, detailUrl]);
 
   const handleViewTasks = () => {
     if (segment === "data_entry") {
@@ -396,10 +414,12 @@ const ClientCardComponent = function ClientCard({
           {!permsLoading &&
             hasPermissionClient(user?.permissions, "client_card_client_view") && (
               <Button
-                onClick={handleViewDetails}
+                asChild
                 className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
-                <Eye className="h-4 w-4 mr-2" /> View Details
+                <Link href={detailUrl} prefetch={true}>
+                  <Eye className="h-4 w-4 mr-2" /> View Details
+                </Link>
               </Button>
             )}
 
