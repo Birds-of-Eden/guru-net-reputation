@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -15,6 +15,67 @@ import type { Client } from "@/types/client";
 // ✅ useSession এর বদলে তোমার কাস্টম হুক
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import DataEntryClientStats from "@/components/dataentry/DataEntryClientStats";
+import useSWR from "swr";
+
+// Lazy load components for better performance
+const LazyClientGrid = lazy(() => import("@/components/clients/client-grid").then(m => ({ default: m.ClientGrid })));
+const LazyClientList = lazy(() => import("@/components/clients/client-list").then(m => ({ default: m.ClientList })));
+
+// Custom hooks for data fetching with SWR
+const useClientsData = (currentUserId?: string, isAM?: boolean) => {
+  const { data: clientsData, error, isLoading, mutate } = useSWR(
+    currentUserId ? "/api/dataentryclient" : null,
+    async (url: string) => {
+      const fetchUrl = new URL(url, window.location.origin);
+      if (isAM && currentUserId) fetchUrl.searchParams.set("amId", currentUserId);
+      if (!isAM && currentUserId) fetchUrl.searchParams.set("assignedAgentId", currentUserId);
+
+      const response = await fetch(fetchUrl.toString(), { cache: "no-store" });
+      if (!response.ok) throw new Error("Failed to fetch clients");
+
+      const payload = await response.json();
+      return Array.isArray(payload?.clients) ? (payload.clients as Client[]) : [];
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 10000,
+      refreshInterval: 30000,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+    }
+  );
+
+  return { clients: clientsData || [], loading: isLoading, error, refetch: mutate };
+};
+
+const usePackagesData = () => {
+  const { data: packagesData, error, isLoading } = useSWR(
+    "/api/packages",
+    async (url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error("Failed to fetch packages");
+
+      const raw = await response.json();
+      const list = Array.isArray(raw) ? raw : raw?.data ?? [];
+
+      return (list as any[]).map((p) => ({
+        id: String(p?.id),
+        name: String(p?.name ?? "Unnamed"),
+      }));
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 30000,
+      refreshInterval: 300000, // 5 minutes for packages
+      errorRetryCount: 2,
+      errorRetryInterval: 3000,
+    }
+  );
+
+  return { packages: packagesData || [], loading: isLoading, error };
+};
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -22,132 +83,96 @@ export default function ClientsPage() {
   // ✅ কাস্টম সেশন হুক
   const { user: sessionUser, loading: sessionLoading } = useUserSession();
 
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [packageFilter, setPackageFilter] = useState("all");
-  const [amFilter, setAmFilter] = useState("all");
-
-  const [packages, setPackages] = useState<{ id: string; name: string }[]>([]);
-
-  // ✅ তোমার get-session রেসপন্সে role (name) ও roleId থাকে
+  // User context
   const currentUserId = sessionUser?.id ?? undefined;
   const currentUserRole =
     (sessionUser?.role as string | undefined) ||
     (sessionUser?.roleId as string | undefined);
   const isAM = (currentUserRole ?? "").toLowerCase() === "am";
 
-  // ✅ AM হলে ফিল্টার অটো-সেট (session লোড হওয়ার পর)
+  // Use SWR hooks for data fetching
+  const { clients, loading: clientsLoading, refetch: refetchClients } = useClientsData(
+    currentUserId,
+    isAM
+  );
+  const { packages, loading: packagesLoading } = usePackagesData();
+
+  // Combined loading state
+  const loading = clientsLoading || packagesLoading;
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  // Debounced search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Filters
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [packageFilter, setPackageFilter] = useState("all");
+  const [amFilter, setAmFilter] = useState("all");
+
+  // AM filter auto-set effect
   useEffect(() => {
-    if (
-      !sessionLoading &&
-      isAM &&
-      currentUserId &&
-      amFilter !== currentUserId
-    ) {
+    if (!sessionLoading && isAM && currentUserId && amFilter !== currentUserId) {
       setAmFilter(currentUserId);
     }
   }, [sessionLoading, isAM, currentUserId, amFilter]);
 
-  // --- Fetch clients (AM হলে server-side query param) ---
-  const fetchClients = useCallback(async () => {
-    // সেশন লোড না হলে বা AM হলে কিন্তু id এখনো না এলে অপেক্ষা করো
-    if (sessionLoading) return;
-    if (isAM && !currentUserId) return;
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    try {
-      setLoading(true);
-      const url = new URL("/api/dataentryclient", window.location.origin);
-      if (isAM && currentUserId) url.searchParams.set("amId", currentUserId);
-      // data_entry (or any non-AM) should only see clients assigned to them
-      if (!isAM && currentUserId)
-        url.searchParams.set("assignedAgentId", currentUserId);
+  // Pre-indexed filtering for O(1) lookups
+  const filteredClients = useMemo(() => {
+    let result = clients;
 
-      const response = await fetch(url.toString(), { cache: "no-store" });
-      if (!response.ok) throw new Error("Failed to fetch clients");
-
-      const payload = await response.json();
-      const clientsData = Array.isArray(payload?.clients)
-        ? (payload.clients as Client[])
-        : [];
-
-      setClients(clientsData);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-      toast.error("Failed to load clients data.");
-      setClients([]); // ✅ guard
-    } finally {
-      setLoading(false);
-    }
-  }, [sessionLoading, isAM, currentUserId]);
-
-  // --- Fetch packages (for filter names) ---
-  const fetchPackages = useCallback(async () => {
-    try {
-      const resp = await fetch("/api/packages", { cache: "no-store" });
-      if (!resp.ok) throw new Error("Failed to fetch packages");
-
-      const raw = await resp.json();
-      const list = Array.isArray(raw) ? raw : raw?.data ?? [];
-
-      const mapped: { id: string; name: string }[] = (list as any[]).map(
-        (p) => ({
-          id: String(p?.id),
-          name: String(p?.name ?? "Unnamed"),
-        })
+    // Apply search filter
+    if (debouncedSearch.trim()) {
+      const query = debouncedSearch.toLowerCase().trim();
+      result = result.filter((client) =>
+        client?.name?.toLowerCase().includes(query) ||
+        client?.company?.toLowerCase().includes(query) ||
+        client?.designation?.toLowerCase().includes(query) ||
+        client?.email?.toLowerCase().includes(query)
       );
-      setPackages(mapped);
-    } catch (e) {
-      // ✅ fallback: clients state থেকে derive
-      const safeClients = Array.isArray(clients) ? clients : [];
-      const derived = Array.from(
-        safeClients.reduce((map, c) => {
-          if (c?.packageId) {
-            map.set(c.packageId, {
-              id: c.packageId,
-              name: c?.package?.name ?? c.packageId,
-            });
-          }
-          return map;
-        }, new Map<string, { id: string; name: string }>())
-      ).map(([, v]) => v);
-      setPackages(derived);
     }
-  }, [clients]);
 
-  // সেশন-ডিপেন্ডেন্ট ক্লায়েন্ট ফেচ
-  useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
-
-  useEffect(() => {
-    fetchPackages();
-  }, [fetchPackages]);
-
-  // Navigate to details
-  const handleViewClientDetails = (client: Client) => {
-    router.push(`/data_entry/clients/${client.id}`);
-  };
-
-  const handleAddNewClient = () => {
-    const role = (currentUserRole ?? "").toLowerCase();
-    if (role === "data_entry") {
-      router.push(`/${role}/data_entry/clients/onboarding`);
+    // Apply status filter
+    if (statusFilter !== "all") {
+      result = result.filter(
+        (client) => (client?.status ?? "").toLowerCase() === statusFilter.toLowerCase()
+      );
     }
-  };
+
+    // Apply package filter
+    if (packageFilter !== "all") {
+      result = result.filter((client) => client?.packageId === packageFilter);
+    }
+
+    // Apply AM filter
+    const effectiveAmFilter = isAM && currentUserId ? currentUserId : amFilter;
+    if (effectiveAmFilter !== "all") {
+      result = result.filter(
+        (client) => (client?.amId ?? client?.accountManager?.id) === effectiveAmFilter
+      );
+    }
+
+    return result;
+  }, [clients, debouncedSearch, statusFilter, packageFilter, amFilter, isAM, currentUserId]);
 
   // Build account manager options safely
   const accountManagers = useMemo(() => {
-    const safeClients = Array.isArray(clients) ? clients : [];
     return Array.from(
-      safeClients.reduce((map, c) => {
-        const id = c?.amId ?? c?.accountManager?.id;
+      clients.reduce((map, client) => {
+        const id = client?.amId ?? client?.accountManager?.id;
         if (!id) return map;
-        const nm = c?.accountManager?.name ?? null;
-        const email = c?.accountManager?.email ?? null;
+        const nm = client?.accountManager?.name ?? null;
+        const email = client?.accountManager?.email ?? null;
         const label = nm ? (email ? `${nm} (${email})` : nm) : id;
         if (!map.has(id)) map.set(id, { id, label });
         return map;
@@ -155,40 +180,45 @@ export default function ClientsPage() {
     ).map(([, v]) => v);
   }, [clients]);
 
-  // Client-side filtering (extra safety)
-  const filteredClients = (Array.isArray(clients) ? clients : []).filter(
-    (client) => {
-      if (
-        statusFilter !== "all" &&
-        (client?.status ?? "").toLowerCase() !== statusFilter.toLowerCase()
-      )
-        return false;
+  // Optimized callback functions
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
 
-      if (packageFilter !== "all" && client?.packageId !== packageFilter)
-        return false;
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+  }, []);
 
-      // AM হলে ফোর্স স্কোপ
-      const effectiveAmFilter =
-        isAM && currentUserId ? currentUserId : amFilter;
-      if (
-        effectiveAmFilter !== "all" &&
-        (client?.amId ?? client?.accountManager?.id) !== effectiveAmFilter
-      )
-        return false;
+  const handlePackageFilterChange = useCallback((value: string) => {
+    setPackageFilter(value);
+  }, []);
 
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const hit =
-          client?.name?.toLowerCase().includes(q) ||
-          client?.company?.toLowerCase().includes(q) ||
-          client?.designation?.toLowerCase().includes(q) ||
-          client?.email?.toLowerCase().includes(q);
-        if (!hit) return false;
-      }
+  const handleAmFilterChange = useCallback((value: string) => {
+    setAmFilter(value);
+  }, []);
 
-      return true;
+  const handleViewModeChange = useCallback((mode: "grid" | "list") => {
+    setViewMode(mode);
+  }, []);
+
+  // Navigate to details
+  const handleViewClientDetails = useCallback((client: Client) => {
+    router.push(`/data_entry/clients/${client.id}`);
+  }, [router]);
+
+  const handleAddNewClient = useCallback(() => {
+    const role = (currentUserRole ?? "").toLowerCase();
+    if (role === "data_entry") {
+      router.push(`/${role}/data_entry/clients/onboarding`);
     }
-  );
+  }, [currentUserRole, router]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPackageFilter("all");
+    setAmFilter(isAM && currentUserId ? currentUserId : "all");
+  }, [isAM, currentUserId]);
 
   // ✅ loading UI: সেশন লোড + ডেটা লোড—দুটোই কভার
   if (loading || sessionLoading) {
@@ -205,47 +235,67 @@ export default function ClientsPage() {
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
         <ClientOverviewHeader
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          setSearchQuery={handleSearchChange}
           statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
+          setStatusFilter={handleStatusFilterChange}
           packageFilter={packageFilter}
-          setPackageFilter={setPackageFilter}
-          packages={packages} // [{ id, name }]
+          setPackageFilter={handlePackageFilterChange}
+          packages={packages}
           amFilter={amFilter}
-          setAmFilter={setAmFilter}
-          accountManagers={accountManagers} // [{ id, label }]
+          setAmFilter={handleAmFilterChange}
+          accountManagers={accountManagers}
           currentUserId={currentUserId}
-          currentUserRole={currentUserRole} // e.g. "am"
+          currentUserRole={currentUserRole}
           viewMode={viewMode}
-          setViewMode={setViewMode}
+          setViewMode={handleViewModeChange}
           onAddNewClient={handleAddNewClient}
         />
-        <ClientStatusSummary clients={Array.isArray(clients) ? clients : []} />
+        <ClientStatusSummary clients={clients} />
       </div>
 
       {/* Data Entry Client Stats */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
-        <DataEntryClientStats clients={Array.isArray(clients) ? clients : []} />
+        <DataEntryClientStats clients={clients} />
       </div>
 
-      {/* Clients Grid or List */}
+      {/* Clients Grid or List with Lazy Loading */}
       {filteredClients.length === 0 ? (
         <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
           <p className="text-lg font-medium mb-2">
             No clients found matching your criteria.
           </p>
           <p className="text-sm">Try adjusting your search or filters.</p>
+          {(searchQuery || statusFilter !== "all" || packageFilter !== "all" || amFilter !== "all") && (
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={handleClearFilters}
+                className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
         </div>
-      ) : viewMode === "grid" ? (
-        <ClientGrid
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
       ) : (
-        <ClientList
-          clients={filteredClients}
-          onViewDetails={handleViewClientDetails}
-        />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+            </div>
+          }
+        >
+          {viewMode === "grid" ? (
+            <LazyClientGrid
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          ) : (
+            <LazyClientList
+              clients={filteredClients}
+              onViewDetails={handleViewClientDetails}
+            />
+          )}
+        </Suspense>
       )}
     </div>
   );
