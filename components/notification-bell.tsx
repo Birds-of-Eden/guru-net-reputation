@@ -1,7 +1,7 @@
 // components/notification-bell.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import {
   useUnreadCount,
@@ -38,6 +38,17 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
     error: listError,
     refresh: refreshList,
   } = useNotifications("onlyUnread=0&take=20", apiBase);
+
+  // Ensure we always render with an array to avoid runtime errors when API shape changes
+  const items = useMemo(() => {
+    // Common shapes: array, { notifications: [...] }, null/undefined
+    const raw = Array.isArray(list)
+      ? list
+      : Array.isArray((list as any)?.notifications)
+      ? (list as any).notifications
+      : [];
+    return raw.filter(Boolean);
+  }, [list]);
 
   // sound
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -157,10 +168,10 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
           <div className="p-4 text-sm text-gray-500">Loading…</div>
         ) : (
           <div className="max-h-80 overflow-y-auto">
-            {!list || list.length === 0 ? (
+            {items.length === 0 ? (
               <div className="p-4 text-sm text-gray-500">No notifications</div>
             ) : (
-              list.map((n: any) => (
+              items.map((n: any) => (
                 <button
                   key={n.id}
                   onClick={() => openNotification(n)}

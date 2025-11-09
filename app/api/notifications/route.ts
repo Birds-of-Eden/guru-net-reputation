@@ -18,17 +18,20 @@ export async function GET(req: Request) {
 
   // params
   const u = new URL(req.url);
+  const page = Number.parseInt(u.searchParams.get("page") || "1");
+  const limit = Number.parseInt(u.searchParams.get("limit") || "20");
   const onlyUnread = u.searchParams.get("onlyUnread") === "1"; // backward compat
   const isReadParam = u.searchParams.get("isRead"); // "true" | "false" | null
   const type = u.searchParams.get("type"); // "general" | "performance" | "frequency_missed"
   const q = u.searchParams.get("q")?.trim();
   const dateFrom = u.searchParams.get("from");
   const dateTo = u.searchParams.get("to");
-  const take = Number(u.searchParams.get("take") || 50);
-  const cursorId = u.searchParams.get("cursorId");
   const sort = (u.searchParams.get("sort") === "asc" ? "asc" : "desc") as
     | "asc"
     | "desc";
+
+  // Calculate offset for pagination
+  const skip = (page - 1) * limit;
 
   // where condition
   const where: any = { userId: user.id };
@@ -49,12 +52,29 @@ export async function GET(req: Request) {
     }
   }
 
+  const totalCount = await prisma.notification.count({ where });
+
   const data = await prisma.notification.findMany({
     where,
     orderBy: { createdAt: sort },
-    take,
-    ...(cursorId ? { skip: 1, cursor: { id: Number(cursorId) } } : {}),
+    skip,
+    take: limit,
   });
 
-  return NextResponse.json(data);
+  const totalPages = Math.ceil(totalCount / limit);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  return NextResponse.json({
+    success: true,
+    notifications: data,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      hasNextPage,
+      hasPrevPage,
+      limit,
+    },
+  });
 }

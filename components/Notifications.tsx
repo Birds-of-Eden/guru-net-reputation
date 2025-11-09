@@ -2,9 +2,9 @@
 
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import useSWR, { mutate } from "swr";
 import {
-  useNotifications,
   markOneRead,
   markAllRead,
 } from "@/lib/hooks/use-notifications";
@@ -33,6 +33,7 @@ function formatDateHeader(iso: string) {
   return d.toLocaleDateString();
 }
 
+// ⚡ OPTIMIZED: Debounce hook
 function useDebounced<T>(val: T, delay = 400) {
   const [v, setV] = useState(val);
   useEffect(() => {
@@ -42,8 +43,38 @@ function useDebounced<T>(val: T, delay = 400) {
   return v;
 }
 
+// ⚡ OPTIMIZED: SWR fetcher
+const jsonFetcher = async (url: string) => {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || "Failed to fetch");
+  }
+  return data;
+};
+
 type NotificationsProps = {
   apiBase?: string; // defaults to "/api/notifications"
+};
+
+type NotificationItem = {
+  id: number;
+  userId: string;
+  taskId?: string | null;
+  type: "frequency_missed" | "performance" | "general";
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  targetPath?: string | null;
+};
+
+type PaginationInfo = {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  limit: number;
 };
 
 export default function Notifications({
@@ -57,13 +88,15 @@ export default function Notifications({
   const [q, setQ] = useState<string>("");
   const [sort, setSort] = useState<"desc" | "asc">("desc");
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const qDeb = useDebounced(q, 400);
 
-  // build query string for hook
-  const query = useMemo(() => {
+  // ⚡ OPTIMIZED: Memoize API URL for SWR
+  const apiUrl = useMemo(() => {
     const params = new URLSearchParams();
-    params.set("take", "100");
+    params.set("page", currentPage.toString());
+    params.set("limit", "20");
     params.set("sort", sort);
     if (type !== "all") params.set("type", type);
     if (readState === "unread") params.set("isRead", "false");
@@ -71,46 +104,102 @@ export default function Notifications({
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     if (qDeb) params.set("q", qDeb);
-    return params.toString();
-  }, [type, readState, from, to, qDeb, sort]);
+    return `${apiBase}?${params.toString()}`;
+  }, [apiBase, currentPage, type, readState, from, to, qDeb, sort]);
 
-  const { list, isLoading, error, refresh } = useNotifications(query, apiBase);
+  // ⚡ OPTIMIZED: Use SWR for automatic caching and revalidation
+  const { data, error, isLoading } = useSWR(apiUrl, jsonFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 5000,
+  });
+
+  const notifications = data?.notifications || [];
+  const pagination = data?.pagination || null;
+
+  // ⚡ OPTIMIZED: Refresh using SWR mutate
+  const refresh = useCallback(() => mutate(apiUrl), [apiUrl]);
 
   // group by day label
   const grouped = useMemo(() => {
-    const map: Record<string, typeof list> = {};
-    const sorted = list
+    const map: Record<string, typeof notifications> = {};
+    const sorted = notifications
       .slice()
-      .sort((a, b) =>
+      .sort((a: NotificationItem, b: NotificationItem) =>
         sort === "desc"
           ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
-    sorted.forEach((n) => {
+    sorted.forEach((n: NotificationItem) => {
       const key = formatDateHeader(n.createdAt);
       (map[key] ||= []).push(n);
     });
     return map;
-  }, [list, sort]);
+  }, [notifications, sort]);
 
-  // Reset all filters
-  const resetFilters = () => {
+  // ⚡ OPTIMIZED: Memoize page change handler
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= (pagination?.totalPages || 1)) {
+      setCurrentPage(page);
+    }
+  }, [pagination?.totalPages]);
+
+  // ⚡ OPTIMIZED: Memoize page numbers calculation
+  const getPageNumbers = useCallback(() => {
+    if (!pagination) return [];
+
+    const { currentPage, totalPages } = pagination;
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  }, [pagination]);
+
+  // ⚡ OPTIMIZED: Memoize page numbers array
+  const pageNumbers = useMemo(() => getPageNumbers(), [getPageNumbers]);
+
+  // ⚡ OPTIMIZED: Memoize reset filters handler
+  const resetFilters = useCallback(() => {
     setType("all");
     setReadState("all");
     setFrom("");
     setTo("");
     setQ("");
     setSort("desc");
-  };
+  }, []);
 
-  // Check if any filter is active
-  const hasActiveFilters =
+  // ⚡ OPTIMIZED: Memoize active filters check
+  const hasActiveFilters = useMemo(() =>
     type !== "all" ||
     readState !== "all" ||
     from !== "" ||
     to !== "" ||
     q !== "" ||
-    sort !== "desc";
+    sort !== "desc",
+    [type, readState, from, to, q, sort]
+  );
 
   return (
     <Card className="border-0 shadow-md">
@@ -156,6 +245,17 @@ export default function Notifications({
               className="pl-9"
             />
           </div>
+
+          {pagination && !isLoading && (
+            <div className="text-sm text-gray-600">
+              Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+              {Math.min(
+                pagination.currentPage * pagination.limit,
+                pagination.totalCount
+              )}{" "}
+              of {pagination.totalCount} notifications
+            </div>
+          )}
 
           {/* Filters - conditionally rendered */}
           {showFilters && (
@@ -250,7 +350,7 @@ export default function Notifications({
         )}
         {isLoading && <div className="text-gray-500">Loading…</div>}
 
-        {!isLoading && !error && list.length === 0 && (
+        {!isLoading && !error && notifications.length === 0 && (
           <div className="text-gray-500">No notifications found.</div>
         )}
 
@@ -262,7 +362,7 @@ export default function Notifications({
                 {dateLabel}
               </div>
               <div className="divide-y rounded-lg border">
-                {items.map((n) => (
+                {items.map((n: NotificationItem) => (
                   <div
                     key={n.id}
                     className={`p-3 flex items-start justify-between ${
@@ -312,6 +412,57 @@ export default function Notifications({
               </div>
             </div>
           ))}
+
+        {pagination && pagination.totalPages > 1 && !isLoading && (
+          <div className="flex items-center justify-between pt-4 mt-6 border-t">
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pagination.hasPrevPage}
+                variant="outline"
+                size="sm"
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {pageNumbers.map((page, index) => (
+                  <Button
+                    key={index}
+                    onClick={() =>
+                      typeof page === "number"
+                        ? handlePageChange(page)
+                        : undefined
+                    }
+                    disabled={page === "..."}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    className={`${
+                      page === "..."
+                        ? "cursor-default hover:bg-transparent"
+                        : ""
+                    }`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                variant="outline"
+                size="sm"
+              >
+                Next
+              </Button>
+            </div>
+
+            <div className="text-sm text-gray-600">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
