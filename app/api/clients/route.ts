@@ -91,6 +91,9 @@ type ArticleCategory = {
     title: string;
     draftLink: string;
     draftStatus: "Approved" | "Pending" | "Revision";
+    status?: string;
+    usedCount?: number;
+    usedDate?: string | null;
   }>;
 };
 
@@ -115,7 +118,50 @@ const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
                 ? t.draftStatus
                 : "Pending";
 
-              return { title, draftLink, draftStatus };
+              const rawStatus = String(t?.status ?? "").trim();
+              const status = ARTICLE_TOPIC_STATUSES.has(rawStatus)
+                ? rawStatus
+                : "Not yet Used";
+
+              // usedCount normalization
+              let usedCount: number | undefined = undefined;
+              const rawCount = t?.usedCount;
+              if (
+                rawCount !== undefined &&
+                rawCount !== null &&
+                !Number.isNaN(Number(rawCount))
+              ) {
+                usedCount = Math.max(0, Number(rawCount));
+              } else {
+                // derive from status if not explicitly provided
+                const match = /^Used\s+(\d+)$/.exec(status);
+                if (match) {
+                  usedCount = Number(match[1]);
+                } else if (status === "More then 10") {
+                  usedCount = 11;
+                } else if (status === "Not yet Used") {
+                  usedCount = 0;
+                }
+              }
+
+              // usedDate normalization -> ISO string or null
+              let usedDate: string | null | undefined = undefined;
+              const rawDate = t?.usedDate;
+              if (rawDate === null) {
+                usedDate = null;
+              } else if (rawDate !== undefined) {
+                const d = new Date(rawDate);
+                usedDate = isNaN(d.getTime()) ? null : d.toISOString();
+              }
+
+              return { 
+                title, 
+                draftLink, 
+                draftStatus,
+                status,
+                usedCount: usedCount ?? 0,
+                usedDate: usedDate ?? null,
+              };
             })
             .filter(Boolean)
         : [];
@@ -542,6 +588,8 @@ export async function PUT(req: NextRequest) {
       amId,
       // NEW: article topics
       articleTopics,
+      // NEW: allow categories structure too
+      articleCategories,
     } = body;
 
     // Replace social medias with the provided set
@@ -569,10 +617,14 @@ export async function PUT(req: NextRequest) {
         startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
         otherField: Array.isArray(otherField) ? otherField : [],
-        // Only update articleTopics when provided in payload
+        // Accept both articleCategories and articleTopics (old/new structure)
         articleTopics:
-          articleTopics !== undefined
-            ? normalizeArticleTopics(articleTopics)
+          articleCategories !== undefined
+            ? (normalizeArticleCategories as any)(articleCategories)
+            : articleTopics !== undefined
+            ? (Array.isArray(articleTopics) && articleTopics.length > 0 && (articleTopics as any)[0] && 'category' in (articleTopics as any)[0]
+                ? (normalizeArticleCategories as any)(articleTopics)
+                : normalizeArticleTopics(articleTopics))
             : undefined,
         amId: amId ?? null,
       },

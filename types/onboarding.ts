@@ -88,6 +88,9 @@ export type ArticleCategory = {
     title: string;
     draftLink: string;
     draftStatus: "Approved" | "Pending" | "Revision";
+    status?: string;
+    usedCount?: number;
+    usedDate?: string | null;
   }>;
 };
 

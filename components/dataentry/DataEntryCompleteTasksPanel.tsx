@@ -1,7 +1,7 @@
 //app/com
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
-// import CreateTasksButton from "./CreateTasksButtonManual";
-// import CreateNextTask from "./CreateNextTaskManual";
+import useSWR from "swr";
 import CreateTasksAuto from "./CreateTasksAuto";
 import CreateNextTasksAuto from "./CreateNextTasksAuto";
 import { RenewPostingTasksButton } from "./DateEntryRenew";
@@ -37,12 +36,147 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import ContentWritingModal from "./DataEntryContentWritingDialog";
-import ReviewRemovalModal from "./DataEmtryReviewRemovalDialog";
-import BacklinkingModal from "./DataEntryBacklinkingDialog";
-import SummaryReportModal from "./DataEntrySummaryReportDialog";
-import CompletionDialog from "./DataEntryCompletionDialog";
-import MonitoringDialog from "./DataEntryMonitoringTask";
+
+// Lazy load modal components
+const LazyContentWritingModal = lazy(() => import("./DataEntryContentWritingDialog"));
+const LazyReviewRemovalModal = lazy(() => import("./DataEmtryReviewRemovalDialog"));
+const LazyBacklinkingModal = lazy(() => import("./DataEntryBacklinkingDialog"));
+const LazySummaryReportModal = lazy(() => import("./DataEntrySummaryReportDialog"));
+const LazyCompletionDialog = lazy(() => import("./DataEntryCompletionDialog"));
+const LazyMonitoringDialog = lazy(() => import("./DataEntryMonitoringTask"));
+
+// Custom hooks for data fetching with SWR
+const useTasksData = (clientId: string, userId?: string) => {
+  const { data: tasksData, error, isLoading, mutate } = useSWR(
+    clientId ? `/api/tasks/client/${clientId}` : null,
+    async (url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error("Failed to fetch tasks");
+      const data = await response.json();
+      return (data as any[]).filter(
+        (t) => t?.assignedTo?.id && userId && t.assignedTo.id === userId
+      );
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 10000,
+      refreshInterval: 30000,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+    }
+  );
+
+  return { tasks: tasksData || [], loading: isLoading, error, refetch: mutate };
+};
+
+const useAgentsData = () => {
+  const { data: agentsData, error, isLoading } = useSWR(
+    "/api/users?role=agent&limit=200",
+    async (url: string) => {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error("Failed to fetch agents");
+      const data = await response.json();
+      return (data?.users ?? data?.data ?? [])
+        .filter((u: any) => u?.role?.name?.toLowerCase() === "agent")
+        .map((u: any) => ({
+          id: u.id,
+          name: u.name ?? null,
+          email: u.email ?? null,
+        }));
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 30000,
+      refreshInterval: 300000, // 5 minutes for agents
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+    }
+  );
+
+  return { agents: agentsData || [], loading: isLoading, error };
+};
+
+const useClientData = (clientId: string) => {
+  const { data: clientData, error, isLoading } = useSWR(
+    clientId ? `/api/clients/${clientId}` : null,
+    async (url: string) => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch client");
+      return response.json();
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 30000,
+      refreshInterval: 60000, // 1 minute
+      errorRetryCount: 2,
+      errorRetryInterval: 3000,
+    }
+  );
+
+  return {
+    client: clientData,
+    loading: isLoading,
+    error,
+    clientName: clientData?.name || `Client ${clientId}`,
+    clientEmail: clientData?.email || "",
+    packageMonths: Number(clientData?.package?.totalMonths) || 1,
+    isDueOver: clientData?.dueDate
+      ? new Date(clientData.dueDate) < new Date()
+      : false,
+  };
+};
+
+const useStatsData = (clientId: string, userId?: string) => {
+  const { data: statsData, error, isLoading } = useSWR(
+    clientId && userId ? `/api/tasks/data-entry-reports?clientId=${clientId}&pageSize=1000` : null,
+    async (url: string) => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch stats");
+      const data = await response.json();
+      const reports = Array.isArray(data?.data) ? data.data : [];
+
+      const today = new Date();
+      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const completedByMe = reports.reduce((acc: number, t: any) => {
+        const rid = t?.dataEntryReport?.completedByUserId;
+        return acc + (userId && rid === userId ? 1 : 0);
+      }, 0);
+
+      const last7Days = reports.filter(
+        (t: any) =>
+          t.dataEntryCompletedAt &&
+          new Date(t.dataEntryCompletedAt) >= sevenDaysAgo
+      ).length;
+
+      const last30Days = reports.filter(
+        (t: any) =>
+          t.dataEntryCompletedAt &&
+          new Date(t.dataEntryCompletedAt) >= thirtyDaysAgo
+      ).length;
+
+      return {
+        dataEntryCompleted: completedByMe,
+        last7Days,
+        last30Days,
+      };
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 15000,
+      refreshInterval: 60000, // 1 minute
+      errorRetryCount: 2,
+      errorRetryInterval: 3000,
+    }
+  );
+
+  return { stats: statsData, loading: isLoading, error };
+};
 
 export type DETask = {
   id: string;
@@ -109,32 +243,37 @@ export default function DataEntryCompleteTasksPanel({
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
   const { user } = useUserSession();
-  const [loading, setLoading] = useState(false);
-  const [tasks, setTasks] = useState<DETask[]>([]);
-  const [agents, setAgents] = useState<
-    Array<{ id: string; name?: string | null; email?: string | null }>
-  >([]);
-  const [hasCreatedTasks, setHasCreatedTasks] = useState(false);
-  const [showCreateTasksButton, setShowCreateTasksButton] = useState(true);
-  const [showRenewButton, setShowRenewButton] = useState(false);
-  const [showCreateNextButton, setShowCreateNextButton] = useState(false);
-  // Removed nextTasksAlreadyCreated state - CreateNextTask now handles localStorage internally
-  const [stats, setStats] = useState<TaskStats>({
-    total: 0,
-    completed: 0,
-    pending: 0,
-    inProgress: 0,
-    overdue: 0,
-    dataEntryCompleted: 0,
-    last7Days: 0,
-    last30Days: 0,
-    byStatus: {},
-    byPriority: {},
-  });
 
-  const [q, setQ] = useState("");
+  // Use SWR hooks for data fetching
+  const { tasks, loading: tasksLoading, refetch: refetchTasks } = useTasksData(
+    clientId,
+    user?.id
+  );
+  const { agents, loading: agentsLoading } = useAgentsData();
+  const {
+    clientName,
+    clientEmail,
+    packageMonths,
+    isDueOver,
+    loading: clientLoading,
+  } = useClientData(clientId);
+  const { stats: statsData, loading: statsLoading } = useStatsData(
+    clientId,
+    user?.id
+  );
+
+  // Combined loading state
+  const loading = tasksLoading || agentsLoading || clientLoading || statsLoading;
+
+  // Debounced search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Filters
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+
+  // Modal states
   const [selected, setSelected] = useState<DETask | null>(null);
   const [link, setLink] = useState("");
   const [email, setEmail] = useState("");
@@ -146,10 +285,6 @@ export default function DataEntryCompleteTasksPanel({
   const [lastUsedDate, setLastUsedDate] = useState<Date | null>(null);
   const [lastUsedAgent, setLastUsedAgent] = useState<string | null>(null);
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
-  const [clientName, setClientName] = useState<string>("");
-  const [clientEmail, setClientEmail] = useState<string>("");
-  const [packageMonths, setPackageMonths] = useState<number>(1);
-  const [isDueOver, setIsDueOver] = useState<boolean>(false);
   const [createTasksChoiceOpen, setCreateTasksChoiceOpen] = useState(false);
   const [createNextChoiceOpen, setCreateNextChoiceOpen] = useState(false);
 
@@ -161,233 +296,82 @@ export default function DataEntryCompleteTasksPanel({
 
   // Review Removal Modal state
   const [reviewRemovalModalOpen, setReviewRemovalModalOpen] = useState(false);
-  const [selectedReviewRemovalTask, setSelectedReviewRemovalTask] =
-    useState<DETask | null>(null);
+  const [selectedReviewRemovalTask, setSelectedReviewRemovalTask] = useState<
+    DETask | null
+  >(null);
 
   // Backlinking Modal state
   const [backlinkingModalOpen, setBacklinkingModalOpen] = useState(false);
-  const [selectedBacklinkingTask, setSelectedBacklinkingTask] =
-    useState<DETask | null>(null);
+  const [selectedBacklinkingTask, setSelectedBacklinkingTask] = useState<
+    DETask | null
+  >(null);
 
   // Summary Report Modal state
   const [summaryReportModalOpen, setSummaryReportModalOpen] = useState(false);
-  const [selectedSummaryReportTask, setSelectedSummaryReportTask] =
-    useState<DETask | null>(null);
+  const [selectedSummaryReportTask, setSelectedSummaryReportTask] = useState<
+    DETask | null
+  >(null);
 
-  // Fetch client name and email when clientId changes
-  useEffect(() => {
-    const fetchClientData = async () => {
-      if (!clientId) {
-        setClientName("");
-        setClientEmail("");
-        return;
-      }
+  // Monitoring modal state
+  const [monitoringModalOpen, setMonitoringModalOpen] = useState(false);
+  const [selectedMonitoringTask, setSelectedMonitoringTask] = useState<
+    DETask | null
+  >(null);
 
-      try {
-        const response = await fetch(`/api/clients/${clientId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setClientName(data.name || `Client ${clientId}`);
-          setClientEmail(data.email || "");
-          const pm = Number(data?.package?.totalMonths);
-          setPackageMonths(Number.isFinite(pm) && pm > 0 ? Math.floor(pm) : 1);
-          const dueRaw = data?.dueDate;
-          const due = dueRaw ? new Date(dueRaw) : null;
-          const over =
-            !!due && !isNaN(due.getTime()) && due.getTime() < Date.now();
-          setIsDueOver(over);
-        } else {
-          setClientName(`Client ${clientId}`);
-          setClientEmail("");
-        }
-      } catch (error) {
-        console.error("Error fetching client:", error);
-        setClientName(`Client ${clientId}`);
-        setClientEmail("");
-      }
+  // Button states from localStorage
+  const [showCreateTasksButton, setShowCreateTasksButton] = useState(true);
+  const [showRenewButton, setShowRenewButton] = useState(false);
+  const [showCreateNextButton, setShowCreateNextButton] = useState(false);
+  const [hasCreatedTasks, setHasCreatedTasks] = useState(false);
+
+  const [creatingPosting, setCreatingPosting] = useState(false);
+
+  // Task stats calculation
+  const taskStats = useMemo(() => {
+    const total = tasks.length;
+    const completed = tasks.filter(
+      (t) => t.status === "completed" || t.status === "qc_approved"
+    ).length;
+    const pending = tasks.filter((t) => t.status === "pending").length;
+    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
+    const overdue = tasks.filter((t) => {
+      if (!t.dueDate) return false;
+      return (
+        new Date(t.dueDate) < new Date() &&
+        (t.status === "pending" || t.status === "in_progress")
+      );
+    }).length;
+
+    return {
+      total,
+      completed,
+      pending,
+      inProgress,
+      overdue,
+      dataEntryCompleted: statsData?.dataEntryCompleted || 0,
+      last7Days: statsData?.last7Days || 0,
+      last30Days: statsData?.last30Days || 0,
     };
+  }, [tasks, statsData]);
 
-    fetchClientData();
-  }, [clientId]);
-
-  const loadStats = async () => {
-    if (!clientId) return;
-
-    try {
-      const today = new Date();
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(today.getDate() - 7);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(today.getDate() - 30);
-
-      // Fetch tasks with data entry reports
-      const res = await fetch(
-        `/api/tasks/data-entry-reports?clientId=${clientId}&pageSize=1000`
-      );
-
-      if (!res.ok) {
-        throw new Error(
-          `Failed to fetch data: ${res.status} ${res.statusText}`
-        );
-      }
-
-      const response = await res.json();
-      const data = Array.isArray(response?.data) ? response.data : [];
-
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response data");
-      }
-
-      // Calculate statistics
-      const total = data.length;
-      const completed = data.filter(
-        (t: any) => t.dataEntryStatus === "completed"
-      ).length;
-      // Per-user completed: strictly match JSON dataEntryReport.completedByUserId to logged-in user ID
-      const completedByMe = data.reduce((acc: number, t: any) => {
-        const rid = t?.dataEntryReport?.completedByUserId;
-        return acc + (user?.id && rid === user.id ? 1 : 0);
-      }, 0);
-      const last7Days = data.filter(
-        (t: any) =>
-          t.dataEntryCompletedAt &&
-          new Date(t.dataEntryCompletedAt) >= sevenDaysAgo
-      ).length;
-      const last30Days = data.filter(
-        (t: any) =>
-          t.dataEntryCompletedAt &&
-          new Date(t.dataEntryCompletedAt) >= thirtyDaysAgo
-      ).length;
-
-      // Group by status and priority
-      const byStatus: Record<string, number> = {};
-      const byPriority: Record<string, number> = {};
-
-      data.forEach((task: any) => {
-        // Count by status
-        const status = task.dataEntryStatus || "unknown";
-        byStatus[status] = (byStatus[status] || 0) + 1;
-
-        // Count by priority
-        const priority = task.taskPriority || "unknown";
-        byPriority[priority] = (byPriority[priority] || 0) + 1;
-      });
-
-      setStats((prev) => ({
-        ...prev,
-        dataEntryCompleted: completedByMe,
-        last7Days,
-        last30Days,
-        byStatus,
-        byPriority,
-      }));
-    } catch (error) {
-      console.error("Failed to load statistics:", error);
-    }
-  };
-
-  const load = async () => {
-    if (!clientId) return;
-    setLoading(true);
-    try {
-      const [tasksRes, aRes] = await Promise.all([
-        fetch(`/api/tasks/client/${clientId}`, { cache: "no-store" }),
-        fetch(`/api/users?role=agent&limit=200`, { cache: "no-store" }),
-      ]);
-
-      const tasksData = await tasksRes.json();
-      const mine = (tasksData as any[]).filter(
-        (t) => t?.assignedTo?.id && user?.id && t.assignedTo.id === user.id
-      );
-      setTasks(mine);
-
-      // Update basic stats
-      const total = mine.length;
-      const completed = mine.filter(
-        (t) => t.status === "completed" || t.status === "qc_approved"
-      ).length;
-      const pending = mine.filter((t) => t.status === "pending").length;
-      const inProgress = mine.filter((t) => t.status === "in_progress").length;
-      const overdue = mine.filter((t) => {
-        if (!t.dueDate) return false;
-        return (
-          new Date(t.dueDate) < new Date() &&
-          (t.status === "pending" || t.status === "in_progress")
-        );
-      }).length;
-
-      setStats((prev) => ({
-        ...prev,
-        total,
-        completed,
-        pending,
-        inProgress,
-        overdue,
-      }));
-
-      // Check if posting tasks already exist
-      const hasPostingTasks = mine.some(
-        (task: any) =>
-          task.name?.toLowerCase().includes("posting") ||
-          task.category?.name?.toLowerCase().includes("posting")
-      );
-      setHasCreatedTasks(hasPostingTasks);
-
-      const aJson = await aRes.json();
-      const list: Array<{
-        id: string;
-        name?: string | null;
-        email?: string | null;
-      }> = (aJson?.users ?? aJson?.data ?? [])
-        .filter((u: any) => u?.role?.name?.toLowerCase() === "agent")
-        .map((u: any) => ({
-          id: u.id,
-          name: u.name ?? null,
-          email: u.email ?? null,
-        }));
-      setAgents(list);
-
-      // Load statistics
-      await loadStats();
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to load tasks or agents");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Debounce search input
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId, user?.id]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Count tasks completed by the current Data Entry user
-  const dataEntryCompletedCount = useMemo(() => {
-    if (!user?.id) return 0;
-
-    return tasks.reduce((count, task: any) => {
-      const report = task?.dataEntryReport;
-      if (!report) return count;
-
-      const isCompletedByMe =
-        report.completedByUserId === user.id &&
-        typeof report.status === "string" &&
-        report.status.trim().toLowerCase() === "completed by data entry";
-
-      return isCompletedByMe ? count + 1 : count;
-    }, 0);
-  }, [tasks, user?.id]);
-
-  const filtered = useMemo(() => {
+  // Pre-indexed filtering for O(1) lookups
+  const filteredTasks = useMemo(() => {
     let result = tasks;
 
     // Apply search filter
-    const qlc = q.trim().toLowerCase();
-    if (qlc) {
+    if (debouncedSearch.trim()) {
+      const query = debouncedSearch.toLowerCase().trim();
       result = result.filter((t) =>
         [t.name, t.category?.name || "", t.priority || "", t.status || ""].some(
-          (s) => String(s).toLowerCase().includes(qlc)
+          (s) => String(s).toLowerCase().includes(query)
         )
       );
     }
@@ -403,7 +387,16 @@ export default function DataEntryCompleteTasksPanel({
     }
 
     return result;
-  }, [tasks, q, statusFilter, priorityFilter]);
+  }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
+
+  // Check if posting tasks already exist
+  const hasPostingTasks = useMemo(() =>
+    tasks.some((task: any) =>
+      task.name?.toLowerCase().includes("posting") ||
+      task.category?.name?.toLowerCase().includes("posting")
+    ),
+    [tasks]
+  );
 
   // Gate readiness by required categories fully QC-approved
   const requiredCategories = [
@@ -414,270 +407,280 @@ export default function DataEntryCompleteTasksPanel({
 
   const isReadyForPostingCreation = useMemo(() => {
     if (!tasks || tasks.length === 0) return false;
-    // For each required category: must exist and all in that category must be qc_approved
     return requiredCategories.every((cat) => {
       const inCat = tasks.filter(
         (t) => (t.category?.name || "").toLowerCase() === cat.toLowerCase()
       );
-      if (inCat.length === 0) return false; // must have tasks for this category
+      if (inCat.length === 0) return false;
       return inCat.every((t) => t.status === "qc_approved");
     });
   }, [tasks]);
 
-  const [creatingPosting, setCreatingPosting] = useState(false);
+  // Count tasks completed by the current Data Entry user
+  const dataEntryCompletedCount = useMemo(() => {
+    if (!user?.id) return 0;
+    return tasks.reduce((count, task: any) => {
+      const report = task?.dataEntryReport;
+      if (!report) return count;
+      const isCompletedByMe =
+        report.completedByUserId === user.id &&
+        typeof report.status === "string" &&
+        report.status.trim().toLowerCase() === "completed by data entry";
+      return isCompletedByMe ? count + 1 : count;
+    }, 0);
+  }, [tasks, user?.id]);
 
-  const createPostingTasks = async () => {
-    if (!clientId) return;
-    if (!isReadyForPostingCreation) {
-      toast.warning("Please complete & QC-approve all tasks first.");
-      return;
-    }
-    // Follow ClientUnifiedDashboard: route to role-scoped creation page
-    router.push(`${distributionBasePath}/client/${clientId}`);
-  };
+  // Optimized callback functions
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
 
-  const resetModal = () => {
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+  }, []);
+
+  const handlePriorityFilterChange = useCallback((value: string) => {
+    setPriorityFilter(value);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+  }, []);
+
+  const handleCreateTasksChoiceOpen = useCallback(() => {
+    setCreateTasksChoiceOpen(true);
+  }, []);
+
+  const handleCreateTasksChoiceClose = useCallback(() => {
+    setCreateTasksChoiceOpen(false);
+  }, []);
+
+  const handleTaskCreationComplete = useCallback(() => {
+    setHasCreatedTasks(true);
+    setCreateTasksChoiceOpen(false);
+    setShowCreateTasksButton(false);
+    setShowRenewButton(true);
+    refetchTasks();
+  }, [refetchTasks]);
+
+  const handleRenewComplete = useCallback(() => {
+    setShowRenewButton(false);
+    setShowCreateNextButton(true);
+  }, []);
+
+  const handleCreateNextComplete = useCallback(() => {
+    setShowCreateNextButton(false);
+  }, []);
+
+  const resetModal = useCallback(() => {
     setSelected(null);
     setLink("");
     setEmail("");
     setUsername("");
-    // Don't reset password - keep the last used one
     setDoneBy("");
     setCompletedAt(undefined);
-  };
+  }, []);
 
-  const isSimpleTask = (task: DETask | null) => {
-    if (!task?.category?.name) return false;
-    const simpleCategories = [
-      "Social Activity",
-      "Blog Posting",
-      "Image Optimization",
-      "Content Studio",
-    ];
-    return simpleCategories.includes(task.category.name);
-  };
+  const openComplete = useCallback(
+    (t: DETask) => {
+      setSelected(t);
+      setLink(t.completionLink || "");
+      setEmail(clientEmail || "");
+      setUsername("");
+      setPassword(password);
 
-  // Check if a task is a content writing task
-  const isContentWritingTask = (task: DETask | null) => {
-    if (!task?.category?.name) return false;
-    const contentWritingCategories = ["Content Writing", "Guest Posting"];
-    return contentWritingCategories.some((cat) =>
-      task.category?.name?.toLowerCase().includes(cat.toLowerCase())
-    );
-  };
-
-  // Check if a task is a review removal task
-  const isReviewRemovalTask = (task: DETask | null) => {
-    if (!task?.category) return false;
-    const nameLc = (task.category.name || "").toLowerCase();
-    const idLc = (task.category.id || "").toLowerCase();
-    return (
-      nameLc.includes("review removal") ||
-      nameLc === "review_removal" ||
-      idLc.includes("review_removal")
-    );
-  };
-
-  const isBacklinkingTask = (task: DETask | null) => {
-    if (!task?.category) return false;
-    const nameLc = (task.category.name || "").toLowerCase();
-    const idLc = (task.category.id || "").toLowerCase();
-    return nameLc.includes("backlinks") || idLc.includes("backlinks");
-  };
-
-  // Check if a task is a Summary Report task
-  const isSummaryReportTask = (task: DETask | null) => {
-    if (!task?.category) return false;
-    const nameLc = (task.category.name || "").toLowerCase();
-    const idLc = (task.category.id || "").toLowerCase();
-    return (
-      nameLc.includes("summary report") ||
-      nameLc === "summary_report" ||
-      idLc.includes("summary_report")
-    );
-  };
-
-  // Check if a task is a Monitoring task
-  const isMonitoringTask = (task: DETask | null) => {
-    if (!task?.category) return false;
-    const nameLc = (task.category.name || "").toLowerCase();
-    const idLc = (task.category.id || "").toLowerCase();
-    return nameLc.includes("monitoring") || idLc.includes("monitoring");
-  };
-
-  const openContentWritingModal = (task: DETask) => {
-    setSelectedContentTask(task);
-    setContentWritingModalOpen(true);
-  };
-
-  const closeContentWritingModal = () => {
-    setContentWritingModalOpen(false);
-    setSelectedContentTask(null);
-  };
-
-  const openReviewRemovalModal = (task: DETask) => {
-    setSelectedReviewRemovalTask(task);
-    setReviewRemovalModalOpen(true);
-  };
-
-  const closeReviewRemovalModal = () => {
-    setReviewRemovalModalOpen(false);
-    setSelectedReviewRemovalTask(null);
-  };
-
-  const openBacklinkingModal = (task: DETask) => {
-    setSelectedBacklinkingTask(task);
-    setBacklinkingModalOpen(true);
-  };
-
-  const closeBacklinkingModal = () => {
-    setBacklinkingModalOpen(false);
-    setSelectedBacklinkingTask(null);
-  };
-
-  const openSummaryReportModal = (task: DETask) => {
-    setSelectedSummaryReportTask(task);
-    setSummaryReportModalOpen(true);
-  };
-
-  const closeSummaryReportModal = () => {
-    setSummaryReportModalOpen(false);
-    setSelectedSummaryReportTask(null);
-  };
-
-  // Monitoring modal state
-  const [monitoringModalOpen, setMonitoringModalOpen] = useState(false);
-  const [selectedMonitoringTask, setSelectedMonitoringTask] =
-    useState<DETask | null>(null);
-  const openMonitoringModal = (task: DETask) => {
-    setSelectedMonitoringTask(task);
-    setMonitoringModalOpen(true);
-  };
-  const closeMonitoringModal = () => {
-    setMonitoringModalOpen(false);
-    setSelectedMonitoringTask(null);
-  };
-
-  const openComplete = (t: DETask) => {
-    setSelected(t);
-    setLink(t.completionLink || "");
-    // Auto-fill email with client email
-    setEmail(clientEmail || "");
-    setUsername(""); // Keep blank initially, will be auto-filled when link changes
-    // Don't reset password - keep the last used one
-    setPassword(password); // Keep current password value
-
-    // Set completed date: first try task's completedAt, then last used date, then current date
-    if (t.completedAt) {
-      const d = new Date(t.completedAt);
-      if (!isNaN(d.getTime())) {
-        setCompletedAt(d);
-        setLastUsedDate(d);
+      if (t.completedAt) {
+        const d = new Date(t.completedAt);
+        if (!isNaN(d.getTime())) {
+          setCompletedAt(d);
+          setLastUsedDate(d);
+        } else if (lastUsedDate) {
+          setCompletedAt(lastUsedDate);
+        } else {
+          setCompletedAt(new Date());
+        }
       } else if (lastUsedDate) {
         setCompletedAt(lastUsedDate);
       } else {
         setCompletedAt(new Date());
       }
-    } else if (lastUsedDate) {
-      setCompletedAt(lastUsedDate);
-    } else {
-      setCompletedAt(new Date());
-    }
 
-    // Set the last used agent if available
-    if (lastUsedAgent) {
-      setDoneBy(lastUsedAgent);
-    }
-  };
+      if (lastUsedAgent) {
+        setDoneBy(lastUsedAgent);
+      }
+    },
+    [clientEmail, password, lastUsedDate, lastUsedAgent]
+  );
 
-  // Function to extract username from URL
-  const extractUsernameFromUrl = (url: string): string => {
-    try {
-      const urlObj = new URL(url);
-      // Try to extract username from various URL patterns
-      // Look for common patterns like /user/username, /profile/username, etc.
-      const pathSegments = urlObj.pathname
-        .split("/")
-        .filter((segment) => segment.length > 0);
+  const submit = useCallback(
+    async () => {
+      if (!user?.id || !selected) return;
+      if (!link.trim()) {
+        toast.error("Completion link is required");
+        return;
+      }
+      if (!completedAt) {
+        toast.error("Please select a completion date");
+        return;
+      }
+      if (completedAt.getTime() > Date.now()) {
+        toast.error("Completed date cannot be in the future");
+        return;
+      }
+      if (!doneBy) {
+        toast.error("Please select an agent (Done by)");
+        return;
+      }
 
-      // Common patterns for username in URLs
-      for (let i = 0; i < pathSegments.length; i++) {
-        const segment = pathSegments[i];
-        // Skip common path segments that are unlikely to be usernames
-        if (
-          [
-            "user",
-            "profile",
-            "account",
-            "users",
-            "profiles",
-            "accounts",
-            "dashboard",
-            "settings",
-            "admin",
-            "api",
-            "auth",
-            "login",
-            "signup",
-            "register",
-          ].includes(segment.toLowerCase())
-        ) {
-          if (i + 1 < pathSegments.length) {
-            const nextSegment = pathSegments[i + 1];
-            // Check if next segment looks like a username (alphanumeric, not too long)
-            if (/^[a-zA-Z0-9._-]{3,30}$/.test(nextSegment)) {
-              return nextSegment;
-            }
-          }
+      if (doneBy) {
+        setLastUsedAgent(doneBy);
+      }
+
+      try {
+        const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: selected.id,
+            status: "completed",
+            actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
+            completionLink: link.trim(),
+            username: username.trim() || undefined,
+            email: email.trim() || undefined,
+            password: password || undefined,
+          }),
+        });
+        const j1 = await r1.json();
+        if (!r1.ok)
+          throw new Error(j1?.message || j1?.error || "Failed to complete task");
+
+        const r2 = await fetch(`/api/tasks/${selected.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: "completed",
+            completedAt: completedAt.toISOString(),
+            actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
+            dataEntryReport: {
+              completedByUserId: user.id,
+              completedByName: (user as any)?.name || (user as any)?.email || user.id,
+              completedBy: new Date().toISOString(),
+              status: "Completed by " + (user as any)?.name,
+            },
+          }),
+        });
+        const j2 = await r2.json();
+        if (!r2.ok) throw new Error(j2?.error || "Failed to set completed date");
+
+        if (doneBy && clientId) {
+          const distBody = {
+            clientId,
+            assignments: [
+              {
+                taskId: selected.id,
+                agentId: doneBy,
+                note: "Reassigned to actual performer by data_entry",
+                dueDate: selected.dueDate,
+              },
+            ],
+          } as any;
+          const rDist = await fetch(`/api/tasks/distribute`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(distBody),
+          });
+          const jDist = await rDist.json();
+          if (!rDist.ok)
+            throw new Error(
+              jDist?.error || "Failed to reassign task to selected agent"
+            );
         }
-        // If segment looks like a username (alphanumeric, not too long)
-        if (/^[a-zA-Z0-9._-]{3,30}$/.test(segment)) {
-          return segment;
-        }
-      }
 
-      // If no username found in path, try to extract from query parameters
-      const searchParams = urlObj.searchParams;
-      if (
-        searchParams.has("user") ||
-        searchParams.has("username") ||
-        searchParams.has("profile") ||
-        searchParams.has("u")
-      ) {
-        return (
-          searchParams.get("user") ||
-          searchParams.get("username") ||
-          searchParams.get("profile") ||
-          searchParams.get("u") ||
-          ""
-        );
-      }
+        const r3 = await fetch(`/api/tasks/${selected.id}/approve`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            performanceRating: "Good",
+            notes: doneBy ? `Done by agent: ${doneBy}` : undefined,
+          }),
+        });
+        const j3 = await r3.json();
+        if (!r3.ok) throw new Error(j3?.error || "Failed to approve task");
 
-      // Try to extract from fragment (hash)
-      const fragment = urlObj.hash.substring(1); // Remove the #
-      if (fragment && /^[a-zA-Z0-9._-]{3,30}$/.test(fragment)) {
-        return fragment;
+        toast.success("Task completed and QC approved");
+        resetModal();
+        refetchTasks();
+      } catch (e: any) {
+        console.error(e);
+        toast.error(e?.message || "Failed to submit");
       }
+    },
+    [user?.id, selected, link, completedAt, doneBy, clientId, username, email, password, resetModal, refetchTasks]
+  );
 
-      return "";
-    } catch {
-      return "";
-    }
-  };
-
-  // Load last used password from localStorage on mount
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        const savedPassword = localStorage.getItem("lastUsedPassword");
-        if (savedPassword) {
-          setLastUsedPassword(savedPassword);
-          setPassword(savedPassword);
-        }
+  const createPostingTasks = useCallback(
+    async () => {
+      if (!clientId) return;
+      if (!isReadyForPostingCreation) {
+        toast.warning("Please complete & QC-approve all tasks first.");
+        return;
       }
-    } catch {
-      // Ignore localStorage errors
-    }
+      router.push(`${distributionBasePath}/client/${clientId}`);
+    },
+    [clientId, isReadyForPostingCreation, router, distributionBasePath]
+  );
+
+  // Modal handlers
+  const openContentWritingModal = useCallback((task: DETask) => {
+    setSelectedContentTask(task);
+    setContentWritingModalOpen(true);
+  }, []);
+
+  const closeContentWritingModal = useCallback(() => {
+    setContentWritingModalOpen(false);
+    setSelectedContentTask(null);
+  }, []);
+
+  const openReviewRemovalModal = useCallback((task: DETask) => {
+    setSelectedReviewRemovalTask(task);
+    setReviewRemovalModalOpen(true);
+  }, []);
+
+  const closeReviewRemovalModal = useCallback(() => {
+    setReviewRemovalModalOpen(false);
+    setSelectedReviewRemovalTask(null);
+  }, []);
+
+  const openBacklinkingModal = useCallback((task: DETask) => {
+    setSelectedBacklinkingTask(task);
+    setBacklinkingModalOpen(true);
+  }, []);
+
+  const closeBacklinkingModal = useCallback(() => {
+    setBacklinkingModalOpen(false);
+    setSelectedBacklinkingTask(null);
+  }, []);
+
+  const openSummaryReportModal = useCallback((task: DETask) => {
+    setSelectedSummaryReportTask(task);
+    setSummaryReportModalOpen(true);
+  }, []);
+
+  const closeSummaryReportModal = useCallback(() => {
+    setSummaryReportModalOpen(false);
+    setSelectedSummaryReportTask(null);
+  }, []);
+
+  const openMonitoringModal = useCallback((task: DETask) => {
+    setSelectedMonitoringTask(task);
+    setMonitoringModalOpen(true);
+  }, []);
+
+  const closeMonitoringModal = useCallback(() => {
+    setMonitoringModalOpen(false);
+    setSelectedMonitoringTask(null);
   }, []);
 
   // Check button states from localStorage on mount
@@ -688,19 +691,12 @@ export default function DataEntryCompleteTasksPanel({
         const renewKey = `renewClicked_${clientId}`;
         const createNextKey = `createNextClicked_${clientId}`;
 
-        const createTasksClicked =
-          localStorage.getItem(createTasksKey) === "true";
+        const createTasksClicked = localStorage.getItem(createTasksKey) === "true";
         const renewClicked = localStorage.getItem(renewKey) === "true";
-        const createNextClicked =
-          localStorage.getItem(createNextKey) === "true";
+        const createNextClicked = localStorage.getItem(createNextKey) === "true";
 
-        // CreateTasksAuto button: hide if clicked
         setShowCreateTasksButton(!createTasksClicked);
-
-        // RenewButton: show only if CreateTasksAuto clicked AND RenewButton not clicked yet
         setShowRenewButton(createTasksClicked && !renewClicked);
-
-        // CreateNextButton: show only if RenewButton clicked AND CreateNextButton not clicked yet
         setShowCreateNextButton(renewClicked && !createNextClicked);
       }
     } catch {
@@ -730,7 +726,7 @@ export default function DataEntryCompleteTasksPanel({
         setUsername(extractedUsername);
       }
     }
-  }, [link, username]); // Added username to dependencies to prevent unnecessary re-runs
+  }, [link, username]);
 
   useEffect(() => {
     try {
@@ -753,117 +749,143 @@ export default function DataEntryCompleteTasksPanel({
     } catch {}
   }, [clientId, lastUsedAgent]);
 
-  const submit = async () => {
-    if (!user?.id || !selected) return;
-    if (!link.trim()) {
-      toast.error("Completion link is required");
-      return;
-    }
-    if (!completedAt) {
-      toast.error("Please select a completion date");
-      return;
-    }
-    if (completedAt.getTime() > Date.now()) {
-      toast.error("Completed date cannot be in the future");
-      return;
-    }
-
-    // Require agent selection
-    if (!doneBy) {
-      toast.error("Please select an agent (Done by)");
-      return;
-    }
-
-    // Save the selected agent as last used
-    if (doneBy) {
-      setLastUsedAgent(doneBy);
-    }
-
+  // Load last used password from localStorage on mount
+  useEffect(() => {
     try {
-      // 1) mark completed with link + credentials via agent endpoint (task is assigned to data_entry)
-      const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskId: selected.id,
-          status: "completed",
-          actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
-          completionLink: link.trim(),
-          username: username.trim() || undefined,
-          email: email.trim() || undefined,
-          password: password || undefined,
-        }),
-      });
-      const j1 = await r1.json();
-      if (!r1.ok)
-        throw new Error(j1?.message || j1?.error || "Failed to complete task");
+      if (typeof window !== "undefined") {
+        const savedPassword = localStorage.getItem("lastUsedPassword");
+        if (savedPassword) {
+          setLastUsedPassword(savedPassword);
+          setPassword(savedPassword);
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
 
-      const r2 = await fetch(`/api/tasks/${selected.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "completed",
-          // Agent's actual completion time from DatePicker
-          completedAt: completedAt.toISOString(),
-          actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
-          // Server will set dataEntryReport.completedAt
-          dataEntryReport: {
-            completedByUserId: user.id,
-            completedByName:
-              (user as any)?.name || (user as any)?.email || user.id,
-            completedBy: new Date().toISOString(),
-            status: "Completed by " + (user as any)?.name,
-          },
-        }),
-      });
-      const j2 = await r2.json();
-      if (!r2.ok) throw new Error(j2?.error || "Failed to set completed date");
+  // Helper functions
+  const isSimpleTask = useCallback((task: DETask | null) => {
+    if (!task?.category?.name) return false;
+    const simpleCategories = [
+      "Social Activity",
+      "Blog Posting",
+      "Image Optimization",
+      "Content Studio",
+    ];
+    return simpleCategories.includes(task.category.name);
+  }, []);
 
-      // 2.5) reassign to the selected 'doneBy' agent (if provided) so the task ownership reflects who actually did it
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId,
-          assignments: [
-            {
-              taskId: selected.id,
-              agentId: doneBy,
-              note: "Reassigned to actual performer by data_entry",
-              dueDate: selected.dueDate,
-            },
-          ],
-        } as any;
-        const rDist = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        const jDist = await rDist.json();
-        if (!rDist.ok)
-          throw new Error(
-            jDist?.error || "Failed to reassign task to selected agent"
-          );
+  const isContentWritingTask = useCallback((task: DETask | null) => {
+    if (!task?.category?.name) return false;
+    const contentWritingCategories = ["Content Writing", "Guest Posting"];
+    return contentWritingCategories.some((cat) =>
+      task.category?.name?.toLowerCase().includes(cat.toLowerCase())
+    );
+  }, []);
+
+  const isReviewRemovalTask = useCallback((task: DETask | null) => {
+    if (!task?.category) return false;
+    const nameLc = (task.category.name || "").toLowerCase();
+    const idLc = (task.category.id || "").toLowerCase();
+    return (
+      nameLc.includes("review removal") ||
+      nameLc === "review_removal" ||
+      idLc.includes("review_removal")
+    );
+  }, []);
+
+  const isBacklinkingTask = useCallback((task: DETask | null) => {
+    if (!task?.category) return false;
+    const nameLc = (task.category.name || "").toLowerCase();
+    const idLc = (task.category.id || "").toLowerCase();
+    return nameLc.includes("backlinks") || idLc.includes("backlinks");
+  }, []);
+
+  const isSummaryReportTask = useCallback((task: DETask | null) => {
+    if (!task?.category) return false;
+    const nameLc = (task.category.name || "").toLowerCase();
+    const idLc = (task.category.id || "").toLowerCase();
+    return (
+      nameLc.includes("summary report") ||
+      nameLc === "summary_report" ||
+      idLc.includes("summary_report")
+    );
+  }, []);
+
+  const isMonitoringTask = useCallback((task: DETask | null) => {
+    if (!task?.category) return false;
+    const nameLc = (task.category.name || "").toLowerCase();
+    const idLc = (task.category.id || "").toLowerCase();
+    return nameLc.includes("monitoring") || idLc.includes("monitoring");
+  }, []);
+
+  // Function to extract username from URL
+  const extractUsernameFromUrl = useCallback((url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      const pathSegments = urlObj.pathname
+        .split("/")
+        .filter((segment) => segment.length > 0);
+
+      for (let i = 0; i < pathSegments.length; i++) {
+        const segment = pathSegments[i];
+        if (
+          [
+            "user",
+            "profile",
+            "account",
+            "users",
+            "profiles",
+            "accounts",
+            "dashboard",
+            "settings",
+            "admin",
+            "api",
+            "auth",
+            "login",
+            "signup",
+            "register",
+          ].includes(segment.toLowerCase())
+        ) {
+          if (i + 1 < pathSegments.length) {
+            const nextSegment = pathSegments[i + 1];
+            if (/^[a-zA-Z0-9._-]{3,30}$/.test(nextSegment)) {
+              return nextSegment;
+            }
+          }
+        }
+        if (/^[a-zA-Z0-9._-]{3,30}$/.test(segment)) {
+          return segment;
+        }
       }
 
-      // 3) auto approve → qc_approved (include notes with doneBy)
-      const r3 = await fetch(`/api/tasks/${selected.id}/approve`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          performanceRating: "Good",
-          notes: doneBy ? `Done by agent: ${doneBy}` : undefined,
-        }),
-      });
-      const j3 = await r3.json();
-      if (!r3.ok) throw new Error(j3?.error || "Failed to approve task");
+      const searchParams = urlObj.searchParams;
+      if (
+        searchParams.has("user") ||
+        searchParams.has("username") ||
+        searchParams.has("profile") ||
+        searchParams.has("u")
+      ) {
+        return (
+          searchParams.get("user") ||
+          searchParams.get("username") ||
+          searchParams.get("profile") ||
+          searchParams.get("u") ||
+          ""
+        );
+      }
 
-      toast.success("Task completed and QC approved");
-      resetModal();
-      load();
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.message || "Failed to submit");
+      const fragment = urlObj.hash.substring(1);
+      if (fragment && /^[a-zA-Z0-9._-]{3,30}$/.test(fragment)) {
+        return fragment;
+      }
+
+      return "";
+    } catch {
+      return "";
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -882,7 +904,7 @@ export default function DataEntryCompleteTasksPanel({
           </CardHeader>
           <CardContent className="relative">
             <div className="text-5xl font-black text-white mb-2 tracking-tight">
-              {stats.total}
+              {taskStats.total}
             </div>
             <p className="text-sm text-white/80 font-medium">Assigned to you</p>
             <div className="absolute bottom-0 right-0 opacity-10">
@@ -904,7 +926,7 @@ export default function DataEntryCompleteTasksPanel({
           </CardHeader>
           <CardContent className="relative">
             <div className="text-5xl font-black text-white mb-2 tracking-tight">
-              {stats.dataEntryCompleted}
+              {taskStats.dataEntryCompleted}
             </div>
             <p className="text-sm text-white/80 font-medium">
               Completed by you
@@ -928,10 +950,10 @@ export default function DataEntryCompleteTasksPanel({
           </CardHeader>
           <CardContent className="relative">
             <div className="text-5xl font-black text-white mb-2 tracking-tight">
-              {stats.overdue}
+              {taskStats.overdue}
             </div>
             <p className="text-sm text-white/80 font-medium">
-              {stats.last7Days} last 7d • {stats.last30Days} last 30d
+              {taskStats.last7Days} last 7d • {taskStats.last30Days} last 30d
             </p>
             <div className="absolute bottom-0 right-0 opacity-10">
               <AlertCircle className="h-32 w-32 text-white" />
@@ -965,7 +987,7 @@ export default function DataEntryCompleteTasksPanel({
               <div className="flex items-center gap-4">
                 {showCreateTasksButton && (
                   <Button
-                    onClick={() => setCreateTasksChoiceOpen(true)}
+                    onClick={handleCreateTasksChoiceOpen}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     Create Posting Tasks
@@ -977,19 +999,7 @@ export default function DataEntryCompleteTasksPanel({
                     clientId={clientId}
                     templateId={undefined}
                     packageMonths={packageMonths}
-                    onRenewComplete={() => {
-                      // Mark RenewButton as clicked
-                      try {
-                        if (typeof window !== "undefined") {
-                          const key = `renewClicked_${clientId}`;
-                          localStorage.setItem(key, "true");
-                          setShowRenewButton(false);
-                          setShowCreateNextButton(true);
-                        }
-                      } catch {
-                        // Ignore localStorage errors
-                      }
-                    }}
+                    onRenewComplete={handleRenewComplete}
                   />
                 )}
 
@@ -997,24 +1007,13 @@ export default function DataEntryCompleteTasksPanel({
                   <CreateNextTasksAuto
                     clientId={clientId}
                     assigneeId={lastUsedAgent || undefined}
-                    onComplete={() => {
-                      // Mark CreateNextButton as clicked
-                      try {
-                        if (typeof window !== "undefined") {
-                          const key = `createNextClicked_${clientId}`;
-                          localStorage.setItem(key, "true");
-                          setShowCreateNextButton(false);
-                        }
-                      } catch {
-                        // Ignore localStorage errors
-                      }
-                    }}
+                    onComplete={handleCreateNextComplete}
                   />
                 )}
               </div>
               <Dialog
                 open={createTasksChoiceOpen}
-                onOpenChange={setCreateTasksChoiceOpen}
+                onOpenChange={handleCreateTasksChoiceClose}
               >
                 <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
@@ -1029,22 +1028,7 @@ export default function DataEntryCompleteTasksPanel({
                       </p>
                       <CreateTasksAuto
                         clientId={clientId}
-                        onTaskCreationComplete={() => {
-                          setHasCreatedTasks(true);
-                          setCreateTasksChoiceOpen(false);
-                          // Mark CreateTasksAuto as clicked
-                          try {
-                            if (typeof window !== "undefined") {
-                              const key = `createTasksClicked_${clientId}`;
-                              localStorage.setItem(key, "true");
-                              setShowCreateTasksButton(false);
-                              setShowRenewButton(true);
-                            }
-                          } catch {
-                            // Ignore localStorage errors
-                          }
-                          load();
-                        }}
+                        onTaskCreationComplete={handleTaskCreationComplete}
                       />
                     </div>
                     {/* <div className="rounded-lg border p-4">
@@ -1082,8 +1066,8 @@ export default function DataEntryCompleteTasksPanel({
                 <Search className="h-5 w-5" />
               </div>
               <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search tasks by name, category, priority..."
                 className="pl-12 h-14 rounded-2xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 text-base font-medium shadow-sm transition-all"
               />
@@ -1131,7 +1115,7 @@ export default function DataEntryCompleteTasksPanel({
                         </div>
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : filteredTasks.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-24">
                         <div className="flex flex-col items-center gap-6">
@@ -1147,18 +1131,14 @@ export default function DataEntryCompleteTasksPanel({
                             </p>
                           </div>
                         </div>
-                        {q ||
+                        {searchQuery ||
                         statusFilter !== "all" ||
                         priorityFilter !== "all" ? (
                           <div className="mt-6 flex justify-center">
                             <Button
                               variant="outline"
                               className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all"
-                              onClick={() => {
-                                setQ("");
-                                setStatusFilter("all");
-                                setPriorityFilter("all");
-                              }}
+                              onClick={handleClearFilters}
                             >
                               Clear filters
                             </Button>
@@ -1167,7 +1147,7 @@ export default function DataEntryCompleteTasksPanel({
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((t) => {
+                    filteredTasks.map((t) => {
                       const isOverdue =
                         t.dueDate &&
                         new Date(t.dueDate) < new Date() &&
@@ -1356,88 +1336,100 @@ export default function DataEntryCompleteTasksPanel({
         </CardContent>
       </Card>
 
-      <CompletionDialog
-        selected={selected}
-        open={!!selected}
-        link={link}
-        email={email}
-        username={username}
-        password={password}
-        doneBy={doneBy}
-        completedAt={completedAt}
-        clientEmail={clientEmail}
-        lastUsedPassword={lastUsedPassword}
-        agents={agents}
-        agentSearchTerm={agentSearchTerm}
-        setLink={setLink}
-        setEmail={setEmail}
-        setUsername={setUsername}
-        setPassword={setPassword}
-        setDoneBy={setDoneBy}
-        setAgentSearchTerm={setAgentSearchTerm}
-        setCompletedAt={setCompletedAt}
-        resetModal={resetModal}
-        submit={submit}
-        setLastUsedAgent={setLastUsedAgent}
-        setLastUsedDate={setLastUsedDate}
-        isSimpleTask={isSimpleTask}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyCompletionDialog
+          selected={selected}
+          open={!!selected}
+          link={link}
+          email={email}
+          username={username}
+          password={password}
+          doneBy={doneBy}
+          completedAt={completedAt}
+          clientEmail={clientEmail}
+          lastUsedPassword={lastUsedPassword}
+          agents={agents}
+          agentSearchTerm={agentSearchTerm}
+          setLink={setLink}
+          setEmail={setEmail}
+          setUsername={setUsername}
+          setPassword={setPassword}
+          setDoneBy={setDoneBy}
+          setAgentSearchTerm={setAgentSearchTerm}
+          setCompletedAt={setCompletedAt}
+          resetModal={resetModal}
+          submit={submit}
+          setLastUsedAgent={setLastUsedAgent}
+          setLastUsedDate={setLastUsedDate}
+          isSimpleTask={isSimpleTask}
+        />
+      </Suspense>
 
       {/* Content Writing Modal */}
-      <ContentWritingModal
-        open={contentWritingModalOpen}
-        onOpenChange={setContentWritingModalOpen}
-        task={selectedContentTask}
-        clientId={clientId}
-        onSuccess={() => {
-          closeContentWritingModal();
-          load(); // Refresh the task list
-        }}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyContentWritingModal
+          open={contentWritingModalOpen}
+          onOpenChange={setContentWritingModalOpen}
+          task={selectedContentTask}
+          clientId={clientId}
+          onSuccess={() => {
+            closeContentWritingModal();
+            refetchTasks();
+          }}
+        />
+      </Suspense>
 
       {/* Review Removal Modal */}
-      <ReviewRemovalModal
-        open={reviewRemovalModalOpen}
-        onOpenChange={setReviewRemovalModalOpen}
-        task={selectedReviewRemovalTask}
-        clientId={clientId}
-        onSuccess={() => {
-          closeReviewRemovalModal();
-          load();
-        }}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyReviewRemovalModal
+          open={reviewRemovalModalOpen}
+          onOpenChange={setReviewRemovalModalOpen}
+          task={selectedReviewRemovalTask}
+          clientId={clientId}
+          onSuccess={() => {
+            closeReviewRemovalModal();
+            refetchTasks();
+          }}
+        />
+      </Suspense>
 
-      <BacklinkingModal
-        open={backlinkingModalOpen}
-        onOpenChange={setBacklinkingModalOpen}
-        task={selectedBacklinkingTask}
-        clientId={clientId}
-        onSuccess={() => {
-          closeBacklinkingModal();
-          load();
-        }}
-      />
-      <SummaryReportModal
-        open={summaryReportModalOpen}
-        onOpenChange={setSummaryReportModalOpen}
-        task={selectedSummaryReportTask}
-        clientId={clientId}
-        onSuccess={() => {
-          closeSummaryReportModal();
-          load();
-        }}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyBacklinkingModal
+          open={backlinkingModalOpen}
+          onOpenChange={setBacklinkingModalOpen}
+          task={selectedBacklinkingTask}
+          clientId={clientId}
+          onSuccess={() => {
+            closeBacklinkingModal();
+            refetchTasks();
+          }}
+        />
+      </Suspense>
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazySummaryReportModal
+          open={summaryReportModalOpen}
+          onOpenChange={setSummaryReportModalOpen}
+          task={selectedSummaryReportTask}
+          clientId={clientId}
+          onSuccess={() => {
+            closeSummaryReportModal();
+            refetchTasks();
+          }}
+        />
+      </Suspense>
       {/* Monitoring Dialog */}
-      <MonitoringDialog
-        open={monitoringModalOpen}
-        onOpenChange={closeMonitoringModal}
-        task={selectedMonitoringTask}
-        clientId={clientId}
-        onSuccess={() => {
-          closeMonitoringModal();
-          load();
-        }}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LazyMonitoringDialog
+          open={monitoringModalOpen}
+          onOpenChange={closeMonitoringModal}
+          task={selectedMonitoringTask}
+          clientId={clientId}
+          onSuccess={() => {
+            closeMonitoringModal();
+            refetchTasks();
+          }}
+        />
+      </Suspense>
     </div>
   );
 }
