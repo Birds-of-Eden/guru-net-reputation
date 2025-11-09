@@ -43,6 +43,12 @@ function timeAgo(iso?: string | null) {
   return `${d}d ago`;
 }
 
+// Function to check if an agent can message a user with the given role
+function canMessageTo(roleName?: string): boolean {
+  const allowedRoles = ['agent', 'admin', 'manager', 'data_entry', 'qc'];
+  return roleName ? allowedRoles.includes(roleName.toLowerCase()) : false;
+}
+
 export default function ChatPage() {
   const { user: me } = useUserSession();
 
@@ -67,6 +73,9 @@ export default function ChatPage() {
     isLoading: rosterLoading,
     mutate: refetchRoster,
   } = useRoster(debounced);
+
+  const filteredOnline = online.filter((u: any) => canMessageTo(u.role?.name));
+  const filteredOffline = offline.filter((u: any) => canMessageTo(u.role?.name));
 
   useEffect(() => {
     if (!activeId && conversations.length) setActiveId(conversations[0].id);
@@ -106,13 +115,13 @@ export default function ChatPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold">Conversations</h2>
             <BackgroundGradient>
-            <button
-              type="button"
-              className="px-2 py-1 text-sm rounded bg-transparent text-white"
-              onClick={handleCreateDMManual}
-            >
-              + DM
-            </button>
+              <button
+                type="button"
+                className="px-2 py-1 text-sm rounded bg-transparent text-white"
+                onClick={handleCreateDMManual}
+              >
+                + DM
+              </button>
             </BackgroundGradient>
           </div>
 
@@ -122,7 +131,10 @@ export default function ChatPage() {
             <ul className="space-y-1 overflow-auto max-h-[38vh] pr-1">
               {conversations.map((c: any) => {
                 const title = getConversationTitle(c, me?.id ?? undefined);
-                const subtitle = getConversationSubtitle(c, me?.id ?? undefined);
+                const subtitle = getConversationSubtitle(
+                  c,
+                  me?.id ?? undefined
+                );
                 return (
                   <li key={c.id}>
                     <button
@@ -179,13 +191,13 @@ export default function ChatPage() {
           {/* Online */}
           <div className="mb-2">
             <div className="text-xs font-semibold text-emerald-700 mb-1">
-              Online ({counts.online})
+              Online ({filteredOnline.length})
             </div>
             {rosterLoading && !online.length ? (
               <div className="text-xs text-gray-500">Loading…</div>
-            ) : online.length ? (
+            ) : filteredOnline.length ? (
               <ul className="space-y-1 max-h-[22vh] overflow-auto pr-1">
-                {online.map((u: any) => (
+                {filteredOnline.map((u: any) => (
                   <li key={u.id}>
                     <button
                       type="button"
@@ -214,11 +226,11 @@ export default function ChatPage() {
           {/* Offline */}
           <div>
             <div className="text-xs font-semibold text-gray-700 mb-1">
-              Offline ({counts.offline})
+              Offline ({filteredOffline.length})
             </div>
-            {offline.length ? (
+            {filteredOffline.length ? (
               <ul className="space-y-1 max-h-[22vh] overflow-auto pr-1">
-                {offline.map((u: any) => (
+                {filteredOffline.map((u: any) => (
                   <li key={u.id}>
                     <button
                       type="button"
