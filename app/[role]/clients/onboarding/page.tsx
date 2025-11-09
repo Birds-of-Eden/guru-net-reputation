@@ -8,6 +8,7 @@ import type { OnboardingFormData } from "@/types/onboarding";
 import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
 import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
 import { StepIndicator } from "@/components/onboarding/step-indicator";
+import { OnboardingFormSkeleton } from "@/components/onboarding/onboarding-form-skeleton";
 
 // ⚡ OPTIMIZED: Dynamic imports - Load components only when needed!
 const AddClientAskPage = lazy(() => import("@/components/onboarding/AddClientAsk").then(m => ({ default: m.AddClientAskPage })));
@@ -136,7 +137,7 @@ export default function OnboardingPage() {
   );
 
   if (!CurrentStepComponent) {
-    return <div>Step not found</div>;
+    return <OnboardingFormSkeleton />;
   }
 
   return (
@@ -187,10 +188,24 @@ export default function OnboardingPage() {
               <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-violet-500/10 to-transparent rounded-tl-3xl" />
               <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-fuchsia-500/10 to-transparent rounded-br-3xl" />
 
-              {/* ⚡ OPTIMIZED: Suspense wrapper for lazy-loaded components */}
+              {/* ⚡ OPTIMIZED: Suspense wrapper for lazy-loaded components with skeleton */}
               <Suspense fallback={
-                <div className="flex items-center justify-center py-20">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600" />
+                <div className="space-y-6 animate-pulse py-8">
+                  {/* Form Fields Skeleton */}
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={`field-${index}`} className="space-y-2">
+                      <div className="h-4 w-32 bg-gray-200 rounded" />
+                      <div className="h-10 w-full bg-gray-200 rounded-md" />
+                    </div>
+                  ))}
+                  {/* Buttons Skeleton */}
+                  <div className="flex justify-between pt-6">
+                    <div className="h-11 w-32 bg-gray-200 rounded-md" />
+                    <div className="flex gap-3">
+                      <div className="h-11 w-28 bg-gray-200 rounded-md" />
+                      <div className="h-11 w-28 bg-gray-200 rounded-md" />
+                    </div>
+                  </div>
                 </div>
               }>
                 <CurrentStepComponent

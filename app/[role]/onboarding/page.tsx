@@ -16,6 +16,7 @@ import { ArticlesSelection } from "@/components/onboarding/articles-selection";
 import type { OnboardingFormData } from "@/types/onboarding";
 import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
 import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
+import { OnboardingFormSkeleton } from "@/components/onboarding/onboarding-form-skeleton";
 
 const steps = [
   { id: 1, title: "General Info", component: GeneralInfo },
@@ -81,7 +82,7 @@ export default function OnboardingPage() {
   )?.component;
 
   if (!CurrentStepComponent) {
-    return <div>Step not found</div>;
+    return <OnboardingFormSkeleton />;
   }
 
   return (
