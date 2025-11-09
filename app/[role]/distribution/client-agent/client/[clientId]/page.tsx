@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import useSWR from "swr";
 import { useParams, useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 import {
@@ -360,9 +361,26 @@ export default function CreatePostingTasksPage() {
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
 
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  // SWR fetchers
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch");
+    return res.json();
+  };
 
-  const [templates, setTemplates] = useState<Template[]>([]);
+  // Client details
+  const { data: selectedClient } = useSWR<Client>(
+    clientId ? `/api/clients/${clientId}` : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
+
+  // Templates (rarely change)
+  const { data: templates = [] } = useSWR<Template[]>(
+    "/api/templates",
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 300000, refreshInterval: 300000 }
+  );
   const [templateId, setTemplateId] = useState<string>("auto");
 
   // UI enums (server ignores status; keeps priority override optional)
@@ -376,19 +394,37 @@ export default function CreatePostingTasksPage() {
   const [createdTasks, setCreatedTasks] = useState<CreatedTask[]>([]);
   const [search, setSearch] = useState("");
 
-  const [existingTasks, setExistingTasks] = useState<CreatedTask[]>([]);
-  const [loadingExistingTasks, setLoadingExistingTasks] = useState(false);
+  // Existing posting tasks
+  const {
+    data: existingTasks = [],
+    isLoading: loadingExistingTasks,
+    mutate: mutateExistingTasks,
+  } = useSWR<CreatedTask[]>(
+    clientId
+      ? `/api/tasks?clientId=${clientId}&categories=Social Activity,Blog Posting,Social Communication`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
 
   // ---------- NEW: preview state ----------
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [preview, setPreview] = useState<{
-    tasks: SourcePreview[];
-    countsByStatus: CountsByStatus;
-    allApproved: boolean;
-    totalWillCreate: number;
-  }>({
-    tasks: [],
-    countsByStatus: {
+  // Preview via SWR (depends on clientId + templateId)
+  const {
+    data: previewData,
+    isLoading: previewLoading,
+    mutate: mutatePreview,
+  } = useSWR(
+    clientId ? ["/api/tasks/create-posting-tasks", clientId, templateId] : null,
+    async () => {
+      const params = new URLSearchParams({ clientId });
+      if (templateId && templateId !== "auto") params.set("templateId", templateId);
+      return fetcher(`/api/tasks/create-posting-tasks?${params.toString()}`);
+    },
+    { revalidateOnFocus: false, dedupingInterval: 20000 }
+  );
+
+  const preview = useMemo(() => {
+    const defaults: CountsByStatus = {
       pending: 0,
       in_progress: 0,
       completed: 0,
@@ -396,125 +432,31 @@ export default function CreatePostingTasksPage() {
       cancelled: 0,
       reassigned: 0,
       qc_approved: 0,
-    },
-    allApproved: false,
-    totalWillCreate: 0,
-  });
+    };
+    return {
+      tasks: Array.isArray((previewData as any)?.tasks)
+        ? ((previewData as any).tasks as SourcePreview[])
+        : [],
+      countsByStatus: (previewData as any)?.countsByStatus ?? defaults,
+      allApproved: !!(previewData as any)?.allApproved,
+      totalWillCreate: (previewData as any)?.totalWillCreate ?? 0,
+    };
+  }, [previewData]);
 
   const [clientModalOpen, setClientModalOpen] = useState(false);
 
-  const fetchExistingTasks = async () => {
-    if (!clientId) return; // Use clientId instead of selectedClientId
-    setLoadingExistingTasks(true);
-    try {
-      const res = await fetch(
-        `/api/tasks?clientId=${clientId}&categories=Social Activity,Blog Posting,Social Communication`,
-        {
-          cache: "no-store",
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setExistingTasks(Array.isArray(data?.tasks) ? data.tasks : []);
-      } else {
-        setExistingTasks([]);
-      }
-    } catch (e: any) {
-      console.error("Failed to fetch existing tasks:", e);
-      setExistingTasks([]);
-    } finally {
-      setLoadingExistingTasks(false);
-    }
-  };
+  // Removed imperative fetch functions; SWR handles fetching above
 
-  const fetchPreview = async () => {
-    if (!clientId) return; // Use clientId instead of selectedClientId
-    setPreviewLoading(true);
-    try {
-      const params = new URLSearchParams({ clientId });
-      // only pass templateId if not "auto"
-      if (templateId && templateId !== "auto")
-        params.set("templateId", templateId);
-      const res = await fetch(
-        `/api/tasks/create-posting-tasks?${params.toString()}`,
-        { cache: "no-store" }
-      );
-      const json = await res.json();
-      if (!res.ok) {
-        toast.error(json?.message || "Failed to load preview");
-        return;
-      }
-      setPreview({
-        tasks: json.tasks || [],
-        countsByStatus: json.countsByStatus || preview.countsByStatus,
-        allApproved: !!json.allApproved,
-        totalWillCreate: json.totalWillCreate ?? 0,
-      });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to load preview");
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  // Fetch client + templates
+  // Reset local UI when client changes
   useEffect(() => {
     if (!clientId) {
-      setSelectedClient(null);
-      setTemplates([]);
       setTemplateId("auto");
       setCreatedCount(null);
       setCreatedTasks([]);
-      setExistingTasks([]);
-      setPreview({
-        tasks: [],
-        countsByStatus: {
-          pending: 0,
-          in_progress: 0,
-          completed: 0,
-          overdue: 0,
-          cancelled: 0,
-          reassigned: 0,
-          qc_approved: 0,
-        },
-        allApproved: false,
-        totalWillCreate: 0,
-      });
-      return;
     }
-    (async () => {
-      try {
-        const res = await fetch(`/api/clients/${clientId}`, {
-          cache: "no-store",
-        });
-        const client = (await res.json()) as Client;
-        setSelectedClient(client);
-      } catch {
-        toast.error("Failed to load client details");
-      }
-    })();
-    (async () => {
-      try {
-        const res = await fetch(`/api/templates`, { cache: "no-store" });
-        if (res.ok) {
-          const data = (await res.json()) as Template[];
-          setTemplates(data ?? []);
-        } else {
-          setTemplates([]);
-        }
-      } catch {
-        setTemplates([]);
-      }
-    })();
+  }, [clientId]);
 
-    fetchExistingTasks();
-  }, [clientId]); // Depend on clientId instead of selectedClientId
-
-  // Fetch preview when client or template changes
-  useEffect(() => {
-    if (clientId) fetchPreview(); // Use clientId instead of selectedClientId
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId, templateId]);
+  // SWR key reacts to [clientId, templateId]
 
   const filteredCreatedTasks = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -587,9 +529,8 @@ export default function CreatePostingTasksPage() {
       setCreatedCount(tasksRaw.length);
 
       toast.success(json?.message || `Created ${tasksRaw.length} task(s).`);
-      // refresh preview (copies now exist -> frequency names may de-dup)
-      fetchPreview();
-      fetchExistingTasks();
+      // ⚡ OPTIMIZED: Use SWR mutate instead of manual fetch functions
+      await Promise.all([mutatePreview(), mutateExistingTasks()]);
     } catch (err: any) {
       toast.error("Task creation failed", {
         description: err?.message ?? "Unknown error",
@@ -768,7 +709,7 @@ export default function CreatePostingTasksPage() {
                 <div className="flex items-center gap-3">
                   <Button
                     variant="outline"
-                    onClick={fetchPreview}
+                    onClick={() => mutatePreview()}
                     disabled={previewLoading}
                     className="h-10 bg-white/80 backdrop-blur-sm border-cyan-300 text-cyan-700 hover:bg-cyan-50"
                   >

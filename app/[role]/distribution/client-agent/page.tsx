@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 
@@ -79,28 +80,35 @@ export default function ClientUnifiedDashboard() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("all");
 
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load clients");
+    return res.json();
+  };
+
+  const { data, isLoading, error } = useSWR(
+    "/api/tasks/clients",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
+  );
+
+  const clients: Client[] = useMemo(() => {
+    return Array.isArray((data as any)?.clients) ? ((data as any).clients as Client[]) : [];
+  }, [data]);
+
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const res = await fetch("/api/tasks/clients", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load clients");
-        const data = await res.json();
-        setClients(Array.isArray(data?.clients) ? data.clients : []);
-      } catch (err: any) {
-        console.error(err);
-        toast.error(err?.message ?? "Failed to load clients");
-        setClients([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchClients();
-  }, []);
+    if (error) {
+      const msg = error instanceof Error ? error.message : "Failed to load clients";
+      toast.error(msg);
+    }
+  }, [error]);
 
   // Unique package names for the filter dropdown
   const packageOptions = useMemo(() => {
@@ -334,7 +342,7 @@ export default function ClientUnifiedDashboard() {
             </div>
 
             {/* Client Grid */}
-            {loading ? (
+            {isLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent" />
                 <span className="ml-4 text-lg text-slate-600">

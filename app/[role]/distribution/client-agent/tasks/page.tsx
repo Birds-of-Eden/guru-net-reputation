@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
+import useSWR from "swr";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 import {
@@ -236,7 +237,6 @@ export default function CreatedTasksPage() {
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
 
-  const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
 
@@ -265,84 +265,76 @@ export default function CreatedTasksPage() {
   // incoming client selection via query param
   const clientId = params.get("clientId") ?? "";
 
-  const fetchClientInfo = async (id: string) => {
-    try {
-      const res = await fetch(`/api/clients/${id}`, { cache: "no-store" });
-      if (!res.ok) return;
-      const c = await res.json();
-      setClient({
-        id: c.id,
-        name: c.name ?? "",
-        company: c.company ?? null,
-        avatar: c.avatar ?? null,
-        status: c.status ?? null,
-        package: c.package ? { name: c.package.name ?? null } : null,
-      });
-    } catch {
-      // silent: header is optional
-    }
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
+    return res.json();
   };
 
-  // Fetch tasks
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const qs = new URLSearchParams();
-      if (clientId) qs.set("clientId", clientId);
-      if (q.trim()) qs.set("q", q.trim());
-      if (status !== "all") qs.set("status", status);
-      if (priority !== "all") qs.set("priority", priority);
-      if (category !== "all") qs.set("category", category);
-
-      const res = await fetch(`/api/tasks/created?${qs.toString()}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) throw new Error(`Failed to load tasks (${res.status})`);
-      const data = await res.json();
-
-      setTasks(data.tasks || []);
-      setSummary(data.summary || null);
-
-      // ✅ Try to grab client from tasks (the route now returns `task.client`)
-      if (clientId) {
-        const firstWithClient = (data.tasks || []).find(
-          (t: any) => t.client
-        )?.client;
-        if (firstWithClient) {
-          setClient({
-            id: firstWithClient.id,
-            name: firstWithClient.name ?? "",
-            company: firstWithClient.company ?? null,
-            avatar: firstWithClient.avatar ?? null,
-            status: firstWithClient.status ?? null,
-            package: firstWithClient.package
-              ? { name: firstWithClient.package.name ?? null }
-              : null,
-          });
-        } else {
-          // Fallback if there are no tasks yet
-          await fetchClientInfo(clientId);
-        }
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.message ?? "Failed to load tasks");
-      setTasks([]);
-      setSummary(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Debounced search
+  const [debouncedQ, setDebouncedQ] = useState("");
   useEffect(() => {
-    fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId]);
-
-  useEffect(() => {
-    const t = setTimeout(() => fetchTasks(), 300);
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
+  // SWR for tasks list + summary
+  const tasksKey = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (clientId) qs.set("clientId", clientId);
+    if (debouncedQ) qs.set("q", debouncedQ);
+    if (status !== "all") qs.set("status", status);
+    if (priority !== "all") qs.set("priority", priority);
+    if (category !== "all") qs.set("category", category);
+    return `/api/tasks/created?${qs.toString()}`;
+  }, [clientId, debouncedQ, status, priority, category]);
+
+  const { data: tasksResp, isLoading: loading, error, mutate } = useSWR(
+    tasksKey,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
+
+  useEffect(() => {
+    if (!tasksResp) return;
+    setTasks(Array.isArray(tasksResp.tasks) ? tasksResp.tasks : []);
+    setSummary(tasksResp.summary || null);
+    if (clientId) {
+      const firstWithClient = (tasksResp.tasks || []).find((t: any) => t.client)?.client;
+      if (firstWithClient) {
+        setClient({
+          id: firstWithClient.id,
+          name: firstWithClient.name ?? "",
+          company: firstWithClient.company ?? null,
+          avatar: firstWithClient.avatar ?? null,
+          status: firstWithClient.status ?? null,
+          package: firstWithClient.package ? { name: firstWithClient.package.name ?? null } : null,
+        });
+      }
+    }
+  }, [tasksResp, clientId]);
+
+  // Fallback client header via SWR if not present from tasks
+  const { data: clientFromApi } = useSWR<ClientHeader | null>(
+    clientId && !client ? `/api/clients/${clientId}` : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  useEffect(() => {
+    if (clientFromApi && !client) {
+      setClient({
+        id: clientFromApi.id,
+        name: clientFromApi.name,
+        company: clientFromApi.company,
+        avatar: clientFromApi.avatar,
+        status: clientFromApi.status,
+        package: clientFromApi.package,
+      });
+    }
+  }, [clientFromApi, client]);
+
+  useEffect(() => {
+    // re-derive sorted groups when filters change (SWR handles data)
   }, [q, status, priority, category, sort]);
 
   /* ===== Sort then Group By Cycle ===== */

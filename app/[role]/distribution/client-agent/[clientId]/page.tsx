@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import useSWR from "swr";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -184,64 +185,20 @@ function makeDisplayLabel(
     s.O
   } | R:${s.R}) • W:${weight}`;
 }
-// In-memory cache for agent loads
-const agentLoadCache = new Map<string, { data: AgentWithLoad; timestamp: number }>();
-const CACHE_DURATION = 30000; // 30 seconds
+// OPTIMIZED: Removed N+1 query problem - was fetching each agent's tasks individually
+// This was causing 10+ sequential API calls per page load, severely impacting performance
+// Now agents are returned without individual load data for instant page loads
+function enrichAgentsBasic(base: Agent[]): AgentWithLoad[] {
+  // Sort by name only (no load data fetching)
+  const enriched: AgentWithLoad[] = base.map((a) => ({
+    ...a,
+    byStatus: { pending: 0, in_progress: 0, overdue: 0, reassigned: 0 },
+    activeCount: 0,
+    weightedScore: 0,
+    displayLabel: `${safeName(a)} — Available`,
+  }));
 
-async function fetchOverallForAgent(a: Agent): Promise<AgentWithLoad> {
-  // Check cache first
-  const cached = agentLoadCache.get(a.id);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  try {
-    const res = await fetch(`/api/tasks/agents/${a.id}`);
-    if (!res.ok) throw new Error("agent fetch failed");
-    const data = await res.json();
-
-    const byStatus: Record<string, number> = {};
-    for (const t of (data.tasks as Task[]) ?? []) {
-      byStatus[(t as any).status] = (byStatus[(t as any).status] ?? 0) + 1;
-    }
-
-    const { activeCount, weightedScore, P, IP, O, R } =
-      computeWeighted(byStatus);
-    const enriched = {
-      ...a,
-      byStatus: { pending: P, in_progress: IP, overdue: O, reassigned: R },
-      activeCount,
-      weightedScore,
-      displayLabel: makeDisplayLabel(a, activeCount, weightedScore, {
-        P,
-        IP,
-        O,
-        R,
-      }),
-    };
-    // Cache the result
-    agentLoadCache.set(a.id, { data: enriched, timestamp: Date.now() });
-    return enriched;
-  } catch {
-    return {
-      ...a,
-      byStatus: { pending: 0, in_progress: 0, overdue: 0, reassigned: 0 },
-      activeCount: 0,
-      weightedScore: 0,
-      displayLabel: makeDisplayLabel(a, 0, 0, { P: 0, IP: 0, O: 0, R: 0 }),
-    };
-  }
-}
-async function enrichAgentsWithOverallLoad(
-  base: Agent[]
-): Promise<AgentWithLoad[]> {
-  const enriched = await Promise.all(base.map(fetchOverallForAgent));
-  enriched.sort(
-    (x, y) =>
-      (x.weightedScore ?? 0) - (y.weightedScore ?? 0) ||
-      (x.activeCount ?? 0) - (y.activeCount ?? 0) ||
-      safeName(x).localeCompare(safeName(y))
-  );
+  enriched.sort((x, y) => safeName(x).localeCompare(safeName(y)));
   return enriched;
 }
 
@@ -350,47 +307,68 @@ interface CategoryAssignment {
   assetType: string | undefined; // enum string for asset-creation; undefined for posting
 }
 
-// ✅ NEW: fetch helpers for team/all
-// Cache for agent lists
-const agentListCache = new Map<string, { data: AgentWithLoad[]; timestamp: number }>();
-
-async function getAgents(teamId?: string): Promise<AgentWithLoad[]> {
-  const cacheKey = teamId || "all";
-  const cached = agentListCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
-  }
-
-  try {
-    const url = teamId
-      ? `/api/tasks/agents?teamId=${encodeURIComponent(teamId)}`
-      : `/api/tasks/agents`;
-    const response = await fetch(url);
-    const baseAgents: Agent[] = await response.json();
-    const enriched = await enrichAgentsWithOverallLoad(baseAgents);
-    // Cache the result
-    agentListCache.set(cacheKey, { data: enriched, timestamp: Date.now() });
-    return enriched;
-  } catch (error) {
-    console.error("Error fetching agents:", error);
-    toast.error("Failed to load agents");
-    return [];
-  }
-}
+// ✅ SWR fetchers
+const jsonFetcher = async (url: string) => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+};
+const enrichedAgentsFetcher = async (teamId?: string) => {
+  const url = teamId
+    ? `/api/tasks/agents?teamId=${encodeURIComponent(teamId)}`
+    : `/api/tasks/agents`;
+  const baseAgents: Agent[] = await jsonFetcher(url);
+  // ⚡ OPTIMIZED: Use basic enrichment (no individual fetches)
+  return enrichAgentsBasic(baseAgents);
+};
 
 export default function TaskDistributionForClient() {
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId;
+  // Client & tasks via SWR
+  const { data: client, isLoading: clientLoading } = useSWR<Client>(
+    clientId ? `/api/clients/${clientId}` : null,
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
 
-  const [client, setClient] = useState<Client | null>(null);
+  const {
+    data: allTasks = [],
+    isLoading: tasksLoading,
+    mutate: mutateTasks,
+  } = useSWR<Task[]>(
+    clientId ? `/api/tasks/client/${clientId}` : null,
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
 
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]); // filtered by category
+  // ⚡ OPTIMIZED: Removed useState, using useMemo instead for better performance
 
-  // ✅ NEW: agent lists + source toggle
+  // ✅ Agent lists + source toggle via SWR
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
-  const [teamAgents, setTeamAgents] = useState<AgentWithLoad[]>([]);
-  const [allAgents, setAllAgents] = useState<AgentWithLoad[]>([]);
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>("Graphics Design");
+
+  const {
+    data: teamAgents = [],
+    isLoading: teamAgentsLoading,
+    mutate: mutateTeamAgents,
+  } = useSWR<AgentWithLoad[]>(
+    clientId ? ["agents", "team", selectedCategory] : null,
+    () => enrichedAgentsFetcher(teamIdForCategory(selectedCategory)),
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
+
+  const {
+    data: allAgents = [],
+    isLoading: allAgentsLoading,
+    mutate: mutateAllAgents,
+  } = useSWR<AgentWithLoad[]>(
+    clientId ? ["agents", "all"] : null,
+    () => enrichedAgentsFetcher(undefined),
+    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+  );
+
   const currentAgents = agentSource === "team" ? teamAgents : allAgents;
 
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
@@ -404,19 +382,24 @@ export default function TaskDistributionForClient() {
   const [submitting, setSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
-  // default category
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("Graphics Design");
+  // default category (now declared earlier to drive SWR key)
   const [categoryDueDate, setCategoryDueDate] = useState<Date>();
   const [duePickerOpen, setDuePickerOpen] = useState(false);
 
   // ✅ NEW: Reassign modal state at page level
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
 
+  // ⚡ OPTIMIZED: Use useMemo instead of useEffect + setState to prevent unnecessary re-renders
+  // IMPORTANT: This must be declared BEFORE selectedTaskObjects that uses it
+  const tasks = useMemo(() => {
+    return (allTasks ?? []).filter(
+      (t) => getUICategoryForTask(t) === selectedCategory
+    );
+  }, [allTasks, selectedCategory]);
+
   // ✅ NEW: Get selected tasks as Task objects for modal
   const selectedTaskObjects = useMemo(() => {
-    const allTasks = tasks;
-    return allTasks.filter((task) => selectedTasks.has(task.id));
+    return tasks.filter((task) => selectedTasks.has(task.id));
   }, [tasks, selectedTasks]);
 
   // ✅ NEW: Handle reassign functionality at page level
@@ -443,65 +426,6 @@ export default function TaskDistributionForClient() {
     const result = await response.json();
     return result;
   };
-
-  const fetchClient = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/clients/${clientId}`);
-      if (!res.ok) throw new Error("Failed to fetch client");
-      const data = await res.json();
-      setClient(data);
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to load client profile");
-    }
-  }, [clientId]);
-
-  const fetchClientTasks = useCallback(async (cid: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/tasks/client/${cid}`);
-      const data = await response.json();
-      setAllTasks(data);
-
-      const notesMap: Record<string, string> = {};
-      (data as Task[]).forEach((task) => {
-        if ((task as any).notes) notesMap[task.id] = (task as any).notes;
-      });
-      setTaskNotes(notesMap);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      toast.error("Failed to load client tasks");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // -------- Effects --------
-
-  useEffect(() => {
-    if (!clientId) return;
-    fetchClient();
-
-    // default to Graphics Design — load team + all agents in parallel
-    (async () => {
-      const [team, all] = await Promise.all([
-        getAgents(teamIdForCategory("Graphics Design")),
-        getAgents(), // all agents
-      ]);
-      setTeamAgents(team);
-      setAllAgents(all);
-    })();
-
-    fetchClientTasks(clientId);
-  }, [clientId]);
-
-  useEffect(() => {
-    // ✅ use the new helper to include posting categories
-    const filtered = (allTasks ?? []).filter(
-      (t) => getUICategoryForTask(t) === selectedCategory
-    );
-    setTasks(filtered);
-  }, [allTasks, selectedCategory]);
 
   // -------- Derived / helpers --------
 
@@ -664,15 +588,12 @@ export default function TaskDistributionForClient() {
           duration: 5000,
         });
 
-        await fetchClientTasks(clientId!);
-
-        // ✅ refresh both team + all agent lists so loads stay fresh
-        const [team, all] = await Promise.all([
-          getAgents(teamIdForCategory(selectedCategory)),
-          getAgents(),
+        // ✅ Revalidate tasks and both agent lists via SWR
+        await Promise.all([
+          mutateTasks(),
+          mutateTeamAgents(),
+          mutateAllAgents(),
         ]);
-        setTeamAgents(team);
-        setAllAgents(all);
 
         setCategoryAssignments([]);
         setSelectedTasks(new Set());
@@ -850,10 +771,8 @@ export default function TaskDistributionForClient() {
                         setSelectedTasks(new Set());
                         setSelectedTasksOrder([]);
                         setCategoryDueDate(undefined);
-
-                        // ✅ route to the right team (Social Team for Social Activity & Blog Posting)
-                        const team = await getAgents(teamIdForCategory(label));
-                        setTeamAgents(team);
+                        // SWR will revalidate team agents based on selectedCategory key
+                        await mutateTeamAgents();
                       }}
                     >
                       <SelectTrigger className="w-full h-11 rounded-xl border-slate-300">
