@@ -50,11 +50,23 @@ export async function GET(req: Request) {
         status: true,
         packageId: true, // ✅ ফ্রন্টএন্ডে দরকার
         amId: true, // ✅ AM ফিল্ড পাঠান
+        startDate: true,
+        dueDate: true,
+        createdAt: true,
         accountManager: {
           // ✅ রিলেশনাল AM info পাঠান
           select: { id: true, name: true, email: true },
         },
         package: { select: { id: true, name: true } },
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            dueDate: true,
+            completedAt: true,
+          },
+        },
         // optional: include a tiny projection of team membership to help client-side if needed
         teamMembers: assignedAgentId
           ? { select: { agentId: true }, where: { agentId: assignedAgentId } }

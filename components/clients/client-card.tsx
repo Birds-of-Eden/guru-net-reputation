@@ -328,7 +328,7 @@ const ClientCardComponent = function ClientCard({
           <div className="grid grid-cols-2 gap-y-2 text-sm">
             <div className="text-gray-600">Start Date:</div>
             <div className="font-medium text-gray-800">
-              {formatDate((client as any)?.startDate)}
+              {formatDate((client as any)?.startDate || (client as any)?.createdAt)}
             </div>
 
             <div className="text-gray-600">End Date:</div>
