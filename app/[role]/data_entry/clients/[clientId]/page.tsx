@@ -1,4 +1,5 @@
-// app/admin/clients/[clientId]/page.tsx
+
+
 import { headers, cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { ClientDashboard } from "@/components/clients/clientsID/client-dashboard";
@@ -45,26 +46,37 @@ async function fetchClient(clientId: string): Promise<Client | null> {
     h.get("x-forwarded-proto") ||
     (host.startsWith("localhost") ? "http" : "https");
 
-  // ✅ always prefer env base for production
+  // ✅ FIXED: Use environment variable first, then construct URL
   const base =
-    process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
     `${proto}://${host}`;
 
   const cookieHeader = (await cookies()).toString();
 
-  const res = await fetch(
-    `${base}/api/clients/${encodeURIComponent(clientId)}`,
-    {
-      cache: "no-store",
-      headers: { cookie: cookieHeader },
-    }
-  );
+  console.log("🔍 [Data Entry] Fetching client from:", `${base}/api/clients/${clientId}`);
 
-  if (!res.ok) return null;
-  const raw = await res.json();
-  const data = raw?.client ?? raw;
-  return normalizeClientData(data);
+  try {
+    const res = await fetch(
+      `${base}/api/clients/${encodeURIComponent(clientId)}`,
+      {
+        cache: "no-store",
+        headers: { cookie: cookieHeader },
+      }
+    );
+
+    if (!res.ok) {
+      console.error("❌ [Data Entry] Client fetch failed:", res.status, res.statusText);
+      return null;
+    }
+    
+    const raw = await res.json();
+    const data = raw?.client ?? raw;
+    return normalizeClientData(data);
+  } catch (error) {
+    console.error("❌ [Data Entry] Client fetch error:", error);
+    return null;
+  }
 }
 
 export default async function ClientPage({
