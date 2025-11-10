@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, memo } from "react";
-import { useClients } from "@/lib/hooks/use-clients";
-import useSWR from "swr";
+import { useEffect, useMemo, useState } from "react";
 import {
   Users,
   Activity,
@@ -10,11 +8,12 @@ import {
   Clock,
   TrendingUp,
   AlertTriangle,
+  UserCircle2,
   Loader2,
+  Target,
   BarChart3,
   PieChart as PieChartIcon,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,35 +34,29 @@ import {
 
 import { useUserSession } from "@/lib/hooks/use-user-session";
 
-// type ClientLite = {
-//   id: string;
-//   name: string;
-//   status?: string | null;
-//   progress?: number | null;
-//   startDate?: string | null;
-//   dueDate?: string | null;
-//   amId?: string | null;
-//   packageId?: string | null;
-//   accountManager?: { id?: string; name?: string | null; email?: string | null } | null;
-// };
-
-// type FetchState<T> = {
-//   data: T;
-//   loading: boolean;
-//   error: string | null;
-// };
-
-type PackageLite = { id: string; name: string };
-
-// ---------- NEW: type for monthly progress row ----------
-type MonthlyProgressRow = {
+type ClientLite = {
   id: string;
   name: string;
-  progress: number;
-  total: number;
-  completed: number;
-  approved: number;
+  status?: string | null;
+  progress?: number | null;
+  startDate?: string | null;
+  dueDate?: string | null;
+  amId?: string | null;
+  packageId?: string | null;
+  accountManager?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
 };
+
+type FetchState<T> = {
+  data: T;
+  loading: boolean;
+  error: string | null;
+};
+
+type PackageLite = { id: string; name: string };
 
 function safeParse<T = unknown>(raw: any): T {
   if (typeof raw === "string") {
@@ -76,56 +69,6 @@ function safeParse<T = unknown>(raw: any): T {
   }
   return raw as T;
 }
-
-// Reusable Skeleton Components for better performance
-const KPICardSkeleton = memo(() => (
-  <Card className="border-0 shadow-lg">
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-3 flex-1">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-8 w-16" />
-          <div className="flex items-center gap-1">
-            <Skeleton className="h-3 w-3 rounded" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-        </div>
-        <Skeleton className="h-12 w-12 rounded-xl" />
-      </div>
-    </CardContent>
-  </Card>
-));
-KPICardSkeleton.displayName = "KPICardSkeleton";
-
-const ChartCardSkeleton = memo(({ height = "h-48" }: { height?: string }) => (
-  <Card className="border-0 shadow-lg">
-    <CardHeader className="pb-4">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-8 w-8 rounded-lg" />
-        <Skeleton className="h-5 w-40" />
-      </div>
-    </CardHeader>
-    <CardContent>
-      <Skeleton className={`${height} w-full rounded`} />
-    </CardContent>
-  </Card>
-));
-ChartCardSkeleton.displayName = "ChartCardSkeleton";
-
-const TableRowSkeleton = memo(() => (
-  <tr className="border-t border-slate-100">
-    <td className="py-4 px-6"><Skeleton className="h-4 w-32" /></td>
-    <td className="py-4 px-6"><Skeleton className="h-6 w-20 rounded" /></td>
-    <td className="py-4 px-6"><Skeleton className="h-4 w-24" /></td>
-    <td className="py-4 px-6">
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-4 w-4 rounded" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-    </td>
-  </tr>
-));
-TableRowSkeleton.displayName = "TableRowSkeleton";
 
 // Enhanced color palette with professional gradients
 const CHART_COLORS = {
@@ -147,19 +90,7 @@ const GRADIENTS = {
   slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
 };
 
-// Fetcher for packages
-const packagesFetcher = async (url: string): Promise<PackageLite[]> => {
-  const res = await fetch(url, { cache: "no-store" });
-  const raw = await res.json();
-  const list = safeParse<any[]>(raw);
-  const packages = (Array.isArray(list) ? list : Array.isArray((raw as any)?.data) ? (raw as any).data : []);
-  return packages.map((p: any) => ({
-    id: String(p?.id ?? ""),
-    name: String(p?.name ?? "Unnamed"),
-  }));
-};
-
-const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
+export function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
   const [selectedAmId, setSelectedAmId] = useState<string>(defaultAmId);
   const { user, loading: sessionLoading } = useUserSession();
 
@@ -167,13 +98,16 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   const role = (user?.role ?? "").toLowerCase();
   const isAM = role === "am";
 
-  // Use optimized hooks with SWR
-  const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
-  const { data: packages, isLoading: pkgLoading } = useSWR<PackageLite[]>("/api/packages", packagesFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 60000, // 1 minute
-    refreshInterval: 300000, // 5 minutes
+  // Clients (filtered by AM server-side)
+  const [clients, setClients] = useState<FetchState<ClientLite[]>>({
+    data: [],
+    loading: false,
+    error: null,
   });
+
+  // Packages map for pretty names in table
+  const [pkgMap, setPkgMap] = useState<Record<string, string>>({});
+  const [pkgLoading, setPkgLoading] = useState(false);
 
   // Set selection from session (AM users see their own clients)
   useEffect(() => {
@@ -185,32 +119,105 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     }
   }, [sessionLoading, isAM, user?.id, defaultAmId, selectedAmId]);
 
-  // Filter clients by selected AM (client-side filtering on cached data)
-  const clients = useMemo(() => {
-    const data = allClients.filter((c) => {
-      if (!selectedAmId) return true;
-      const cAmId = c.amId || c.accountManager?.id;
-      return cAmId === selectedAmId;
-    });
-
-    return {
-      data,
-      loading: clientsLoading,
-      error: clientsError ? clientsError.message : null,
+  // Load packages → map id→name (once)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setPkgLoading(true);
+        const res = await fetch("/api/packages", { cache: "no-store" });
+        const raw = await res.json();
+        const list = safeParse<any[]>(raw);
+        const map: Record<string, string> = {};
+        (Array.isArray(list)
+          ? list
+          : Array.isArray((raw as any)?.data)
+          ? (raw as any).data
+          : []
+        ).forEach((p: any) => {
+          if (p?.id) map[String(p.id)] = String(p.name ?? "Unnamed");
+        });
+        if (mounted) setPkgMap(map);
+      } catch {
+        if (mounted) setPkgMap({});
+      } finally {
+        if (mounted) setPkgLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
     };
-  }, [allClients, selectedAmId, clientsLoading, clientsError]);
+  }, []);
 
-  // Create packages map for table display
-  const pkgMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    (packages || []).forEach((p) => {
-      if (p?.id) map[p.id] = p.name;
-    });
-    return map;
-  }, [packages]);
+  // ---- Load clients (session-based & server-side scoped) ----
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (sessionLoading) return; // wait for session
+      try {
+        if (!mounted) return;
+        setClients({ data: [], loading: true, error: null });
 
-  // ---------- Derived metrics with memoization ----------
-  const now = useMemo(() => new Date(), []);
+        // Build URL
+        let url = "/api/clients";
+        if (isAM) {
+          const am = selectedAmId || user?.id || "";
+          if (!am) {
+            if (mounted) setClients({ data: [], loading: false, error: null });
+            return;
+          }
+          url = `/api/clients?amId=${encodeURIComponent(am)}`;
+        } else if (selectedAmId) {
+          url = `/api/clients?amId=${encodeURIComponent(selectedAmId)}`;
+        }
+
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load clients");
+        const raw = await res.json();
+
+        // Robust parsing: supports [ ... ], { clients: [...] }, { data: [...] }, { data: { clients: [...] } }
+        const arrLike =
+          (Array.isArray(raw) && raw) ||
+          (Array.isArray((raw as any)?.clients) && (raw as any).clients) ||
+          (Array.isArray((raw as any)?.data) && (raw as any).data) ||
+          (Array.isArray((raw as any)?.data?.clients) &&
+            (raw as any).data.clients) ||
+          [];
+
+        const mapped: ClientLite[] = (arrLike as any[]).map((c) => ({
+          id: String(c.id),
+          name: String(c.name ?? "Unnamed"),
+          status: c.status ?? null,
+          progress:
+            typeof c.progress === "number"
+              ? c.progress
+              : c.progress
+              ? Number(c.progress)
+              : null,
+          startDate: c.startDate ?? null,
+          dueDate: c.dueDate ?? null,
+          amId: c.amId ?? null,
+          packageId: c.packageId ?? null,
+          accountManager: c.accountManager ?? null,
+        }));
+
+        if (mounted) setClients({ data: mapped, loading: false, error: null });
+      } catch (e: any) {
+        if (mounted)
+          setClients({
+            data: [],
+            loading: false,
+            error: e?.message ?? "Failed to load clients",
+          });
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [sessionLoading, isAM, selectedAmId, user?.id]);
+
+  // ---------- Derived metrics ----------
+  const now = new Date();
 
   const statusCounts = useMemo(() => {
     const acc: Record<string, number> = {};
@@ -222,7 +229,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   }, [clients.data]);
 
   const totalClients = clients.data.length;
-  const activeClients = clients.data.filter((c) => (c.status ?? "").toLowerCase() === "active").length;
+  const activeClients = clients.data.filter(
+    (c) => (c.status ?? "").toLowerCase() === "active"
+  ).length;
 
   const avgProgress = useMemo(() => {
     if (!clients.data.length) return 0;
@@ -244,7 +253,11 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   const upcomingDueList = useMemo(() => {
     return [...clients.data]
       .filter((c) => !!c.dueDate)
-      .sort((a, b) => new Date(a.dueDate as string).getTime() - new Date(b.dueDate as string).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.dueDate as string).getTime() -
+          new Date(b.dueDate as string).getTime()
+      )
       .slice(0, 8);
   }, [clients.data]);
 
@@ -254,7 +267,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
       Object.entries(statusCounts).map(([name, value], index) => ({
         name: name.replace(/_/g, " "),
         value,
-        fill: Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length],
+        fill: Object.values(CHART_COLORS)[
+          index % Object.values(CHART_COLORS).length
+        ],
       })),
     [statusCounts]
   );
@@ -281,7 +296,10 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     () =>
       progressBuckets.map((bucket, index) => ({
         ...bucket,
-        trend: Math.max(0, bucket.count - (progressBuckets[index - 1]?.count || 0)),
+        trend: Math.max(
+          0,
+          bucket.count - (progressBuckets[index - 1]?.count || 0)
+        ),
       })),
     [progressBuckets]
   );
@@ -291,14 +309,20 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     const d = new Date(now);
     for (let i = 5; i >= 0; i--) {
       const temp = new Date(d.getFullYear(), d.getMonth() - i, 1);
-      const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${temp.getFullYear()}-${String(temp.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       const label = temp.toLocaleString("en-US", { month: "short" });
       months.push({ key, label, count: 0 });
     }
     for (const c of clients.data) {
       if (!c.startDate) continue;
       const sd = new Date(c.startDate);
-      const k = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(2, "0")}`;
+      const k = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
       const row = months.find((m) => m.key === k);
       if (row) row.count += 1;
     }
@@ -316,137 +340,14 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     return selectedAmId ? "Selected AM" : "All AMs";
   }, [isAM, user, selectedAmId, clients.data]);
 
-  const formatDate = useCallback(
-    (s?: string | null) =>
-      s ? new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—",
-    []
-  );
-
-  // =========================================================
-  // 🔹 NEW: Monthly Progress (per client) via /api/clients/[id]
-  // =========================================================
-  const [mpLoading, setMpLoading] = useState(false);
-  const [mpError, setMpError] = useState<string | null>(null);
-  const [mpRows, setMpRows] = useState<MonthlyProgressRow[]>([]);
-
-  // helpers copied from client-dashboard logic (same month window + status rules)
-  const monthStart = useMemo(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), 1);
-  }, []);
-  const monthEnd = useMemo(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth() + 1, 1);
-  }, []);
-
-  const parseDate = (v?: string | Date | null) => {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  };
-
-  const normalizeStatus = (raw?: string | null) => {
-    const s = (raw ?? "").toString().trim().toLowerCase().replace(/[\-\s]+/g, "_");
-    if (["done", "complete", "completed", "finished", "qc_approved", "approved"].includes(s)) return "completed";
-    if (["in_progress", "in-progress", "progress", "doing", "working"].includes(s)) return "in_progress";
-    if (["overdue", "late"].includes(s)) return "overdue";
-    if (["pending", "todo", "not_started", "on_hold", "paused", "backlog"].includes(s)) return "pending";
-    return s || "pending";
-  };
-  const rawStatus = (raw?: string | null) => (raw ?? "").toString().trim().toLowerCase().replace(/[\-\s]+/g, "_");
-
-  const getBestDate = (task: any): Date | null =>
-    parseDate(task?.createdAt) || parseDate(task?.startDate) || parseDate(task?.dueDate);
-
-  const inThisMonth = (task: any) => {
-    const d = getBestDate(task);
-    if (!d) return false;
-    return d >= monthStart && d < monthEnd;
-  };
-
-  // Fetch monthly progress for all visible clients (filtered by selected AM)
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function run() {
-      try {
-        setMpLoading(true);
-        setMpError(null);
-
-        // nothing to do
-        if (!clients.data.length) {
-          if (!isCancelled) setMpRows([]);
-          return;
-        }
-
-        // fetch all client details in parallel
-        const results = await Promise.allSettled(
-          clients.data.map(async (c) => {
-            const res = await fetch(`/api/clients/${c.id}`, { cache: "no-store" });
-            const full = await res.json();
-            return { c, full };
-          })
-        );
-
-        const rows: MonthlyProgressRow[] = [];
-
-        for (const r of results) {
-          if (r.status !== "fulfilled") continue;
-          const { c, full } = r.value as any;
-          const tasks: any[] = Array.isArray(full?.tasks) ? full.tasks : [];
-
-          // monthly filter
-          const tasksThisMonth = tasks.filter(inThisMonth);
-          const totalThisMonth = tasksThisMonth.length;
-
-          // tallies
-          let completedThisMonth = 0;
-          let approvedThisMonth = 0;
-
-          for (const t of tasksThisMonth) {
-            const sRaw = rawStatus(t?.status);
-            const sNorm = normalizeStatus(t?.status);
-            const completedAt = parseDate(t?.completedAt);
-
-            const isCompleted =
-              (completedAt ? completedAt >= monthStart && completedAt < monthEnd : false) ||
-              sNorm === "completed";
-            const isApproved = sRaw === "qc_approved" || sRaw === "approved";
-
-            if (isCompleted) completedThisMonth++;
-            if (isApproved) approvedThisMonth++;
-          }
-
-          const progress = totalThisMonth
-            ? Math.round(((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100)
-            : 0;
-
-          rows.push({
-            id: String(c.id),
-            name: String(c.name ?? "Unnamed"),
-            progress,
-            total: totalThisMonth,
-            completed: completedThisMonth,
-            approved: approvedThisMonth,
-          });
-        }
-
-        // sort desc by progress, then by name
-        rows.sort((a, b) => (b.progress - a.progress) || a.name.localeCompare(b.name));
-
-        if (!isCancelled) setMpRows(rows);
-      } catch (e: any) {
-        if (!isCancelled) setMpError(e?.message || "Failed to load monthly progress.");
-      } finally {
-        if (!isCancelled) setMpLoading(false);
-      }
-    }
-
-    run();
-    return () => {
-      isCancelled = true;
-    };
-  }, [clients.data, monthStart, monthEnd]); // re-run if visible clients change
+  const formatDate = (s?: string | null) =>
+    s
+      ? new Date(s).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "—";
 
   return (
     <div className="space-y-6 px-4 bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen">
@@ -464,53 +365,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
 
       {/* Loading / Error States */}
       {clients.loading ? (
-        <div className="space-y-6">
-          {/* KPI Cards Skeleton - Optimized */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <KPICardSkeleton key={`kpi-skeleton-${index}`} />
-            ))}
-          </div>
-
-          {/* Charts Grid Skeleton - Optimized */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ChartCardSkeleton height="h-64" />
-            <ChartCardSkeleton height="h-64" />
-            <ChartCardSkeleton height="h-64" />
-          </div>
-
-          {/* Monthly Progress Chart Skeleton */}
-          <ChartCardSkeleton height="h-[560px]" />
-
-          {/* Upcoming Deliverables Table Skeleton */}
-          <Card className="border-0 shadow-lg mb-8">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-8 w-8 rounded-lg" />
-                <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-6 w-12 rounded-full ml-2" />
-              </div>
-            </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              <div className="rounded-lg overflow-hidden border border-slate-200">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <TableRowSkeleton key={`table-skeleton-${i}`} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex items-center justify-center py-20 text-slate-500 bg-white rounded-xl shadow-sm border">
+          <Loader2 className="w-5 h-5 mr-3 animate-spin text-indigo-500" />
+          <span className="font-medium">Loading dashboard data...</span>
         </div>
       ) : clients.error ? (
         <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border">
@@ -521,7 +378,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
         <>
           {/* Enhanced KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -543,7 +402,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardContent>
             </Card>
 
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -565,7 +426,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardContent>
             </Card>
 
-            <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -591,7 +454,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Enhanced Status Pie Chart with Donut */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-indigo-500 rounded-lg shadow-md">
@@ -606,8 +471,18 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                     <PieChart>
                       <defs>
                         {pieData.map((entry, index) => (
-                          <filter key={index} id={`glow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                          <filter
+                            key={index}
+                            id={`glow-${index}`}
+                            x="-50%"
+                            y="-50%"
+                            width="200%"
+                            height="200%"
+                          >
+                            <feGaussianBlur
+                              stdDeviation="3"
+                              result="coloredBlur"
+                            />
                             <feMerge>
                               <feMergeNode in="coloredBlur" />
                               <feMergeNode in="SourceGraphic" />
@@ -637,7 +512,10 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                         ))}
                       </Pie>
                       <RTooltip
-                        formatter={(value: number) => [`${value} clients`, "Count"]}
+                        formatter={(value: number) => [
+                          `${value} clients`,
+                          "Count",
+                        ]}
                         contentStyle={{
                           backgroundColor: "#f8fafc",
                           border: "1px solid #e2e8f0",
@@ -656,7 +534,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
 
             {/* Enhanced Progress Bar Chart with Line Overlay */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-emerald-500 rounded-lg shadow-md">
@@ -667,72 +547,69 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={enhancedProgressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart
+                    data={enhancedProgressData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
-                        <stop offset="50%" stopColor="#34d399" stopOpacity={0.8} />
-                        <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.6} />
+                      <linearGradient
+                        id="progressGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0.4}
+                        />
                       </linearGradient>
-                      <filter id="barShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#10b981" floodOpacity="0.3" />
-                      </filter>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" vertical={false} opacity={0.5} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
-                      tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
-                      axisLine={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
+                      tick={{ fill: "#64748b", fontSize: 11 }}
+                      axisLine={false}
                       tickLine={false}
-                      tickMargin={10}
                     />
                     <YAxis
                       allowDecimals={false}
-                      tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
-                      axisLine={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
+                      tick={{ fill: "#64748b", fontSize: 11 }}
+                      axisLine={false}
                       tickLine={false}
-                      tickMargin={10}
-                      label={{ value: "Clients", angle: -90, position: "insideLeft", fill: "#64748b", fontSize: 11, fontWeight: 600 }}
                     />
                     <RTooltip
-                      cursor={{ fill: "#f1f5f9", opacity: 0.3 }}
                       contentStyle={{
-                        backgroundColor: "rgba(255, 255, 255, 0.98)",
-                        border: "1.5px solid #10b981",
-                        borderRadius: "12px",
-                        boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.3), 0 8px 10px -6px rgba(16, 185, 129, 0.2)",
-                        padding: "10px 14px",
-                        fontSize: "13px",
-                        fontWeight: 600,
+                        backgroundColor: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
-                      labelStyle={{ color: "#0f172a", fontWeight: 700, marginBottom: "4px" }}
-                      formatter={(value: number) => [`${value} clients`, "Count"]}
+                      formatter={(value: number) => [value, "Clients"]}
                     />
                     <Bar
                       dataKey="count"
                       fill="url(#progressGradient)"
-                      radius={[8, 8, 0, 0]}
-                      barSize={35}
-                      filter="url(#barShadow)"
-                      animationDuration={1000}
-                      animationBegin={0}
-                      label={{
-                        position: "top",
-                        fill: "#059669",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        formatter: (value: number) => value > 0 ? value : "",
-                      }}
+                      radius={[4, 4, 0, 0]}
+                      barSize={30}
                     />
                     <Line
                       type="monotone"
                       dataKey="trend"
                       stroke="#f59e0b"
-                      strokeWidth={2.5}
-                      dot={{ fill: "#f59e0b", strokeWidth: 2, r: 5, stroke: "#fff" }}
-                      activeDot={{ r: 7, fill: "#f59e0b", stroke: "#fff", strokeWidth: 3 }}
-                      strokeDasharray="5 5"
-                      animationDuration={1200}
+                      strokeWidth={2}
+                      dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
+                      strokeDasharray="3 3"
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -740,7 +617,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
 
             {/* Enhanced Area Chart with Gradient */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-blue-500 rounded-lg shadow-md">
@@ -751,18 +630,49 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={startsByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart
+                    data={startsByMonth}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="colorStarts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                      <linearGradient
+                        id="colorStarts"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.1}
+                        />
                       </linearGradient>
-                      <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient
+                        id="colorLine"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
                         <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.5} />
+                        <stop
+                          offset="95%"
+                          stopColor="#6366f1"
+                          stopOpacity={0.5}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
@@ -799,140 +709,10 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
           </div>
 
-            {/* =========================================================
-              🔻 NEW BIG HORIZONTAL BAR CHART (AT THE BOTTOM)
-              "This Month Progress by Client" (uses /api/clients/[id])
-          ========================================================== */}
-          <Card className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 mb-10`}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
-                <div className="p-2 bg-indigo-500 rounded-lg shadow-md">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <span>This Month Progress by Client</span>
-                {mpLoading && (
-                  <span className="ml-2 inline-flex items-center text-sm text-slate-500">
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Loading…
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-[560px] p-6">
-              {mpLoading ? (
-                <div className="h-full flex flex-col items-center justify-center space-y-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-indigo-500" />
-                  <div className="space-y-2 text-center">
-                    <Skeleton className="h-4 w-64 mx-auto" />
-                    <Skeleton className="h-3 w-48 mx-auto" />
-                  </div>
-                  <div className="w-full max-w-2xl space-y-3 mt-8">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div key={`mp-skeleton-${i}`} className="flex items-center gap-4">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-8 flex-1 rounded" />
-                        <Skeleton className="h-4 w-12" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : mpError ? (
-                <div className="h-full flex items-center justify-center text-rose-600 font-medium">
-                  {mpError}
-                </div>
-              ) : mpRows.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-sm text-slate-500 font-medium">
-                  No client activity found for this month.
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={mpRows}
-                    margin={{ top: 10, right: 60, left: 10, bottom: 20 }}
-                  >
-                    <defs>
-                      <linearGradient id="mpGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#38bdf8" stopOpacity={1} />
-                        <stop offset="50%" stopColor="#7dd3fc" stopOpacity={0.9} />
-                        <stop offset="100%" stopColor="#bae6fd" stopOpacity={0.75} />
-                      </linearGradient>
-                      <filter id="horizontalBarShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="2" dy="0" stdDeviation="3" floodColor="#38bdf8" floodOpacity="0.3" />
-                      </filter>
-                    </defs>
-                    <CartesianGrid strokeDasharray="4 4" stroke="#cbd5e1" horizontal={false} opacity={0.4} />
-                    <XAxis
-                      type="number"
-                      domain={[0, 100]}
-                      tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
-                      axisLine={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
-                      tickLine={false}
-                      tickFormatter={(value) => `${value}%`}
-                      tickMargin={8}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      tick={{ fill: "#0f172a", fontWeight: 600, fontSize: 12 }}
-                      width={180}
-                      axisLine={{ stroke: "#e2e8f0", strokeWidth: 1.5 }}
-                      tickLine={false}
-                      tickMargin={8}
-                    />
-                    <RTooltip
-                      cursor={{ fill: "#e0f2fe", opacity: 0.4 }}
-                      contentStyle={{
-                        backgroundColor: "rgba(255, 255, 255, 0.98)",
-                        border: "2px solid #38bdf8",
-                        borderRadius: "14px",
-                        boxShadow: "0 12px 28px -8px rgba(56, 189, 248, 0.4), 0 10px 12px -8px rgba(56, 189, 248, 0.3)",
-                        padding: "12px 16px",
-                        fontSize: "14px",
-                      }}
-                      labelStyle={{ color: "#0f172a", fontWeight: 700, fontSize: "15px", marginBottom: "8px" }}
-                      formatter={(value: number, _name: string, props: { payload?: MonthlyProgressRow }) => {
-                        const payload = props?.payload;
-                        return [
-                          <div key="tooltip" className="space-y-1">
-                            <div className="font-bold text-sky-600">{value}% Complete</div>
-                            {payload && (
-                              <div className="text-xs text-slate-600 space-y-0.5 mt-2">
-                                <div>✓ Completed: <span className="font-semibold">{payload.completed}</span></div>
-                                <div>✓ Approved: <span className="font-semibold">{payload.approved}</span></div>
-                                <div>📊 Total Tasks: <span className="font-semibold">{payload.total}</span></div>
-                              </div>
-                            )}
-                          </div>,
-                          ""
-                        ];
-                      }}
-                    />
-                    <Bar 
-                      dataKey="progress" 
-                      fill="url(#mpGradient)"
-                      radius={[0, 12, 12, 0]} 
-                      barSize={30}
-                      filter="url(#horizontalBarShadow)"
-                      animationDuration={1200}
-                      animationBegin={0}
-                      label={{
-                        position: "right",
-                        fill: "#0284c7",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        formatter: (value: number) => `${value}%`,
-                        offset: 8,
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Enhanced Upcoming Due Table */}
-          <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}>
+          <Card
+            className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}
+          >
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                 <div className="p-2 bg-amber-500 rounded-lg shadow-md">
@@ -951,33 +731,23 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
-              {clients.loading ? (
+              {upcomingDueList.length ? (
                 <div className="rounded-lg overflow-hidden border border-slate-200">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <TableRowSkeleton key={`due-skeleton-${i}`} />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : upcomingDueList.length ? (
-                <div className="rounded-lg overflow-hidden border border-slate-200">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Client
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Package
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Due Date
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1022,18 +792,15 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                 <div className="py-16 text-center text-slate-500 font-medium">
                   <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                   <p>No upcoming deliverables found</p>
-                  <p className="text-sm text-slate-400 mt-1">All clients are up to date</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    All clients are up to date
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
-
-        
         </>
       )}
     </div>
   );
-};
-
-// Export memoized version
-export const AMDashboard = memo(AMDashboardComponent);
+}
