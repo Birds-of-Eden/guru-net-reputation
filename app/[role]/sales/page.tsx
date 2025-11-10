@@ -5,6 +5,8 @@
 import * as React from "react";
 import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ClientsTable } from "@/components/sales/ClientsTable";
 import { PackageSalesTable } from "@/components/sales/PackageSalesTable";
 import { ChartsSection } from "@/components/sales/ChartsSection";
@@ -59,6 +61,141 @@ export default function AMCEOSalesPage() {
     const s0 = prev30.reduce((a, b) => a + b.starts, 0);
     return { delta: s1 - s0, pct: s0 ? ((s1 - s0) / s0) * 100 : 0 };
   }, [series]);
+
+  // Loading state with professional skeleton
+  if (isLoading && !data) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-20 rounded-full" />
+            <Skeleton className="h-10 w-24 rounded-lg" />
+          </div>
+        </div>
+
+        {/* Sales Spotlight Skeleton */}
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-8 w-32 rounded-lg" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={`spotlight-${index}`} className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[200px] w-full rounded-lg" />
+          </CardContent>
+        </Card>
+
+        {/* Smart Insights Skeleton */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={`insight-${index}`} className="p-4 border rounded-lg space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* KPI Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={`kpi-${index}`} className="border-0 shadow-md">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-10 rounded-lg" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-24 mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Packages Overview Skeleton */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-10 w-40 rounded-lg" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[300px] w-full rounded-lg" />
+          </CardContent>
+        </Card>
+
+        {/* Renewal & Retention Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Card key={`gauge-${index}`} className="border-0 shadow-lg">
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="flex items-center justify-center">
+                <Skeleton className="h-[200px] w-[200px] rounded-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Package Sales Table Skeleton */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={`table-row-${index}`} className="flex items-center justify-between p-3 border-b">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Charts Section Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Card key={`chart-${index}`} className="border-0 shadow-lg">
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-[250px] w-full rounded-lg" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
