@@ -10,9 +10,7 @@ import {
   Clock,
   TrendingUp,
   AlertTriangle,
-  UserCircle2,
   Loader2,
-  Target,
   BarChart3,
   PieChart as PieChartIcon,
 } from "lucide-react";
@@ -37,23 +35,23 @@ import {
 
 import { useUserSession } from "@/lib/hooks/use-user-session";
 
-type ClientLite = {
-  id: string;
-  name: string;
-  status?: string | null;
-  progress?: number | null;
-  startDate?: string | null;
-  dueDate?: string | null;
-  amId?: string | null;
-  packageId?: string | null;
-  accountManager?: { id?: string; name?: string | null; email?: string | null } | null;
-};
+// type ClientLite = {
+//   id: string;
+//   name: string;
+//   status?: string | null;
+//   progress?: number | null;
+//   startDate?: string | null;
+//   dueDate?: string | null;
+//   amId?: string | null;
+//   packageId?: string | null;
+//   accountManager?: { id?: string; name?: string | null; email?: string | null } | null;
+// };
 
-type FetchState<T> = {
-  data: T;
-  loading: boolean;
-  error: string | null;
-};
+// type FetchState<T> = {
+//   data: T;
+//   loading: boolean;
+//   error: string | null;
+// };
 
 type PackageLite = { id: string; name: string };
 
@@ -78,6 +76,56 @@ function safeParse<T = unknown>(raw: any): T {
   }
   return raw as T;
 }
+
+// Reusable Skeleton Components for better performance
+const KPICardSkeleton = memo(() => (
+  <Card className="border-0 shadow-lg">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-3 flex-1">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-8 w-16" />
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-3 w-3 rounded" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <Skeleton className="h-12 w-12 rounded-xl" />
+      </div>
+    </CardContent>
+  </Card>
+));
+KPICardSkeleton.displayName = "KPICardSkeleton";
+
+const ChartCardSkeleton = memo(({ height = "h-48" }: { height?: string }) => (
+  <Card className="border-0 shadow-lg">
+    <CardHeader className="pb-4">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-lg" />
+        <Skeleton className="h-5 w-40" />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <Skeleton className={`${height} w-full rounded`} />
+    </CardContent>
+  </Card>
+));
+ChartCardSkeleton.displayName = "ChartCardSkeleton";
+
+const TableRowSkeleton = memo(() => (
+  <tr className="border-t border-slate-100">
+    <td className="py-4 px-6"><Skeleton className="h-4 w-32" /></td>
+    <td className="py-4 px-6"><Skeleton className="h-6 w-20 rounded" /></td>
+    <td className="py-4 px-6"><Skeleton className="h-4 w-24" /></td>
+    <td className="py-4 px-6">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-4 w-4 rounded" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    </td>
+  </tr>
+));
+TableRowSkeleton.displayName = "TableRowSkeleton";
 
 // Enhanced color palette with professional gradients
 const CHART_COLORS = {
@@ -417,89 +465,50 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
       {/* Loading / Error States */}
       {clients.loading ? (
         <div className="space-y-6">
-          {/* KPI Cards Skeleton */}
+          {/* KPI Cards Skeleton - Optimized */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: 3 }).map((_, index) => (
-              <Card key={`kpi-skeleton-${index}`} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-3 flex-1">
-                      <Skeleton className="h-3 w-24" />
-                      <Skeleton className="h-8 w-16" />
-                      <div className="flex items-center gap-1">
-                        <Skeleton className="h-3 w-3 rounded" />
-                        <Skeleton className="h-3 w-20" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-12 w-12 rounded-xl" />
-                  </div>
-                </CardContent>
-              </Card>
+              <KPICardSkeleton key={`kpi-skeleton-${index}`} />
             ))}
           </div>
 
-          {/* Charts Grid Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Status Distribution Chart */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded-lg" />
-                  <Skeleton className="h-5 w-40" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center">
-                  <Skeleton className="h-48 w-48 rounded-full" />
-                </div>
-                <div className="mt-4 space-y-2">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="h-3 w-3 rounded-full" />
-                        <Skeleton className="h-4 w-16" />
-                      </div>
-                      <Skeleton className="h-4 w-8" />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Progress Distribution Chart */}
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded-lg" />
-                  <Skeleton className="h-5 w-36" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="flex justify-between">
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-4 w-8" />
-                      </div>
-                      <Skeleton className="h-6 w-full rounded" />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Charts Grid Skeleton - Optimized */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <ChartCardSkeleton height="h-64" />
+            <ChartCardSkeleton height="h-64" />
+            <ChartCardSkeleton height="h-64" />
           </div>
 
-          {/* Timeline Chart Skeleton */}
-          <Card className="border-0 shadow-lg">
+          {/* Monthly Progress Chart Skeleton */}
+          <ChartCardSkeleton height="h-[560px]" />
+
+          {/* Upcoming Deliverables Table Skeleton */}
+          <Card className="border-0 shadow-lg mb-8">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-8 w-8 rounded-lg" />
                 <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-6 w-12 rounded-full ml-2" />
               </div>
             </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full rounded" />
+            <CardContent className="overflow-x-auto p-0">
+              <div className="rounded-lg overflow-hidden border border-slate-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
+                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
+                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
+                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
+                      <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRowSkeleton key={`table-skeleton-${i}`} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -810,11 +819,28 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[560px] p-6">
-              {mpError ? (
+              {mpLoading ? (
+                <div className="h-full flex flex-col items-center justify-center space-y-4">
+                  <Loader2 className="h-12 w-12 animate-spin text-indigo-500" />
+                  <div className="space-y-2 text-center">
+                    <Skeleton className="h-4 w-64 mx-auto" />
+                    <Skeleton className="h-3 w-48 mx-auto" />
+                  </div>
+                  <div className="w-full max-w-2xl space-y-3 mt-8">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={`mp-skeleton-${i}`} className="flex items-center gap-4">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-8 flex-1 rounded" />
+                        <Skeleton className="h-4 w-12" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : mpError ? (
                 <div className="h-full flex items-center justify-center text-rose-600 font-medium">
                   {mpError}
                 </div>
-              ) : mpRows.length === 0 && !mpLoading ? (
+              ) : mpRows.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-sm text-slate-500 font-medium">
                   No client activity found for this month.
                 </div>
@@ -925,7 +951,25 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
-              {upcomingDueList.length ? (
+              {clients.loading ? (
+                <div className="rounded-lg overflow-hidden border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <TableRowSkeleton key={`due-skeleton-${i}`} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : upcomingDueList.length ? (
                 <div className="rounded-lg overflow-hidden border border-slate-200">
                   <table className="w-full text-sm">
                     <thead>
