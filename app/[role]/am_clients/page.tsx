@@ -49,7 +49,6 @@ export default function ClientsPage() {
   const currentUserRole = user?.role ?? undefined; // hook এ role string আসে
   const isAM = (currentUserRole ?? "").toLowerCase() === "am";
 
-  // ✅ AM হলে UI ফিল্টারও জোর করে নিজের amId-তে সেট করো
   useEffect(() => {
     if (
       !sessionLoading &&
