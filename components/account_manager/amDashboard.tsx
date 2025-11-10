@@ -790,86 +790,7 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
           </div>
 
-          {/* Enhanced Upcoming Due Table */}
-          <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
-                <div className="p-2 bg-amber-500 rounded-lg shadow-md">
-                  <CalendarDays className="w-5 h-5 text-white" />
-                </div>
-                <span>Upcoming Deliverables</span>
-                <Badge
-                  variant="secondary"
-                  className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium"
-                >
-                  {upcomingDueList.length}
-                </Badge>
-                <span className="ml-auto text-sm text-slate-500 font-medium hidden lg:block">
-                  Viewing: {amLabel}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-x-auto p-0">
-              {upcomingDueList.length ? (
-                <div className="rounded-lg overflow-hidden border border-slate-200">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {upcomingDueList.map((c, index) => (
-                        <tr
-                          key={c.id}
-                          className={`border-t border-slate-100 hover:bg-white/70 transition-colors duration-150 ${
-                            index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
-                          }`}
-                        >
-                          <td className="py-4 px-6 font-semibold text-slate-800">
-                            {c.name}
-                          </td>
-                          <td className="py-4 px-6">
-                            <Badge
-                              variant="outline"
-                              className="border-slate-300 text-slate-700 bg-white font-medium capitalize px-3 py-1"
-                            >
-                              {(c.status ?? "—").toString().replace(/_/g, " ")}
-                            </Badge>
-                          </td>
-                          <td className="py-4 px-6 text-slate-600 font-medium">
-                            {c.packageId
-                              ? pkgMap[c.packageId] ??
-                                (pkgLoading ? "Loading…" : c.packageId)
-                              : "—"}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center gap-2">
-                              <CalendarDays className="w-4 h-4 text-amber-500" />
-                              <span className="font-medium text-slate-700">
-                                {formatDate(c.dueDate)}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="py-16 text-center text-slate-500 font-medium">
-                  <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                  <p>No upcoming deliverables found</p>
-                  <p className="text-sm text-slate-400 mt-1">All clients are up to date</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* =========================================================
+            {/* =========================================================
               🔻 NEW BIG HORIZONTAL BAR CHART (AT THE BOTTOM)
               "This Month Progress by Client" (uses /api/clients/[id])
           ========================================================== */}
@@ -983,6 +904,87 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               )}
             </CardContent>
           </Card>
+
+          {/* Enhanced Upcoming Due Table */}
+          <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
+                <div className="p-2 bg-amber-500 rounded-lg shadow-md">
+                  <CalendarDays className="w-5 h-5 text-white" />
+                </div>
+                <span>Upcoming Deliverables</span>
+                <Badge
+                  variant="secondary"
+                  className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium"
+                >
+                  {upcomingDueList.length}
+                </Badge>
+                <span className="ml-auto text-sm text-slate-500 font-medium hidden lg:block">
+                  Viewing: {amLabel}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-x-auto p-0">
+              {upcomingDueList.length ? (
+                <div className="rounded-lg overflow-hidden border border-slate-200">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {upcomingDueList.map((c, index) => (
+                        <tr
+                          key={c.id}
+                          className={`border-t border-slate-100 hover:bg-white/70 transition-colors duration-150 ${
+                            index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                          }`}
+                        >
+                          <td className="py-4 px-6 font-semibold text-slate-800">
+                            {c.name}
+                          </td>
+                          <td className="py-4 px-6">
+                            <Badge
+                              variant="outline"
+                              className="border-slate-300 text-slate-700 bg-white font-medium capitalize px-3 py-1"
+                            >
+                              {(c.status ?? "—").toString().replace(/_/g, " ")}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-6 text-slate-600 font-medium">
+                            {c.packageId
+                              ? pkgMap[c.packageId] ??
+                                (pkgLoading ? "Loading…" : c.packageId)
+                              : "—"}
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="w-4 h-4 text-amber-500" />
+                              <span className="font-medium text-slate-700">
+                                {formatDate(c.dueDate)}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-16 text-center text-slate-500 font-medium">
+                  <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                  <p>No upcoming deliverables found</p>
+                  <p className="text-sm text-slate-400 mt-1">All clients are up to date</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+        
         </>
       )}
     </div>
