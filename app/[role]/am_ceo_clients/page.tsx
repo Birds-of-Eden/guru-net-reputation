@@ -9,6 +9,8 @@ import { toast } from "sonner";
 // Import necessary components
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
 import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { Client } from "@/types/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { useClients } from "@/lib/hooks/use-clients";
@@ -207,37 +209,118 @@ export default function ClientsPage() {
     return groupsArray;
   }, [filteredClients, accountManagers]);
 
-  // Loading UI with skeleton
+  // Professional Loading UI with skeleton
   if (sessionLoading || loading) {
     return (
-      <div className="py-8 px-4 md:px-6">
-        {/* Header skeleton */}
-        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
-          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4"></div>
-          <div className="flex gap-4 mb-4">
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* AM Groups skeleton */}
-        <div className="space-y-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
-                <div className="flex-1">
-                  <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
-                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-                </div>
+      <div className="py-8 px-4 md:px-6 space-y-8">
+        {/* Header Card Skeleton */}
+        <Card className="shadow-lg border border-gray-100">
+          <CardHeader className="space-y-4">
+            {/* Title and Add Button */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-56" />
+                <Skeleton className="h-4 w-80" />
               </div>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(3)].map((_, j) => (
-                  <ClientCardSkeleton key={j} />
-                ))}
-              </div>
+              <Skeleton className="h-10 w-32 rounded-md" />
             </div>
+            
+            {/* Search and Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <Skeleton className="h-10 w-full col-span-2" /> {/* Search */}
+              <Skeleton className="h-10 w-full" /> {/* Status filter */}
+              <Skeleton className="h-10 w-full" /> {/* Package filter */}
+              <Skeleton className="h-10 w-full" /> {/* AM filter */}
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-8 rounded" />
+                <Skeleton className="h-8 w-8 rounded" />
+              </div>
+              <Skeleton className="h-6 w-40" />
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {/* Status Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={`stat-${index}`} className="p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-5 w-5 rounded" />
+                  </div>
+                  <Skeleton className="h-8 w-12" />
+                  <Skeleton className="h-3 w-16 mt-1" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AM Groups Skeleton */}
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={`am-group-${index}`} className="shadow-lg border border-gray-100">
+              <CardHeader className="pb-4">
+                {/* AM Header */}
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-16 w-16 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <div className="text-right space-y-1">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {/* Client Cards Grid */}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 3 }).map((_, clientIndex) => (
+                    <Card key={`client-skeleton-${clientIndex}`} className="overflow-hidden border">
+                      <CardContent className="p-4">
+                        {/* Client Header */}
+                        <div className="flex items-start gap-3 mb-3">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <div className="flex-1 space-y-1">
+                            <Skeleton className="h-4 w-28" />
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                          <Skeleton className="h-5 w-12 rounded-full" />
+                        </div>
+                        
+                        {/* Progress Section */}
+                        <div className="space-y-2 mb-3">
+                          <div className="flex justify-between items-center">
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-10" />
+                          </div>
+                          <Skeleton className="h-1.5 w-full rounded-full" />
+                          <div className="flex gap-1">
+                            <Skeleton className="h-4 w-12 rounded-full" />
+                            <Skeleton className="h-4 w-16 rounded-full" />
+                          </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <Skeleton className="h-8 flex-1 rounded" />
+                          <Skeleton className="h-8 w-16 rounded" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
