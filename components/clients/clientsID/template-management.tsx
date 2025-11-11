@@ -1,10 +1,11 @@
 // components/clients/clientsID/template-management.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Package,
   Layers,
@@ -26,6 +27,7 @@ import { SwitchTemplateDialog } from "./template-customization/switch-template-d
 import { AssetCard } from "./template-customization/asset-card";
 import { CustomizationHistory } from "./template-customization/customization-history";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { useTemplateManagement } from "@/lib/hooks/use-template-management";
 import { toast } from "sonner";
 
 interface TemplateManagementProps {
@@ -33,55 +35,86 @@ interface TemplateManagementProps {
   onUpdate?: () => void;
 }
 
+// Skeleton loader component
+function TemplateManagementSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <Card className="shadow-lg border-0">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Template overview skeleton */}
+      <Card className="shadow-lg border-0">
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          <div className="space-y-3">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Assets skeleton */}
+      <Card className="shadow-lg border-0">
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function TemplateManagement({
   clientData,
   onUpdate,
 }: TemplateManagementProps) {
   const { user } = useUserSession();
-  const [loading, setLoading] = useState(true);
-  const [templateData, setTemplateData] = useState<any>(null);
-  const [assignment, setAssignment] = useState<any>(null);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+
+  // ✅ Use optimized hook with aggressive caching
+  const {
+    assignment,
+    templateData,
+    stats,
+    isLoading,
+    error,
+    refresh,
+  } = useTemplateManagement({
+    clientId: clientData.id,
+    enableCache: true,
+  });
 
   const roleName = (user as any)?.role?.name ?? (user as any)?.role ?? "";
   const isClient = String(roleName).toLowerCase() === "client";
   const isAgent = String(roleName).toLowerCase() === "agent";
   const canManage = !isClient && !isAgent; // AM, Manager, Admin can manage
 
-  useEffect(() => {
-    const fetchTemplateData = async () => {
-      try {
-        setLoading(true);
-        
-        // Get assignment for this client
-        const assignmentRes = await fetch(
-          `/api/assignments?clientId=${clientData.id}`
-        );
-        const assignments = await assignmentRes.json();
-        
-        if (assignments && assignments.length > 0) {
-          const currentAssignment = assignments[0];
-          setAssignment(currentAssignment);
-
-          if (currentAssignment.template) {
-            setTemplateData(currentAssignment.template);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching template data:", error);
-        toast.error("Failed to load template data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTemplateData();
-  }, [clientData.id, refreshKey]);
-
   const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
+    refresh();
     onUpdate?.();
   };
 
@@ -97,14 +130,29 @@ export function TemplateManagement({
     setSwitchOpen(false);
   };
 
-  if (loading) {
+  // ✅ Show skeleton loader instead of spinner
+  if (isLoading) {
+    return <TemplateManagementSkeleton />;
+  }
+
+  // ✅ Show error state
+  if (error) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center space-y-3">
-          <Loader className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
-          <p className="text-sm text-slate-500">Loading template data...</p>
-        </div>
-      </div>
+      <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-800 dark:text-red-300">
+                Error Loading Template
+              </h3>
+              <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                {error}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -131,19 +179,8 @@ export function TemplateManagement({
   const isCustomTemplate = templateData.name?.includes("Custom") || 
                           templateData.description?.includes("cloned");
   
-  const totalAssets = templateData.sitesAssets?.length || 0;
-  const assetsByType = templateData.sitesAssets?.reduce((acc: any, asset: any) => {
-    const type = asset.type || "other";
-    acc[type] = (acc[type] || 0) + 1;
-    return acc;
-  }, {}) || {};
-
-  // Count custom overrides
-  const customOverrides = assignment.siteAssetSettings?.filter(
-    (setting: any) => 
-      setting.requiredFrequency !== null &&
-      setting.templateSiteAsset?.defaultPostingFrequency !== setting.requiredFrequency
-  ).length || 0;
+  // ✅ Use stats from hook (pre-computed and memoized)
+  const { totalAssets, customOverrides, teamMembers, assetsByType } = stats;
 
   return (
     <div className="space-y-6">
@@ -242,7 +279,7 @@ export function TemplateManagement({
                       Team Members
                     </p>
                     <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {templateData.templateTeamMembers?.length || 0}
+                      {teamMembers}
                     </p>
                   </div>
                 </div>
@@ -321,7 +358,7 @@ export function TemplateManagement({
                   <div key={type} className="space-y-3">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-slate-900 dark:text-slate-100 capitalize">
-                        {type.replace(/_/g, " ")} ({count})
+                        {type.replace(/_/g, " ")} ({String(count)})
                       </h4>
                     </div>
                     <div className="grid gap-4">

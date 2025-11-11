@@ -39,6 +39,7 @@ import {
   Shield,
   ShieldOff,
   LineChart,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,6 +159,11 @@ const ICONS: Record<string, React.ReactNode> = {
     <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />
   ),
   "QC Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
+
+  // Track Development
+  "Track Your Development": (
+    <TrendingUp className="h-4 w-4" strokeWidth={1.75} />
+  ),
 };
 
 /* =========================
@@ -399,6 +405,13 @@ function buildNav(role: Role): NavItem[] {
       title: "Notifications",
       url: p(r, "/notifications"),
       permission: "view_notifications",
+    },
+
+    // Track Your Development (for clients)
+    {
+      title: "Track Your Development",
+      url: p(r, "/track-development"),
+      permission: "view_track_development",
     },
   ];
 }

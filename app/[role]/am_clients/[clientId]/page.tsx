@@ -1,74 +1,106 @@
-// app/admin/clients/[clientId]/page.tsx
-import { headers, cookies } from "next/headers";
-import { notFound } from "next/navigation";
+// app/admin/am_clients/[clientId]/page.tsx
+"use client";
+
+import { use } from "react";
+import { useClientDashboard } from "@/lib/hooks/use-client-dashboard";
 import { ClientDashboard } from "@/components/clients/clientsID/client-dashboard";
-import type { Client } from "@/types/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
 
-// Force dynamic rendering for this page (required for production)
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-const UNCATEGORIZED = { id: "uncategorized", name: "Uncategorized", description: "" };
-
-function normalizeClientData(apiData: any): Client {
-  return {
-    ...apiData,
-    companywebsite:
-      apiData?.companywebsite && typeof apiData.companywebsite === "string"
-        ? apiData.companywebsite
-        : "",
-    tasks: (apiData?.tasks ?? []).map((t: any) => ({
-      ...t,
-      categoryId: t?.category?.id ?? t?.categoryId ?? "uncategorized",
-      category: t?.category ?? UNCATEGORIZED,
-      name: String(t?.name ?? ""),
-      priority: String(t?.priority ?? "medium"),
-      status: String(t?.status ?? "pending"),
-      templateSiteAsset: {
-        ...t?.templateSiteAsset,
-        type: String(t?.templateSiteAsset?.type ?? ""),
-        name: String(t?.templateSiteAsset?.name ?? ""),
-        url: String(t?.templateSiteAsset?.url ?? ""),
-      },
-    })),
-  };
+// ✅ Skeleton loader for client dashboard
+function ClientDashboardSkeleton() {
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header skeleton */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm rounded-lg">
+        <div className="px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <div className="flex space-x-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-6">
+              <Skeleton className="h-12 w-20" />
+              <Skeleton className="h-12 w-20" />
+              <Skeleton className="h-12 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Content skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+  );
 }
 
-async function fetchClient(clientId: string): Promise<Client | null> {
-  const h = await headers(); // await headers
-  const host = h.get("x-forwarded-host") || h.get("host") || "localhost:3000";
-  const proto =
-    h.get("x-forwarded-proto") ||
-    (host.startsWith("localhost") ? "http" : "https");
-  const base = `${proto}://${host}`;
-
-  // forward cookies so protected API works
-  const cookieHeader = (await cookies()).toString();
-
-  const res = await fetch(`${base}/api/clients/${encodeURIComponent(clientId)}`, {
-    cache: "no-store",
-    headers: {
-      cookie: cookieHeader,
-    },
-  });
-
-  if (!res.ok) return null;
-
-  const raw = await res.json();
-  const data = raw?.client ?? raw; // handle {client: {...}} or plain object
-  return normalizeClientData(data);
-}
-
-export default async function ClientPage({
+export default function AMClientPage({
   params,
 }: {
-  params: Promise<{ clientId: string }>; // <-- Promise type
+  params: Promise<{ clientId: string }>;
 }) {
-  const { clientId } = await params; // await params
-  const clientData = await fetchClient(clientId);
+  // ✅ Unwrap params using React.use()
+  const { clientId } = use(params);
+  
+  // ✅ Use optimized hook with aggressive caching
+  const { clientData, isLoading, error } = useClientDashboard({
+    clientId,
+    enableCache: true,
+  });
 
+  // ✅ Show skeleton loader during initial load
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <ClientDashboardSkeleton />
+      </div>
+    );
+  }
+
+  // ✅ Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-800">Error Loading Client</h3>
+              <p className="text-sm text-red-600 mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Show not found state
   if (!clientData) {
-    notFound();
+    return (
+      <div className="min-h-screen p-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-yellow-800">Client Not Found</h3>
+              <p className="text-sm text-yellow-600 mt-1">
+                The requested client could not be found.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
