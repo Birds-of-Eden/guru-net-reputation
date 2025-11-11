@@ -1,469 +1,201 @@
 // components/track-development/track-development-client.tsx
 "use client";
 
-import { useMemo } from "react";
-import { useUserSession } from "@/lib/hooks/use-user-session";
-import useSWR from "swr";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  Calendar,
-  ArrowRight,
-  Package,
-  Minus,
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// Fetcher for APIs
-const fetcher = async (url: string): Promise<any> => {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
-};
-
-interface MonthStats {
-  start: string;
-  end: string;
-  pending: number;
-  in_progress: number;
-  completed: number;
-  qc_approved: number;
-  overdue: number;
-  cancelled: number;
-  reassigned: number;
-  total: number;
-  performance: number;
-}
-
-interface DevelopmentSummary {
-  clientId: string;
-  previousMonth: MonthStats;
-  currentMonth: MonthStats;
-  difference: {
-    completedChange: number;
-    performanceChange: number;
-    totalChange: number;
-  };
-  summary: string;
-}
+import Image from "next/image";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function TrackDevelopment() {
-  const { user, loading: sessionLoading } = useUserSession();
-  const clientId = user?.clientId ?? null;
+  const [preview, setPreview] = useState<string | null>(null);
 
-  // Fetch client data (for package dates)
-  const { data: clientData, isLoading: clientLoading } = useSWR(
-    clientId ? `/api/clients/${clientId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-    }
-  );
+  const months = [
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+  ];
 
-  // Fetch development summary
-  const {
-    data: devSummary,
-    error: devError,
-    isLoading: devLoading,
-  } = useSWR<DevelopmentSummary>(
-    clientId ? `/api/clients/${clientId}/development-summary` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-    }
-  );
-
-  const isLoading = sessionLoading || clientLoading || devLoading;
-
-  // Format date helper
-  const formatDate = (dateStr: string | Date | null | undefined) => {
-    if (!dateStr) return "N/A";
-    try {
-      return new Date(dateStr).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return "N/A";
-    }
-  };
-
-  // Format month name
-  const formatMonthName = (dateStr: string) => {
-    try {
-      return new Date(dateStr).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return "N/A";
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="space-y-2">
-          <Skeleton className="h-10 w-96" />
-          <Skeleton className="h-4 w-full max-w-2xl" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {[...Array(2)].map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
-        </div>
-      </div>
+  const gen = (type: "previous" | "current", set: 1 | 2) =>
+    months.map(
+      (m) => `/images/Joseph Brophy ${type} ${set} ${m.toLowerCase()}.png`
     );
-  }
 
-  if (!clientId || devError) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Unable to load your development data. Please contact support.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const startDate = clientData?.startDate;
-  const dueDate = clientData?.dueDate;
-  const packageName = clientData?.package?.name || "N/A";
-  const prev = devSummary?.previousMonth;
-  const current = devSummary?.currentMonth;
-  const diff = devSummary?.difference;
+  const baseline = "/images/Joseph Brophy baseline 1.png";
+  const prev1 = gen("previous", 1);
+  const prev2 = gen("previous", 2);
+  const curr1 = gen("current", 1);
+  const curr2 = gen("current", 2);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen w-full bg-gradient-to-b from-indigo-50 via-white to-sky-100 dark:from-neutral-900 dark:to-black p-10">
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="h-10 w-10 text-primary" strokeWidth={2} />
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Track Your Development
-            </h1>
-            <p className="text-muted-foreground">
-              Monitor your progress with baseline vs current comparison
-            </p>
+      <motion.div
+        initial={{ y: -15, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 100, damping: 12 }}
+        className="text-center mb-14"
+      >
+        <h1 className="text-4xl font-extrabold text-indigo-700 dark:text-indigo-300">
+          🌟 Track Development Progress
+        </h1>
+        <p className="mt-3 text-gray-600 dark:text-gray-300 text-lg">
+          Package Start: 🗓️ <b>Nov 8, 2025</b> &nbsp;|&nbsp; Due: 🗓️{" "}
+          <b>Feb 8, 2026 ✅</b>
+        </p>
+      </motion.div>
+
+      {/* Baseline */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+        className="text-center mb-20"
+      >
+        <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-3">
+          📍 Baseline (Starting Point)
+        </h2>
+        <motion.div
+          whileHover={{ scale: 1.03 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className="inline-block"
+        >
+          <Image
+            src={baseline}
+            alt="Baseline"
+            width={600}
+            height={400}
+            priority
+            className="rounded-2xl border border-indigo-100 shadow-lg cursor-pointer"
+            onClick={() => setPreview(baseline)}
+          />
+        </motion.div>
+      </motion.div>
+
+      {/* Timeline */}
+      <div className="relative grid md:grid-cols-[1fr_auto_1fr] gap-10">
+        {/* Left - Previous */}
+        <section>
+          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6">
+            ⏮️ Previous Progress
+          </h3>
+          <div className="space-y-8">
+            {months.map((month, i) => (
+              <motion.div
+                key={month}
+                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: -30 }}
+                transition={{ type: "spring", stiffness: 90, damping: 14 }}
+                viewport={{ once: true }}
+                className="group flex flex-col items-center rounded-xl bg-white/70 dark:bg-neutral-900/60 p-4 shadow-lg backdrop-blur-sm border border-indigo-100 dark:border-neutral-800"
+              >
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {month}
+                </p>
+                <div className="flex gap-3 mt-2">
+                  {[prev1[i], prev2[i]].map((src) => (
+                    <Image
+                      key={src}
+                      src={src}
+                      alt={month}
+                      width={220}
+                      height={150}
+                      loading="lazy"
+                      onClick={() => setPreview(src)}
+                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07]"
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Center - Smooth Tracker */}
+        <div className="hidden md:flex flex-col items-center relative">
+          <div className="h-full w-[3px] bg-gradient-to-b from-indigo-400 via-blue-500 to-emerald-400 rounded-full relative overflow-hidden">
+            {months.map((m, i) => (
+              <motion.div
+                key={i}
+                className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-md ring-4 ring-indigo-400"
+                style={{ top: `${(i / (months.length - 1)) * 100}%` }}
+                animate={{
+                  boxShadow: [
+                    "0 0 10px rgba(99,102,241,0.6)",
+                    "0 0 20px rgba(16,185,129,0.7)",
+                    "0 0 10px rgba(99,102,241,0.6)",
+                  ],
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+              />
+            ))}
           </div>
         </div>
+
+        {/* Right - Current */}
+        <section>
+          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6">
+            ⏩ Current Progress
+          </h3>
+          <div className="space-y-8">
+            {months.map((month, i) => (
+              <motion.div
+                key={month}
+                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: 30 }}
+                transition={{ type: "spring", stiffness: 90, damping: 14 }}
+                viewport={{ once: true }}
+                className="group flex flex-col items-center rounded-xl bg-white/70 dark:bg-neutral-900/60 p-4 shadow-lg backdrop-blur-sm border border-indigo-100 dark:border-neutral-800"
+              >
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {month}
+                </p>
+                <div className="flex gap-3 mt-2">
+                  {[curr1[i], curr2[i]].map((src) => (
+                    <Image
+                      key={src}
+                      src={src}
+                      alt={month}
+                      width={220}
+                      height={150}
+                      loading="lazy"
+                      onClick={() => setPreview(src)}
+                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07]"
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
       </div>
 
-      {/* Package Info Card */}
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <CardTitle>Package Information</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">Package Name</p>
-            <p className="text-lg font-bold">{packageName}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">
-              🗓️ Package Start Date
-            </p>
-            <p className="text-lg font-bold text-green-600">
-              {formatDate(startDate)}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">
-              🗓️ Package Due Date
-            </p>
-            <p className="text-lg font-bold text-blue-600">
-              {formatDate(dueDate)} ✅
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Performance Summary */}
-      {diff && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {diff.performanceChange >= 0 ? (
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              ) : (
-                <TrendingDown className="h-5 w-5 text-red-600" />
-              )}
-              Performance Summary
-            </CardTitle>
-            <CardDescription>{devSummary?.summary}</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
-            <div className="text-center p-4 border rounded-lg">
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Performance Change
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <span
-                  className={`text-2xl font-bold ${
-                    diff.performanceChange >= 0
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {diff.performanceChange >= 0 ? "+" : ""}
-                  {diff.performanceChange}%
-                </span>
-                {diff.performanceChange >= 0 ? (
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                ) : (
-                  <TrendingDown className="h-5 w-5 text-red-600" />
-                )}
-              </div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Completed Change
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <span
-                  className={`text-2xl font-bold ${
-                    diff.completedChange >= 0
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {diff.completedChange >= 0 ? "+" : ""}
-                  {diff.completedChange}
-                </span>
-                {diff.completedChange > 0 ? (
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                ) : diff.completedChange < 0 ? (
-                  <TrendingDown className="h-5 w-5 text-red-600" />
-                ) : (
-                  <Minus className="h-5 w-5 text-gray-400" />
-                )}
-              </div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Total Tasks Change
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <span
-                  className={`text-2xl font-bold ${
-                    diff.totalChange >= 0 ? "text-blue-600" : "text-orange-600"
-                  }`}
-                >
-                  {diff.totalChange >= 0 ? "+" : ""}
-                  {diff.totalChange}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Baseline vs Current Comparison */}
-      {prev && current && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Baseline (Previous Month) */}
-          <Card className="border-orange-200 dark:border-orange-800">
-            <CardHeader className="bg-orange-50 dark:bg-orange-950/20">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-orange-600" />
-                Baseline (Previous Month)
-              </CardTitle>
-              <CardDescription>
-                {formatMonthName(prev.start)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              {/* Performance */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Performance</span>
-                  <span className="font-bold text-orange-600">
-                    {prev.performance}%
-                  </span>
-                </div>
-                <Progress
-                  value={prev.performance}
-                  className="h-3 bg-orange-100"
-                />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium">Completed</span>
-                  </div>
-                  <p className="text-2xl font-bold">{prev.completed}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">In Progress</span>
-                  </div>
-                  <p className="text-2xl font-bold">{prev.in_progress}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm font-medium">Pending</span>
-                  </div>
-                  <p className="text-2xl font-bold">{prev.pending}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      QC Approved
-                    </Badge>
-                  </div>
-                  <p className="text-2xl font-bold">{prev.qc_approved}</p>
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Total Tasks</span>
-                  <span className="text-xl font-bold">{prev.total}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Current (Present Month) */}
-          <Card className="border-green-200 dark:border-green-800">
-            <CardHeader className="bg-green-50 dark:bg-green-950/20">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-green-600" />
-                Current (Present Month)
-              </CardTitle>
-              <CardDescription>
-                {formatMonthName(current.start)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              {/* Performance */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Performance</span>
-                  <span className="font-bold text-green-600">
-                    {current.performance}%
-                  </span>
-                </div>
-                <Progress
-                  value={current.performance}
-                  className="h-3 bg-green-100"
-                />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium">Completed</span>
-                  </div>
-                  <p className="text-2xl font-bold">{current.completed}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">In Progress</span>
-                  </div>
-                  <p className="text-2xl font-bold">{current.in_progress}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm font-medium">Pending</span>
-                  </div>
-                  <p className="text-2xl font-bold">{current.pending}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      QC Approved
-                    </Badge>
-                  </div>
-                  <p className="text-2xl font-bold">{current.qc_approved}</p>
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Total Tasks</span>
-                  <span className="text-xl font-bold">{current.total}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Additional Stats */}
-      {current && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Additional Metrics</CardTitle>
-            <CardDescription>Other task status breakdown</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {current.overdue}
-                </p>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Cancelled</p>
-                <p className="text-2xl font-bold text-gray-600">
-                  {current.cancelled}
-                </p>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Reassigned</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {current.reassigned}
-                </p>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">QC Approved</p>
-                <p className="text-2xl font-bold text-emerald-600">
-                  {current.qc_approved}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Preview Popup */}
+      <AnimatePresence>
+        {preview && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPreview(null)}
+          >
+            <motion.img
+              src={preview}
+              alt="Preview"
+              className="max-w-[90vw] max-h-[85vh] rounded-2xl border border-white/10 shadow-2xl"
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 200, damping: 18 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
