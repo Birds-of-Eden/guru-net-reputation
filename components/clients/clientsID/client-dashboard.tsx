@@ -257,9 +257,8 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="px-6 py-8">
           <div className="flex items-center justify-between">
-            {/* Left Side: Avatar + Info */}
             <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16 ring-4 ring-blue-100 dark:ring-blue-900 shadow-md">
+              <Avatar className="h-16 w-16 ring-4 ring-blue-100 dark:ring-blue-900">
                 <AvatarImage
                   src={clientData.avatar || undefined}
                   alt={clientData.name}
@@ -268,12 +267,12 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                   {getInitials(clientData.name)}
                 </AvatarFallback>
               </Avatar>
-
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {clientData.name}
                 </h1>
 
+                {/* Company / Location / Status */}
                 <div className="flex items-center space-x-4 mt-1">
                   <div className="flex items-center text-slate-600 dark:text-slate-400">
                     <Building className="h-4 w-4 mr-1" />
@@ -291,23 +290,22 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
                     {clientData.status ?? "inactive"}
                   </Badge>
                 </div>
-              </div>
-            </div>
 
-            {/* Center Focus: Package Timeline */}
-            <div className="text-center sm:text-right mt-4 sm:mt-0">
-              <div className="flex flex-col items-start text-left bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-800 px-5 py-3 rounded-lg border border-blue-200 dark:border-slate-600 shadow-sm">
-                <div className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300 mb-2">
-                  Package Timeline
+                {/* === Added: Package Timeline (start = startDate, end = dueDate) === */}
+                <div className="mt-2">
+                  <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
+                    Package Timeline
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+                      Start: {startDisplay}
+                    </Badge>
+                    <Badge className="bg-purple-50 text-purple-700 border border-purple-200">
+                      End: {dueDisplay}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-blue-100 text-blue-800 border border-blue-200">
-                    Start: {startDisplay}
-                  </Badge>
-                  <Badge className="bg-purple-100 text-purple-800 border border-purple-200">
-                    End: {dueDisplay}
-                  </Badge>
-                </div>
+                {/* === End Added === */}
               </div>
             </div>
 
