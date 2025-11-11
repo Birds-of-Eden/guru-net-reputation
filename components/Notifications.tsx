@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Filter, Search, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserSession } from "@/lib/hooks/use-user-session";
 
 function formatDateHeader(iso: string) {
   const d = new Date(iso);
@@ -79,8 +80,20 @@ type PaginationInfo = {
 };
 
 export default function Notifications({
-  apiBase = "/api/notifications",
+  apiBase,
 }: NotificationsProps) {
+  // Get user session to determine role-aware API base
+  const { user } = useUserSession();
+  
+  // Role-aware API base detection (same logic as app-sidebar.tsx)
+  const roleAwareApiBase = useMemo(() => {
+    if (apiBase) return apiBase; // If explicitly provided, use it
+    
+    // Auto-detect based on user role (same as NotificationBell in sidebar)
+    const userRole = user?.role;
+    return userRole === "am" ? "/api/am/notifications" : "/api/notifications";
+  }, [apiBase, user?.role]);
+
   // filters state
   const [type, setType] = useState<string>("all");
   const [readState, setReadState] = useState<string>("all");
@@ -105,8 +118,8 @@ export default function Notifications({
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     if (qDeb) params.set("q", qDeb);
-    return `${apiBase}?${params.toString()}`;
-  }, [apiBase, currentPage, type, readState, from, to, qDeb, sort]);
+    return `${roleAwareApiBase}?${params.toString()}`;
+  }, [roleAwareApiBase, currentPage, type, readState, from, to, qDeb, sort]);
 
   // ⚡ OPTIMIZED: Use SWR for automatic caching and revalidation
   const { data, error, isLoading } = useSWR(apiUrl, jsonFetcher, {
@@ -226,7 +239,7 @@ export default function Notifications({
               <Button
                 variant="secondary"
                 onClick={async () => {
-                  await markAllRead(apiBase);
+                  await markAllRead(roleAwareApiBase);
                   refresh();
                 }}
                 size="sm"
@@ -419,7 +432,7 @@ export default function Notifications({
                           size="sm"
                           variant="ghost"
                           onClick={async () => {
-                            await markOneRead(n.id, apiBase);
+                            await markOneRead(n.id, roleAwareApiBase);
                             refresh();
                           }}
                         >

@@ -25,6 +25,8 @@ export async function GET(req: Request) {
   const dateFrom = u.searchParams.get("from");
   const dateTo = u.searchParams.get("to");
   const take = Number(u.searchParams.get("take") || 50);
+  const limit = Number(u.searchParams.get("limit") || take); // Support both take and limit
+  const page = Number(u.searchParams.get("page") || 1);
   const cursorId = u.searchParams.get("cursorId");
   const sort = (u.searchParams.get("sort") === "asc" ? "asc" : "desc") as
     | "asc"
@@ -54,12 +56,37 @@ export async function GET(req: Request) {
     }
   }
 
-  const data = await prisma.notification.findMany({
+  // Calculate pagination
+  const skip = (page - 1) * limit;
+  
+  // Get total count for pagination
+  const totalCount = await prisma.notification.count({ where });
+  
+  // Get notifications with pagination
+  const notifications = await prisma.notification.findMany({
     where,
     orderBy: { createdAt: sort },
-    take,
+    take: limit,
+    skip,
     ...(cursorId ? { skip: 1, cursor: { id: Number(cursorId) } } : {}),
   });
 
-  return NextResponse.json(data);
+  // Calculate pagination info
+  const totalPages = Math.ceil(totalCount / limit);
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  const response = {
+    notifications,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      hasNextPage,
+      hasPrevPage,
+      limit,
+    },
+  };
+
+  return NextResponse.json(response);
 }
