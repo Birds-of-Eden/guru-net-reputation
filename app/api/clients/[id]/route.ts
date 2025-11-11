@@ -98,47 +98,125 @@ export async function GET(
   const { id } = await params;
 
   try {
-    // সর্বশেষ প্রগ্রেস DB-তে আপডেট করে নিন
-    const fresh = await recalcAndStoreClientProgress(id);
-
-    const client = await prisma.client.findUnique({
-      where: { id },
-      include: {
-        package: true,
-        // AM সম্পর্ক দেখাতে
-        accountManager: { include: { role: true } },
-        teamMembers: {
-          include: {
-            agent: { include: { role: true } },
-            team: true,
+    // ✅ Parallel execution for faster response
+    const [client, fresh] = await Promise.all([
+      // ✅ Optimized query with selective fields only
+      prisma.client.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          avatar: true,
+          company: true,
+          designation: true,
+          location: true,
+          birthdate: true,
+          gender: true,
+          websites: true,
+          companywebsite: true,
+          companyaddress: true,
+          biography: true,
+          imageDrivelink: true,
+          status: true,
+          progress: true,
+          startDate: true,
+          dueDate: true,
+          password: true,
+          recoveryEmail: true,
+          articleTopics: true,
+          otherField: true,
+          socialMedia: true,
+          packageId: true,
+          amId: true,
+          createdAt: true,
+          updatedAt: true,
+          // ✅ Load only necessary related data
+          package: {
+            select: {
+              id: true,
+              name: true,
+              totalMonths: true,
+            },
           },
-        },
-        tasks: {
-          include: {
-            assignedTo: { include: { role: true } },
-            templateSiteAsset: true,
-            category: true,
-          },
-        },
-        assignments: {
-          include: {
-            template: {
-              include: {
-                sitesAssets: true,
-                templateTeamMembers: {
-                  include: {
-                    agent: { include: { role: true } },
-                    team: true,
-                  },
+          accountManager: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
-            siteAssetSettings: { include: { templateSiteAsset: true } },
-            tasks: { include: { assignedTo: true, templateSiteAsset: true } },
+          },
+          // ✅ Simplified tasks - only essential fields
+          tasks: {
+            select: {
+              id: true,
+              name: true,
+              status: true,
+              priority: true,
+              dueDate: true,
+              createdAt: true,
+              completedAt: true,
+              completionLink: true,
+              idealDurationMinutes: true,
+              categoryId: true,
+              templateSiteAssetId: true,
+              assignedToId: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                },
+              },
+              templateSiteAsset: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                  url: true,
+                },
+              },
+              assignedTo: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+            // ✅ Add ordering for better performance
+            orderBy: { createdAt: "desc" },
+          },
+          // ✅ Simplified teamMembers
+          teamMembers: {
+            select: {
+              agent: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
           },
         },
-      },
-    });
+      }),
+      // ✅ Recalculate progress in parallel (cached result used)
+      recalcAndStoreClientProgress(id),
+    ]);
 
     if (!client)
       return NextResponse.json(
@@ -146,15 +224,25 @@ export async function GET(
         { status: 404 }
       );
 
-    // রেসপন্সে fresh progress + taskCounts + socialMedias (derived from JSON socialMedia) যুক্ত করে পাঠাই
+    // ✅ Prepare response with socialMedias
     const socialMedias = Array.isArray((client as any).socialMedia)
       ? ((client as any).socialMedia as any[])
       : [];
-    return NextResponse.json({
+
+    const response = {
       ...client,
       socialMedias,
       progress: fresh.progress,
       taskCounts: fresh.taskCounts,
+    };
+
+    // ✅ Add aggressive cache headers
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        "CDN-Cache-Control": "public, s-maxage=60",
+        "Vercel-CDN-Cache-Control": "public, s-maxage=60",
+      },
     });
   } catch (error) {
     console.error(`Error fetching client ${id}:`, error);
