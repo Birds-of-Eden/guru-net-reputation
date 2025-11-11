@@ -96,17 +96,11 @@ export function TemplateManagement({
   const [switchOpen, setSwitchOpen] = useState(false);
 
   // ✅ Use optimized hook with aggressive caching
-  const {
-    assignment,
-    templateData,
-    stats,
-    isLoading,
-    error,
-    refresh,
-  } = useTemplateManagement({
-    clientId: clientData.id,
-    enableCache: true,
-  });
+  const { assignment, templateData, stats, isLoading, error, refresh } =
+    useTemplateManagement({
+      clientId: clientData.id,
+      enableCache: true,
+    });
 
   const roleName = (user as any)?.role?.name ?? (user as any)?.role ?? "";
   const isClient = String(roleName).toLowerCase() === "client";
@@ -167,7 +161,8 @@ export function TemplateManagement({
                 No Template Assigned
               </h3>
               <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                This client does not have an assignment or template configured yet.
+                This client does not have an assignment or template configured
+                yet.
               </p>
             </div>
           </div>
@@ -176,9 +171,10 @@ export function TemplateManagement({
     );
   }
 
-  const isCustomTemplate = templateData.name?.includes("Custom") || 
-                          templateData.description?.includes("cloned");
-  
+  const isCustomTemplate =
+    templateData.name?.includes("Custom") ||
+    templateData.description?.includes("cloned");
+
   // ✅ Use stats from hook (pre-computed and memoized)
   const { totalAssets, customOverrides, teamMembers, assetsByType } = stats;
 
@@ -353,7 +349,7 @@ export function TemplateManagement({
                 const assets = templateData.sitesAssets.filter(
                   (a: any) => (a.type || "other") === type
                 );
-                
+
                 return (
                   <div key={type} className="space-y-3">
                     <div className="flex items-center gap-2">
@@ -366,7 +362,7 @@ export function TemplateManagement({
                         const setting = assignment.siteAssetSettings?.find(
                           (s: any) => s.templateSiteAssetId === asset.id
                         );
-                        
+
                         return (
                           <AssetCard
                             key={asset.id}
@@ -385,7 +381,9 @@ export function TemplateManagement({
           ) : (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No assets configured in this template</p>
+              <p className="text-slate-500">
+                No assets configured in this template
+              </p>
             </div>
           )}
         </CardContent>
