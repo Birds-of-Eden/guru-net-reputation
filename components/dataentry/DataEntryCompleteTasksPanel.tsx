@@ -1,7 +1,14 @@
 //app/com
 "use client";
 
-import React, { useEffect, useMemo, useState, useCallback, lazy, Suspense } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,16 +45,27 @@ import {
 } from "@/components/ui/dialog";
 
 // Lazy load modal components
-const LazyContentWritingModal = lazy(() => import("./DataEntryContentWritingDialog"));
-const LazyReviewRemovalModal = lazy(() => import("./DataEmtryReviewRemovalDialog"));
+const LazyContentWritingModal = lazy(
+  () => import("./DataEntryContentWritingDialog")
+);
+const LazyReviewRemovalModal = lazy(
+  () => import("./DataEmtryReviewRemovalDialog")
+);
 const LazyBacklinkingModal = lazy(() => import("./DataEntryBacklinkingDialog"));
-const LazySummaryReportModal = lazy(() => import("./DataEntrySummaryReportDialog"));
+const LazySummaryReportModal = lazy(
+  () => import("./DataEntrySummaryReportDialog")
+);
 const LazyCompletionDialog = lazy(() => import("./DataEntryCompletionDialog"));
 const LazyMonitoringDialog = lazy(() => import("./DataEntryMonitoringTask"));
 
 // Custom hooks for data fetching with SWR
 const useTasksData = (clientId: string, userId?: string) => {
-  const { data: tasksData, error, isLoading, mutate } = useSWR(
+  const {
+    data: tasksData,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
     clientId ? `/api/tasks/client/${clientId}` : null,
     async (url: string) => {
       const response = await fetch(url, { cache: "no-store" });
@@ -71,7 +89,11 @@ const useTasksData = (clientId: string, userId?: string) => {
 };
 
 const useAgentsData = () => {
-  const { data: agentsData, error, isLoading } = useSWR(
+  const {
+    data: agentsData,
+    error,
+    isLoading,
+  } = useSWR(
     "/api/users?role=agent&limit=200",
     async (url: string) => {
       const response = await fetch(url, { cache: "no-store" });
@@ -99,7 +121,11 @@ const useAgentsData = () => {
 };
 
 const useClientData = (clientId: string) => {
-  const { data: clientData, error, isLoading } = useSWR(
+  const {
+    data: clientData,
+    error,
+    isLoading,
+  } = useSWR(
     clientId ? `/api/clients/${clientId}` : null,
     async (url: string) => {
       const response = await fetch(url);
@@ -130,8 +156,14 @@ const useClientData = (clientId: string) => {
 };
 
 const useStatsData = (clientId: string, userId?: string) => {
-  const { data: statsData, error, isLoading } = useSWR(
-    clientId && userId ? `/api/tasks/data-entry-reports?clientId=${clientId}&pageSize=1000` : null,
+  const {
+    data: statsData,
+    error,
+    isLoading,
+  } = useSWR(
+    clientId && userId
+      ? `/api/tasks/data-entry-reports?clientId=${clientId}&pageSize=1000`
+      : null,
     async (url: string) => {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch stats");
@@ -140,7 +172,9 @@ const useStatsData = (clientId: string, userId?: string) => {
 
       const today = new Date();
       const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(
+        today.getTime() - 30 * 24 * 60 * 60 * 1000
+      );
 
       const completedByMe = reports.reduce((acc: number, t: any) => {
         const rid = t?.dataEntryReport?.completedByUserId;
@@ -245,10 +279,11 @@ export default function DataEntryCompleteTasksPanel({
   const { user } = useUserSession();
 
   // Use SWR hooks for data fetching
-  const { tasks, loading: tasksLoading, refetch: refetchTasks } = useTasksData(
-    clientId,
-    user?.id
-  );
+  const {
+    tasks,
+    loading: tasksLoading,
+    refetch: refetchTasks,
+  } = useTasksData(clientId, user?.id);
   const { agents, loading: agentsLoading } = useAgentsData();
   const {
     clientName,
@@ -263,7 +298,8 @@ export default function DataEntryCompleteTasksPanel({
   );
 
   // Combined loading state
-  const loading = tasksLoading || agentsLoading || clientLoading || statsLoading;
+  const loading =
+    tasksLoading || agentsLoading || clientLoading || statsLoading;
 
   // Debounced search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -296,27 +332,23 @@ export default function DataEntryCompleteTasksPanel({
 
   // Review Removal Modal state
   const [reviewRemovalModalOpen, setReviewRemovalModalOpen] = useState(false);
-  const [selectedReviewRemovalTask, setSelectedReviewRemovalTask] = useState<
-    DETask | null
-  >(null);
+  const [selectedReviewRemovalTask, setSelectedReviewRemovalTask] =
+    useState<DETask | null>(null);
 
   // Backlinking Modal state
   const [backlinkingModalOpen, setBacklinkingModalOpen] = useState(false);
-  const [selectedBacklinkingTask, setSelectedBacklinkingTask] = useState<
-    DETask | null
-  >(null);
+  const [selectedBacklinkingTask, setSelectedBacklinkingTask] =
+    useState<DETask | null>(null);
 
   // Summary Report Modal state
   const [summaryReportModalOpen, setSummaryReportModalOpen] = useState(false);
-  const [selectedSummaryReportTask, setSelectedSummaryReportTask] = useState<
-    DETask | null
-  >(null);
+  const [selectedSummaryReportTask, setSelectedSummaryReportTask] =
+    useState<DETask | null>(null);
 
   // Monitoring modal state
   const [monitoringModalOpen, setMonitoringModalOpen] = useState(false);
-  const [selectedMonitoringTask, setSelectedMonitoringTask] = useState<
-    DETask | null
-  >(null);
+  const [selectedMonitoringTask, setSelectedMonitoringTask] =
+    useState<DETask | null>(null);
 
   // Button states from localStorage
   const [showCreateTasksButton, setShowCreateTasksButton] = useState(true);
@@ -389,12 +421,202 @@ export default function DataEntryCompleteTasksPanel({
     return result;
   }, [tasks, debouncedSearch, statusFilter, priorityFilter]);
 
+  // Simple client-side pagination to avoid rendering a huge table at once
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredTasks.length / pageSize));
+  }, [filteredTasks.length, pageSize]);
+
+  useEffect(() => {
+    // reset page if filteredTasks shrink
+    if (page > totalPages) setPage(1);
+  }, [page, totalPages]);
+
+  const paginatedTasks = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    const slice = filteredTasks.slice(start, start + pageSize);
+
+    // Precompute some derived values (formatting, overdue) once per pagination change
+    const now = Date.now();
+    return slice.map((t) => {
+      const dueDateObj = t.dueDate ? new Date(t.dueDate) : null;
+      const dueDateFormatted =
+        dueDateObj && !isNaN(dueDateObj.getTime())
+          ? format(dueDateObj, "MMM dd, yyyy")
+          : null;
+      const isOverdue = !!(
+        dueDateObj &&
+        dueDateObj.getTime() < now &&
+        (t.status === "pending" || t.status === "in_progress")
+      );
+      return { task: t, dueDateFormatted, isOverdue };
+    });
+  }, [filteredTasks, page, pageSize]);
+
+  // Memoized row component to avoid re-rendering rows unnecessarily
+  const TaskRow = React.memo(function TaskRow({
+    data,
+    openContentWritingModal,
+    openReviewRemovalModal,
+    openBacklinkingModal,
+    openSummaryReportModal,
+    openMonitoringModal,
+    openComplete,
+  }: any) {
+    const { task: t, dueDateFormatted, isOverdue } = data;
+
+    return (
+      <tr
+        key={t.id}
+        className="group hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out"
+      >
+        <td className="px-6 py-5">
+          <div
+            className="font-bold text-slate-800 truncate max-w-[250px] group-hover:text-indigo-700 transition-colors"
+            title={t.name}
+          >
+            {t.name}
+          </div>
+        </td>
+        <td className="px-6 py-5">
+          <Badge
+            variant="outline"
+            className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm"
+          >
+            {t.category?.name || "—"}
+          </Badge>
+        </td>
+        <td className="px-6 py-5">
+          <span
+            className={`font-bold text-sm uppercase tracking-wide ${
+              priorityColor[t.priority] || "text-gray-600"
+            }`}
+          >
+            {t.priority
+              ? t.priority.charAt(0).toUpperCase() + t.priority.slice(1)
+              : "—"}
+          </span>
+        </td>
+        <td className="px-6 py-5">
+          <Badge
+            variant={statusVariant[t.status] || "outline"}
+            className="capitalize font-semibold px-3 py-1 rounded-full shadow-sm"
+          >
+            {t.status.replaceAll("_", " ")}
+          </Badge>
+        </td>
+        <td className="px-6 py-5">
+          <div
+            className={`flex items-center gap-2 font-medium ${
+              isOverdue ? "text-red-600 font-bold" : "text-slate-600"
+            }`}
+          >
+            {dueDateFormatted ? (
+              <>
+                <Calendar className="h-4 w-4" />
+                {dueDateFormatted}
+                {isOverdue && (
+                  <AlertCircle className="h-4 w-4 ml-1 animate-pulse" />
+                )}
+              </>
+            ) : (
+              "—"
+            )}
+          </div>
+        </td>
+        <td className="px-6 py-5 text-right">
+          <div className="flex gap-3 justify-end">
+            {isContentWritingTask(t) ? (
+              <Button
+                className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openContentWritingModal(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <PenTool className="h-4 w-4 mr-2" />
+                {t.category?.name || "Content Writing"}
+              </Button>
+            ) : isReviewRemovalTask(t) ? (
+              <Button
+                className="bg-gradient-to-r from-red-500 via-pink-500 to-orange-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openReviewRemovalModal(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <Star className="h-4 w-4 mr-2" />
+                Review Removal
+              </Button>
+            ) : isBacklinkingTask(t) ? (
+              <Button
+                className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openBacklinkingModal(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Backlinking
+              </Button>
+            ) : isSummaryReportTask(t) ? (
+              <Button
+                className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openSummaryReportModal(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <ClipboardPlus className="h-4 w-4 mr-2" />
+                Summary Report
+              </Button>
+            ) : isMonitoringTask(t) ? (
+              <Button
+                className="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openMonitoringModal(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Monitoring
+              </Button>
+            ) : (
+              <Button
+                className="bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                onClick={() => openComplete(t)}
+                size="sm"
+                disabled={
+                  t.status === "completed" || t.status === "qc_approved"
+                }
+              >
+                <CircleCheckBig className="h-4 w-4 mr-2" />
+                {t.status === "completed" || t.status === "qc_approved"
+                  ? "Completed"
+                  : "Complete"}
+              </Button>
+            )}
+          </div>
+        </td>
+      </tr>
+    );
+  });
+
   // Check if posting tasks already exist
-  const hasPostingTasks = useMemo(() =>
-    tasks.some((task: any) =>
-      task.name?.toLowerCase().includes("posting") ||
-      task.category?.name?.toLowerCase().includes("posting")
-    ),
+  const hasPostingTasks = useMemo(
+    () =>
+      tasks.some(
+        (task: any) =>
+          task.name?.toLowerCase().includes("posting") ||
+          task.category?.name?.toLowerCase().includes("posting")
+      ),
     [tasks]
   );
 
@@ -514,123 +736,130 @@ export default function DataEntryCompleteTasksPanel({
     [clientEmail, password, lastUsedDate, lastUsedAgent]
   );
 
-  const submit = useCallback(
-    async () => {
-      if (!user?.id || !selected) return;
-      if (!link.trim()) {
-        toast.error("Completion link is required");
-        return;
-      }
-      if (!completedAt) {
-        toast.error("Please select a completion date");
-        return;
-      }
-      if (completedAt.getTime() > Date.now()) {
-        toast.error("Completed date cannot be in the future");
-        return;
-      }
-      if (!doneBy) {
-        toast.error("Please select an agent (Done by)");
-        return;
-      }
+  const submit = useCallback(async () => {
+    if (!user?.id || !selected) return;
+    if (!link.trim()) {
+      toast.error("Completion link is required");
+      return;
+    }
+    if (!completedAt) {
+      toast.error("Please select a completion date");
+      return;
+    }
+    if (completedAt.getTime() > Date.now()) {
+      toast.error("Completed date cannot be in the future");
+      return;
+    }
+    if (!doneBy) {
+      toast.error("Please select an agent (Done by)");
+      return;
+    }
 
-      if (doneBy) {
-        setLastUsedAgent(doneBy);
-      }
+    if (doneBy) {
+      setLastUsedAgent(doneBy);
+    }
 
-      try {
-        const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            taskId: selected.id,
-            status: "completed",
-            actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
-            completionLink: link.trim(),
-            username: username.trim() || undefined,
-            email: email.trim() || undefined,
-            password: password || undefined,
-          }),
-        });
-        const j1 = await r1.json();
-        if (!r1.ok)
-          throw new Error(j1?.message || j1?.error || "Failed to complete task");
+    try {
+      const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskId: selected.id,
+          status: "completed",
+          actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
+          completionLink: link.trim(),
+          username: username.trim() || undefined,
+          email: email.trim() || undefined,
+          password: password || undefined,
+        }),
+      });
+      const j1 = await r1.json();
+      if (!r1.ok)
+        throw new Error(j1?.message || j1?.error || "Failed to complete task");
 
-        const r2 = await fetch(`/api/tasks/${selected.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status: "completed",
-            completedAt: completedAt.toISOString(),
-            actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
-            dataEntryReport: {
-              completedByUserId: user.id,
-              completedByName: (user as any)?.name || (user as any)?.email || user.id,
-              completedBy: new Date().toISOString(),
-              status: "Completed by " + (user as any)?.name,
+      const r2 = await fetch(`/api/tasks/${selected.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "completed",
+          completedAt: completedAt.toISOString(),
+          actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
+          dataEntryReport: {
+            completedByUserId: user.id,
+            completedByName:
+              (user as any)?.name || (user as any)?.email || user.id,
+            completedBy: new Date().toISOString(),
+            status: "Completed by " + (user as any)?.name,
+          },
+        }),
+      });
+      const j2 = await r2.json();
+      if (!r2.ok) throw new Error(j2?.error || "Failed to set completed date");
+
+      if (doneBy && clientId) {
+        const distBody = {
+          clientId,
+          assignments: [
+            {
+              taskId: selected.id,
+              agentId: doneBy,
+              note: "Reassigned to actual performer by data_entry",
+              dueDate: selected.dueDate,
             },
-          }),
-        });
-        const j2 = await r2.json();
-        if (!r2.ok) throw new Error(j2?.error || "Failed to set completed date");
-
-        if (doneBy && clientId) {
-          const distBody = {
-            clientId,
-            assignments: [
-              {
-                taskId: selected.id,
-                agentId: doneBy,
-                note: "Reassigned to actual performer by data_entry",
-                dueDate: selected.dueDate,
-              },
-            ],
-          } as any;
-          const rDist = await fetch(`/api/tasks/distribute`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(distBody),
-          });
-          const jDist = await rDist.json();
-          if (!rDist.ok)
-            throw new Error(
-              jDist?.error || "Failed to reassign task to selected agent"
-            );
-        }
-
-        const r3 = await fetch(`/api/tasks/${selected.id}/approve`, {
-          method: "PUT",
+          ],
+        } as any;
+        const rDist = await fetch(`/api/tasks/distribute`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            performanceRating: "Good",
-            notes: doneBy ? `Done by agent: ${doneBy}` : undefined,
-          }),
+          body: JSON.stringify(distBody),
         });
-        const j3 = await r3.json();
-        if (!r3.ok) throw new Error(j3?.error || "Failed to approve task");
-
-        toast.success("Task completed and QC approved");
-        resetModal();
-        refetchTasks();
-      } catch (e: any) {
-        console.error(e);
-        toast.error(e?.message || "Failed to submit");
+        const jDist = await rDist.json();
+        if (!rDist.ok)
+          throw new Error(
+            jDist?.error || "Failed to reassign task to selected agent"
+          );
       }
-    },
-    [user?.id, selected, link, completedAt, doneBy, clientId, username, email, password, resetModal, refetchTasks]
-  );
 
-  const createPostingTasks = useCallback(
-    async () => {
-      if (!clientId) return;
-      if (!isReadyForPostingCreation) {
-        toast.warning("Please complete & QC-approve all tasks first.");
-        return;
-      }
-      router.push(`${distributionBasePath}/client/${clientId}`);
-    },
-    [clientId, isReadyForPostingCreation, router, distributionBasePath]
-  );
+      const r3 = await fetch(`/api/tasks/${selected.id}/approve`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          performanceRating: "Good",
+          notes: doneBy ? `Done by agent: ${doneBy}` : undefined,
+        }),
+      });
+      const j3 = await r3.json();
+      if (!r3.ok) throw new Error(j3?.error || "Failed to approve task");
+
+      toast.success("Task completed and QC approved");
+      resetModal();
+      refetchTasks();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "Failed to submit");
+    }
+  }, [
+    user?.id,
+    selected,
+    link,
+    completedAt,
+    doneBy,
+    clientId,
+    username,
+    email,
+    password,
+    resetModal,
+    refetchTasks,
+  ]);
+
+  const createPostingTasks = useCallback(async () => {
+    if (!clientId) return;
+    if (!isReadyForPostingCreation) {
+      toast.warning("Please complete & QC-approve all tasks first.");
+      return;
+    }
+    router.push(`${distributionBasePath}/client/${clientId}`);
+  }, [clientId, isReadyForPostingCreation, router, distributionBasePath]);
 
   // Modal handlers
   const openContentWritingModal = useCallback((task: DETask) => {
@@ -691,9 +920,11 @@ export default function DataEntryCompleteTasksPanel({
         const renewKey = `renewClicked_${clientId}`;
         const createNextKey = `createNextClicked_${clientId}`;
 
-        const createTasksClicked = localStorage.getItem(createTasksKey) === "true";
+        const createTasksClicked =
+          localStorage.getItem(createTasksKey) === "true";
         const renewClicked = localStorage.getItem(renewKey) === "true";
-        const createNextClicked = localStorage.getItem(createNextKey) === "true";
+        const createNextClicked =
+          localStorage.getItem(createNextKey) === "true";
 
         setShowCreateTasksButton(!createTasksClicked);
         setShowRenewButton(createTasksClicked && !renewClicked);
@@ -1147,168 +1378,66 @@ export default function DataEntryCompleteTasksPanel({
                       </td>
                     </tr>
                   ) : (
-                    filteredTasks.map((t) => {
-                      const isOverdue =
-                        t.dueDate &&
-                        new Date(t.dueDate) < new Date() &&
-                        (t.status === "pending" || t.status === "in_progress");
-
-                      return (
-                        <tr
-                          key={t.id}
-                          className="group hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out"
-                        >
-                          <td className="px-6 py-5">
-                            <div
-                              className="font-bold text-slate-800 truncate max-w-[250px] group-hover:text-indigo-700 transition-colors"
-                              title={t.name}
-                            >
-                              {t.name}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <Badge
-                              variant="outline"
-                              className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm"
-                            >
-                              {t.category?.name || "—"}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span
-                              className={`font-bold text-sm uppercase tracking-wide ${
-                                priorityColor[t.priority] || "text-gray-600"
-                              }`}
-                            >
-                              {t.priority
-                                ? t.priority.charAt(0).toUpperCase() +
-                                  t.priority.slice(1)
-                                : "—"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <Badge
-                              variant={statusVariant[t.status] || "outline"}
-                              className="capitalize font-semibold px-3 py-1 rounded-full shadow-sm"
-                            >
-                              {t.status.replaceAll("_", " ")}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div
-                              className={`flex items-center gap-2 font-medium ${
-                                isOverdue
-                                  ? "text-red-600 font-bold"
-                                  : "text-slate-600"
-                              }`}
-                            >
-                              {t.dueDate ? (
-                                <>
-                                  <Calendar className="h-4 w-4" />
-                                  {format(new Date(t.dueDate), "MMM dd, yyyy")}
-                                  {isOverdue && (
-                                    <AlertCircle className="h-4 w-4 ml-1 animate-pulse" />
-                                  )}
-                                </>
-                              ) : (
-                                "—"
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-right">
-                            <div className="flex gap-3 justify-end">
-                              {/* Content Writing Button for content writing tasks ONLY */}
-                              {isContentWritingTask(t) ? (
-                                <Button
-                                  className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openContentWritingModal(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <PenTool className="h-4 w-4 mr-2" />
-                                  {t.category?.name || "Content Writing"}
-                                </Button>
-                              ) : isReviewRemovalTask(t) ? (
-                                <Button
-                                  className="bg-gradient-to-r from-red-500 via-pink-500 to-orange-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openReviewRemovalModal(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <Star className="h-4 w-4 mr-2" />
-                                  Review Removal
-                                </Button>
-                              ) : isBacklinkingTask(t) ? (
-                                <Button
-                                  className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openBacklinkingModal(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <LinkIcon className="h-4 w-4 mr-2" />
-                                  Backlinking
-                                </Button>
-                              ) : isSummaryReportTask(t) ? (
-                                <Button
-                                  className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openSummaryReportModal(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <ClipboardPlus className="h-4 w-4 mr-2" />
-                                  Summary Report
-                                </Button>
-                              ) : isMonitoringTask(t) ? (
-                                <Button
-                                  className="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openMonitoringModal(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <BarChart3 className="h-4 w-4 mr-2" />
-                                  Monitoring
-                                </Button>
-                              ) : (
-                                /* Complete Button for all other tasks */
-                                <Button
-                                  className="bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
-                                  onClick={() => openComplete(t)}
-                                  size="sm"
-                                  disabled={
-                                    t.status === "completed" ||
-                                    t.status === "qc_approved"
-                                  }
-                                >
-                                  <CircleCheckBig className="h-4 w-4 mr-2" />
-                                  {t.status === "completed" ||
-                                  t.status === "qc_approved"
-                                    ? "Completed"
-                                    : "Complete"}
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
+                    paginatedTasks.map((data) => (
+                      <TaskRow
+                        key={data.task.id}
+                        data={data}
+                        openContentWritingModal={openContentWritingModal}
+                        openReviewRemovalModal={openReviewRemovalModal}
+                        openBacklinkingModal={openBacklinkingModal}
+                        openSummaryReportModal={openSummaryReportModal}
+                        openMonitoringModal={openMonitoringModal}
+                        openComplete={openComplete}
+                      />
+                    ))
                   )}
                 </tbody>
               </table>
+            </div>
+            {/* Pagination controls - keep DOM small by paginating large lists */}
+            <div className="mt-4 px-4 flex items-center justify-between">
+              <div className="text-sm text-slate-600">
+                Showing{" "}
+                {Math.min(filteredTasks.length, page * pageSize) -
+                  (page - 1) * pageSize}{" "}
+                of {filteredTasks.length}
+              </div>
+              <div className="flex items-center gap-3">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="h-10 rounded-lg border px-3"
+                >
+                  <option value={20}>20 / page</option>
+                  <option value={50}>50 / page</option>
+                  <option value={100}>100 / page</option>
+                </select>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                  >
+                    Prev
+                  </Button>
+                  <span className="text-sm text-slate-600">
+                    Page {page} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 
