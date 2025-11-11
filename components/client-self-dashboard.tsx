@@ -1,90 +1,81 @@
 // components/client-self-dashboard.tsx
 "use client";
 
-import { useMemo } from "react";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import useSWR from "swr";
+import { useClientDashboard } from "@/lib/hooks/use-client-dashboard";
 import { ClientDashboard } from "@/components/clients/clientsID/client-dashboard";
-import { Client } from "@/types/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function normalizeClientData(apiData: any): Client {
-  const uncategorized = {
-    id: "uncategorized",
-    name: "Uncategorized",
-    description: "",
-  };
-
-  return {
-    ...apiData,
-    companywebsite:
-      apiData?.companywebsite && typeof apiData.companywebsite === "string"
-        ? apiData.companywebsite
-        : "",
-    tasks: (apiData?.tasks ?? []).map((t: any) => ({
-      ...t,
-      categoryId: t?.category?.id ?? t?.categoryId ?? "uncategorized",
-      category: t?.category ?? uncategorized,
-      name: String(t?.name ?? ""),
-      priority: String(t?.priority ?? "medium"),
-      status: String(t?.status ?? "pending"),
-      templateSiteAsset: {
-        ...t?.templateSiteAsset,
-        type: String(t?.templateSiteAsset?.type ?? ""),
-        name: String(t?.templateSiteAsset?.name ?? ""),
-        url: String(t?.templateSiteAsset?.url ?? ""),
-      },
-    })),
-  };
+// Skeleton loader for client dashboard
+function ClientDashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <div className="flex space-x-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-6">
+              <Skeleton className="h-12 w-20" />
+              <Skeleton className="h-12 w-20" />
+              <Skeleton className="h-12 w-20" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Content skeleton */}
+      <div className="px-6 space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+  );
 }
 
-// Fetcher for client data
-const clientFetcher = async (url: string): Promise<any> => {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch client");
-  return res.json();
-};
-
 export default function ClientSelfDashboard() {
-  // ✅ Use optimized hooks with SWR
+  // ✅ Use optimized auth hook
   const { user, loading: sessionLoading } = useUserSession();
   const clientId = user?.clientId ?? null;
   
-  // ✅ Fetch client data only if clientId exists
-  const { data: rawClientData, error: clientError, isLoading: clientLoading } = useSWR(
-    clientId ? `/api/clients/${clientId}` : null,
-    clientFetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-      refreshInterval: 300000, // Auto-refresh every 5 min
-    }
-  );
+  // ✅ Use optimized client dashboard hook with aggressive caching
+  const { clientData, isLoading, error } = useClientDashboard({
+    clientId,
+    enableCache: true,
+  });
   
-  // ✅ Process client data with useMemo
-  const clientData = useMemo(() => {
-    return rawClientData ? normalizeClientData(rawClientData) : null;
-  }, [rawClientData]);
-  
-  const loading = sessionLoading || clientLoading;
-  const error = clientError ? (clientError instanceof Error ? clientError.message : "Something went wrong") : null;
+  const loading = sessionLoading || isLoading;
 
   return (
-    <div className="min-h-[300px] p-4">
-      <div className="bg-white rounded-lg border p-4">
-        {loading ? (
-          <p className="text-sm text-gray-600">Loading session...</p>
-        ) : error ? (
-          <p className="text-sm text-red-600">{error}</p>
-        ) : clientId && clientData ? (
-          <ClientDashboard clientData={clientData} />
-        ) : clientId && !clientData ? (
-          <p className="text-sm text-gray-600">Loading client data...</p>
-        ) : (
-          <p className="text-sm text-gray-600">
-            No client is associated with your session.
-          </p>
-        )}
-      </div>
+    <div className="min-h-[300px]">
+      {loading ? (
+        <ClientDashboardSkeleton />
+      ) : error ? (
+        <div className="p-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        </div>
+      ) : clientId && clientData ? (
+        <ClientDashboard clientData={clientData} />
+      ) : (
+        <div className="p-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p className="text-sm text-gray-600">
+              No client is associated with your session.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
