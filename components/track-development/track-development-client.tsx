@@ -44,8 +44,8 @@ export default function TrackDevelopment() {
           🌟 Track Development Progress
         </h1>
         <p className="mt-3 text-gray-600 dark:text-gray-300 text-lg">
-          Package Start: 🗓️ <b>Nov 8, 2025</b> &nbsp;|&nbsp; Due: 🗓️{" "}
-          <b>Feb 8, 2026 ✅</b>
+          Package Start: 🗓️ <b>Feb 1, 2025</b> &nbsp;|&nbsp; Due: 🗓️{" "}
+          <b>Oct 1, 2025 ✅</b>
         </p>
       </motion.div>
 
