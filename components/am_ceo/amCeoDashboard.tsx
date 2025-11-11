@@ -12,11 +12,11 @@ import {
   Filter,
   AlertTriangle,
   UserCircle2,
-  Loader2,
   Target,
   BarChart3,
   PieChart as PieChartIcon,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -148,7 +148,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
   const [clientOpen, setClientOpen] = useState<boolean>(false);
   const { user, loading: sessionLoading } = useUserSession();
 
-  // ✅ Use optimized hooks with SWR
+  // Use optimized hooks with SWR
   const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
   
   const { data: packages, isLoading: pkgLoading } = useSWR("/api/packages", packagesFetcher, {
@@ -171,7 +171,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     }
   );
 
-  // ✅ Filter clients by AM CEO (client-side filtering)
+  // Filter clients by AM CEO (client-side filtering)
   const clients = useMemo(() => {
     const data = allClients.filter((c: any) => {
       if (!selectedAmCeoId) return true;
@@ -186,7 +186,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     };
   }, [allClients, selectedAmCeoId, clientsLoading, clientsError]);
 
-  // ✅ Create packages map
+  // Create packages map
   const pkgMap = useMemo(() => {
     const map: Record<string, string> = {};
     (packages || []).forEach((p) => {
@@ -195,7 +195,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     return map;
   }, [packages]);
 
-  // ✅ Summary state
+  // Summary state
   const summary = useMemo(() => ({
     data: summaryData || null,
     loading: summaryLoading,
@@ -336,9 +336,128 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
 
       {/* Loading / Error States */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-slate-500 bg-white rounded-xl shadow-sm border">
-          <Loader2 className="w-5 h-5 mr-3 animate-spin text-indigo-500" />
-          <span className="font-medium">Loading dashboard data...</span>
+        <div className="space-y-6">
+          {/* KPI Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Card key={`kpi-skeleton-${index}`} className="border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-3 flex-1">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-8 w-16" />
+                      <div className="flex items-center gap-1">
+                        <Skeleton className="h-3 w-3 rounded" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded-xl" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Charts Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Status Distribution Chart */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center">
+                  <Skeleton className="h-48 w-48 rounded-full" />
+                </div>
+                <div className="mt-4 space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-3 w-3 rounded-full" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Progress Distribution Chart */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-36" />
+                    <Skeleton className="h-4 w-52" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                      <Skeleton className="h-6 w-full rounded" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Timeline and Upcoming Due */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Client Starts Timeline */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full rounded" />
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Due List */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-44" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <div className="text-right space-y-1">
+                        <Skeleton className="h-4 w-16 rounded-full" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       ) : errorMsg ? (
         <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border">

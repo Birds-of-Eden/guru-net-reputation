@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Download, Calendar as CalendarIcon, Loader2, Users, Package, BarChart3, Filter, Table as TableIcon, List } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -409,19 +410,88 @@ export default function MonthlyAgentPackageMatrix({
           </div>
         )}
 
-        {/* Loading */}
+        {/* Professional Loading Skeleton */}
         {loading && (
-          <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm">
-            <CardContent className="flex items-center justify-center py-12 sm:py-16">
-              <div className="flex items-center gap-3 sm:gap-4 text-slate-600">
-                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin" />
-                <div>
-                  <p className="text-base sm:text-lg font-medium">Loading performance data</p>
-                  <p className="text-xs sm:text-sm text-slate-500">Fetching and processing team metrics...</p>
-                </div>
+          <div className="space-y-6">
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Card key={`stat-skeleton-${index}`} className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-3 w-16" />
+                        <Skeleton className="h-6 w-12" />
+                      </div>
+                      <Skeleton className="h-8 w-8 rounded" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Tabs Skeleton */}
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-32 rounded-lg" />
+                <Skeleton className="h-10 w-28 rounded-lg" />
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Matrix Table Skeleton */}
+              <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-48" />
+                      <Skeleton className="h-4 w-64" />
+                    </div>
+                    <Skeleton className="h-9 w-24 rounded" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Table Header */}
+                  <div className="grid grid-cols-4 gap-4 pb-3 border-b">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  
+                  {/* Table Rows */}
+                  <div className="space-y-3 mt-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="grid grid-cols-4 gap-4 py-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-8" />
+                        <Skeleton className="h-4 w-8" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Grand Totals Skeleton */}
+            <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm">
+              <CardHeader className="pb-3 bg-gradient-to-r from-slate-50 to-amber-50/60 border-b">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-6 w-6 rounded" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="text-center space-y-2">
+                      <Skeleton className="h-4 w-16 mx-auto" />
+                      <Skeleton className="h-6 w-12 mx-auto" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Main Content */}

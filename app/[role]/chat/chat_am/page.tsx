@@ -11,6 +11,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import ChatWindow from "@/components/chat/ChatWindow";
 import { Search } from "lucide-react";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // helpers (same as before)
 function getOtherUser(c: any, myId?: string) {
@@ -131,7 +132,17 @@ export default function ChatPage() {
           </div>
 
           {convLoading ? (
-            <div className="text-sm text-gray-500">Loading…</div>
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={`conv-skeleton-${index}`} className="p-3 rounded hover:bg-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-6 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              ))}
+            </div>
           ) : (
             <ul className="space-y-1 overflow-auto max-h-[38vh] pr-1">
               {conversations.map((c: any) => {
@@ -196,7 +207,17 @@ export default function ChatPage() {
               Online ({filteredOnline.length})
             </div>
             {rosterLoading && !online.length ? (
-              <div className="text-xs text-gray-500">Loading…</div>
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={`online-skeleton-${index}`} className="flex items-center gap-2 px-3 py-2 rounded">
+                    <Skeleton className="h-2 w-2 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : filteredOnline.length ? (
               <ul className="space-y-1 max-h-[22vh] overflow-auto pr-1">
                 {filteredOnline.map((u: any) => (

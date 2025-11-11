@@ -39,6 +39,7 @@ import {
   Shield,
   ShieldOff,
   LineChart,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,6 +159,11 @@ const ICONS: Record<string, React.ReactNode> = {
     <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />
   ),
   "QC Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
+
+  // Track Development
+  "Track Your Development": (
+    <TrendingUp className="h-4 w-4" strokeWidth={1.75} />
+  ),
 };
 
 /* =========================
@@ -399,6 +405,13 @@ function buildNav(role: Role): NavItem[] {
       title: "Notifications",
       url: p(r, "/notifications"),
       permission: "view_notifications",
+    },
+
+    // Track Your Development (for clients)
+    {
+      title: "Track Your Development",
+      url: p(r, "/track-development"),
+      permission: "view_track_development",
     },
   ];
 }
@@ -824,8 +837,7 @@ export function AppSidebar({ className }: { className?: string }) {
    Pieces
 ========================= */
 
-// ⚡ OPTIMIZED: Memoize GroupItem to prevent unnecessary re-renders
-const GroupItem = React.memo(function GroupItem({
+function GroupItem({
   item,
   active,
   expanded,
@@ -913,10 +925,9 @@ const GroupItem = React.memo(function GroupItem({
       </AnimatePresence>
     </div>
   );
-});
+}
 
-// ⚡ OPTIMIZED: Memoize LeafItem and add prefetch for instant navigation
-const LeafItem = React.memo(function LeafItem({
+function LeafItem({
   item,
   active,
   chatUnread,
@@ -932,7 +943,6 @@ const LeafItem = React.memo(function LeafItem({
   return (
     <Link
       href={item.url}
-      prefetch={true}
       className={cn(
         "flex items-center gap-3 p-2.5 rounded-lg",
         "transition-all duration-200 hover:bg-gray-50",
@@ -957,10 +967,9 @@ const LeafItem = React.memo(function LeafItem({
       )}
     </Link>
   );
-});
+}
 
-// ⚡ OPTIMIZED: Memoize MobileItem
-const MobileItem = React.memo(function MobileItem({
+function MobileItem({
   item,
   active,
   role,
@@ -1029,13 +1038,13 @@ const MobileItem = React.memo(function MobileItem({
       </AnimatePresence>
     </div>
   );
-});
+}
 
 /* =========================
    Sidebar Footer (Impersonation-aware)
 ========================= */
 
-const SidebarFooter = React.memo(function SidebarFooter({
+function SidebarFooter({
   userName,
   userEmail,
   userImage,
@@ -1119,13 +1128,13 @@ const SidebarFooter = React.memo(function SidebarFooter({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem asChild>
-            <Link href="/profile" prefetch={true} className="w-full flex items-center gap-2">
+            <Link href="/profile" className="w-full flex items-center gap-2">
               <BadgeCheck className="h-4 w-4" /> Profile
             </Link>
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <Link href="/settings" prefetch={true} className="w-full flex items-center gap-2">
+            <Link href="/settings" className="w-full flex items-center gap-2">
               <Settings className="h-4 w-4" /> Settings
             </Link>
           </DropdownMenuItem>
@@ -1160,13 +1169,13 @@ const SidebarFooter = React.memo(function SidebarFooter({
       </DropdownMenu>
     </div>
   );
-});
+}
 
 /* =========================
    Settings Menu (Chat Sound toggle)
 ========================= */
 
-const SettingsMenu = React.memo(function SettingsMenu({
+function SettingsMenu({
   chatSoundEnabled,
   setChatSoundEnabled,
   onTryUnlockAudio,
@@ -1219,13 +1228,13 @@ const SettingsMenu = React.memo(function SettingsMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-});
+}
 
 /* =========================
    Loading Skeleton
 ========================= */
 
-const SidebarSkeleton = React.memo(function SidebarSkeleton() {
+function SidebarSkeleton() {
   return (
     <div className="space-y-2 p-2">
       {Array.from({ length: 7 }).map((_, i) => (
@@ -1233,4 +1242,4 @@ const SidebarSkeleton = React.memo(function SidebarSkeleton() {
       ))}
     </div>
   );
-});
+}

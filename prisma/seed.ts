@@ -309,6 +309,11 @@ const PERMS = [
     name: "client_card_delete",
     description: "Client Card → Delete Client",
   },
+  {
+    id: "view_track_development",
+    name: "view_track_development",
+    description: "Sidebar: Track Your Development",
+  },
 ];
 
 async function seedPermissions() {
@@ -444,7 +449,12 @@ const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     "chat_data_entry",
   ],
 
-  client: ["view_dashboard", "view_notifications", "chat_client"],
+  client: [
+    "view_dashboard",
+    "view_notifications",
+    "chat_client",
+    "view_track_development",
+  ],
 
   user: ["view_dashboard"],
 };

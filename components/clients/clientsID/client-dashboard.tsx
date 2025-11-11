@@ -78,7 +78,20 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   // === FIXED: timezone-safe date formatter (uses DB string directly if YYYY-MM-DD) ===
   const formatDateStrict = (v?: string | Date | null) => {
     if (!v) return "—";
-    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     // If DB stores date-only string like "2025-11-09" (no time), use it as-is (no TZ shift)
     if (typeof v === "string") {

@@ -16,6 +16,7 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -276,9 +277,92 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
 
       {/* Loading / Error States */}
       {clients.loading ? (
-        <div className="flex items-center justify-center py-20 text-slate-500 bg-white rounded-xl shadow-sm border">
-          <Loader2 className="w-5 h-5 mr-3 animate-spin text-indigo-500" />
-          <span className="font-medium">Loading dashboard data...</span>
+        <div className="space-y-6">
+          {/* KPI Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Card key={`kpi-skeleton-${index}`} className="border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-3 flex-1">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-8 w-16" />
+                      <div className="flex items-center gap-1">
+                        <Skeleton className="h-3 w-3 rounded" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded-xl" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Charts Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Status Distribution Chart */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-5 w-40" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center">
+                  <Skeleton className="h-48 w-48 rounded-full" />
+                </div>
+                <div className="mt-4 space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-3 w-3 rounded-full" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-8" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Progress Distribution Chart */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-5 w-36" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                      <Skeleton className="h-6 w-full rounded" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Timeline Chart Skeleton */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-5 w-48" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-64 w-full rounded" />
+            </CardContent>
+          </Card>
         </div>
       ) : clients.error ? (
         <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border">
