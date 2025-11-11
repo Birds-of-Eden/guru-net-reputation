@@ -21,10 +21,11 @@ export default function TrackDevelopment() {
 
   const gen = (type: "previous" | "current", set: 1 | 2) =>
     months.map(
-      (m) => `/images/Joseph Brophy ${type} ${set} ${m.toLowerCase()}.png`
+      (m) => `/images/joseph-brophy-${type}-${set}-${m.toLowerCase()}.png`
     );
 
-  const baseline = "/images/Joseph Brophy baseline 1.png";
+  const baseline = "/images/joseph-brophy-baseline-1.png";
+
   const prev1 = gen("previous", 1);
   const prev2 = gen("previous", 2);
   const curr1 = gen("current", 1);
