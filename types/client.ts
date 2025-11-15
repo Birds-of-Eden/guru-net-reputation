@@ -1,4 +1,19 @@
 // Updated Client Type Definition
+export type ClientTaskSummary = {
+    total: number
+    pending: number
+    in_progress: number
+    completed: number
+    overdue: number
+    cancelled: number
+    reassigned: number
+    thisMonth: {
+      total: number
+      completed: number
+      approved: number
+    }
+}
+
 export type Client = {
     id: string
     name: string
@@ -74,6 +89,7 @@ export type Client = {
         description: string | null
       } | null
     }[]
+    taskSummary?: ClientTaskSummary
     tasks?: {
       id: string
       assignmentId: string | null
