@@ -1,11 +1,30 @@
+// components/monthlyReport.tsx
+
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback, useTransition } from "react";
+import useSWR from "swr";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import { Download, Calendar as CalendarIcon, Loader2, Users, Package, BarChart3, Filter, Table as TableIcon, List } from "lucide-react";
+import {
+  Download,
+  Calendar as CalendarIcon,
+  Loader2,
+  Users,
+  Package,
+  BarChart3,
+  Filter,
+  Table as TableIcon,
+  List,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 /** ========= Types ========= */
 export type Task = {
   id: string;
-  title: string;
+  title?: string | null;
+  name?: string | null;
   dueDate: string; // ISO
   status?: string | null;
   category?: { id: string; name: string } | null;
@@ -26,8 +46,14 @@ export type Task = {
     id: string | null;
     name: string | null;
     email?: string | null;
-    role?: string | null;
+    role?: string | { name?: string | null } | null;
   } | null;
+};
+
+const fetchMonthlyTasks = async (url: string) => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to fetch monthly data (${res.status})`);
+  return res.json();
 };
 
 /** ========= Helpers ========= */
@@ -87,11 +113,19 @@ function looksLikeDataEntry(text?: string | null) {
   return false;
 }
 
+function resolveRoleLabel(
+  role?: string | { name?: string | null } | null
+): string | null {
+  if (!role) return null;
+  if (typeof role === "string") return role;
+  return role.name ?? null;
+}
+
 function isHiddenAgentTask(t: Task) {
   const id = t.assignedTo?.id ?? null;
   const name = t.assignedTo?.name ?? null;
   const email = t.assignedTo?.email ?? null;
-  const role = t.assignedTo?.role ?? null;
+  const role = resolveRoleLabel(t.assignedTo?.role);
 
   if (!id) return true;
 
@@ -121,44 +155,45 @@ export default function MonthlyAgentPackageMatrix({
   }, [defaultMonth]);
 
   const [month, setMonth] = useState(initMonth);
-  const [loading, setLoading] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeView, setActiveView] = useState<"table" | "summary">("table");
+  const [isMonthPending, startMonthTransition] = useTransition();
 
   const { start, end } = useMemo(() => getMonthBounds(month), [month]);
 
-  // ===== Fetch data =====
-  useEffect(() => {
-    let ignore = false;
-    async function run() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        params.set("startDate", start.toISOString());
-        params.set("endDate", end.toISOString());
-
-        const res = await fetch(`/api/tasks/monthlyReport?${params.toString()}`, {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const payload = await res.json();
-        const data: Task[] = Array.isArray(payload) ? payload : payload?.data ?? [];
-        if (!ignore) setTasks(data);
-      } catch (e) {
-        if (!ignore) setTasks([]);
-        console.error("Failed to fetch monthly tasks:", e);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    }
-    run();
-    return () => {
-      ignore = true;
-    };
+  const queryKey = useMemo(() => {
+    if (!start || !end) return null;
+    const params = new URLSearchParams();
+    params.set("startDate", start.toISOString());
+    params.set("endDate", end.toISOString());
+    return `/api/tasks/monthlyReport?${params.toString()}`;
   }, [start, end]);
 
+  // OPTIMIZATION (SWR caching): reuse monthly responses across navigation instead of refetching on every render.
+  const {
+    data: monthlyData,
+    isLoading: swrLoading,
+  } = useSWR<{ data?: Task[] }>(queryKey, fetchMonthlyTasks, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+    keepPreviousData: true,
+  });
+  const tasks = useMemo(() => monthlyData?.data ?? [], [monthlyData]);
+
+  // OPTIMIZATION (React useTransition): keep the UI responsive while changing months spawns a new SWR request.
+  const handleMonthChange = useCallback(
+    (value: string) => {
+      startMonthTransition(() => setMonth(value));
+    },
+    [startMonthTransition]
+  );
+
+  const loading = swrLoading || isMonthPending;
+
   /** ======== Data Processing ======== */
-  const visibleTasks = useMemo(() => tasks.filter(t => !isHiddenAgentTask(t)), [tasks]);
+  const visibleTasks = useMemo(
+    () => tasks.filter((t) => !isHiddenAgentTask(t)),
+    [tasks]
+  );
 
   const packageList = useMemo(() => {
     const set = new Set<string>();
@@ -168,7 +203,8 @@ export default function MonthlyAgentPackageMatrix({
 
   const agentList = useMemo(() => {
     const set = new Set<string>();
-    for (const t of visibleTasks) set.add(t.assignedTo!.name || "Unknown");
+    for (const t of visibleTasks)
+      set.add(t.assignedTo?.name || "Unknown Agent");
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [visibleTasks]);
 
@@ -189,7 +225,8 @@ export default function MonthlyAgentPackageMatrix({
     const ensure = (agent: string) => {
       if (!map.has(agent)) {
         const byPkg: Record<string, Cell> = {};
-        for (const p of packageList) byPkg[p] = { post: 0, weekly: 0, sheet: 0 };
+        for (const p of packageList)
+          byPkg[p] = { post: 0, weekly: 0, sheet: 0 };
         map.set(agent, {
           agent,
           byPkg,
@@ -205,7 +242,7 @@ export default function MonthlyAgentPackageMatrix({
     };
 
     for (const t of visibleTasks) {
-      const agent = t.assignedTo!.name || "Unknown";
+      const agent = t.assignedTo?.name || "Unknown Agent";
       const pkg = getPackageName(t);
       const row = ensure(agent);
       if (!row.byPkg[pkg]) row.byPkg[pkg] = { post: 0, weekly: 0, sheet: 0 };
@@ -231,13 +268,24 @@ export default function MonthlyAgentPackageMatrix({
       }
 
       const c = norm(t.category?.name);
-      if (c.includes("image op") || c.includes("image optimization") || c.includes("image optimized") || c.includes("img opt"))
+      if (
+        c.includes("image op") ||
+        c.includes("image optimization") ||
+        c.includes("image optimized") ||
+        c.includes("img opt")
+      )
         row.image_op++;
-      if (c.includes("aws upload") || c.includes("awb upload") || c.includes("s3 upload"))
+      if (
+        c.includes("aws upload") ||
+        c.includes("awb upload") ||
+        c.includes("s3 upload")
+      )
         row.aws_upload++;
     }
 
-    return Array.from(map.values()).sort((a, b) => a.agent.localeCompare(b.agent));
+    return Array.from(map.values()).sort((a, b) =>
+      a.agent.localeCompare(b.agent)
+    );
   }, [visibleTasks, packageList]);
 
   // Totals per package across agents
@@ -275,12 +323,20 @@ export default function MonthlyAgentPackageMatrix({
     };
   }, [rows, packageList]);
 
+  const monthLabel = useMemo(() => format(start, "MMMM yyyy"), [start]);
   const metrics = ["Posting", "Weekly", "Sheet"] as const;
 
   function handleExportCsv() {
     const header: string[] = ["Name"];
-    for (const m of metrics) for (const p of packageList) header.push(`${p} - ${m}`);
-    header.push("Image Op.", "AWS Upload", "Total Sheets", "Total Post", "Total Weekly");
+    for (const m of metrics)
+      for (const p of packageList) header.push(`${p} - ${m}`);
+    header.push(
+      "Image Op.",
+      "AWS Upload",
+      "Total Sheets",
+      "Total Post",
+      "Total Weekly"
+    );
 
     const lines: (string | number)[][] = [header];
     for (const r of rows) {
@@ -288,17 +344,31 @@ export default function MonthlyAgentPackageMatrix({
       for (const m of metrics) {
         for (const p of packageList) {
           const c = r.byPkg[p] || { post: 0, weekly: 0, sheet: 0 };
-          line.push(m === "Posting" ? c.post : m === "Weekly" ? c.weekly : c.sheet);
+          line.push(
+            m === "Posting" ? c.post : m === "Weekly" ? c.weekly : c.sheet
+          );
         }
       }
-      line.push(r.image_op, r.aws_upload, r.total_sheets, r.total_post, r.total_weekly);
+      line.push(
+        r.image_op,
+        r.aws_upload,
+        r.total_sheets,
+        r.total_post,
+        r.total_weekly
+      );
       lines.push(line);
     }
 
     const tline: (string | number)[] = ["Total"];
     for (const m of metrics)
       for (const p of packageList)
-        tline.push(m === "Posting" ? pkgTotals[p].post : m === "Weekly" ? pkgTotals[p].weekly : pkgTotals[p].sheet);
+        tline.push(
+          m === "Posting"
+            ? pkgTotals[p].post
+            : m === "Weekly"
+            ? pkgTotals[p].weekly
+            : pkgTotals[p].sheet
+        );
     tline.push(
       "",
       "",
@@ -319,7 +389,10 @@ export default function MonthlyAgentPackageMatrix({
   }
 
   // Color variants for badges based on values
-  const getBadgeVariant = (value: number, type?: "post" | "weekly" | "sheet") => {
+  const getBadgeVariant = (
+    value: number,
+    type?: "post" | "weekly" | "sheet"
+  ) => {
     if (value === 0) return "outline" as const;
     if (value <= 5) return "secondary" as const;
     if (value <= 15) return "default" as const;
@@ -341,9 +414,9 @@ export default function MonthlyAgentPackageMatrix({
                   Performance Matrix
                 </h1>
                 <p className="text-slate-600 flex items-center gap-2 mt-1 text-sm sm:text-base">
-                  Agent workload distribution across packages for 
+                  Agent workload distribution across packages for
                   <span className="font-semibold text-blue-600">
-                    {format(start, "MMMM yyyy")}
+                    {monthLabel}
                   </span>
                 </p>
               </div>
@@ -353,15 +426,15 @@ export default function MonthlyAgentPackageMatrix({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3 bg-white rounded-lg border border-slate-200 px-3 py-2 shadow-sm">
               <CalendarIcon className="h-4 w-4 text-slate-500" />
-              <Input 
-                type="month" 
-                value={month} 
-                onChange={(e) => setMonth(e.target.value)} 
+              <Input
+                type="month"
+                value={month}
+                onChange={(e) => handleMonthChange(e.target.value)}
                 className="w-[140px] sm:w-[150px] border-0 shadow-none focus-visible:ring-0 p-0"
               />
             </div>
-            <Button 
-              onClick={handleExportCsv} 
+            <Button
+              onClick={handleExportCsv}
               className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all duration-200"
             >
               <Download className="h-4 w-4" />
@@ -378,8 +451,12 @@ export default function MonthlyAgentPackageMatrix({
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600">Total Agents</p>
-                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{summaryStats.totalAgents}</p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600">
+                      Total Agents
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">
+                      {summaryStats.totalAgents}
+                    </p>
                   </div>
                   <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 opacity-80" />
                 </div>
@@ -389,8 +466,12 @@ export default function MonthlyAgentPackageMatrix({
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600">Total Tasks</p>
-                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{summaryStats.totalTasks}</p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600">
+                      Total Tasks
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">
+                      {summaryStats.totalTasks}
+                    </p>
                   </div>
                   <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 opacity-80" />
                 </div>
@@ -400,8 +481,12 @@ export default function MonthlyAgentPackageMatrix({
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600">Posts Completed</p>
-                    <p className="text-xl sm:text-2xl font-bold text-slate-900">{summaryStats.totalPost}</p>
+                    <p className="text-xs sm:text-sm font-medium text-slate-600">
+                      Posts Completed
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900">
+                      {summaryStats.totalPost}
+                    </p>
                   </div>
                   <Package className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 opacity-80" />
                 </div>
@@ -416,7 +501,10 @@ export default function MonthlyAgentPackageMatrix({
             {/* Stats Cards Skeleton */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <Card key={`stat-skeleton-${index}`} className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm">
+                <Card
+                  key={`stat-skeleton-${index}`}
+                  className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm"
+                >
                   <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-2 flex-1">
@@ -456,7 +544,7 @@ export default function MonthlyAgentPackageMatrix({
                     <Skeleton className="h-4 w-16" />
                     <Skeleton className="h-4 w-16" />
                   </div>
-                  
+
                   {/* Table Rows */}
                   <div className="space-y-3 mt-4">
                     {Array.from({ length: 8 }).map((_, i) => (
@@ -496,18 +584,22 @@ export default function MonthlyAgentPackageMatrix({
 
         {/* Main Content */}
         {!loading && (
-          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="space-y-4 sm:space-y-6">
+          <Tabs
+            value={activeView}
+            onValueChange={(v) => setActiveView(v as any)}
+            className="space-y-4 sm:space-y-6"
+          >
             <TabsList className="bg-white/80 backdrop-blur-sm border border-slate-200 p-1 rounded-lg shadow-sm w-full sm:w-auto">
-              <TabsTrigger 
-                value="table" 
+              <TabsTrigger
+                value="table"
                 className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md transition-all duration-200 flex-1 sm:flex-none px-3 py-2"
               >
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Detailed Matrix</span>
                 <span className="sm:hidden">Matrix</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="summary" 
+              <TabsTrigger
+                value="summary"
                 className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md transition-all duration-200 flex-1 sm:flex-none px-3 py-2"
               >
                 <Users className="h-4 w-4" />
@@ -539,21 +631,27 @@ export default function MonthlyAgentPackageMatrix({
                             <th className="w-[160px] sm:w-[200px] px-4 sm:px-6 py-3 text-left font-semibold text-slate-700 sticky left-0 bg-slate-100 z-10 border-r border-slate-200">
                               Team Member
                             </th>
-                            {( ["Posting", "Weekly", "Sheet"] as const).map((m) => (
-                              <React.Fragment key={`head-${m}`}>
-                                {packageList.map((p) => (
-                                  <th 
-                                    key={`head-${m}-${p}`} 
-                                    className="min-w-[100px] sm:min-w-[120px] px-2 sm:px-4 py-3 text-center font-semibold text-slate-700 border-l border-slate-200"
-                                  >
-                                    <div className="flex flex-col items-center space-y-1">
-                                      <span className="text-xs font-normal text-slate-500 uppercase tracking-wide">{m}</span>
-                                      <span className="text-sm font-medium leading-tight">{p}</span>
-                                    </div>
-                                  </th>
-                                ))}
-                              </React.Fragment>
-                            ))}
+                            {(["Posting", "Weekly", "Sheet"] as const).map(
+                              (m) => (
+                                <React.Fragment key={`head-${m}`}>
+                                  {packageList.map((p) => (
+                                    <th
+                                      key={`head-${m}-${p}`}
+                                      className="min-w-[100px] sm:min-w-[120px] px-2 sm:px-4 py-3 text-center font-semibold text-slate-700 border-l border-slate-200"
+                                    >
+                                      <div className="flex flex-col items-center space-y-1">
+                                        <span className="text-xs font-normal text-slate-500 uppercase tracking-wide">
+                                          {m}
+                                        </span>
+                                        <span className="text-sm font-medium leading-tight">
+                                          {p}
+                                        </span>
+                                      </div>
+                                    </th>
+                                  ))}
+                                </React.Fragment>
+                              )
+                            )}
                             <th className="min-w-[80px] sm:min-w-[100px] px-2 sm:px-4 py-3 text-center font-semibold text-slate-700 border-l border-slate-200 bg-slate-50">
                               Image Op.
                             </th>
@@ -573,45 +671,67 @@ export default function MonthlyAgentPackageMatrix({
                         </thead>
                         <tbody>
                           {rows.map((r) => (
-                            <tr 
-                              key={`row-${r.agent}`} 
+                            <tr
+                              key={`row-${r.agent}`}
                               className="border-b border-slate-100 hover:bg-blue-50/30 transition-colors duration-150"
                             >
                               <td className="px-4 sm:px-6 py-2 sm:py-3 font-semibold text-slate-800 sticky left-0 bg-white border-r border-slate-200 z-10 text-sm">
                                 {r.agent}
                               </td>
-                              {( ["Posting", "Weekly", "Sheet"] as const).map((m) => (
-                                <React.Fragment key={`row-${r.agent}-${m}`}>
-                                  {packageList.map((p) => {
-                                    const c = r.byPkg[p] || { post: 0, weekly: 0, sheet: 0 };
-                                    const v = m === "Posting" ? c.post : m === "Weekly" ? c.weekly : c.sheet;
-                                    return (
-                                      <td 
-                                        key={`cell-${r.agent}-${m}-${p}`} 
-                                        className="px-2 sm:px-4 py-2 sm:py-3 text-center border-l border-slate-100"
-                                      >
-                                        {v > 0 ? (
-                                          <Badge 
-                                            variant={getBadgeVariant(v, m.toLowerCase() as any)}
-                                            className="min-w-[2rem] sm:min-w-[2.5rem] text-xs font-medium shadow-sm transition-all duration-200"
-                                          >
-                                            {v}
-                                          </Badge>
-                                        ) : (
-                                          <span className="text-slate-300 text-sm">-</span>
-                                        )}
-                                      </td>
-                                    );
-                                  })}
-                                </React.Fragment>
-                              ))}
+                              {(["Posting", "Weekly", "Sheet"] as const).map(
+                                (m) => (
+                                  <React.Fragment key={`row-${r.agent}-${m}`}>
+                                    {packageList.map((p) => {
+                                      const c = r.byPkg[p] || {
+                                        post: 0,
+                                        weekly: 0,
+                                        sheet: 0,
+                                      };
+                                      const v =
+                                        m === "Posting"
+                                          ? c.post
+                                          : m === "Weekly"
+                                          ? c.weekly
+                                          : c.sheet;
+                                      return (
+                                        <td
+                                          key={`cell-${r.agent}-${m}-${p}`}
+                                          className="px-2 sm:px-4 py-2 sm:py-3 text-center border-l border-slate-100"
+                                        >
+                                          {v > 0 ? (
+                                            <Badge
+                                              variant={getBadgeVariant(
+                                                v,
+                                                m.toLowerCase() as any
+                                              )}
+                                              className="min-w-[2rem] sm:min-w-[2.5rem] text-xs font-medium shadow-sm transition-all duration-200"
+                                            >
+                                              {v}
+                                            </Badge>
+                                          ) : (
+                                            <span className="text-slate-300 text-sm">
+                                              -
+                                            </span>
+                                          )}
+                                        </td>
+                                      );
+                                    })}
+                                  </React.Fragment>
+                                )
+                              )}
                               <td className="px-2 sm:px-4 py-2 sm:py-3 text-center border-l border-slate-100 bg-slate-50/50">
-                                <Badge variant="outline" className="font-medium bg-white text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="font-medium bg-white text-xs"
+                                >
                                   {r.image_op}
                                 </Badge>
                               </td>
                               <td className="px-2 sm:px-4 py-2 sm:py-3 text-center bg-slate-50/50">
-                                <Badge variant="outline" className="font-medium bg-white text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="font-medium bg-white text-xs"
+                                >
                                   {r.aws_upload}
                                 </Badge>
                               </td>
@@ -632,21 +752,36 @@ export default function MonthlyAgentPackageMatrix({
                             <td className="px-4 sm:px-6 py-3 text-slate-800 sticky left-0 bg-slate-100 border-r border-slate-200 z-10 text-sm">
                               Team Totals
                             </td>
-                            {( ["Posting", "Weekly", "Sheet"] as const).map((m) => (
-                              <React.Fragment key={`tot-${m}`}>
-                                {packageList.map((p) => {
-                                  const v = m === "Posting" ? pkgTotals[p].post : m === "Weekly" ? pkgTotals[p].weekly : pkgTotals[p].sheet;
-                                  return (
-                                    <td key={`tot-${m}-${p}`} className="px-2 sm:px-4 py-3 text-center border-l border-slate-200">
-                                      <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 text-xs">
-                                        {v}
-                                      </Badge>
-                                    </td>
-                                  );
-                                })}
-                              </React.Fragment>
-                            ))}
-                            <td className="px-2 sm:px-4 py-3 text-center border-l border-slate-200">-</td>
+                            {(["Posting", "Weekly", "Sheet"] as const).map(
+                              (m) => (
+                                <React.Fragment key={`tot-${m}`}>
+                                  {packageList.map((p) => {
+                                    const v =
+                                      m === "Posting"
+                                        ? pkgTotals[p].post
+                                        : m === "Weekly"
+                                        ? pkgTotals[p].weekly
+                                        : pkgTotals[p].sheet;
+                                    return (
+                                      <td
+                                        key={`tot-${m}-${p}`}
+                                        className="px-2 sm:px-4 py-3 text-center border-l border-slate-200"
+                                      >
+                                        <Badge
+                                          variant="default"
+                                          className="bg-blue-600 hover:bg-blue-700 text-xs"
+                                        >
+                                          {v}
+                                        </Badge>
+                                      </td>
+                                    );
+                                  })}
+                                </React.Fragment>
+                              )
+                            )}
+                            <td className="px-2 sm:px-4 py-3 text-center border-l border-slate-200">
+                              -
+                            </td>
                             <td className="px-2 sm:px-4 py-3 text-center">-</td>
                             <td className="px-2 sm:px-4 py-3 text-center text-blue-700 bg-blue-100 text-sm">
                               {summaryStats.totalSheets}
@@ -683,43 +818,62 @@ export default function MonthlyAgentPackageMatrix({
                 <CardContent className="p-4 sm:p-6">
                   <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {rows.map((agent) => (
-                      <Card 
-                        key={agent.agent} 
+                      <Card
+                        key={agent.agent}
                         className="p-4 sm:p-5 bg-white border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200"
                       >
                         <div className="flex items-center justify-between mb-3 sm:mb-4">
-                          <h3 className="font-semibold text-slate-800 text-base sm:text-lg">{agent.agent}</h3>
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs">
+                          <h3 className="font-semibold text-slate-800 text-base sm:text-lg">
+                            {agent.agent}
+                          </h3>
+                          <Badge
+                            variant="secondary"
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 text-xs"
+                          >
                             {agent.total_tasks} tasks
                           </Badge>
                         </div>
                         <div className="space-y-2 sm:space-y-3 text-sm">
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span className="text-slate-600 text-sm">Posting Completed:</span>
+                            <span className="text-slate-600 text-sm">
+                              Posting Completed:
+                            </span>
                             <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded text-sm">
                               {agent.total_post}
                             </span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span className="text-slate-600 text-sm">Weekly Target:</span>
+                            <span className="text-slate-600 text-sm">
+                              Weekly Target:
+                            </span>
                             <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded text-sm">
                               {agent.total_weekly}
                             </span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span className="text-slate-600 text-sm">Sheets Processed:</span>
+                            <span className="text-slate-600 text-sm">
+                              Sheets Processed:
+                            </span>
                             <span className="font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded text-sm">
                               {agent.total_sheets}
                             </span>
                           </div>
                           <div className="pt-2 sm:pt-3 space-y-2 bg-slate-50 rounded-lg p-3 mt-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-500 text-xs">Image Optimization:</span>
-                              <span className="font-medium text-slate-700 text-sm">{agent.image_op}</span>
+                              <span className="text-slate-500 text-xs">
+                                Image Optimization:
+                              </span>
+                              <span className="font-medium text-slate-700 text-sm">
+                                {agent.image_op}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-500 text-xs">AWS Upload:</span>
-                              <span className="font-medium text-slate-700 text-sm">{agent.aws_upload}</span>
+                              <span className="text-slate-500 text-xs">
+                                AWS Upload:
+                              </span>
+                              <span className="font-medium text-slate-700 text-sm">
+                                {agent.aws_upload}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -743,7 +897,8 @@ export default function MonthlyAgentPackageMatrix({
                 Monthly Totals
               </CardTitle>
               <CardDescription className="text-slate-600 text-sm">
-                All key totals for {format(start, "MMMM yyyy")} consolidated in one table
+                All key totals for {monthLabel} consolidated in
+                one table
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
@@ -757,36 +912,68 @@ export default function MonthlyAgentPackageMatrix({
                     <table className="w-full text-sm">
                       <tbody>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Posts</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalPost}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Posts
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalPost}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Weekly</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalWeekly}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Weekly
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalWeekly}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Sheets</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalSheets}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Sheets
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalSheets}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Image Optimization</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalImageOp}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Image Optimization
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalImageOp}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">AWS Upload</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalAwsUpload}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            AWS Upload
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalAwsUpload}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Tasks</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalTasks}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Tasks
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalTasks}
+                          </td>
                         </tr>
                         <tr className="border-b">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Agents</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalAgents}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Agents
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalAgents}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">Total Packages</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">{summaryStats.totalPackages}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-600">
+                            Total Packages
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-slate-900 text-right">
+                            {summaryStats.totalPackages}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -802,26 +989,59 @@ export default function MonthlyAgentPackageMatrix({
                     <table className="w-full text-sm min-w-[300px]">
                       <thead className="bg-slate-50">
                         <tr>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700">Package</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">Posting</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">Weekly</th>
-                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">Sheet</th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-left font-semibold text-slate-700">
+                            Package
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">
+                            Posting
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">
+                            Weekly
+                          </th>
+                          <th className="px-3 sm:px-4 py-2 sm:py-3 text-right font-semibold text-slate-700">
+                            Sheet
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {packageList.map((p) => (
                           <tr key={`pkg-row-${p}`} className="border-t">
-                            <td className="px-3 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 text-sm">{p}</td>
-                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{pkgTotals[p].post}</td>
-                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{pkgTotals[p].weekly}</td>
-                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{pkgTotals[p].sheet}</td>
+                            <td className="px-3 sm:px-4 py-2 sm:py-3 font-medium text-slate-900 text-sm">
+                              {p}
+                            </td>
+                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                              {pkgTotals[p].post}
+                            </td>
+                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                              {pkgTotals[p].weekly}
+                            </td>
+                            <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                              {pkgTotals[p].sheet}
+                            </td>
                           </tr>
                         ))}
                         <tr className="bg-slate-50 font-semibold">
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm">Grand Total</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{Object.values(pkgTotals).reduce((a, c) => a + c.post, 0)}</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{Object.values(pkgTotals).reduce((a, c) => a + c.weekly, 0)}</td>
-                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">{Object.values(pkgTotals).reduce((a, c) => a + c.sheet, 0)}</td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-sm">
+                            Grand Total
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                            {Object.values(pkgTotals).reduce(
+                              (a, c) => a + c.post,
+                              0
+                            )}
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                            {Object.values(pkgTotals).reduce(
+                              (a, c) => a + c.weekly,
+                              0
+                            )}
+                          </td>
+                          <td className="px-3 sm:px-4 py-2 sm:py-3 text-right text-sm">
+                            {Object.values(pkgTotals).reduce(
+                              (a, c) => a + c.sheet,
+                              0
+                            )}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
