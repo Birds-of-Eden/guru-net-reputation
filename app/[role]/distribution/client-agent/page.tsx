@@ -2,7 +2,14 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useDeferredValue,
+  useTransition,
+  useCallback,
+} from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
@@ -77,12 +84,19 @@ type Client = {
   existingPostingTasksCount?: number;
 };
 
+// OPTIMIZATION (virtual batching): hard-cap initial DOM work to small slices to keep Time To Interactive low.
+const CLIENT_BATCH_SIZE = 12;
+
 export default function ClientUnifiedDashboard() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
   const [search, setSearch] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("all");
+  // OPTIMIZATION (React useTransition): keep UI responsive while large client lists re-filter.
+  const [isFilteringPending, startFilteringTransition] = useTransition();
+  // OPTIMIZATION (virtual batching state): track how many slices of the grid are rendered.
+  const [visibleBatch, setVisibleBatch] = useState(1);
 
   const fetcher = async (url: string) => {
     const res = await fetch(url, { cache: "no-store" });
@@ -121,21 +135,73 @@ export default function ClientUnifiedDashboard() {
     return Array.from(s).sort((a, b) => a.localeCompare(b));
   }, [clients]);
 
-  const filtered = clients.filter((c) => {
-    // package filter (only package-wise)
-    if (packageFilter !== "all") {
-      const p = c.package?.name?.trim() ?? "";
-      if (p !== packageFilter) return false;
-    }
+  const normalizedSearch = search.trim().toLowerCase();
+  // OPTIMIZATION (React useDeferredValue): let React defer filter-heavy work while the user types quickly.
+  const deferredSearch = useDeferredValue(normalizedSearch);
+  const hasActiveFilters =
+    normalizedSearch.length > 0 || packageFilter !== "all";
+  const isClearDisabled = !hasActiveFilters;
 
-    // existing search filter
-    const t = search.toLowerCase();
-    return (
-      (c.name ?? "").toLowerCase().includes(t) ||
-      (c.company ?? "").toLowerCase().includes(t) ||
-      c.id.toLowerCase().includes(t)
-    );
-  });
+  // OPTIMIZATION (memoized filtering): ensure expensive filtering only reruns when clients/search/filter actually change.
+  const filteredClients = useMemo(() => {
+    if (!clients?.length) return [];
+    return clients.filter((c) => {
+      if (packageFilter !== "all") {
+        const p = c.package?.name?.trim() ?? "";
+        if (p !== packageFilter) return false;
+      }
+
+      if (!deferredSearch) return true;
+      const target = deferredSearch;
+      return (
+        (c.name ?? "").toLowerCase().includes(target) ||
+        (c.company ?? "").toLowerCase().includes(target) ||
+        c.id.toLowerCase().includes(target)
+      );
+    });
+  }, [clients, packageFilter, deferredSearch]);
+
+  const visibleClients = useMemo(() => {
+    return filteredClients.slice(0, visibleBatch * CLIENT_BATCH_SIZE);
+  }, [filteredClients, visibleBatch]);
+  const remainingClients = Math.max(
+    filteredClients.length - visibleClients.length,
+    0
+  );
+  const hasMoreClients = remainingClients > 0;
+  const nextBatchCount = Math.min(remainingClients, CLIENT_BATCH_SIZE);
+
+  useEffect(() => {
+    setVisibleBatch(1);
+  }, [deferredSearch, packageFilter, clients.length]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setVisibleBatch(1);
+  }, []);
+
+  const handlePackageChange = useCallback(
+    (value: string) => {
+      startFilteringTransition(() => {
+        setPackageFilter(value);
+        setVisibleBatch(1);
+      });
+    },
+    [startFilteringTransition]
+  );
+
+  const handleClearFilters = useCallback(() => {
+    if (!hasActiveFilters) return;
+    setSearch("");
+    startFilteringTransition(() => {
+      setPackageFilter("all");
+      setVisibleBatch(1);
+    });
+  }, [hasActiveFilters, startFilteringTransition]);
+
+  const handleLoadMoreClients = useCallback(() => {
+    setVisibleBatch((prev) => prev + 1);
+  }, []);
 
   /** ---------- Routes ---------- */
   const openDistribution = (clientId: string) => {
@@ -292,7 +358,7 @@ export default function ClientUnifiedDashboard() {
                 <Input
                   placeholder="Search clients by name, company, or ID..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-12 h-12 rounded-xl border-slate-300 bg-white shadow-sm text-base w-full"
                 />
               </div>
@@ -306,8 +372,11 @@ export default function ClientUnifiedDashboard() {
                 {/* Icon */}
                 <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
 
-                <Select value={packageFilter} onValueChange={setPackageFilter}>
-                  <SelectTrigger className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full">
+                <Select value={packageFilter} onValueChange={handlePackageChange}>
+                  <SelectTrigger
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    aria-busy={isFilteringPending}
+                  >
                     <SelectValue placeholder="Filter by package" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 shadow-xl">
@@ -324,14 +393,11 @@ export default function ClientUnifiedDashboard() {
               {/* Clear button (2 cols, beside filter) */}
               <div className="col-span-12 md:col-span-2">
                 <Button
-                  onClick={() => {
-                    setSearch("");
-                    setPackageFilter("all");
-                  }}
-                  disabled={search.trim() === "" && packageFilter === "all"}
+                  onClick={handleClearFilters}
+                  disabled={isClearDisabled}
                   className={cn(
                     "h-10 w-full rounded-xl font-semibold transition shadow-md",
-                    search.trim() === "" && packageFilter === "all"
+                    isClearDisabled
                       ? "bg-slate-200 text-slate-500 cursor-not-allowed"
                       : "bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg"
                   )}
@@ -395,7 +461,7 @@ export default function ClientUnifiedDashboard() {
                   </Card>
                 ))}
               </div>
-            ) : filtered.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
               <div className="text-center py-16">
                 <Users className="h-16 w-16 mx-auto mb-6 text-slate-400" />
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -408,8 +474,9 @@ export default function ClientUnifiedDashboard() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((client) => {
+              <div className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {visibleClients.map((client) => {
                   const t = client.taskStats;
                   const postingCreated = client.postingTasksCreated;
                   const conditional = conditionalRouteAndLabel(client);
@@ -721,7 +788,26 @@ export default function ClientUnifiedDashboard() {
                       </CardContent>
                     </Card>
                   );
-                })}
+                  })}
+                </div>
+                {hasMoreClients && (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-indigo-200/70 bg-white/80 p-4 text-center">
+                    <p className="text-sm text-slate-600">
+                      Showing {visibleClients.length} of {filteredClients.length} clients
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMoreClients}
+                      className="rounded-full px-6 shadow-sm"
+                      aria-busy={isFilteringPending}
+                    >
+                      {/* OPTIMIZATION (virtual batching control): avoid rendering hundreds of cards at once, let users opt-in for more */}
+                      Load {nextBatchCount} more client
+                      {nextBatchCount !== 1 ? "s" : ""}{" "}
+                      {remainingClients > 0 && `(${remainingClients} left)`}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

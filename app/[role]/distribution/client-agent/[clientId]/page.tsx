@@ -2,9 +2,17 @@
 
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useDeferredValue,
+  useTransition,
+} from "react";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,8 +48,34 @@ import type {
   Task,
 } from "@/components/task-distribution/distribution-types";
 import { LoadingSpinner } from "@/components/task-distribution/LoadingSpinner";
-import { TaskTabs } from "@/components/task-distribution/TaskTabs";
-import { ReassignModal } from "@/components/task-distribution/ReassignModal";
+
+// OPTIMIZATION (Next.js dynamic import): split the large TaskTabs bundle for a lighter first paint.
+const TaskTabs = dynamic(
+  () =>
+    import("@/components/task-distribution/TaskTabs").then(
+      (mod) => mod.TaskTabs
+    ),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner />
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+// OPTIMIZATION (Next.js dynamic import): load the modal lazily so it doesn't block interactive time.
+const ReassignModal = dynamic(
+  () =>
+    import("@/components/task-distribution/ReassignModal").then(
+      (mod) => mod.ReassignModal
+    ),
+  {
+    loading: () => null,
+    ssr: false,
+  }
+);
 
 /* =========================
    Helpers (hoisted)
@@ -134,6 +168,9 @@ const CATEGORY_LABELS = [
   "Summary Report",
   "Guest Posting",
 ];
+
+// OPTIMIZATION (virtual batching): cap initial DOM work to manageable slices.
+const TASK_BATCH_SIZE = 40;
 
 function teamIdForCategory(cat: string) {
   return TEAM_ID_BY_CATEGORY[cat] ?? "social-team";
@@ -307,6 +344,29 @@ interface CategoryAssignment {
   assetType: string | undefined; // enum string for asset-creation; undefined for posting
 }
 
+type AssetCreationBuckets = {
+  social_site: Task[];
+  web2_site: Task[];
+  other_asset: Task[];
+};
+
+// OPTIMIZATION (single-pass bucketing): reduce Asset Creation tasks in O(n) instead of 3 expensive filters per render.
+function bucketAssetCreationTasks(list: Task[] = []): AssetCreationBuckets {
+  return list.reduce<AssetCreationBuckets>(
+    (acc, task) => {
+      const type = (task as any)?.templateSiteAsset?.type;
+      if (type === "web2_site") {
+        acc.web2_site.push(task);
+      } else if (type === "other_asset") {
+        acc.other_asset.push(task);
+      } else {
+        acc.social_site.push(task);
+      }
+      return acc;
+    },
+    { social_site: [], web2_site: [], other_asset: [] }
+  );
+}
 // ✅ SWR fetchers
 const jsonFetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
@@ -325,9 +385,12 @@ const enrichedAgentsFetcher = async (teamId?: string) => {
 export default function TaskDistributionForClient() {
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId;
+  // OPTIMIZATION (React useTransition): smooth out category switches during heavy filtering.
+  const [isCategoryPending, startCategoryTransition] = useTransition();
   // Client & tasks via SWR
+  // OPTIMIZATION (compact API view): request distribution-only fields to shrink payload.
   const { data: client, isLoading: clientLoading } = useSWR<Client>(
-    clientId ? `/api/clients/${clientId}` : null,
+    clientId ? `/api/clients/${clientId}?view=distribution` : null,
     jsonFetcher,
     { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
   );
@@ -381,6 +444,8 @@ export default function TaskDistributionForClient() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  // OPTIMIZATION (virtual batching): progressively reveal tasks instead of dumping hundreds at once.
+  const [visibleTaskBatches, setVisibleTaskBatches] = useState(1);
 
   // default category (now declared earlier to drive SWR key)
   const [categoryDueDate, setCategoryDueDate] = useState<Date>();
@@ -397,10 +462,41 @@ export default function TaskDistributionForClient() {
     );
   }, [allTasks, selectedCategory]);
 
+  useEffect(() => {
+    setVisibleTaskBatches(1);
+  }, [selectedCategory, tasks.length]);
+
+  // OPTIMIZATION (React useDeferredValue): postpone heavy task filtering updates to keep typing fluid.
+  const deferredTasks = useDeferredValue(tasks);
+  const visibleTasks = useMemo(
+    () => deferredTasks.slice(0, visibleTaskBatches * TASK_BATCH_SIZE),
+    [deferredTasks, visibleTaskBatches]
+  );
+  const remainingVirtualTasks = Math.max(
+    deferredTasks.length - visibleTasks.length,
+    0
+  );
+  const hasMoreTasks = remainingVirtualTasks > 0;
+  const nextBatchSize = Math.min(remainingVirtualTasks, TASK_BATCH_SIZE);
+
+  const handleLoadMoreTasks = useCallback(() => {
+    setVisibleTaskBatches((prev) => prev + 1);
+  }, []);
+
   // ✅ NEW: Get selected tasks as Task objects for modal
   const selectedTaskObjects = useMemo(() => {
     return tasks.filter((task) => selectedTasks.has(task.id));
   }, [tasks, selectedTasks]);
+
+  // OPTIMIZATION (memoized payload): keep TaskTabs props stable to avoid unnecessary re-renders.
+  const memoizedTaskAssignments = useMemo(
+    () =>
+      categoryAssignments.map((assignment) => ({
+        taskId: assignment.taskId,
+        agentId: assignment.agentId,
+      })),
+    [categoryAssignments]
+  );
 
   // ✅ NEW: Handle reassign functionality at page level
   const handleReassign = async (taskIds: string[], newAgentId: string, dueDate?: Date) => {
@@ -433,17 +529,12 @@ export default function TaskDistributionForClient() {
     iso ? format(new Date(iso), "PPP") : undefined;
 
   // Buckets for Asset Creation only
-  const categorizedTasksForAssetCreation = useMemo(() => ({
-    social_site: tasks.filter(
-      (task) => (task as any)?.templateSiteAsset?.type === "social_site"
-    ),
-    web2_site: tasks.filter(
-      (task) => (task as any)?.templateSiteAsset?.type === "web2_site"
-    ),
-    other_asset: tasks.filter(
-      (task) => (task as any)?.templateSiteAsset?.type === "other_asset"
-    ),
-  }), [tasks]);
+  const categorizedTasksForAssetCreation = useMemo(() => {
+    if (selectedCategory !== "Asset Creation") {
+      return { social_site: [], web2_site: [], other_asset: [] };
+    }
+    return bucketAssetCreationTasks(visibleTasks);
+  }, [selectedCategory, visibleTasks]);
 
   const getAgentName = (id: string | undefined) => {
     if (!id) return "Unassigned";
@@ -454,6 +545,23 @@ export default function TaskDistributionForClient() {
       "Unknown"
     );
   };
+
+  // OPTIMIZATION (useTransition): category switches happen inside a transition so React keeps the UI responsive while SWR + filtering update.
+  const handleCategoryChange = useCallback(
+    (label: string) => {
+      startCategoryTransition(() => {
+        setSelectedCategory(label);
+        setCategoryAssignments([]);
+        setSelectedTasks(new Set());
+        setSelectedTasksOrder([]);
+        setCategoryDueDate(undefined);
+        setVisibleTaskBatches(1);
+      });
+      setDuePickerOpen(false);
+      void mutateTeamAgents();
+    },
+    [mutateTeamAgents, startCategoryTransition]
+  );
 
   const handleTaskSelection = useCallback((taskId: string, checked: boolean) => {
     setSelectedTasks((prev) => {
@@ -760,22 +868,24 @@ export default function TaskDistributionForClient() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   {/* Category Selector */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      Select Category to Assign
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-slate-700">
+                        Select Category to Assign
+                      </label>
+                      {isCategoryPending && (
+                        <span className="text-xs text-slate-500 animate-pulse">
+                          Updating&hellip;
+                        </span>
+                      )}
+                    </div>
                     <Select
                       value={selectedCategory}
-                      onValueChange={async (label) => {
-                        setSelectedCategory(label);
-                        setCategoryAssignments([]);
-                        setSelectedTasks(new Set());
-                        setSelectedTasksOrder([]);
-                        setCategoryDueDate(undefined);
-                        // SWR will revalidate team agents based on selectedCategory key
-                        await mutateTeamAgents();
-                      }}
+                      onValueChange={handleCategoryChange}
                     >
-                      <SelectTrigger className="w-full h-11 rounded-xl border-slate-300">
+                      <SelectTrigger
+                        className="w-full h-11 rounded-xl border-slate-300"
+                        aria-busy={isCategoryPending}
+                      >
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
 
@@ -1034,10 +1144,7 @@ export default function TaskDistributionForClient() {
                     agents={currentAgents}
                     selectedTasks={selectedTasks}
                     selectedTasksOrder={selectedTasksOrder}
-                    taskAssignments={categoryAssignments.map((ca) => ({
-                      taskId: ca.taskId,
-                      agentId: ca.agentId,
-                    }))}
+                    taskAssignments={memoizedTaskAssignments}
                     taskNotes={taskNotes}
                     viewMode={viewMode}
                     onTaskSelection={handleTaskSelection}
@@ -1055,26 +1162,18 @@ export default function TaskDistributionForClient() {
                   // Single-tab view for posting/new/other categories
                   <TaskTabs
                     singleTabTitle={selectedCategory}
-                    singleTabTasks={tasks}
+                    singleTabTasks={visibleTasks}
                     // NEW: pass both lists
                     teamAgents={teamAgents}
                     allAgents={allAgents}
                     agents={currentAgents}
                     selectedTasks={selectedTasks}
                     selectedTasksOrder={selectedTasksOrder}
-                    taskAssignments={categoryAssignments.map((ca) => ({
-                      taskId: ca.taskId,
-                      agentId: ca.agentId,
-                    }))}
+                    taskAssignments={memoizedTaskAssignments}
                     taskNotes={taskNotes}
                     viewMode={viewMode}
                     onTaskSelection={handleTaskSelection}
-                    onSelectAllTasks={(ids, checked) =>
-                      handleSelectAllTasks(
-                        tasks.map((t) => t.id),
-                        checked
-                      )
-                    }
+                    onSelectAllTasks={handleSelectAllTasks}
                     onTaskAssignment={handleTaskAssignment}
                     onNoteChange={handleNoteChange}
                     onViewModeChange={setViewMode}
@@ -1084,6 +1183,23 @@ export default function TaskDistributionForClient() {
                     onReassign={handleReassign}
                     selectedTaskObjects={selectedTaskObjects}
                   />
+                )}
+                {!loading && hasMoreTasks && (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300/70 p-4 bg-white/70">
+                    <p className="text-xs text-slate-600">
+                      Showing {visibleTasks.length} of {deferredTasks.length} tasks
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMoreTasks}
+                      className="rounded-full px-6"
+                    >
+                      {/* OPTIMIZATION (virtual batching control): manual pager keeps DOM nodes capped while still letting the user continue */}
+                      Load {nextBatchSize} more task
+                      {nextBatchSize !== 1 ? "s" : ""} (
+                      {remainingVirtualTasks} left)
+                    </Button>
+                  </div>
                 )}
               </section>
             ) : (

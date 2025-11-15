@@ -11,10 +11,18 @@ export async function GET(
     const { clientId } = await params;
 
     const tasks = await prisma.task.findMany({
-      where: {
-        clientId: clientId,
-      },
-      include: {
+      where: { clientId },
+      // OPTIMIZATION (lean select): avoid pulling unused columns to keep payload tight for distribution UI.
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        createdAt: true,
+        updatedAt: true,
+        notes: true,
+        idealDurationMinutes: true,
         templateSiteAsset: {
           select: {
             id: true,

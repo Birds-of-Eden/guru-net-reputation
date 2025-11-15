@@ -27,6 +27,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // OPTIMIZATION (batched counter updates): pre-compute increments per agent for efficient upserts.
+    const agentAssignmentCounts = assignments.reduce<Map<string, number>>(
+      (map, { agentId }) => map.set(agentId, (map.get(agentId) ?? 0) + 1),
+      new Map()
+    );
+
     // Run everything atomically
     const result = await prisma.$transaction(async (tx) => {
       // 1) Update each task (agent/status/notes/dueDate)
@@ -75,32 +81,20 @@ export async function POST(request: Request) {
       await Promise.all(activityLogPromises);
 
       // 3) Update/initialize ClientTeamMember counters
-      const agentIds = [...new Set(assignments.map(({ agentId }) => agentId))];
-      for (const agentId of agentIds) {
-        const countForAgent = assignments.filter(
-          (a) => a.agentId === agentId
-        ).length;
-
-        const existing = await tx.clientTeamMember.findUnique({
-          where: { clientId_agentId: { clientId, agentId } },
-        });
-
-        if (existing) {
-          await tx.clientTeamMember.update({
+      await Promise.all(
+        Array.from(agentAssignmentCounts.entries()).map(([agentId, count]) =>
+          tx.clientTeamMember.upsert({
             where: { clientId_agentId: { clientId, agentId } },
-            data: { assignedTasks: { increment: countForAgent } },
-          });
-        } else {
-          await tx.clientTeamMember.create({
-            data: {
+            update: { assignedTasks: { increment: count } },
+            create: {
               clientId,
               agentId,
-              assignedTasks: countForAgent,
+              assignedTasks: count,
               assignedDate: new Date(),
             },
-          });
-        }
-      }
+          })
+        )
+      );
 
       return updatedTasks;
     });
@@ -216,38 +210,25 @@ export async function PUT(request: Request) {
         // ... existing counter logic ...
         if (clientId) {
           if (fromAgentId && fromAgentId !== toAgentId) {
-            const existing = await tx.clientTeamMember.findUnique({
-              where: { clientId_agentId: { clientId, agentId: fromAgentId } },
-              select: { assignedTasks: true },
-            });
-            if (existing) {
-              await tx.clientTeamMember.update({
-                where: { clientId_agentId: { clientId, agentId: fromAgentId } },
-                data: {
-                  assignedTasks: Math.max(0, (existing.assignedTasks ?? 0) - 1),
-                },
-              });
-            }
-          }
-          const dest = await tx.clientTeamMember.findUnique({
-            where: { clientId_agentId: { clientId, agentId: toAgentId } },
-            select: { assignedTasks: true },
-          });
-          if (dest) {
-            await tx.clientTeamMember.update({
-              where: { clientId_agentId: { clientId, agentId: toAgentId } },
-              data: { assignedTasks: (dest.assignedTasks ?? 0) + 1 },
-            });
-          } else {
-            await tx.clientTeamMember.create({
-              data: {
+            await tx.clientTeamMember.updateMany({
+              where: {
                 clientId,
-                agentId: toAgentId,
-                assignedTasks: 1,
-                assignedDate: new Date(),
+                agentId: fromAgentId,
+                assignedTasks: { gt: 0 },
               },
+              data: { assignedTasks: { decrement: 1 } },
             });
           }
+          await tx.clientTeamMember.upsert({
+            where: { clientId_agentId: { clientId, agentId: toAgentId } },
+            update: { assignedTasks: { increment: 1 } },
+            create: {
+              clientId,
+              agentId: toAgentId,
+              assignedTasks: 1,
+              assignedDate: new Date(),
+            },
+          });
         }
       });
 
@@ -348,6 +329,64 @@ export async function PUT(request: Request) {
             })
           )
         );
+
+        if (clientId) {
+          // OPTIMIZATION (delta map counters): adjust team-member counters in one pass instead of per-task queries.
+          const deltaMap = new Map<string, number>();
+          for (const { taskId, toAgentId } of reassignments) {
+            const previous = map.get(taskId);
+            if (previous && previous !== toAgentId) {
+              deltaMap.set(previous, (deltaMap.get(previous) ?? 0) - 1);
+            }
+            deltaMap.set(toAgentId, (deltaMap.get(toAgentId) ?? 0) + 1);
+          }
+
+          const increments = Array.from(deltaMap.entries()).filter(
+            ([, delta]) => delta > 0
+          );
+          const decrements = Array.from(deltaMap.entries()).filter(
+            ([, delta]) => delta < 0
+          );
+
+          let existingMembers: { agentId: string; assignedTasks: number | null }[] =
+            [];
+          if (decrements.length) {
+            existingMembers = await tx.clientTeamMember.findMany({
+              where: {
+                clientId,
+                agentId: { in: decrements.map(([agentId]) => agentId) },
+              },
+              select: { agentId: true, assignedTasks: true },
+            });
+          }
+          const assignedMap = new Map(
+            existingMembers.map((m) => [m.agentId, m.assignedTasks ?? 0])
+          );
+
+          await Promise.all([
+            ...increments.map(([agentId, delta]) =>
+              tx.clientTeamMember.upsert({
+                where: { clientId_agentId: { clientId, agentId } },
+                update: { assignedTasks: { increment: delta } },
+                create: {
+                  clientId,
+                  agentId,
+                  assignedTasks: delta,
+                  assignedDate: new Date(),
+                },
+              })
+            ),
+            ...decrements.map(([agentId, delta]) => {
+              const available = assignedMap.get(agentId) ?? 0;
+              const amount = Math.min(available, Math.abs(delta));
+              if (amount <= 0) return Promise.resolve();
+              return tx.clientTeamMember.update({
+                where: { clientId_agentId: { clientId, agentId } },
+                data: { assignedTasks: { decrement: amount } },
+              });
+            }),
+          ]);
+        }
       });
 
       return NextResponse.json({

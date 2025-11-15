@@ -2,10 +2,26 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+const BASE_AGENT_SELECT = {
+  id: true,
+  name: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  image: true,
+  category: true,
+  phone: true,
+  address: true,
+  bio: true,
+  status: true,
+  createdAt: true,
+  role: { select: { name: true } },
+} as const;
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const teamId = searchParams.get("teamId") ?? undefined;     // e.g., "asset-team" / "social-team"
+    const teamId = searchParams.get("teamId") ?? undefined; // e.g., "asset-team"
     const teamName = searchParams.get("teamName") ?? undefined; // optional alternative
 
     // Base filter: only users with Agent role (case variants)
@@ -23,19 +39,22 @@ export async function GET(req: Request) {
 
       baseWhere.OR = [
         { templateTeamMemberships: { some: teamFilter } }, // TemplateTeamMember
-        { clientTeamMemberships: { some: teamFilter } },   // ClientTeamMember
+        { clientTeamMemberships: { some: teamFilter } }, // ClientTeamMember
       ];
     }
 
+    // OPTIMIZATION (field projection + micro-cache): only return lightweight agent payloads and allow CDN reuse.
     const agents = await prisma.user.findMany({
       where: baseWhere,
-      include: {
-        role: { select: { name: true } },
-      },
+      select: BASE_AGENT_SELECT,
       orderBy: [{ category: "asc" }, { name: "asc" }],
     });
 
-    return NextResponse.json(agents);
+    return NextResponse.json(agents, {
+      headers: {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
+      },
+    });
   } catch (error) {
     console.error("Error fetching agents:", error);
     return NextResponse.json(

@@ -90,132 +90,124 @@ async function assertIsAMOrNull(amId: string | null | undefined) {
   }
 }
 
+function buildClientSelect(compact: boolean): Prisma.ClientSelect {
+  const base: Prisma.ClientSelect = {
+    id: true,
+    name: true,
+    email: true,
+    phone: true,
+    avatar: true,
+    company: true,
+    designation: true,
+    location: true,
+    birthdate: true,
+    gender: true,
+    websites: true,
+    companywebsite: true,
+    companyaddress: true,
+    biography: true,
+    imageDrivelink: true,
+    status: true,
+    progress: true,
+    startDate: true,
+    dueDate: true,
+    password: true,
+    recoveryEmail: true,
+    articleTopics: true,
+    otherField: true,
+    socialMedia: true,
+    packageId: true,
+    amId: true,
+    createdAt: true,
+    updatedAt: true,
+    package: {
+      select: {
+        id: true,
+        name: true,
+        totalMonths: true,
+      },
+    },
+    accountManager: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: {
+          select: { id: true, name: true },
+        },
+      },
+    },
+  };
+
+  if (!compact) {
+    base.tasks = {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        createdAt: true,
+        completedAt: true,
+        completionLink: true,
+        idealDurationMinutes: true,
+        categoryId: true,
+        templateSiteAssetId: true,
+        assignedToId: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+        templateSiteAsset: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            url: true,
+          },
+        },
+        assignedTo: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    };
+
+    base.teamMembers = {
+      select: {
+        agent: {
+          select: { id: true, name: true, email: true },
+        },
+        team: {
+          select: { id: true, name: true },
+        },
+      },
+    };
+  }
+
+  return base;
+}
+
 // --- GET ---
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const { searchParams } = new URL(req.url);
+  const isDistributionView =
+    searchParams.get("view")?.toLowerCase() === "distribution";
 
   try {
-    // ✅ Parallel execution for faster response
     const [client, fresh] = await Promise.all([
-      // ✅ Optimized query with selective fields only
       prisma.client.findUnique({
         where: { id },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          avatar: true,
-          company: true,
-          designation: true,
-          location: true,
-          birthdate: true,
-          gender: true,
-          websites: true,
-          companywebsite: true,
-          companyaddress: true,
-          biography: true,
-          imageDrivelink: true,
-          status: true,
-          progress: true,
-          startDate: true,
-          dueDate: true,
-          password: true,
-          recoveryEmail: true,
-          articleTopics: true,
-          otherField: true,
-          socialMedia: true,
-          packageId: true,
-          amId: true,
-          createdAt: true,
-          updatedAt: true,
-          // ✅ Load only necessary related data
-          package: {
-            select: {
-              id: true,
-              name: true,
-              totalMonths: true,
-            },
-          },
-          accountManager: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          // ✅ Simplified tasks - only essential fields
-          tasks: {
-            select: {
-              id: true,
-              name: true,
-              status: true,
-              priority: true,
-              dueDate: true,
-              createdAt: true,
-              completedAt: true,
-              completionLink: true,
-              idealDurationMinutes: true,
-              categoryId: true,
-              templateSiteAssetId: true,
-              assignedToId: true,
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                },
-              },
-              templateSiteAsset: {
-                select: {
-                  id: true,
-                  name: true,
-                  type: true,
-                  url: true,
-                },
-              },
-              assignedTo: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-            // ✅ Add ordering for better performance
-            orderBy: { createdAt: "desc" },
-          },
-          // ✅ Simplified teamMembers
-          teamMembers: {
-            select: {
-              agent: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
+        select: buildClientSelect(isDistributionView),
       }),
-      // ✅ Recalculate progress in parallel (cached result used)
-      recalcAndStoreClientProgress(id),
+      isDistributionView ? Promise.resolve(null) : recalcAndStoreClientProgress(id),
     ]);
 
     if (!client)
@@ -224,7 +216,6 @@ export async function GET(
         { status: 404 }
       );
 
-    // ✅ Prepare response with socialMedias
     const socialMedias = Array.isArray((client as any).socialMedia)
       ? ((client as any).socialMedia as any[])
       : [];
@@ -232,11 +223,11 @@ export async function GET(
     const response = {
       ...client,
       socialMedias,
-      progress: fresh.progress,
-      taskCounts: fresh.taskCounts,
+      progress: fresh?.progress ?? client.progress ?? 0,
+      taskCounts: fresh?.taskCounts ?? null,
     };
 
-    // ✅ Add aggressive cache headers
+    // OPTIMIZATION (conditional payload + cache): keep CDN caching but shrink response when distribution view only needs summary.
     return NextResponse.json(response, {
       headers: {
         "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
@@ -252,7 +243,6 @@ export async function GET(
     );
   }
 }
-
 // --- PUT ---
 export async function PUT(
   req: Request,
