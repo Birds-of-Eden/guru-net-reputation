@@ -1,3 +1,5 @@
+// app/[role]/qc_tasks/QCReview.tsx
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -50,21 +52,19 @@ type CategoryLite = { id: string; name: string };
 
 type Perf = "Excellent" | "Good" | "Average" | "Lazy";
 
-type QCReviewBlob =
-  | {
-      timerScore: number; // 40..70
-      keyword: number; // 0..5
-      contentQuality: number; // 0..5
-      image: number; // 0..5
-      seo: number; // 0..5
-      grammar: number; // 0..5
-      humanization: number; // 0..5
-      total: number; // 0..100
-      reviewerId?: string | null;
-      reviewedAt?: string;
-      notes?: string | null;
-    }
-  | null;
+type QCReviewBlob = {
+  timerScore: number; // 40..70
+  keyword: number; // 0..5
+  contentQuality: number; // 0..5
+  image: number; // 0..5
+  seo: number; // 0..5
+  grammar: number; // 0..5
+  humanization: number; // 0..5
+  total: number; // 0..100
+  reviewerId?: string | null;
+  reviewedAt?: string;
+  notes?: string | null;
+} | null;
 
 export type QCScores = {
   keyword: number;
@@ -356,13 +356,16 @@ export function QCReview() {
     // >>>>>>>>> CHANGE: allow approval even if actualDurationMinutes is missing
     // If we still couldn't compute, fall back to "Average" so approval proceeds.
     const finalRating: Perf =
-      (sysRating as Perf | undefined) !== undefined ? (sysRating as Perf) : "Average";
+      (sysRating as Perf | undefined) !== undefined
+        ? (sysRating as Perf)
+        : "Average";
     // <<<<<<<<<<< END CHANGE
 
     setApproveDialog((p) => ({ ...p, loading: true }));
     try {
-      const scores =
-        qcScoresByTask[approveDialog.task.id] ?? { ...defaultScores };
+      const scores = qcScoresByTask[approveDialog.task.id] ?? {
+        ...defaultScores,
+      };
 
       const total =
         Math.min(
