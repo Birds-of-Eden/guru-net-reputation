@@ -65,15 +65,6 @@ const ClientCardComponent = function ClientCard({
   const [openDanger, setOpenDanger] = useState(false);
   const [openUpgrade, setOpenUpgrade] = useState(false);
 
-  if (deleted) return null;
-  if (!client) {
-    return (
-      <Card className="p-6 text-center text-gray-500">
-        Invalid client data
-      </Card>
-    );
-  }
-
   // ⚡ OPTIMIZED: Memoize utility functions
   const normalizeStatus = useCallback((raw?: string | null) => {
     const s = (raw ?? "")
@@ -239,6 +230,16 @@ const ClientCardComponent = function ClientCard({
 
   const handleUpgrade = () => setOpenUpgrade(true);
   const isAmCeo = role === "am_ceo";
+
+  // Early returns after all hooks are called
+  if (deleted) return null;
+  if (!client) {
+    return (
+      <Card className="p-6 text-center text-gray-500">
+        Invalid client data
+      </Card>
+    );
+  }
 
   return (
     <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white">

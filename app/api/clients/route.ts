@@ -561,6 +561,19 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing client id" }, { status: 400 });
     }
 
+    // Check if client exists before attempting to update
+    const existingClient = await prisma.client.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existingClient) {
+      return NextResponse.json(
+        { error: "Client not found" }, 
+        { status: 404 }
+      );
+    }
+
     const body = await req.json();
     const {
       name,
@@ -635,6 +648,24 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error) {
+    console.error("Error in PUT /api/clients:", error);
+    
+    // Handle Prisma specific errors
+    if (error instanceof Error) {
+      if (error.message.includes("Record to update not found")) {
+        return NextResponse.json(
+          { error: "Client not found" },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes("Unique constraint")) {
+        return NextResponse.json(
+          { error: "Email already exists" },
+          { status: 409 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
@@ -659,6 +690,19 @@ export async function DELETE(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ error: "Missing client id" }, { status: 400 });
+    }
+
+    // Check if client exists before attempting to delete
+    const existingClient = await prisma.client.findUnique({
+      where: { id },
+      select: { id: true }
+    });
+
+    if (!existingClient) {
+      return NextResponse.json(
+        { error: "Client not found or already deleted" }, 
+        { status: 404 }
+      );
     }
 
     await prisma.$transaction(async (tx) => {
@@ -717,6 +761,24 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
+    console.error("Error in DELETE /api/clients:", error);
+    
+    // Handle Prisma specific errors
+    if (error instanceof Error) {
+      if (error.message.includes("Record to delete does not exist")) {
+        return NextResponse.json(
+          { error: "Client not found or already deleted" },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes("Foreign key constraint")) {
+        return NextResponse.json(
+          { error: "Cannot delete client with existing dependencies" },
+          { status: 409 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
