@@ -2,7 +2,15 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  lazy,
+  Suspense,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,8 +40,17 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import { FilterSection } from "@/components/qc-review/filter-section";
-import { TaskCard } from "@/components/qc-review/task-card";
+// Lazy-load heavy QC widgets to shrink initial bundle
+const FilterSection = lazy(() =>
+  import("@/components/qc-review/filter-section").then((m) => ({
+    default: m.FilterSection,
+  }))
+);
+const TaskCard = lazy(() =>
+  import("@/components/qc-review/task-card").then((m) => ({
+    default: m.TaskCard,
+  }))
+);
 
 /* =========================
    Types
@@ -137,6 +154,38 @@ function derivePerformanceRating(
   return "Lazy";
 }
 
+// Lightweight skeletons to render while lazy components load
+const FilterSkeleton = () => (
+  <Card className="bg-white border-slate-200 shadow-sm animate-pulse">
+    <CardContent className="p-4 space-y-3">
+      <div className="flex gap-3">
+        <div className="h-10 w-32 bg-slate-200 rounded-lg" />
+        <div className="h-10 w-32 bg-slate-200 rounded-lg" />
+        <div className="h-10 w-32 bg-slate-200 rounded-lg" />
+      </div>
+      <div className="h-10 w-full bg-slate-200 rounded-lg" />
+    </CardContent>
+  </Card>
+);
+
+const TaskListSkeleton = ({ count = 4 }: { count?: number }) => (
+  <div className="space-y-3">
+    {Array.from({ length: count }).map((_, idx) => (
+      <div
+        key={idx}
+        className="p-4 border border-slate-100 rounded-xl bg-white shadow-sm animate-pulse"
+      >
+        <div className="h-4 w-1/3 bg-slate-200 rounded mb-3" />
+        <div className="flex gap-3">
+          <div className="h-3 w-24 bg-slate-200 rounded" />
+          <div className="h-3 w-32 bg-slate-200 rounded" />
+          <div className="h-3 w-16 bg-slate-200 rounded" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 /* =========================
    Component
 ========================= */
@@ -149,6 +198,7 @@ export function QCReview() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [q, setQ] = useState<string>("");
+  const debouncedQuery = useDeferredValue(q);
 
   // -------- Data --------
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -156,6 +206,7 @@ export function QCReview() {
   const [clients, setClients] = useState<ClientLite[]>([]);
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [lookupLoading, setLookupLoading] = useState<boolean>(false);
   const { user } = useUserSession();
 
   // Map of taskId -> current QC star scores (edited in TaskCard)
@@ -175,68 +226,103 @@ export function QCReview() {
 
   const [approvedMap, setApprovedMap] = useState<Record<string, boolean>>({});
 
-  const fetchTasks = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set("status", "completed");
-      if (agentId !== "all") params.set("assignedToId", agentId);
-      if (clientId !== "all") params.set("clientId", clientId);
-      if (categoryId !== "all") params.set("categoryId", categoryId);
-      if (startDate) params.set("startDate", startDate);
-      if (endDate) params.set("endDate", endDate);
+  const fetchTasks = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("status", "completed");
+        if (agentId !== "all") params.set("assignedToId", agentId);
+        if (clientId !== "all") params.set("clientId", clientId);
+        if (categoryId !== "all") params.set("categoryId", categoryId);
+        if (startDate) params.set("startDate", startDate);
+        if (endDate) params.set("endDate", endDate);
 
-      const res = await fetch(`/api/tasks?${params.toString()}`, {
+        const res = await fetch(`/api/tasks?${params.toString()}`, {
+          cache: "no-store",
+          signal,
+        });
+        if (!res.ok) throw new Error("Failed to load tasks");
+        const payload = await res.json();
+        if (signal?.aborted) return;
+        setTasks(payload);
+      } catch (e) {
+        if (signal?.aborted) return;
+        console.error(e);
+      } finally {
+        if (!signal?.aborted) setLoading(false);
+      }
+    },
+    [agentId, categoryId, clientId, endDate, startDate]
+  );
+
+  const fetchAgents = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const r = await fetch("/api/tasks/agents", {
         cache: "no-store",
+        signal,
       });
-      if (!res.ok) throw new Error("Failed to load tasks");
-      setTasks(await res.json());
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAgents = async () => {
-    try {
-      const r = await fetch("/api/tasks/agents", { cache: "no-store" });
+      if (signal?.aborted) return;
       if (r.ok) setAgents(await r.json());
-    } catch {}
-  };
-  const fetchClients = async () => {
+    } catch (err) {
+      if (signal?.aborted) return;
+      console.error("Error fetching agents:", err);
+    }
+  }, []);
+
+  const fetchClients = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch("/api/clients");
+      const response = await fetch("/api/clients", { signal });
       if (!response.ok) throw new Error("Failed to fetch clients");
       const data = await response.json();
-
+      if (signal?.aborted) return;
       setClients(Array.isArray(data.clients) ? data.clients : []);
-      setLoading(false);
     } catch (error) {
+      if (signal?.aborted) return;
       console.error("Error fetching clients:", error);
       toast.error("Failed to load clients data.");
-      setLoading(false);
     }
-  };
-  const fetchCategories = async () => {
+  }, []);
+
+  const fetchCategories = useCallback(async (signal?: AbortSignal) => {
     try {
-      const r = await fetch("/api/teams", { cache: "no-store" });
+      const r = await fetch("/api/teams", { cache: "no-store", signal });
+      if (signal?.aborted) return;
       if (r.ok) setCategories(await r.json());
-    } catch {}
-  };
+    } catch (err) {
+      if (signal?.aborted) return;
+      console.error("Error fetching categories:", err);
+    }
+  }, []);
+
+  const loadLookups = useCallback(
+    async (signal?: AbortSignal) => {
+      setLookupLoading(true);
+      await Promise.allSettled([
+        fetchAgents(signal),
+        fetchClients(signal),
+        fetchCategories(signal),
+      ]);
+      if (!signal?.aborted) setLookupLoading(false);
+    },
+    [fetchAgents, fetchCategories, fetchClients]
+  );
 
   useEffect(() => {
-    fetchAgents();
-    fetchClients();
-    fetchCategories();
-  }, []);
+    const controller = new AbortController();
+    loadLookups(controller.signal);
+    return () => controller.abort();
+  }, [loadLookups]);
+
   useEffect(() => {
-    fetchTasks(); /* eslint-disable-next-line */
-  }, [agentId, clientId, categoryId, startDate, endDate]);
+    const controller = new AbortController();
+    fetchTasks(controller.signal); /* eslint-disable-next-line */
+    return () => controller.abort();
+  }, [fetchTasks]);
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return tasks;
-    const needle = q.toLowerCase();
+    const needle = debouncedQuery.trim().toLowerCase();
+    if (!needle) return tasks;
     return tasks.filter((t) =>
       [
         t.name,
@@ -253,16 +339,20 @@ export function QCReview() {
         .toLowerCase()
         .includes(needle)
     );
-  }, [q, tasks]);
+  }, [debouncedQuery, tasks]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setAgentId("all");
     setClientId("all");
     setCategoryId("all");
     setStartDate("");
     setEndDate("");
     setQ("");
-  };
+  }, []);
+
+  const totalTasks = tasks.length;
+  const filteredCount = filtered.length;
+  const isBusy = loading || lookupLoading;
 
   // -------- Reassign modal --------
   const [reassignDialog, setReassignDialog] = useState<{
@@ -469,13 +559,13 @@ export function QCReview() {
         </div>
         <div className="flex gap-3">
           <Button
-            onClick={fetchTasks}
-            disabled={loading}
+            onClick={() => fetchTasks()}
+            disabled={isBusy}
             variant="outline"
             size="default"
             className="bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            {loading ? (
+            {isBusy ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -485,26 +575,28 @@ export function QCReview() {
         </div>
       </div>
 
-      <FilterSection
-        agentId={agentId}
-        setAgentId={setAgentId}
-        clientId={clientId}
-        setClientId={setClientId}
-        categoryId={categoryId}
-        setCategoryId={setCategoryId}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
-        q={q}
-        setQ={setQ}
-        agents={agents}
-        clients={clients}
-        categories={categories}
-        filtered={filtered}
-        tasks={tasks}
-        clearFilters={clearFilters}
-      />
+      <Suspense fallback={<FilterSkeleton />}>
+        <FilterSection
+          agentId={agentId}
+          setAgentId={setAgentId}
+          clientId={clientId}
+          setClientId={setClientId}
+          categoryId={categoryId}
+          setCategoryId={setCategoryId}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          q={q}
+          setQ={setQ}
+          agents={agents}
+          clients={clients}
+          categories={categories}
+          filtered={filtered}
+          tasks={tasks}
+          clearFilters={clearFilters}
+        />
+      </Suspense>
 
       <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
         <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80">
@@ -521,18 +613,18 @@ export function QCReview() {
                   Quality control dashboard for completed tasks
                 </CardDescription>
               </div>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                <Award className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-700">
+                  {filteredCount} of {totalTasks} tasks
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-              <Award className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-700">
-                {filtered.length} of {tasks.length} tasks
-              </span>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6">
-          {loading ? (
+          <CardContent className="p-6">
+            {isBusy ? (
             <div className="flex items-center justify-center py-16">
               <div className="text-center space-y-4">
                 <div className="relative">
@@ -548,63 +640,64 @@ export function QCReview() {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filtered.map((task, index) => (
-                <div
-                  key={task.id}
-                  className="animate-in fade-in-0 slide-in-from-bottom-4"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <TaskCard
-                    task={task}
-                    approvedMap={approvedMap}
-                    onApprove={handleApprove}
-                    onReject={(t) =>
-                      setReassignDialog({
-                        open: true,
-                        task: t,
-                        reassignNotes: "",
-                        loading: false,
-                      })
-                    }
-                    // ⭐ pass/edit QC star scores here (lives per task)
-                    scores={qcScoresByTask[task.id] ?? { ...defaultScores }}
-                    onChangeScores={(next) =>
-                      setQcScoresByTask((m) => ({ ...m, [task.id]: next }))
-                    }
-                  />
-                </div>
-              ))}
-              {filtered.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl">
-                      <AlertCircle className="h-12 w-12 text-slate-400" />
-                    </div>
-                    <div className="space-y-2 max-w-md">
-                      <h3 className="text-xl font-semibold text-slate-900">
-                        No completed tasks found
-                      </h3>
-                      <p className="text-slate-600">
-                        Try adjusting your filters or check back later for new
-                        completed tasks
-                      </p>
-                    </div>
-                    <Button
-                      onClick={clearFilters}
-                      variant="outline"
-                      className="mt-2 bg-transparent"
-                    >
-                      Clear All Filters
-                    </Button>
+            <Suspense fallback={<TaskListSkeleton />}>
+              <div className="space-y-4">
+                {filtered.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className="animate-in fade-in-0 slide-in-from-bottom-4"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <TaskCard
+                      task={task}
+                      approvedMap={approvedMap}
+                      onApprove={handleApprove}
+                      onReject={(t) =>
+                        setReassignDialog({
+                          open: true,
+                          task: t,
+                          reassignNotes: "",
+                          loading: false,
+                        })
+                      }
+                      // ? pass/edit QC star scores here (lives per task)
+                      scores={qcScoresByTask[task.id] ?? { ...defaultScores }}
+                      onChangeScores={(next) =>
+                        setQcScoresByTask((m) => ({ ...m, [task.id]: next }))
+                      }
+                    />
                   </div>
-                </div>
-              )}
-            </div>
+                ))}
+                {filteredCount === 0 && (
+                  <div className="text-center py-16">
+                    <div className="flex flex-col items-center gap-6">
+                      <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl">
+                        <AlertCircle className="h-12 w-12 text-slate-400" />
+                      </div>
+                      <div className="space-y-2 max-w-md">
+                        <h3 className="text-xl font-semibold text-slate-900">
+                          No completed tasks found
+                        </h3>
+                        <p className="text-slate-600">
+                          Try adjusting your filters or check back later for new
+                          completed tasks
+                        </p>
+                      </div>
+                      <Button
+                        onClick={clearFilters}
+                        variant="outline"
+                        className="mt-2 bg-transparent"
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Suspense>
           )}
-        </CardContent>
+          </CardContent>
       </Card>
-
       {/* ====== Approve Dialog (Only notes) ====== */}
       <Dialog
         open={approveDialog.open}
