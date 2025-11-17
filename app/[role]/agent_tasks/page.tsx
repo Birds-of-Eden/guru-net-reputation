@@ -1,4 +1,4 @@
-//app/agent/page.tsx
+// app/[role]/agent_tasks/page.tsx
 
 "use client";
 
@@ -47,7 +47,10 @@ export default function AgentDashboardPage() {
           <CardContent>
             <div className="flex gap-2 mb-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={`filter-${i}`} className="h-8 w-24 rounded-full" />
+                <Skeleton
+                  key={`filter-${i}`}
+                  className="h-8 w-24 rounded-full"
+                />
               ))}
             </div>
           </CardContent>

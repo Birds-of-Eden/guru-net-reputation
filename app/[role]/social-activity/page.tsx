@@ -1,4 +1,5 @@
-// app/(wherever)/social-communication/page.tsx
+// app/[role]/social-activity/page.tsx
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";

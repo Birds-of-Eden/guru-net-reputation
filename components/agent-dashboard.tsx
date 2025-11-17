@@ -144,15 +144,20 @@ interface AgentDashboardProps {
 // Fetcher for agent dashboard
 const agentDashboardFetcher = async (url: string): Promise<AgentClient[]> => {
   const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Failed to fetch agent data: ${response.statusText}`);
+  if (!response.ok)
+    throw new Error(`Failed to fetch agent data: ${response.statusText}`);
   return response.json();
 };
 
 export function AgentDashboard({ agentId }: AgentDashboardProps) {
   const [timeRange, setTimeRange] = useState("month");
-  
+
   // ✅ Use SWR for agent dashboard data
-  const { data: rawClients, isLoading: loading, error: fetchError } = useSWR<AgentClient[]>(
+  const {
+    data: rawClients,
+    isLoading: loading,
+    error: fetchError,
+  } = useSWR<AgentClient[]>(
     agentId ? `/api/tasks/clients/agents/${agentId}` : null,
     agentDashboardFetcher,
     {
@@ -161,89 +166,92 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
       refreshInterval: 60000, // Auto-refresh every 1 min
     }
   );
-  
-  const error = fetchError ? (fetchError instanceof Error ? fetchError.message : "Failed to fetch dashboard data") : null;
-  
+
+  const error = fetchError
+    ? fetchError instanceof Error
+      ? fetchError.message
+      : "Failed to fetch dashboard data"
+    : null;
+
   // ✅ Process dashboard data with useMemo
   const dashboardData = useMemo(() => {
     if (!rawClients) return null;
-    
+
     try {
       // Normalize counts + progress per client
       const clients = rawClients.map((c) => {
-          const counts = normalizeCounts(
-            c.agentTaskCounts ?? c.taskCounts ?? EMPTY_COUNTS
-          );
-          const derivedProgress =
-            typeof c.agentProgress === "number"
-              ? c.agentProgress
-              : counts.total > 0
-              ? Math.round((counts.completed / counts.total) * 100)
-              : 0;
+        const counts = normalizeCounts(
+          c.agentTaskCounts ?? c.taskCounts ?? EMPTY_COUNTS
+        );
+        const derivedProgress =
+          typeof c.agentProgress === "number"
+            ? c.agentProgress
+            : counts.total > 0
+            ? Math.round((counts.completed / counts.total) * 100)
+            : 0;
 
-          return {
-            ...c,
-            _counts: counts,
-            _agentProgress: derivedProgress,
-            tasks: c.tasks ?? [],
-          };
-        });
+        return {
+          ...c,
+          _counts: counts,
+          _agentProgress: derivedProgress,
+          tasks: c.tasks ?? [],
+        };
+      });
 
-        // Aggregate totals
-        let totalTasks = 0;
-        let completedTasks = 0;
-        let pendingTasks = 0;
-        let inProgressTasks = 0;
-        let reassignedTasks = 0;
-        let totalProgress = 0;
+      // Aggregate totals
+      let totalTasks = 0;
+      let completedTasks = 0;
+      let pendingTasks = 0;
+      let inProgressTasks = 0;
+      let reassignedTasks = 0;
+      let totalProgress = 0;
 
-        const allTasks: AgentTask[] = [];
-        const clientsNeedingAttention: typeof clients = [];
+      const allTasks: AgentTask[] = [];
+      const clientsNeedingAttention: typeof clients = [];
 
-        clients.forEach((client) => {
-          totalTasks += client._counts.total;
-          completedTasks += client._counts.completed;
-          pendingTasks += client._counts.pending;
-          inProgressTasks += client._counts.in_progress;
-          reassignedTasks += client._counts.reassigned;
-          totalProgress += client._agentProgress;
+      clients.forEach((client) => {
+        totalTasks += client._counts.total;
+        completedTasks += client._counts.completed;
+        pendingTasks += client._counts.pending;
+        inProgressTasks += client._counts.in_progress;
+        reassignedTasks += client._counts.reassigned;
+        totalProgress += client._agentProgress;
 
-          allTasks.push(...(client.tasks ?? []));
+        allTasks.push(...(client.tasks ?? []));
 
-          const hasOverdue = (client.tasks ?? []).some(
-            (t) =>
-              t.dueDate && new Date(t.dueDate) < new Date() && !t.completedAt
-          );
-          if (client._agentProgress < 30 || hasOverdue) {
-            clientsNeedingAttention.push(client);
-          }
-        });
+        const hasOverdue = (client.tasks ?? []).some(
+          (t) => t.dueDate && new Date(t.dueDate) < new Date() && !t.completedAt
+        );
+        if (client._agentProgress < 30 || hasOverdue) {
+          clientsNeedingAttention.push(client);
+        }
+      });
 
-        // Sort + slice tasks for widgets
-        const recentTasks = [...allTasks]
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )
-          .slice(0, 5);
+      // Sort + slice tasks for widgets
+      const recentTasks = [...allTasks]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 5);
 
-        const highPriorityTasks = allTasks
-          .filter((t) => t.priority === "high" && !t.completedAt) // ✅ enum is lowercase
-          .sort((a, b) => {
-            const ad = a.dueDate
-              ? new Date(a.dueDate).getTime()
-              : Number.MAX_SAFE_INTEGER;
-            const bd = b.dueDate
-              ? new Date(b.dueDate).getTime()
-              : Number.MAX_SAFE_INTEGER;
-            return ad - bd;
-          })
-          .slice(0, 5);
+      const highPriorityTasks = allTasks
+        .filter((t) => t.priority === "high" && !t.completedAt) // ✅ enum is lowercase
+        .sort((a, b) => {
+          const ad = a.dueDate
+            ? new Date(a.dueDate).getTime()
+            : Number.MAX_SAFE_INTEGER;
+          const bd = b.dueDate
+            ? new Date(b.dueDate).getTime()
+            : Number.MAX_SAFE_INTEGER;
+          return ad - bd;
+        })
+        .slice(0, 5);
 
-        const overallCompletionRate =
-          totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-        const averageClientProgress =
-          clients.length > 0 ? Math.round(totalProgress / clients.length) : 0;
+      const overallCompletionRate =
+        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      const averageClientProgress =
+        clients.length > 0 ? Math.round(totalProgress / clients.length) : 0;
 
       return {
         totalAssignedClients: clients.length,
@@ -291,7 +299,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
     <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent pa-3">
             Agent Performance Dashboard
           </h2>
           <p className="text-muted-foreground mt-2">
