@@ -345,12 +345,7 @@ export function AmGroupedClientView({
                           axisLine={false}
                           tickLine={false}
                         />
-                        <YAxis
-                          allowDecimals={false}
-                          width={28}
-                          axisLine={false}
-                          tickLine={false}
-                        />
+                        <YAxis hide allowDecimals={false} width={0} />
                         <Tooltip content={<CustomTooltip />} />
                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                           {summaryData.map((entry, index) => (
