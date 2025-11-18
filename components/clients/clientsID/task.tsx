@@ -662,7 +662,7 @@ export function Tasks({ clientData }: TasksProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 md:p-4">
-          <Accordion type="multiple" className="w-full" defaultValue={orderedCategories.slice(0, 2).map(([name]) => name)}>
+          <Accordion type="multiple" className="w-full">
             {orderedCategories.map(([categoryName, rawTasks]) => {
               const tasks = sortTasks(rawTasks)
               return (
