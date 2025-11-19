@@ -24,6 +24,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Client } from "@/types/client"
 import { PostingTaskStatus } from "./posting-task-status"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 // ---------- Small UI Helpers ----------
 const Pill = ({ children }: { children: React.ReactNode }) => (
