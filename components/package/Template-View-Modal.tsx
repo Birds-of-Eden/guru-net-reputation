@@ -292,7 +292,13 @@ export function TemplateViewModal({
                     className="text-xs text-gray-500 hover:text-gray-700 truncate block"
                     title={site.url}
                   >
-                    {new URL(site.url).hostname}
+                    {(() => {
+                      try {
+                        return new URL(site.url).hostname;
+                      } catch {
+                        return site.url;
+                      }
+                    })()}
                   </a>
                 )}
               </div>
