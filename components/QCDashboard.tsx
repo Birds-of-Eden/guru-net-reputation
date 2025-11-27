@@ -215,15 +215,23 @@ const tasksFetcher = async (url: string): Promise<AnyTask[]> => {
 };
 
 // ---------- Main ----------
-export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: AnyTask[] }) {
+export default function QCDashboardPro({
+  tasks: initialTasks = [],
+}: {
+  tasks?: AnyTask[];
+}) {
   // ✅ Use SWR for real-time task updates
-  const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>("/api/tasks", tasksFetcher, {
-    fallbackData: initialTasks, // Use server data as fallback
-    revalidateOnFocus: false,
-    dedupingInterval: 30000,
-    refreshInterval: 60000, // Auto-refresh every 1 min
-  });
-  
+  const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>(
+    "/api/tasks",
+    tasksFetcher,
+    {
+      fallbackData: initialTasks, // Use server data as fallback
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000, // Auto-refresh every 1 min
+    }
+  );
+
   const tasks = fetchedTasks || initialTasks;
   // --- helpers
   const now = new Date();
@@ -358,9 +366,9 @@ export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: A
     [rangedTasks, q]
   );
 
-  const overdueRows = rows.filter((r) => {
+  const reassignedRows = rows.filter((r) => {
     const t = rangedTasks.find((x) => x.id === r.id);
-    return t ? isOverdue(t) : false;
+    return t ? String(t.status) === "reassigned" : false;
   });
 
   return (
@@ -709,10 +717,10 @@ export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: A
           <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
             <CardHeader className="border-b border-slate-200/70 py-5">
               <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Timer className="h-5 w-5 text-red-600" />
-                Overdue
+                <RotateCcw className="h-5 w-5 text-violet-600" />
+                Reassign
               </CardTitle>
-              <CardDescription>Pending / reassigned past due</CardDescription>
+              <CardDescription>Pending / reassigned tasks</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="max-h-[40vh] overflow-y-auto">
@@ -729,7 +737,7 @@ export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: A
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {overdueRows.map((r) => (
+                    {reassignedRows.map((r) => (
                       <TableRow key={r.id} className="hover:bg-slate-100/60">
                         <TableCell className="font-mono text-[11px]">
                           {String(r.id).slice(0, 8)}…
@@ -746,13 +754,13 @@ export default function QCDashboardPro({ tasks: initialTasks = [] }: { tasks?: A
                         </TableCell>
                       </TableRow>
                     ))}
-                    {overdueRows.length === 0 && (
+                    {reassignedRows.length === 0 && (
                       <TableRow>
                         <TableCell
                           colSpan={7}
                           className="text-center text-sm text-muted-foreground py-8"
                         >
-                          No overdue tasks 🎉
+                          No reassigned tasks 🎉
                         </TableCell>
                       </TableRow>
                     )}
