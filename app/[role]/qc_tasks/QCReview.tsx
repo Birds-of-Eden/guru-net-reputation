@@ -880,14 +880,14 @@ export const QCReview = memo(function QCReview() {
                   <h3 className="font-semibold text-slate-900">
                     {reassignDialog.task.name}
                   </h3>
-                  <p className="text-sm text-slate-600 flex items-center gap-2">
+                  <div className="text-sm text-slate-600 flex items-center gap-2">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     Current agent:{" "}
                     <span className="font-medium text-slate-900">
                       {reassignDialog.task.assignedTo?.name ||
                         reassignDialog.task.assignedTo?.email}
                     </span>
-                  </p>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
