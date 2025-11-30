@@ -2,9 +2,9 @@
 
 "use client";
 
-import { memo, useState, useMemo, useCallback } from "react";
+import { memo, useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useSWRConfig } from "swr";
 import {
   FileText,
   Eye,
@@ -12,7 +12,6 @@ import {
   ListChecks,
   Trash2,
   ArrowUpCircle,
-  UserRoundCheck,
   Heart,
   Calendar,
 } from "lucide-react";
@@ -50,6 +49,9 @@ interface ClientCardProps {
   onToggleFavorite?: (clientId: string) => void;
 }
 
+// Track in-flight client dashboard prefetches to avoid duplicate fetches
+const clientDashboardWarmups = new Map<string, Promise<any>>();
+
 const ClientCardComponent = function ClientCard({
   client,
   clientUserId,
@@ -59,11 +61,13 @@ const ClientCardComponent = function ClientCard({
 }: ClientCardProps) {
   const { user, loading: permsLoading } = useUserSession();
   const router = useRouter();
+  const { mutate: mutateCache } = useSWRConfig();
 
   const [deleted, setDeleted] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [openDanger, setOpenDanger] = useState(false);
   const [openUpgrade, setOpenUpgrade] = useState(false);
+  const prefetchedDetailUrlRef = useRef<string | null>(null);
 
   // ⚡ OPTIMIZED: Memoize utility functions
   const normalizeStatus = useCallback((raw?: string | null) => {
@@ -73,13 +77,31 @@ const ClientCardComponent = function ClientCard({
       .toLowerCase()
       .replace(/[\-\s]+/g, "_");
     if (
-      ["done", "complete", "completed", "finished", "qc_approved", "approved"].includes(s)
+      [
+        "done",
+        "complete",
+        "completed",
+        "finished",
+        "qc_approved",
+        "approved",
+      ].includes(s)
     )
       return "completed";
-    if (["in_progress", "in-progress", "progress", "doing", "working"].includes(s))
+    if (
+      ["in_progress", "in-progress", "progress", "doing", "working"].includes(s)
+    )
       return "in_progress";
     if (["overdue", "late"].includes(s)) return "overdue";
-    if (["pending", "todo", "not_started", "on_hold", "paused", "backlog"].includes(s))
+    if (
+      [
+        "pending",
+        "todo",
+        "not_started",
+        "on_hold",
+        "paused",
+        "backlog",
+      ].includes(s)
+    )
       return "pending";
     if (["cancelled", "canceled"].includes(s)) return "cancelled";
     return s || "pending";
@@ -110,9 +132,10 @@ const ClientCardComponent = function ClientCard({
   }, [client.tasks, normalizeStatus]);
 
   const totalTasks = client.tasks?.length || 0;
-  
+
   const derivedProgress = useMemo(
-    () => (totalTasks ? Math.round((taskCounts.completed / totalTasks) * 100) : 0),
+    () =>
+      totalTasks ? Math.round((taskCounts.completed / totalTasks) * 100) : 0,
     [totalTasks, taskCounts.completed]
   );
 
@@ -126,50 +149,59 @@ const ClientCardComponent = function ClientCard({
   }, []);
 
   // ⚡ OPTIMIZED: Memoize month progress calculation
-  const { derivedProgressThisMonth, completedThisMonth, totalThisMonth } = useMemo(() => {
-    const tasks = client.tasks ?? [];
-    
-    const getBestDate = (task: any): Date | null => {
-      return (
-        parseDate(task?.createdAt) ||
-        parseDate(task?.startDate) ||
-        parseDate(task?.dueDate)
-      );
-    };
+  const { derivedProgressThisMonth, completedThisMonth, totalThisMonth } =
+    useMemo(() => {
+      const tasks = client.tasks ?? [];
 
-    const inThisMonth = (task: any) => {
-      const d = getBestDate(task);
-      if (!d) return false;
-      return d >= monthStart && d < monthEnd;
-    };
+      const getBestDate = (task: any): Date | null => {
+        return (
+          parseDate(task?.createdAt) ||
+          parseDate(task?.startDate) ||
+          parseDate(task?.dueDate)
+        );
+      };
 
-    const tasksThisMonth = tasks.filter(inThisMonth);
-    const totalThisMonth = tasksThisMonth.length;
+      const inThisMonth = (task: any) => {
+        const d = getBestDate(task);
+        if (!d) return false;
+        return d >= monthStart && d < monthEnd;
+      };
 
-    let completedThisMonth = 0;
-    let approvedThisMonth = 0;
+      const tasksThisMonth = tasks.filter(inThisMonth);
+      const totalThisMonth = tasksThisMonth.length;
 
-    for (const t of tasksThisMonth) {
-      const sRaw = (t as any)?.status?.toString().trim().toLowerCase().replace(/[\-\s]+/g, "_") || "";
-      const sNorm = normalizeStatus((t as any)?.status);
-      const completedAt = parseDate((t as any)?.completedAt);
+      let completedThisMonth = 0;
+      let approvedThisMonth = 0;
 
-      const isCompleted =
-        (completedAt ? completedAt >= monthStart && completedAt < monthEnd : false) ||
-        sNorm === "completed";
+      for (const t of tasksThisMonth) {
+        const sRaw =
+          (t as any)?.status
+            ?.toString()
+            .trim()
+            .toLowerCase()
+            .replace(/[\-\s]+/g, "_") || "";
+        const sNorm = normalizeStatus((t as any)?.status);
+        const completedAt = parseDate((t as any)?.completedAt);
 
-      const isApproved = sRaw === "qc_approved" || sRaw === "approved";
+        const isCompleted =
+          (completedAt
+            ? completedAt >= monthStart && completedAt < monthEnd
+            : false) || sNorm === "completed";
 
-      if (isCompleted) completedThisMonth++;
-      if (isApproved) approvedThisMonth++;
-    }
+        const isApproved = sRaw === "qc_approved" || sRaw === "approved";
 
-    const derivedProgressThisMonth = totalThisMonth
-      ? Math.round(((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100)
-      : 0;
+        if (isCompleted) completedThisMonth++;
+        if (isApproved) approvedThisMonth++;
+      }
 
-    return { derivedProgressThisMonth, completedThisMonth, totalThisMonth };
-  }, [client.tasks, monthStart, monthEnd, normalizeStatus, parseDate]);
+      const derivedProgressThisMonth = totalThisMonth
+        ? Math.round(
+            ((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100
+          )
+        : 0;
+
+      return { derivedProgressThisMonth, completedThisMonth, totalThisMonth };
+    }, [client.tasks, monthStart, monthEnd, normalizeStatus, parseDate]);
 
   // ⚡ OPTIMIZED: Memoize date formatting
   const formatDate = useCallback(
@@ -189,11 +221,12 @@ const ClientCardComponent = function ClientCard({
   // ⚡ OPTIMIZED: Memoize role and segment
   const { role, segment } = useMemo(() => {
     const roleRaw = (user as any)?.role?.name ?? (user as any)?.role;
-    const role = typeof roleRaw === "string" ? roleRaw.toLowerCase() : undefined;
+    const role =
+      typeof roleRaw === "string" ? roleRaw.toLowerCase() : undefined;
     const segment = role && /^[a-z0-9_-]+$/.test(role) ? role : "admin";
     return { role, segment };
   }, [user]);
-  
+
   const swrKey = "/api/clients";
 
   // ⚡ OPTIMIZED: Memoize detail URL for prefetching
@@ -203,6 +236,52 @@ const ClientCardComponent = function ClientCard({
     }
     return `/${segment}/clients/${client.id}`;
   }, [segment, client.id]);
+
+  const canViewDetails =
+    !permsLoading &&
+    hasPermissionClient(user?.permissions, "client_card_client_view");
+
+  const prefetchDetails = useCallback(() => {
+    if (prefetchedDetailUrlRef.current === detailUrl) return;
+    prefetchedDetailUrlRef.current = detailUrl;
+    try {
+      // useRouter().prefetch may be undefined or sync; guard and ignore errors
+      (router as any)?.prefetch?.(detailUrl);
+    } catch {
+      prefetchedDetailUrlRef.current = null;
+    }
+  }, [router, detailUrl]);
+
+  const warmClientDashboard = useCallback(() => {
+    const key = `/api/clients/${client.id}`;
+    if (clientDashboardWarmups.has(key)) return clientDashboardWarmups.get(key);
+
+    const p = fetch(key, { next: { revalidate: 60 } })
+      .then((res) => {
+        if (!res.ok) throw new Error("failed to preload client");
+        return res.json();
+      })
+      .then((data) => {
+        mutateCache(key, data, false);
+        return data;
+      })
+      .catch(() => {
+        clientDashboardWarmups.delete(key);
+      });
+
+    clientDashboardWarmups.set(key, p);
+    return p;
+  }, [client.id, mutateCache]);
+
+  const primeDetails = useCallback(() => {
+    prefetchDetails();
+    warmClientDashboard();
+  }, [prefetchDetails, warmClientDashboard]);
+
+  useEffect(() => {
+    if (!canViewDetails) return;
+    primeDetails();
+  }, [canViewDetails, primeDetails]);
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -215,10 +294,17 @@ const ClientCardComponent = function ClientCard({
     setIsDeleting(false);
   }
 
-  const handleViewDetails = useCallback(() => {
-    if (onViewDetails) return onViewDetails();
-    router.push(detailUrl);
-  }, [onViewDetails, router, detailUrl]);
+  const handleViewDetails = useCallback(
+    (event?: { preventDefault?: () => void }) => {
+      primeDetails();
+      if (onViewDetails) {
+        event?.preventDefault?.();
+        return onViewDetails();
+      }
+      router.push(detailUrl);
+    },
+    [onViewDetails, router, detailUrl, primeDetails]
+  );
 
   const handleViewTasks = () => {
     if (segment === "data_entry") {
@@ -235,9 +321,7 @@ const ClientCardComponent = function ClientCard({
   if (deleted) return null;
   if (!client) {
     return (
-      <Card className="p-6 text-center text-gray-500">
-        Invalid client data
-      </Card>
+      <Card className="p-6 text-center text-gray-500">Invalid client data</Card>
     );
   }
 
@@ -277,7 +361,11 @@ const ClientCardComponent = function ClientCard({
                           : "bg-white border-gray-200 text-gray-500 hover:text-gray-700"
                       }`}
                     >
-                      <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+                      <Heart
+                        className={`h-5 w-5 ${
+                          isFavorite ? "fill-current" : ""
+                        }`}
+                      />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
@@ -329,7 +417,9 @@ const ClientCardComponent = function ClientCard({
           <div className="grid grid-cols-2 gap-y-2 text-sm">
             <div className="text-gray-600">Start Date:</div>
             <div className="font-medium text-gray-800">
-              {formatDate((client as any)?.startDate || (client as any)?.createdAt)}
+              {formatDate(
+                (client as any)?.startDate || (client as any)?.createdAt
+              )}
             </div>
 
             <div className="text-gray-600">End Date:</div>
@@ -412,20 +502,23 @@ const ClientCardComponent = function ClientCard({
       {/* Footer */}
       <CardFooter className="border-t border-gray-100 bg-gray-50 p-6">
         <div className="flex flex-wrap gap-3 w-full">
-          {!permsLoading &&
-            hasPermissionClient(user?.permissions, "client_card_client_view") && (
-              <Button
-                asChild
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
-              >
-                <Link href={detailUrl} prefetch={true}>
-                  <Eye className="h-4 w-4 mr-2" /> View Details
-                </Link>
-              </Button>
-            )}
+          {canViewDetails && (
+            <Button
+              onClick={handleViewDetails}
+              onMouseEnter={prefetchDetails}
+              onFocus={prefetchDetails}
+              onTouchStart={prefetchDetails}
+              className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+            >
+              <Eye className="h-4 w-4 mr-2" /> View Details
+            </Button>
+          )}
 
           {!permsLoading &&
-            hasPermissionClient(user?.permissions, "client_card_Upgrade_Package") && (
+            hasPermissionClient(
+              user?.permissions,
+              "client_card_Upgrade_Package"
+            ) && (
               <Button
                 onClick={handleUpgrade}
                 className="flex-1 min-w-[150px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"

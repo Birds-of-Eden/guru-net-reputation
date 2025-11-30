@@ -1,15 +1,30 @@
 // app/[role]/clients/page.tsx
 
 "use client";
-import { useState, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ClientOverviewHeader } from "@/components/clients/client-overview-header";
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
 // Lazy load heavy components for better initial load
-const ClientGrid = lazy(() => import("@/components/clients/client-grid").then(m => ({ default: m.ClientGrid })));
-const ClientList = lazy(() => import("@/components/clients/client-list").then(m => ({ default: m.ClientList })));
+const ClientGrid = lazy(() =>
+  import("@/components/clients/client-grid").then((m) => ({
+    default: m.ClientGrid,
+  }))
+);
+const ClientList = lazy(() =>
+  import("@/components/clients/client-list").then((m) => ({
+    default: m.ClientList,
+  }))
+);
 import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
 import type { Client } from "@/types/client";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
@@ -21,7 +36,7 @@ export default function ClientsPage() {
 
   // Use enhanced hook with SWR + pre-indexed filtering
   const { clients, loading, index, getFilteredClients } = useClients();
-  
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -77,7 +92,13 @@ export default function ClientsPage() {
 
   const handleViewClientDetails = useCallback(
     (client: Client) => {
-      router.push(`/${roleSegment}/clients/${client.id}`);
+      const detailPath = `/${roleSegment}/clients/${client.id}`;
+      try {
+        (router as any)?.prefetch?.(detailPath);
+      } catch {
+        /* ignore prefetch errors */
+      }
+      router.push(detailPath);
     },
     [router, roleSegment]
   );
@@ -94,7 +115,13 @@ export default function ClientsPage() {
       amId: amFilter,
       searchQuery: debouncedSearch,
     });
-  }, [getFilteredClients, statusFilter, packageFilter, amFilter, debouncedSearch]);
+  }, [
+    getFilteredClients,
+    statusFilter,
+    packageFilter,
+    amFilter,
+    debouncedSearch,
+  ]);
 
   // packages come from API/state to ensure names are accurate
 
