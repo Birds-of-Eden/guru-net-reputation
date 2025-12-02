@@ -300,6 +300,7 @@ export default function CreatedTasksPage() {
     dedupingInterval: 30000,
     refreshInterval: 60000,
   });
+  const refreshTasks = () => mutate();
 
   useEffect(() => {
     if (!tasksResp) return;
@@ -1109,7 +1110,7 @@ export default function CreatedTasksPage() {
           isOpen={isCreateTaskModalOpen}
           onClose={() => setIsCreateTaskModalOpen(false)}
           onSuccess={() => {
-            fetchTasks(); // Refresh the tasks list
+            refreshTasks(); // Refresh the tasks list
           }}
           clientId={clientId}
         />
