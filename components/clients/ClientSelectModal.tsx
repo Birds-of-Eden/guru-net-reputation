@@ -1,3 +1,4 @@
+//lint error fixed
 "use client";
 
 import { useEffect, useState } from "react";

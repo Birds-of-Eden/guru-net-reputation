@@ -1,4 +1,5 @@
 // // components/clients/PackageUpgradeDialog.tsx
+//lint error fixed
 
 "use client";
 

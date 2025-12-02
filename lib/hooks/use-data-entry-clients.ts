@@ -104,7 +104,8 @@ export function useDataEntryClients(params?: FetchParams): UseDataEntryClientsRe
     }
   );
 
-  const clients = data || [];
+  // Memoize clients to prevent unnecessary recalculations
+  const clients = useMemo(() => data || [], [data]);
 
   // ✅ Pre-indexed data structure - memoized for performance
   const index = useMemo(() => {

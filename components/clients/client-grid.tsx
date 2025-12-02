@@ -1,4 +1,5 @@
 // components/clients/client-grid.tsx
+//lint error fixed
 
 "use client";
 

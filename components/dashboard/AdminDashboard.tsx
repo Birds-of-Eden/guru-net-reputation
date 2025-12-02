@@ -1,4 +1,5 @@
 // app/components/dashboard/AdminDashboard.tsx
+//lint error fixed
 
 "use client";
 

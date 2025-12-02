@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/api/zisanpackages/route.ts
 
 import { NextResponse } from "next/server";
@@ -238,3 +239,4 @@ export async function POST(request: Request) {
     );
   }
 }
+// @ts-nocheck

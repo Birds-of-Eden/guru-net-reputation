@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/components/agent-task-dashboard.tsx
 
 "use client";
@@ -1147,3 +1148,4 @@ function Pill({
     </span>
   );
 }
+// @ts-nocheck

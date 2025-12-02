@@ -128,13 +128,47 @@ export interface DashboardStats {
   };
 }
 
+// Types for indexed data
+interface TaskStatusItem {
+  status: string;
+  count: number;
+}
+
+interface TaskPriorityItem {
+  priority: string;
+  count: number;
+}
+
+interface TaskCategoryItem {
+  id: string;
+  name: string;
+  status: string;
+  priority: string;
+  dueDate?: string | null;
+  clientName?: string;
+  assignedToName?: string;
+  categoryName?: string;
+  completedAt?: string | null;
+  createdAt: string;
+}
+
+interface ClientStatusItem {
+  status: string;
+  count: number;
+}
+
+interface UserRoleItem {
+  role: string;
+  count: number;
+}
+
 // Pre-indexed structure for fast lookups
 interface DashboardIndex {
-  tasksByStatus: Map<string, any[]>;
-  tasksByPriority: Map<string, any[]>;
-  tasksByCategory: Map<string, any[]>;
-  clientsByStatus: Map<string, any[]>;
-  usersByRole: Map<string, any[]>;
+  tasksByStatus: Map<string, TaskStatusItem[]>;
+  tasksByPriority: Map<string, TaskPriorityItem[]>;
+  tasksByCategory: Map<string, TaskCategoryItem[]>;
+  clientsByStatus: Map<string, ClientStatusItem[]>;
+  usersByRole: Map<string, UserRoleItem[]>;
 }
 
 interface UseDashboardStatsReturn {
@@ -145,7 +179,7 @@ interface UseDashboardStatsReturn {
   // Pre-indexed data
   index: DashboardIndex;
   // Helper getters
-  getLatestItems: <T extends Record<string, any>>(
+  getLatestItems: <T extends Record<string, unknown>>(
     items: T[] | undefined,
     dateKey: keyof T,
     count?: number
@@ -167,11 +201,11 @@ const fetcher = async (url: string): Promise<DashboardStats> => {
 
 // Helper to build pre-indexed structure
 function buildDashboardIndex(stats: DashboardStats | null): DashboardIndex {
-  const tasksByStatus = new Map<string, any[]>();
-  const tasksByPriority = new Map<string, any[]>();
-  const tasksByCategory = new Map<string, any[]>();
-  const clientsByStatus = new Map<string, any[]>();
-  const usersByRole = new Map<string, any[]>();
+  const tasksByStatus = new Map<string, TaskStatusItem[]>();
+  const tasksByPriority = new Map<string, TaskPriorityItem[]>();
+  const tasksByCategory = new Map<string, TaskCategoryItem[]>();
+  const clientsByStatus = new Map<string, ClientStatusItem[]>();
+  const usersByRole = new Map<string, UserRoleItem[]>();
 
   if (!stats) {
     return {
@@ -223,7 +257,7 @@ function buildDashboardIndex(stats: DashboardStats | null): DashboardIndex {
 }
 
 // Helper to sort and get latest N items
-function takeLatest<T extends Record<string, any>>(
+function takeLatest<T extends Record<string, unknown>>(
   arr: T[] | undefined,
   dateKey: keyof T,
   n = 5

@@ -4,13 +4,50 @@
 import useSWR from "swr";
 import { useMemo, useCallback } from "react";
 
+interface SiteAsset {
+  id: string;
+  type: string;
+  [key: string]: unknown;
+}
+
+interface TemplateSiteAsset {
+  id: string;
+  defaultPostingFrequency: number | null;
+  [key: string]: unknown;
+}
+
+interface SiteAssetSetting {
+  id: string;
+  requiredFrequency: number | null;
+  templateSiteAsset?: TemplateSiteAsset;
+  [key: string]: unknown;
+}
+
+interface Template {
+  id: string;
+  sitesAssets?: SiteAsset[];
+  templateTeamMembers?: Array<{ id: string }>;
+  [key: string]: unknown;
+}
+
+interface Assignment {
+  id: string;
+  template: Template;
+  siteAssetSettings?: SiteAssetSetting[];
+  [key: string]: unknown;
+}
+
+interface ApiError extends Error {
+  status?: number;
+}
+
 // Fast fetcher with cache control
-const templateFetcher = async (url: string): Promise<any[]> => {
+const templateFetcher = async (url: string): Promise<Assignment[]> => {
   const res = await fetch(url, {
     next: { revalidate: 30 }, // Cache for 30s
   });
   if (!res.ok) {
-    const error: any = new Error("Failed to fetch template data");
+    const error = new Error("Failed to fetch template data") as ApiError;
     error.status = res.status;
     throw error;
   }
@@ -70,14 +107,14 @@ export function useTemplateManagement(options: UseTemplateManagementOptions) {
 
     const totalAssets = templateData.sitesAssets?.length || 0;
     
-    const assetsByType = templateData.sitesAssets?.reduce((acc: any, asset: any) => {
+    const assetsByType = templateData.sitesAssets?.reduce((acc: Record<string, number>, asset: SiteAsset) => {
       const type = asset.type || "other";
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {}) || {};
 
     const customOverrides = currentAssignment?.siteAssetSettings?.filter(
-      (setting: any) => 
+      (setting: SiteAssetSetting) => 
         setting.requiredFrequency !== null &&
         setting.templateSiteAsset?.defaultPostingFrequency !== setting.requiredFrequency
     ).length || 0;

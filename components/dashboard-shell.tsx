@@ -5,6 +5,7 @@ import type React from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   Bell,
   ChevronDown,
@@ -171,12 +172,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <img
-                  src="/placeholder.svg?height=32&width=32"
+                <Image
+                  src="/placeholder.svg"
                   alt="Avatar"
                   className="rounded-full border"
                   width={32}
                   height={32}
+                  priority
                 />
                 <span className="sr-only">Toggle user menu</span>
               </Button>

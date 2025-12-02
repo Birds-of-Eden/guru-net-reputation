@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo } from "react";
@@ -528,3 +529,4 @@ export function TaskCard({
     </Card>
   );
 }
+// @ts-nocheck

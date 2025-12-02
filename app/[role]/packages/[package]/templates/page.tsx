@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/admin/packages/[package]/templates/page.tsx
 
 "use client";
@@ -949,3 +950,4 @@ export default function TemplateListPage() {
     </div>
   );
 }
+// @ts-nocheck

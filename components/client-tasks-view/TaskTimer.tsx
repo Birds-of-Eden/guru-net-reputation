@@ -1,4 +1,5 @@
 // app/components/client-tasks-view/TaskTimer.tsx
+////lint Fixed
 "use client";
 
 import { useState } from "react";
@@ -51,6 +52,10 @@ export default function TaskTimer({
   onRequestComplete: (task: Task) => void;
   formatTimerDisplay: (seconds: number) => string;
 }) {
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   if (!task.idealDurationMinutes) {
     return (
       <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
@@ -99,10 +104,6 @@ export default function TaskTimer({
         (pausedTimer!.totalSeconds || total) - pausedTimer!.remainingSeconds
       )
     : 0;
-
-  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
-  const [selectedReason, setSelectedReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePauseClick = () => {
     setIsPauseModalOpen(true);

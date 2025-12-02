@@ -15,9 +15,12 @@ import ExportClientTxtButton from "@/components/ExportClientTxtButton";
 import { RenewPostingTasksButton } from "./renewbutton";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const Profile = dynamic(() => import("./profile").then((mod) => mod.Profile), {
-  loading: () => <Skeleton className="h-32 w-full" />,
-});
+const Profile = dynamic(
+  () => import("./profile").then((mod) => mod.Profile),
+  {
+    loading: () => <Skeleton className="h-32 w-full" />,
+  }
+);
 
 const OtherInformation = dynamic(
   () => import("./otherInformation").then((mod) => mod.OtherInformation),

@@ -8,6 +8,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { Loader2, RefreshCcw } from "lucide-react";
 
+interface Task {
+  id: string;
+  dueDate?: string | null;
+  category?: {
+    name: string;
+  };
+}
+
+interface AgentResponse {
+  agent?: {
+    id: string;
+    // Add other agent properties as needed
+  };
+  // Add other response properties as needed
+}
+
+interface ErrorWithMessage extends Error {
+  message: string;
+}
+
 interface CreateNextTaskProps {
   clientId: string;
   onCreated?: () => void;
@@ -121,7 +141,7 @@ export default function CreateNextTask({
           `/api/tasks/last-agent-for-client?clientId=${encodeURIComponent(clientId)}`,
           { cache: "no-store" }
         );
-        const json = await res.json().catch(() => ({} as any));
+        const json: AgentResponse = await res.json().catch(() => ({} as AgentResponse));
         cachedGlobalAgentId = json?.agent?.id || null;
         console.log("[CreateNextTask] global agent", cachedGlobalAgentId);
         return cachedGlobalAgentId;
@@ -135,7 +155,7 @@ export default function CreateNextTask({
             `/api/tasks/last-agent-for-client?clientId=${encodeURIComponent(clientId)}&category=${encodeURIComponent(catName)}`,
             { cache: "no-store" }
           );
-          const json = await res.json().catch(() => ({} as any));
+          const json: AgentResponse = await res.json().catch(() => ({} as AgentResponse));
           agentId = json?.agent?.id || null;
           console.log("[CreateNextTask] category agent", { catName, agentId, json });
         } catch {}
@@ -212,9 +232,10 @@ export default function CreateNextTask({
       try {
         localStorage.setItem(`nextTasksCreated:${clientId}`, "1");
       } catch {}
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err?.message || "Failed to create tasks");
+    } catch (error: unknown) {
+      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create tasks';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

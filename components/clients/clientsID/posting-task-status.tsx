@@ -1,4 +1,5 @@
 // components/clients/clientsID/posting-task-status.tsx
+//lint error
 "use client";
 
 import { useEffect, useState } from "react";
@@ -150,12 +151,10 @@ export function PostingTaskStatus({
         <div className="flex items-center gap-2">
           <PostingTaskGenerator
             taskId={qcTaskId}
-            taskName={qcTaskName}
             assetName={assetName}
-            assignmentId={assignmentId}
+            clientId={assignmentId}
             clientName={clientName}
             defaultFrequency={recommendedFrequency}
-            isClientOverride={!!settings?.requiredFrequency}
             onSuccess={handleSuccess}
           />
           <p className="text-xs text-yellow-600 dark:text-yellow-400">
@@ -219,12 +218,10 @@ export function PostingTaskStatus({
       <div className="flex items-center gap-2 pt-2 border-t border-green-200 dark:border-green-800">
         <PostingTaskGenerator
           taskId={qcTaskId}
-          taskName={qcTaskName}
           assetName={assetName}
-          assignmentId={assignmentId}
+          clientId={assignmentId}
           clientName={clientName}
           defaultFrequency={recommendedFrequency}
-          isClientOverride={!!settings?.requiredFrequency}
           onSuccess={handleSuccess}
         />
         <p className="text-xs text-green-600 dark:text-green-400">

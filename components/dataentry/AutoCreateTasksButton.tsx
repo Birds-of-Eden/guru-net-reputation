@@ -5,6 +5,19 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Target, Loader2 } from "lucide-react";
 
+interface User {
+  id: string;
+  role: {
+    name: string;
+  };
+  // Add other user properties as needed
+}
+
+interface Task {
+  id: string;
+  dueDate?: string | null;
+}
+
 interface CreateTasksButtonProps {
   clientId: string;
   disabled?: boolean;
@@ -42,8 +55,8 @@ export default function CreateTasksButton({
       try {
         const usersRes = await fetch(`/api/users?role=data_entry&limit=50`, { cache: "no-store" });
         const usersJson = await usersRes.json().catch(() => ({}));
-        const dataEntryUsers: any[] = (usersJson?.users ?? usersJson?.data ?? []).filter(
-          (u: any) => u?.role?.name?.toLowerCase() === "data_entry"
+        const dataEntryUsers: User[] = (usersJson?.users ?? usersJson?.data ?? []).filter(
+          (u: User) => u?.role?.name?.toLowerCase() === "data_entry"
         );
 
         if (dataEntryUsers.length === 0) {
@@ -97,9 +110,10 @@ export default function CreateTasksButton({
       
       // Refresh the page to show updated status
       window.location.reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       console.error("Error creating tasks:", error);
-      toast.error(error.message || "Failed to create tasks");
+      toast.error(errorMessage);
     } finally {
       setIsCreating(false);
     }

@@ -8,13 +8,27 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
+type AgentStatus = 'free' | 'partial' | 'booked';
+
+export interface Agent {
+  id: string;
+  name: string;
+  status: AgentStatus;
+  totalSlots: number;
+  usedSlots: number;
+  freeSlots: number;
+  // Add other agent properties as needed
+}
+
+interface ClientCounts {
+  pending: number;
+  inProgress: number;
+  completed: number;
+}
+
 interface StatCardsProps {
-  agents: any[];
-  clientCounts: {
-    pending: number;
-    inProgress: number;
-    completed: number;
-  };
+  agents: Agent[];
+  clientCounts: ClientCounts;
 }
 
 export function StatCards({ agents, clientCounts }: StatCardsProps) {
@@ -30,7 +44,11 @@ export function StatCards({ agents, clientCounts }: StatCardsProps) {
   );
 }
 
-function AgentStatCard({ agents }) {
+interface AgentStatCardProps {
+  agents: Agent[];
+}
+
+function AgentStatCard({ agents }: AgentStatCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -69,7 +87,12 @@ function AgentStatCard({ agents }) {
   );
 }
 
-function ClientStatCard({ totalClients, clientCounts }) {
+interface ClientStatCardProps {
+  totalClients: number;
+  clientCounts: ClientCounts;
+}
+
+function ClientStatCard({ totalClients, clientCounts }: ClientStatCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,7 +125,11 @@ function ClientStatCard({ totalClients, clientCounts }) {
   );
 }
 
-function SlotStatCard({ agents }) {
+interface SlotStatCardProps {
+  agents: Agent[];
+}
+
+function SlotStatCard({ agents }: SlotStatCardProps) {
   const totalSlots = agents.reduce((acc, agent) => acc + agent.totalSlots, 0);
   const usedSlots = agents.reduce((acc, agent) => acc + agent.usedSlots, 0);
   const freeSlots = agents.reduce((acc, agent) => acc + agent.freeSlots, 0);

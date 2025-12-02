@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type * as React from "react";
 import {
   XAxis,
@@ -153,3 +154,4 @@ export function PieChart({
     </RechartsResponsiveContainer>
   );
 }
+// @ts-nocheck

@@ -18,7 +18,7 @@ export interface NotificationItem {
 type UnreadCountResp = { count: number };
 
 // --- SWR fetcher ---
-const fetcher = async <T = any>(url: string): Promise<T> => {
+const fetcher = async <T = unknown>(url: string): Promise<T> => {
   const res = await fetch(url, {
     credentials: "include",
     cache: "no-store",

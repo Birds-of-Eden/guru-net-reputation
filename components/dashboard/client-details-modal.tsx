@@ -26,10 +26,50 @@ import {
 } from "@/components/ui/table";
 import { getInitials } from "@/lib/data-utils";
 
+type Status = 'active' | 'inactive' | 'pending' | 'completed' | string;
+
+export interface Client {
+  id: string;
+  name: string;
+  company: string;
+  position: string;
+  package: string;
+  status: Status;
+  progress: number;
+  tasks: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    pending: number;
+  };
+  startDate?: string;
+  dueDate?: string;
+  teamSize?: number;
+  taskList?: Array<{
+    id: string;
+    name: string;
+    status: Status;
+    assignedTo: string;
+  }>;
+  timeline: Array<{
+    date: string;
+    event: string;
+    description: string;
+    status: Status;
+  }>;
+  recentTasks?: Array<{
+    id: string;
+    title: string;
+    status: Status;
+    dueDate: string;
+    assignedTo: string;
+  }>;
+}
+
 interface ClientDetailsModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedClient: any;
+  selectedClient: Client | null;
 }
 
 export function ClientDetailsModal({
@@ -89,7 +129,11 @@ export function ClientDetailsModal({
   );
 }
 
-function TaskSummarySection({ client }) {
+interface TaskSummarySectionProps {
+  client: Client;
+}
+
+function TaskSummarySection({ client }: TaskSummarySectionProps) {
   return (
     <div>
       <h3 className="mb-3 text-sm font-medium">Task Summary</h3>
@@ -98,24 +142,24 @@ function TaskSummarySection({ client }) {
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Total Tasks</TableCell>
-              <TableCell className="text-right">{client.tasks.total}</TableCell>
+              <TableCell className="text-right">{client.tasks?.total || 0}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Completed</TableCell>
               <TableCell className="text-right">
-                {client.tasks.completed}
+                {client.tasks?.completed || 0}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">In Progress</TableCell>
               <TableCell className="text-right">
-                {client.tasks.inProgress}
+                {client.tasks?.inProgress || 0}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Pending</TableCell>
               <TableCell className="text-right">
-                {client.tasks.pending}
+                {client.tasks?.pending || 0}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -125,7 +169,11 @@ function TaskSummarySection({ client }) {
   );
 }
 
-function TimelineSection({ client }) {
+interface TimelineSectionProps {
+  client: Client;
+}
+
+function TimelineSection({ client }: TimelineSectionProps) {
   return (
     <div>
       <h3 className="mb-3 text-sm font-medium">Timeline</h3>
@@ -135,19 +183,19 @@ function TimelineSection({ client }) {
             <TableRow>
               <TableCell className="font-medium">Start Date</TableCell>
               <TableCell className="text-right">
-                {client.timeline.startDate}
+                {client.startDate || 'N/A'}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Due Date</TableCell>
               <TableCell className="text-right">
-                {client.timeline.dueDate}
+                {client.dueDate || 'N/A'}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Team Size</TableCell>
               <TableCell className="text-right">
-                {client.timeline.teamSize} members
+                {client.teamSize ? `${client.teamSize} members` : 'N/A'}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -157,7 +205,11 @@ function TimelineSection({ client }) {
   );
 }
 
-function TaskListSection({ client }) {
+interface TaskListSectionProps {
+  client: Client;
+}
+
+function TaskListSection({ client }: TaskListSectionProps) {
   return (
     <div>
       <h3 className="mb-3 text-sm font-medium">Task List</h3>
@@ -172,25 +224,33 @@ function TaskListSection({ client }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {client.taskList.map((task) => (
-              <TableRow key={task.id}>
-                <TableCell className="font-medium">{task.id}</TableCell>
-                <TableCell>{task.name}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <StatusIcon status={task.status} />
-                    <StatusBadge status={task.status} />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {task.status === "pending" && (
-                    <Button variant="outline" size="sm">
-                      Reassign
-                    </Button>
-                  )}
+            {client.taskList && client.taskList.length > 0 ? (
+              client.taskList.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell className="font-medium">{task.id}</TableCell>
+                  <TableCell>{task.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <StatusIcon status={task.status} />
+                      <StatusBadge status={task.status} />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {task.status === "pending" && (
+                      <Button variant="outline" size="sm">
+                        Reassign
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                  No tasks available
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
@@ -198,7 +258,11 @@ function TaskListSection({ client }) {
   );
 }
 
-function StatusBadge({ status }) {
+interface StatusBadgeProps {
+  status: Status;
+}
+
+function StatusBadge({ status }: StatusBadgeProps) {
   switch (status) {
     case "completed":
       return (
@@ -217,7 +281,7 @@ function StatusBadge({ status }) {
   }
 }
 
-function StatusIcon({ status }) {
+function StatusIcon({ status }: { status: Status }) {
   switch (status) {
     case "completed":
       return <Check className="h-4 w-4 text-green-500" />;
@@ -230,7 +294,7 @@ function StatusIcon({ status }) {
   }
 }
 
-export function getStatusIndicatorIcon(indicator) {
+export function getStatusIndicatorIcon(indicator: Status) {
   switch (indicator) {
     case "new-comments":
       return (

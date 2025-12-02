@@ -1,4 +1,5 @@
 // components/clients/am-grouped-client-view.tsx
+//lint Error Fixed
 
 "use client";
 
@@ -193,7 +194,6 @@ export function AmGroupedClientView({
           }`}
           onMouseEnter={handleFavEnter}
           onMouseLeave={handleFavLeave}
-          aria-expanded={favHovered}
         >
           {/* Header stays visible; body reveals on hover */}
           <header className="flex items-center justify-between p-4 md:p-6 bg-amber-50">

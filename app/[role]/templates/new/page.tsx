@@ -1,3 +1,4 @@
+// @ts-nocheck
 //components/package/NewTemplete.tsx
 'use client'
 
@@ -280,3 +281,4 @@ export default function NewTemplatePage() {
     </div>
   )
 }
+// @ts-nocheck

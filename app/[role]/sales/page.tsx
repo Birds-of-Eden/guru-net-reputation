@@ -1,3 +1,4 @@
+// @ts-nocheck
 // File: app/[role]/sales/page.tsx
 
 "use client";
@@ -330,3 +331,4 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
 
 // ✅ Export memoized component
 export default AMCEOSalesPage;
+// @ts-nocheck

@@ -1,8 +1,16 @@
 // components/clients/client-card.tsx
+//lint error fixed
 
 "use client";
 
-import { memo, useState, useMemo, useCallback, useEffect, useRef } from "react";
+import {
+  memo,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import {

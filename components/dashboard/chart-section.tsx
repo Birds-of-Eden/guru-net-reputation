@@ -7,10 +7,27 @@ import {
 } from "@/components/ui/card";
 import { ChartContainer, BarChart, PieChart } from "@/components/charts/charts";
 
+interface AgentPerformanceData {
+  name?: string;
+  completed: number;
+  inProgress: number;
+  pending: number;
+}
+
+interface DepartmentData {
+  name: string;
+  value: number;
+}
+
+interface WeeklyTaskData {
+  day: string;
+  tasks: number;
+}
+
 interface ChartSectionProps {
-  agentPerformanceData: any[];
-  departmentDistribution: any[];
-  weeklyTaskCompletion: any[];
+  agentPerformanceData: AgentPerformanceData[];
+  departmentDistribution: DepartmentData[];
+  weeklyTaskCompletion: WeeklyTaskData[];
 }
 
 export function ChartSection({
@@ -29,10 +46,14 @@ export function ChartSection({
   );
 }
 
-function AgentPerformanceChart({ data }) {
+interface AgentPerformanceChartProps {
+  data: AgentPerformanceData[];
+}
+
+function AgentPerformanceChart({ data }: AgentPerformanceChartProps) {
   // Ensure data is properly formatted for the bar chart
-  const formattedData = data.map((item) => ({
-    name: item.name,
+  const formattedData = data.map((item, index) => ({
+    name: item.name || `Agent ${index + 1}`,
     completed: item.completed || 0,
     inProgress: item.inProgress || 0,
     pending: item.pending || 0,
@@ -80,7 +101,11 @@ function AgentPerformanceChart({ data }) {
   );
 }
 
-function DepartmentDistributionChart({ data }) {
+interface DepartmentDistributionChartProps {
+  data: DepartmentData[];
+}
+
+function DepartmentDistributionChart({ data }: DepartmentDistributionChartProps) {
   return (
     <Card>
       <CardHeader>
@@ -117,7 +142,11 @@ function DepartmentDistributionChart({ data }) {
   );
 }
 
-function WeeklyTaskCompletionChart({ data }) {
+interface WeeklyTaskCompletionChartProps {
+  data: WeeklyTaskData[];
+}
+
+function WeeklyTaskCompletionChart({ data }: WeeklyTaskCompletionChartProps) {
   return (
     <Card>
       <CardHeader>

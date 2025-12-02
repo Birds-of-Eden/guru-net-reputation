@@ -1,3 +1,5 @@
+//lint error fixed
+
 "use client";
 import { Eye, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

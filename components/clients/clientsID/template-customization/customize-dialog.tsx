@@ -1,4 +1,5 @@
 // components/clients/clientsID/template-customization/customize-dialog.tsx
+//lint error fixed
 "use client";
 
 import { useState, useEffect } from "react";

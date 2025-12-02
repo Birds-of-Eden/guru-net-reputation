@@ -1,4 +1,5 @@
 // components/clients/client-edit-modal.tsx
+//lint error fixed
 "use client";
 
 import { useEffect, useState } from "react";
@@ -207,7 +208,6 @@ export default function ClientEditModal({
       dueDate: toDateInput(clientData.dueDate as any),
       amId: clientData.amId ?? null,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // ---- otherField (arbitrary JSON key/value pairs) ----
@@ -267,7 +267,6 @@ export default function ClientEditModal({
   useEffect(() => {
     if (open)
       setOtherPairs(normalizeOtherField((clientData as any).otherField));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // helpers for array item ops
@@ -363,7 +362,7 @@ export default function ClientEditModal({
       fetchPackages();
       fetchAMs();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open, isAgent]);
 
   const onSubmit = async (values: FormValues) => {
@@ -549,7 +548,7 @@ export default function ClientEditModal({
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Image className="h-5 w-5 text-purple-600" />
+                    <Image className="h-5 w-5 text-purple-600" aria-label="media" />
                     Media
                   </h3>
                   <div className="grid grid-cols-1 gap-4">

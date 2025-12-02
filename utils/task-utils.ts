@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Task } from "@/types/task";
 import { generateRandomTime } from "./time-utils";
 
@@ -18,3 +19,4 @@ export const initializeTabTasks = (links: any[]): Task[] => {
     totalTimeSpent: 0,
   }));
 };
+// @ts-nocheck

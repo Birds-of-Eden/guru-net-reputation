@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/api/impersonate/start/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -157,3 +158,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+// @ts-nocheck

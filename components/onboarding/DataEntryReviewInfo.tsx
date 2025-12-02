@@ -674,7 +674,6 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                       Profile Picture
                     </h4>
                     <div className="inline-flex p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={avatarPreviewUrl}
                         alt="Profile preview"

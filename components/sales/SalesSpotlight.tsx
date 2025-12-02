@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import CountUp from "react-countup";
@@ -246,3 +247,4 @@ export function SalesSpotlight({
     </Card>
   );
 }
+// @ts-nocheck

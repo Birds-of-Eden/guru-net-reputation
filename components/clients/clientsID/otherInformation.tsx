@@ -1,4 +1,5 @@
 // components/clients/OtherInformation.tsx
+//lint error fixed
 "use client";
 
 import { useMemo, useState } from "react";

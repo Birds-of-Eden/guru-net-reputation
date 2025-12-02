@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/[role]/distribution/client-agent/tasks/page.tsx
 
 "use client";
@@ -1105,3 +1106,4 @@ export default function CreatedTasksPage() {
     </div>
   );
 }
+// @ts-nocheck

@@ -11,20 +11,12 @@ interface TaskCounts {
   qc_approved: number
 }
 
-interface ComputeProgressOptions {
-  agentId?: string
-}
-
 interface ComputeProgressResult {
   progress: number
   taskCounts: TaskCounts
 }
 
-export async function computeClientProgress(
-  clientId: string,
-  options: ComputeProgressOptions = {},
-): Promise<ComputeProgressResult> {
-  const { agentId } = options
+export async function computeClientProgress(clientId: string): Promise<ComputeProgressResult> {
 
   try {
     // This is a placeholder implementation since we don't have access to Prisma here
