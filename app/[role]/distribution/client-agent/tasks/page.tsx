@@ -290,18 +290,25 @@ export default function CreatedTasksPage() {
     return `/api/tasks/created?${qs.toString()}`;
   }, [clientId, debouncedQ, status, priority, category]);
 
-  const { data: tasksResp, isLoading: loading, error, mutate } = useSWR(
-    tasksKey,
-    fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
-  );
+  const {
+    data: tasksResp,
+    isLoading: loading,
+    error,
+    mutate,
+  } = useSWR(tasksKey, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+    refreshInterval: 60000,
+  });
 
   useEffect(() => {
     if (!tasksResp) return;
     setTasks(Array.isArray(tasksResp.tasks) ? tasksResp.tasks : []);
     setSummary(tasksResp.summary || null);
     if (clientId) {
-      const firstWithClient = (tasksResp.tasks || []).find((t: any) => t.client)?.client;
+      const firstWithClient = (tasksResp.tasks || []).find(
+        (t: any) => t.client
+      )?.client;
       if (firstWithClient) {
         setClient({
           id: firstWithClient.id,
@@ -309,7 +316,9 @@ export default function CreatedTasksPage() {
           company: firstWithClient.company ?? null,
           avatar: firstWithClient.avatar ?? null,
           status: firstWithClient.status ?? null,
-          package: firstWithClient.package ? { name: firstWithClient.package.name ?? null } : null,
+          package: firstWithClient.package
+            ? { name: firstWithClient.package.name ?? null }
+            : null,
         });
       }
     }
@@ -392,10 +401,12 @@ export default function CreatedTasksPage() {
   useEffect(() => {
     setExpandedCycles((prev) => {
       if (Object.keys(prev).length) return prev;
+
       const init: Record<string, boolean> = {};
-      cycles.forEach((c, idx) => {
-        init[c.key] = idx === 0;
+      cycles.forEach((c) => {
+        init[c.key] = false; // ✅ all collapsed initially
       });
+
       return init;
     });
   }, [cycles]);
