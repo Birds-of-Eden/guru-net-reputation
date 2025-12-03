@@ -9,6 +9,24 @@ function buildBaseUrl(proto: string, host: string) {
   return `${proto}://${host}`;
 }
 
+function todayRangeParams() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const params = new URLSearchParams({
+    sortBy: "updatedAt",
+    sortDir: "desc",
+    limit: "400",
+    rangeBy: "activity",
+    startDate: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+  });
+
+  return params.toString();
+}
+
 export default async function Page() {
   noStore(); // avoid caching
   let tasks: any[] = [];
@@ -38,8 +56,8 @@ export default async function Page() {
       .map((c) => `${c.name}=${c.value}`)
       .join("; ");
 
-    // ✅ fetch QC tasks securely
-    const res = await fetch(`${baseUrl}/api/tasks`, {
+    // ✅ fetch QC tasks securely (latest activity window, ordered)
+    const res = await fetch(`${baseUrl}/api/tasks?${todayRangeParams()}`, {
       cache: "no-store",
       headers: cookieHeader ? { cookie: cookieHeader } : {},
     });

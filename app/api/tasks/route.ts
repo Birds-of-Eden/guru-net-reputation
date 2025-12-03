@@ -16,14 +16,64 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const assignedToId = searchParams.get("assignedToId");
 
+    // -------- Optional query tuning (safe defaults preserved) --------
+    const sortByParam = searchParams.get("sortBy") || "dueDate";
+    const sortDirParam =
+      (searchParams.get("sortDir") || "asc").toLowerCase() === "desc"
+        ? "desc"
+        : "asc";
+    const limitParam = Number.parseInt(searchParams.get("limit") || "100", 10);
+    const rangeByParam =
+      searchParams.get("rangeBy") ||
+      searchParams.get("rangeField") ||
+      "dueDate";
+
+    const SORT_FIELDS: Record<string, "dueDate" | "updatedAt" | "createdAt" | "completedAt"> = {
+      duedate: "dueDate",
+      dueDate: "dueDate",
+      updatedat: "updatedAt",
+      updatedAt: "updatedAt",
+      createdat: "createdAt",
+      createdAt: "createdAt",
+      completedat: "completedAt",
+      completedAt: "completedAt",
+      activity: "updatedAt", // best-effort ordering for live views
+    };
+
+    const RANGE_FIELDS: Record<string, "dueDate" | "updatedAt" | "createdAt" | "completedAt" | "activity"> = {
+      duedate: "dueDate",
+      dueDate: "dueDate",
+      updatedat: "updatedAt",
+      updatedAt: "updatedAt",
+      completedat: "completedAt",
+      completedAt: "completedAt",
+      activity: "activity", // updated/completed/created window
+    };
+
+    const sortField = SORT_FIELDS[sortByParam] ?? "dueDate";
+    const sortDir: "asc" | "desc" = sortDirParam;
+    const rangeField = RANGE_FIELDS[rangeByParam] ?? "dueDate";
+    const take = Math.min(Math.max(Number.isFinite(limitParam) ? limitParam : 100, 1), 500); // cap to protect DB
+
     let where: any = {};
 
     // ----- Date Range -----
     if (startDate && endDate) {
-      where.dueDate = {
+      const window = {
         gte: startOfDay(new Date(startDate)),
         lte: endOfDay(new Date(endDate)),
       };
+
+      if (rangeField === "activity") {
+        // Include any task touched in the window (updated/completed/created)
+        where.OR = [
+          { updatedAt: window },
+          { completedAt: window },
+          { createdAt: window },
+        ];
+      } else {
+        where[rangeField] = window;
+      }
     }
 
     // ----- Client Filter -----
@@ -69,8 +119,8 @@ export async function GET(req: Request) {
         category: { select: { id: true, name: true } },
         assignedTo: { select: { id: true, name: true, email: true } },
       },
-      orderBy: { dueDate: "asc" },
-      take: 100, // ✅ limit (add pagination later if needed)
+      orderBy: { [sortField]: sortDir },
+      take,
     });
 
     return NextResponse.json(tasks);

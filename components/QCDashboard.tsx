@@ -220,19 +220,6 @@ export default function QCDashboardPro({
 }: {
   tasks?: AnyTask[];
 }) {
-  // ✅ Use SWR for real-time task updates
-  const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>(
-    "/api/tasks",
-    tasksFetcher,
-    {
-      fallbackData: initialTasks, // Use server data as fallback
-      revalidateOnFocus: false,
-      dedupingInterval: 30000,
-      refreshInterval: 60000, // Auto-refresh every 1 min
-    }
-  );
-
-  const tasks = fetchedTasks || initialTasks;
   // --- helpers
   const now = new Date();
   const toISODate = (d: Date) => d.toISOString().slice(0, 10);
@@ -270,6 +257,35 @@ export default function QCDashboardPro({
     }
     return { start, end };
   }, [range, customStart, customEnd]);
+
+  // Build API query so the server window matches the UI window & is ordered by latest activity
+  const tasksUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      sortBy: "updatedAt",
+      sortDir: "desc",
+      limit: "400",
+      rangeBy: "activity", // updated/completed/created within window
+      startDate: toISODate(start),
+      endDate: toISODate(end),
+    });
+    return `/api/tasks?${params.toString()}`;
+  }, [start.getTime(), end.getTime()]);
+
+  // ✅ Use SWR for fresher task updates
+  const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>(
+    tasksUrl,
+    tasksFetcher,
+    {
+      fallbackData: initialTasks, // Use server data as fallback
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000,
+      refreshInterval: 10000, // poll every 10s to feel more real-time
+      keepPreviousData: true,
+    }
+  );
+
+  const tasks = fetchedTasks || initialTasks;
 
   // Primary timestamp: updatedAt → completedAt → createdAt
   const withinRange = (t: AnyTask) => {
