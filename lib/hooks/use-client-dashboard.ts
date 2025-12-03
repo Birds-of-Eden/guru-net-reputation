@@ -2,7 +2,7 @@
 "use client";
 
 import useSWR from "swr";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Client } from "@/types/client";
 
 // Fast fetcher with explicit cache control
@@ -25,8 +25,26 @@ interface UseClientDashboardOptions {
   enableCache?: boolean;
 }
 
+const buildStorageKey = (clientId: string) => `client-dashboard:${clientId}`;
+
+const readPersistedClient = (clientId?: string | null) => {
+  if (!clientId || typeof window === "undefined") return undefined;
+  try {
+    const raw = window.sessionStorage.getItem(buildStorageKey(clientId));
+    return raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 export function useClientDashboard(options: UseClientDashboardOptions) {
   const { clientId, enableCache = true } = options;
+
+  // Reuse last-seen data from sessionStorage to make repeat visits instant
+  const fallbackData = useMemo(
+    () => (enableCache ? readPersistedClient(clientId) : undefined),
+    [clientId, enableCache]
+  );
 
   // SWR with aggressive caching configuration
   const {
@@ -47,6 +65,8 @@ export function useClientDashboard(options: UseClientDashboardOptions) {
       keepPreviousData: true,
       // Return cache first, then revalidate in background
       revalidateIfStale: false,
+      // Seed with last cached data for instant direct visits
+      fallbackData,
       // Error retry with exponential backoff
       errorRetryCount: 3,
       errorRetryInterval: 1000,
@@ -54,6 +74,18 @@ export function useClientDashboard(options: UseClientDashboardOptions) {
       suspense: false,
     }
   );
+
+  useEffect(() => {
+    if (!clientId || !rawData) return;
+    try {
+      window.sessionStorage.setItem(
+        buildStorageKey(clientId),
+        JSON.stringify(rawData)
+      );
+    } catch {
+      /* ignore storage failures */
+    }
+  }, [clientId, rawData]);
 
   // Normalize client data with memoization
   const clientData = useMemo(() => {
