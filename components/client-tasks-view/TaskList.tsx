@@ -16,10 +16,6 @@ import {
   List,
   Grid3X3,
   Search,
-  Copy,
-  Check,
-  Eye,
-  EyeOff,
   Calendar,
   CheckCircle,
   Clock,
@@ -33,33 +29,23 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import TaskTimer from "./TaskTimer";
 import ReassignNoteModal from "./ReassignNoteModal";
 import type { TimerState } from "../client-tasks-view/client-tasks-view";
 
 // Import the base Task type and extend it with additional properties
 import type { Task as BaseTask } from "./client-tasks-view";
+import TaskViews from "./TaskViews"; // ✅ Part-2 renderer
 
 type Task = BaseTask & {
-  // Additional properties specific to TaskList
   reassignNotes?: string;
   username?: string | null;
   password?: string;
   email?: string | null;
-  // Add any other additional properties needed by TaskList
   timerState?: any;
   assetUrl?: string;
   url?: string;
   actualDurationMinutes?: number | null;
 };
-
-import { PerformanceBadge } from "./PerformanceBadge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 
 export default function TaskList({
   clientName,
@@ -122,18 +108,6 @@ export default function TaskList({
   // State for reassign note modal
   const [isReassignNoteModalOpen, setIsReassignNoteModalOpen] = useState(false);
   const [selectedReassignNote, setSelectedReassignNote] = useState("");
-
-  // ✅ Complete only if timer is running for this task
-  const onRequestComplete = (task: Task) => {
-    if (isLocked(task)) return;
-    const isTimerActive =
-      timerState?.taskId === task.id && timerState?.isRunning;
-    if (!isTimerActive) {
-      return;
-    }
-    setTaskToComplete(task);
-    setIsCompletionConfirmOpen(true);
-  };
 
   const showReassignNote = (note: string) => {
     setSelectedReassignNote(note);
@@ -234,6 +208,16 @@ export default function TaskList({
     );
   };
 
+  // ✅ Complete only if timer is running for this task
+  const onRequestComplete = (task: Task) => {
+    if (isLocked(task)) return;
+    const isTimerActive =
+      timerState?.taskId === task.id && timerState?.isRunning;
+    if (!isTimerActive) return;
+    setTaskToComplete(task);
+    setIsCompletionConfirmOpen(true);
+  };
+
   // তারিখ ভিত্তিক টাস্ক গ্রুপিং
   const groupTasksByDate = (tasks: Task[]) => {
     const today = new Date();
@@ -242,14 +226,11 @@ export default function TaskList({
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const dayAfterTomorrow = new Date(today);
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-
     const groups = {
       today: [] as Task[],
       tomorrow: [] as Task[],
       upcoming: [] as Task[],
-      reassigned: [] as Task[], // ⬅️ NEW GROUP
+      reassigned: [] as Task[],
       completed: [] as Task[],
     };
 
@@ -259,8 +240,6 @@ export default function TaskList({
         return;
       }
 
-      // ✅ UPDATED: reassigned-like task gula alada group-e
-      // timer start korle status change holeo reassignNotes thakle ekhanei thakbe
       if (isReassignedLike(task)) {
         groups.reassigned.push(task);
         return;
@@ -291,35 +270,6 @@ export default function TaskList({
   const taskGroups = groupTasksByDate(filteredTasks);
   const [activeTab, setActiveTab] = useState("today");
 
-  function ScorePill({
-    label,
-    value,
-  }: {
-    label: string;
-    value: number | null | undefined;
-  }) {
-    const v = typeof value === "number" ? value : null;
-    return (
-      <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 px-2 py-1">
-        <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
-          {label}
-        </span>
-        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold bg-gradient-to-r from-indigo-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:to-pink-900/30 dark:text-pink-200">
-          {v ?? "—"}
-        </span>
-      </div>
-    );
-  }
-
-  function fmt(dt?: string) {
-    if (!dt) return "—";
-    try {
-      return new Date(dt).toLocaleString();
-    } catch {
-      return dt;
-    }
-  }
-
   // তারিখ ফরম্যাট ফাংশন
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -348,826 +298,6 @@ export default function TaskList({
   };
 
   const currentTasks = getTasksForCurrentTab();
-
-  const renderListView = (tasksToRender: Task[]) => (
-    <div className="space-y-4">
-      {tasksToRender.map((task) => {
-        const isTimerActive =
-          timerState?.taskId === task.id && timerState?.isRunning;
-        const displayUrl = getDisplayUrl(task);
-        const urlCopied = copied?.id === task.id && copied?.type === "url";
-        const emailCopied = copied?.id === task.id && copied?.type === "email";
-        const usernameCopied =
-          copied?.id === task.id && copied?.type === "username";
-        const passwordCopied =
-          copied?.id === task.id && copied?.type === "password";
-        const locked = isLocked(task);
-        const isThisTaskDisabled = locked || isTaskDisabled(task.id);
-
-        const reveal = canReveal(task, timerState);
-console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
-        return (
-          <div
-            key={task.id}
-            className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl ${"border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg"} ${
-              isThisTaskDisabled ? "opacity-70" : ""
-            }`}
-          >
-            <div className="p-6 w-full">
-              <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center w-full">
-                <div className="flex items-start gap-4 min-w-0">
-                  <div className="flex-1 min-w-0 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <PerformanceBadge
-                        rating={task.performanceRating as any}
-                      />
-                      {task.status === "qc_approved" && (
-                        <TooltipProvider delayDuration={100}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
-                                🎯 Total Score:{" "}
-                                <span className="text-emerald-700 dark:text-emerald-300 font-bold">
-                                  {task.qcTotalScore ?? "-"}
-                                </span>
-                              </span>
-                            </TooltipTrigger>
-
-                            <TooltipContent
-                              side="top"
-                              align="start"
-                              className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
-                            >
-                              {(() => {
-                                const r = (task?.qcReview as any) || {};
-                                const total = Number(
-                                  r.total ?? task.qcTotalScore ?? 0
-                                );
-
-                                return (
-                                  <div className="p-4 space-y-3">
-                                    <div className="flex items-center justify-between border-b border-gray-600 pb-2">
-                                      <div className="text-xs font-semibold uppercase tracking-wide text-gray-100">
-                                        QC Review
-                                      </div>
-                                      <div className="text-xs text-gray-100">
-                                        {fmt(r.reviewedAt)}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm font-semibold">
-                                          Total Score
-                                        </span>
-                                        <span className="text-sm font-bold text-blue-400">
-                                          {total}/100
-                                        </span>
-                                      </div>
-                                      <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
-                                        <div
-                                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
-                                          style={{
-                                            width: `${Math.max(
-                                              0,
-                                              Math.min(100, total)
-                                            )}%`,
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <ScorePill
-                                        label="Timer"
-                                        value={r.timerScore}
-                                      />
-                                      <ScorePill label="SEO" value={r.seo} />
-                                      <ScorePill label="Image" value={r.image} />
-                                      <ScorePill
-                                        label="Grammar"
-                                        value={r.grammar}
-                                      />
-                                      <ScorePill
-                                        label="Keyword"
-                                        value={r.keyword}
-                                      />
-
-                                      <ScorePill
-                                        label="Humanization"
-                                        value={r.humanization}
-                                      />
-                                      <ScorePill
-                                        label="Content"
-                                        value={r.contentQuality}
-                                      />
-                                    </div>
-
-                                    {r.notes && (
-                                      <div className="rounded-lg bg-gray-700 p-3 border border-gray-600">
-                                        <div className="text-xs font-semibold text-gray-300 mb-1">
-                                          Notes
-                                        </div>
-                                        <div className="text-xs leading-relaxed text-gray-200">
-                                          {String(r.notes)}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    <div className="text-xs text-gray-200 border-t border-gray-600 pt-2">
-                                      Reviewer ID:{" "}
-                                      <span className="font-mono text-gray-300">
-                                        {r.reviewerId ?? "—"}
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              })()}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="font-bold text-gray-900 dark:text-gray-50 text-lg truncate">
-                        {task.name}
-                      </h3>
-                      {isTimerActive && !locked && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                          <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                            ACTIVE
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 mb-4">
-                      <div className="flex items-center gap-1">
-                        {getStatusBadge(task.status)}
-                      </div>
-                      {getPriorityBadge(task.priority)}
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-semibold border-2 border-gray-300 dark:border-gray-600"
-                      >
-                        {task.category?.name || "N/A"}
-                      </Badge>
-                    </div>
-
-                    {/* ✅ UPDATED: reassigned-like হলে note দেখাবে */}
-                    {isReassignedLike(task) && (
-                      <div className="flex items-center gap-2 mb-4 text-xs font-medium text-gray-600 dark:text-gray-400">
-                        <p>Reassign Note:</p>
-                        {task.reassignNotes && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 rounded-full hover:bg-violet-100 dark:hover:bg-violet-800/50 transition-colors"
-                            onClick={() =>
-                              showReassignNote(task.reassignNotes || "")
-                            }
-                            title="View reassign note"
-                          >
-                            <Eye className="h-3 w-3 text-violet-600" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-
-                    {!hideAssetSection && task.templateSiteAsset?.name && (
-                      <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
-                        <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300 break-words">
-                          <span className="text-gray-700 dark:text-gray-300">
-                            Asset:
-                          </span>{" "}
-                          {task.templateSiteAsset?.name}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex-1 min-w-0 w-full lg:w-auto">
-                  <div className="space-y-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Email:
-                      </span>{" "}
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {reveal ? task.email || "N/A" : mask(task.email)}
-                      </span>
-                      {!!task.email && !locked && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() =>
-                            handleCopy(task.email!, task.id, "email", reveal)
-                          }
-                          disabled={!reveal}
-                          aria-label="Copy email"
-                          title={reveal ? "Copy email" : "Start timer to view"}
-                        >
-                          {emailCopied ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Username:
-                      </span>{" "}
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {reveal ? task.username || "N/A" : mask(task.username)}
-                      </span>
-                      {!!task.username && !locked && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() =>
-                            handleCopy(
-                              task.username!,
-                              task.id,
-                              "username",
-                              reveal
-                            )
-                          }
-                          disabled={!reveal}
-                          aria-label="Copy username"
-                          title={
-                            reveal ? "Copy username" : "Start timer to view"
-                          }
-                        >
-                          {usernameCopied ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Password:
-                      </span>{" "}
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {task.password
-                          ? isLocked(task)
-                            ? "••••••••"
-                            : reveal
-                            ? isPasswordVisible(task.id)
-                              ? task.password
-                              : "••••••••"
-                            : mask(task.password)
-                          : "N/A"}
-                      </span>
-                      {task.password && !isLocked(task) && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() => reveal && togglePassword(task.id)}
-                          disabled={!reveal}
-                          aria-label={
-                            isPasswordVisible(task.id)
-                              ? "Hide password"
-                              : "Show password"
-                          }
-                          title={
-                            reveal
-                              ? isPasswordVisible(task.id)
-                                ? "Hide password"
-                                : "Show password"
-                              : "Start timer to view"
-                          }
-                        >
-                          {isPasswordVisible(task.id) ? (
-                            <EyeOff className="h-3 w-3 text-gray-600" />
-                          ) : (
-                            <Eye className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                      {task.password && !locked && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() =>
-                            handleCopy(
-                              task.password!,
-                              task.id,
-                              "password",
-                              reveal
-                            )
-                          }
-                          disabled={!reveal}
-                          aria-label="Copy password"
-                          title={
-                            reveal ? "Copy password" : "Start timer to view"
-                          }
-                        >
-                          {passwordCopied ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
-
-                    {displayUrl && (
-                      <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
-                        <div className="text-sm flex items-start gap-2">
-                          <span className="font-bold text-blue-800 dark:text-blue-300 flex-shrink-0">
-                            URL:
-                          </span>
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            {reveal ? (
-                              <a
-                                href={displayUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 dark:text-blue-400 truncate underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
-                                title={displayUrl}
-                              >
-                                <span className="truncate break-all inline-block max-w-full">
-                                  {displayUrl}
-                                </span>
-                              </a>
-                            ) : (
-                              <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white/70 dark:bg-gray-800/70 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                                {mask(displayUrl)}
-                              </span>
-                            )}
-                            {!locked && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className={`h-6 w-6 rounded-xl transition-colors flex-shrink-0 ${
-                                  reveal
-                                    ? "hover:bg-blue-100 dark:hover:bg-blue-800/50"
-                                    : "opacity-50 cursor-not-allowed"
-                                }`}
-                                onClick={() =>
-                                  handleCopy(
-                                    displayUrl,
-                                    task.id,
-                                    "url",
-                                    reveal
-                                  )
-                                }
-                                disabled={!reveal}
-                                aria-label="Copy URL"
-                                title={
-                                  reveal ? "Copy URL" : "Start timer to view"
-                                }
-                              >
-                                {urlCopied ? (
-                                  <Check className="h-3 w-3 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3 w-3 text-blue-600" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-auto lg:min-w-[120px]">
-                  <TaskTimer
-                    task={task}
-                    timerState={timerState}
-                    pausedTimer={pausedTimer}
-                    onStartTimer={isLocked(task) ? () => {} : handleStartTimer}
-                    onPauseTimer={isLocked(task) ? () => {} : handlePauseTimer}
-                    onRequestComplete={onRequestComplete}
-                    formatTimerDisplay={formatTimerDisplay}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderGridView = (tasksToRender: Task[]) => (
-    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {tasksToRender.map((task) => {
-        const isTimerActive =
-          timerState?.taskId === task.id && timerState?.isRunning;
-
-        const displayUrl = getDisplayUrl(task);
-        const urlCopied = copied?.id === task.id && copied?.type === "url";
-        const emailCopied = copied?.id === task.id && copied?.type === "email";
-        const usernameCopied =
-          copied?.id === task.id && copied?.type === "username";
-        const passwordCopied =
-          copied?.id === task.id && copied?.type === "password";
-        const locked = isLocked(task);
-        const isThisTaskDisabled = locked || isTaskDisabled(task.id);
-        const performanceRating = task.performanceRating;
-        const reveal = task.status !== "pending" || isTimerActive;
-console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
-        return (
-          <div
-            key={task.id}
-            className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-3xl border-2 transition-all duration-500 hover:shadow-2xl hover:-translate-y-0.5 ${"border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-xl"} ${
-              isThisTaskDisabled ? "opacity-70" : ""
-            }`}
-          >
-            <div className="p-6 h-full flex flex-col">
-              <div className="flex-1 flex flex-col space-y-6">
-                <div className="flex items-start gap-4 w-full">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <h3 className="font-bold text-gray-900 dark:text-gray-50 text-xl truncate">
-                        {task.name}
-                      </h3>
-                      {isTimerActive && !locked && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                          <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
-                            ACTIVE
-                          </span>
-                        </div>
-                      )}
-                      <PerformanceBadge rating={performanceRating as any} />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        {getStatusBadge(task.status)}
-
-                        {/* ✅ UPDATED: reassigned-like হলে note btn দেখাবে */}
-                        {isReassignedLike(task) && task.reassignNotes && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 rounded-full hover:bg-violet-100 dark:hover:bg-violet-800/50 transition-colors"
-                            onClick={() =>
-                              showReassignNote(task.reassignNotes || "")
-                            }
-                            title="View reassign note"
-                          >
-                            <Eye className="h-4 w-4 text-violet-600" />
-                          </Button>
-                        )}
-                      </div>
-
-                      {getPriorityBadge(task.priority)}
-                      <Badge
-                        variant="outline"
-                        className="text-sm font-semibold border-2 border-gray-300 dark:border-gray-600"
-                      >
-                        {task.category?.name || "N/A"}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Asset */}
-                {!hideAssetSection && task.templateSiteAsset?.name && (
-                  <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
-                    <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
-                      <span className="text-gray-700 dark:text-gray-300">
-                        Asset:
-                      </span>{" "}
-                      {task.templateSiteAsset?.name}
-                    </p>
-                  </div>
-                )}
-
-                {/* URL */}
-                {displayUrl && (
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-2xl border-2 border-blue-200 dark:border-blue-700">
-                    <div className="text-sm flex items-start gap-3">
-                      <span className="font-bold text-blue-800 dark:text-blue-300 flex-shrink-0">
-                        URL:
-                      </span>
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {reveal ? (
-                          <a
-                            href={displayUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 dark:text-blue-400 truncate underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
-                            title={displayUrl}
-                          >
-                            <span className="truncate break-all inline-block max-w-full">
-                              {displayUrl}
-                            </span>
-                          </a>
-                        ) : (
-                          <span
-                            className="text-blue-600 dark:text-blue-400 truncate underline underline-offset-2 font-medium"
-                            title="Start timer to view"
-                          >
-                            <span className="truncate break-all inline-block max-w-full">
-                              {mask(displayUrl)}
-                            </span>
-                          </span>
-                        )}
-
-                        {!locked && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors flex-shrink-0"
-                            onClick={() =>
-                              reveal && handleCopy(displayUrl, task.id, "url")
-                            }
-                            aria-label="Copy URL"
-                            title={reveal ? "Copy URL" : "Start timer to view"}
-                          >
-                            {urlCopied ? (
-                              <Check className="h-4 w-4 text-emerald-600" />
-                            ) : (
-                              <Copy className="h-4 w-4 text-blue-600" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Credentials */}
-                <div className="space-y-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-2xl p-4 border-2 border-gray-200 dark:border-gray-700">
-                  <div className="text-sm flex items-center gap-2">
-                    <span className="font-bold text-gray-800 dark:text-gray-200">
-                      Email:
-                    </span>{" "}
-                    <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                      {reveal ? task.email || "N/A" : mask(task.email)}
-                    </span>
-                    {!!task.email && !locked && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        onClick={() =>
-                          reveal && handleCopy(task.email!, task.id, "email")
-                        }
-                        aria-label="Copy email"
-                        title={reveal ? "Copy email" : "Start timer to view"}
-                      >
-                        {emailCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="text-sm flex items-center gap-2">
-                    <span className="font-bold text-gray-800 dark:text-gray-200">
-                      Username:
-                    </span>{" "}
-                    <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                      {reveal ? task.username || "N/A" : mask(task.username)}
-                    </span>
-                    {!!task.username && !locked && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        onClick={() =>
-                          reveal &&
-                          handleCopy(task.username!, task.id, "username")
-                        }
-                        aria-label="Copy username"
-                        title={reveal ? "Copy username" : "Start timer to view"}
-                      >
-                        {usernameCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="text-sm flex items-center gap-2">
-                    <span className="font-bold text-gray-800 dark:text-gray-200">
-                      Password:
-                    </span>{" "}
-                    <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600">
-                      {task.password
-                        ? isLocked(task)
-                          ? "••••••••"
-                          : reveal
-                          ? isPasswordVisible(task.id)
-                            ? task.password
-                            : "••••••••"
-                          : mask(task.password)
-                        : "N/A"}
-                    </span>
-                    {task.password && !isLocked(task) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        onClick={() => reveal && togglePassword(task.id)}
-                        aria-label={
-                          isPasswordVisible(task.id)
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                        title={
-                          reveal
-                            ? isPasswordVisible(task.id)
-                              ? "Hide password"
-                              : "Show password"
-                            : "Start timer to view"
-                        }
-                      >
-                        {isPasswordVisible(task.id) ? (
-                          <EyeOff className="h-4 w-4 text-gray-600" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-gray-600" />
-                        )}
-                      </Button>
-                    )}
-                    {task.password && !locked && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        onClick={() =>
-                          reveal &&
-                          handleCopy(task.password!, task.id, "password")
-                        }
-                        aria-label="Copy password"
-                        title={reveal ? "Copy password" : "Start timer to view"}
-                      >
-                        {passwordCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 -mx-6 -mb-8 px-8 py-5 bg-gradient-to-r from-violet-50/70 to-purple-50/70 dark:from-violet-900/20 dark:to-purple-900/20 border-t-2 border-violet-200/70 dark:border-violet-700/70 backdrop-blur-sm">
-                <div className="flex justify-between mt-3">
-                  <TaskTimer
-                    task={task}
-                    timerState={timerState}
-                    pausedTimer={pausedTimer}
-                    onStartTimer={isLocked(task) ? () => {} : handleStartTimer}
-                    onPauseTimer={isLocked(task) ? () => {} : handlePauseTimer}
-                    onRequestComplete={onRequestComplete}
-                    formatTimerDisplay={formatTimerDisplay}
-                  />
-                  {task.status === "qc_approved" && (
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="flex items-center px-3 py-0 text-sm font-semibold rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
-                            🎯 Total Score:{" "}
-                            <span className="text-emerald-700 dark:text-emerald-300 font-bold">
-                              {task.qcTotalScore ?? "-"}
-                            </span>
-                          </span>
-                        </TooltipTrigger>
-
-                        <TooltipContent
-                          side="top"
-                          align="start"
-                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
-                        >
-                          {(() => {
-                            const r = (task?.qcReview as any) || {};
-                            const total = Number(
-                              r.total ?? task.qcTotalScore ?? 0
-                            );
-
-                            return (
-                              <div className="p-4 space-y-3">
-                                <div className="flex items-center justify-between border-b border-gray-600 pb-2">
-                                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-100">
-                                    QC Review
-                                  </div>
-                                  <div className="text-xs text-gray-100">
-                                    {fmt(r.reviewedAt)}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="text-sm font-semibold">
-                                      Total Score
-                                    </span>
-                                    <span className="text-sm font-bold text-blue-400">
-                                      {total}/100
-                                    </span>
-                                  </div>
-                                  <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
-                                    <div
-                                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
-                                      style={{
-                                        width: `${Math.max(
-                                          0,
-                                          Math.min(100, total)
-                                        )}%`,
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                  <ScorePill
-                                    label="Timer"
-                                    value={r.timerScore}
-                                  />
-                                  <ScorePill label="SEO" value={r.seo} />
-                                  <ScorePill label="Image" value={r.image} />
-                                  <ScorePill label="Grammar" value={r.grammar} />
-                                  <ScorePill label="Keyword" value={r.keyword} />
-                                  <ScorePill
-                                    label="Humanization"
-                                    value={r.humanization}
-                                  />
-                                  <ScorePill
-                                    label="Content"
-                                    value={r.contentQuality}
-                                  />
-                                </div>
-
-                                {r.notes && (
-                                  <div className="rounded-lg bg-gray-700 p-3 border border-gray-600">
-                                    <div className="text-xs font-semibold text-gray-300 mb-1">
-                                      Notes
-                                    </div>
-                                    <div className="text-xs leading-relaxed text-gray-200">
-                                      {String(r.notes)}
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div className="text-xs text-gray-200 border-t border-gray-600 pt-2">
-                                  Reviewer ID:{" "}
-                                  <span className="font-mono text-gray-300">
-                                    {r.reviewerId ?? "—"}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -1235,6 +365,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
               className="pl-12 h-14 border-2 border-violet-200 dark:border-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 text-gray-900 dark:text-gray-50 rounded-2xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 text-base shadow-lg transition-all duration-300 placeholder:text-violet-400"
             />
           </div>
+
           <div className="flex flex-col lg:flex-row gap-4 w-full xl:w-auto">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl text-base shadow-lg font-medium">
@@ -1251,6 +382,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <SelectItem value="qc_approved">QC Approved</SelectItem>
               </SelectContent>
             </Select>
+
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
               <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-emerald-200 dark:border-emerald-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl text-base shadow-lg font-medium">
                 <SelectValue placeholder="All Priorities" />
@@ -1281,10 +413,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <Clock className="h-4 w-4" />
                 Today
                 {taskGroups.today.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
-                  >
+                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
                     {taskGroups.today.length}
                   </Badge>
                 )}
@@ -1297,10 +426,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <Calendar className="h-4 w-4" />
                 Tomorrow
                 {taskGroups.tomorrow.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
-                  >
+                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
                     {taskGroups.tomorrow.length}
                   </Badge>
                 )}
@@ -1313,10 +439,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <Calendar className="h-4 w-4" />
                 Upcoming
                 {taskGroups.upcoming.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
-                  >
+                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
                     {taskGroups.upcoming.length}
                   </Badge>
                 )}
@@ -1329,10 +452,7 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <CheckCircle className="h-4 w-4" />
                 Reassigned
                 {taskGroups.reassigned.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
-                  >
+                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
                     {taskGroups.reassigned.length}
                   </Badge>
                 )}
@@ -1345,170 +465,74 @@ console.log("TASK DEBUG:", task.id, task.status, task.reassignNotes, task);
                 <CheckCircle className="h-4 w-4" />
                 Completed
                 {taskGroups.completed.length > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
-                  >
+                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
                     {taskGroups.completed.length}
                   </Badge>
                 )}
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="today" className="mt-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Today's Tasks - {formatDate(new Date())}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tasks due for today
-                </p>
-              </div>
-              {currentTasks.length > 0 ? (
-                viewMode === "list" ? (
-                  renderListView(currentTasks)
-                ) : (
-                  renderGridView(currentTasks)
-                )
-              ) : (
-                <div className="py-16 text-center">
-                  <div className="mx-auto w-32 h-32 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-800/30 dark:to-emerald-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-green-200 dark:border-green-700">
-                    <CheckCircle className="h-12 w-12 text-green-500" />
+            {/** ✅ Tabs content stays same, renderer moved */}
+            {(["today", "tomorrow", "upcoming", "reassigned", "completed"] as const).map(
+              (tab) => (
+                <TabsContent key={tab} value={tab} className="mt-6">
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      {tab === "today" && `Today's Tasks - ${formatDate(new Date())}`}
+                      {tab === "tomorrow" &&
+                        `Tomorrow's Tasks - ${formatDate(
+                          new Date(new Date().setDate(new Date().getDate() + 1))
+                        )}`}
+                      {tab === "upcoming" && "Upcoming Tasks"}
+                      {tab === "reassigned" && "Reassigned Tasks"}
+                      {tab === "completed" && "Completed Tasks"}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {tab === "today" && "Tasks due for today"}
+                      {tab === "tomorrow" && "Tasks scheduled for tomorrow"}
+                      {tab === "upcoming" && "Tasks scheduled for future dates"}
+                      {tab === "reassigned" && "Tasks that have been reassigned and need your attention"}
+                      {tab === "completed" && "Tasks that have been completed or QC approved"}
+                    </p>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
-                    No tasks for today!
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    You're all caught up for today.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
 
-            <TabsContent value="tomorrow" className="mt-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Tomorrow's Tasks -{" "}
-                  {formatDate(
-                    new Date(
-                      new Date().setDate(new Date().getDate() + 1)
-                    )
-                  )}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tasks scheduled for tomorrow
-                </p>
-              </div>
-              {currentTasks.length > 0 ? (
-                viewMode === "list" ? (
-                  renderListView(currentTasks)
-                ) : (
-                  renderGridView(currentTasks)
-                )
-              ) : (
-                <div className="py-16 text-center">
-                  <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-800/30 dark:to-cyan-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-blue-200 dark:border-blue-700">
-                    <Calendar className="h-12 w-12 text-blue-500" />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
-                    No tasks for tomorrow!
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Enjoy your day off tomorrow.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="upcoming" className="mt-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Upcoming Tasks
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tasks scheduled for future dates
-                </p>
-              </div>
-              {currentTasks.length > 0 ? (
-                viewMode === "list" ? (
-                  renderListView(currentTasks)
-                ) : (
-                  renderGridView(currentTasks)
-                )
-              ) : (
-                <div className="py-16 text-center">
-                  <div className="mx-auto w-32 h-32 bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-800/30 dark:to-amber-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-orange-200 dark:border-orange-700">
-                    <Calendar className="h-12 w-12 text-orange-500" />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
-                    No upcoming tasks!
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    All your tasks are well organized.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="reassigned" className="mt-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Reassigned Tasks
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tasks that have been reassigned and need your attention
-                </p>
-              </div>
-              {currentTasks.length > 0 ? (
-                viewMode === "list" ? (
-                  renderListView(currentTasks)
-                ) : (
-                  renderGridView(currentTasks)
-                )
-              ) : (
-                <div className="py-16 text-center">
-                  <div className="mx-auto w-32 h-32 bg-gradient-to-br from-yellow-100 to-amber-100 dark:from-yellow-800/30 dark:to-amber-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-yellow-200 dark:border-yellow-700">
-                    <Calendar className="h-12 w-12 text-yellow-500" />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
-                    No reassigned tasks!
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Currently you have no tasks marked as reassigned.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="completed" className="mt-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  Completed Tasks
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tasks that have been completed or QC approved
-                </p>
-              </div>
-              {currentTasks.length > 0 ? (
-                viewMode === "list" ? (
-                  renderListView(currentTasks)
-                ) : (
-                  renderGridView(currentTasks)
-                )
-              ) : (
-                <div className="py-16 text-center">
-                  <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-100 to-slate-100 dark:from-gray-800/30 dark:to-slate-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-gray-200 dark:border-gray-700">
-                    <CheckCircle className="h-12 w-12 text-gray-500" />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
-                    No completed tasks yet!
-                  </p>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Complete some tasks to see them here.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
+                  <TaskViews
+                    tab={tab}
+                    currentTasks={currentTasks}
+                    viewMode={viewMode}
+                    tasks={tasks}
+                    overdueCount={overdueCount}
+                    activeTab={activeTab}
+                    // needed logic/handlers
+                    timerState={timerState}
+                    pausedTimer={pausedTimer}
+                    handleStartTimer={handleStartTimer}
+                    handlePauseTimer={handlePauseTimer}
+                    onRequestComplete={onRequestComplete}
+                    isTaskDisabled={isTaskDisabled}
+                    isLocked={isLocked}
+                    canReveal={canReveal}
+                    isReassignedLike={isReassignedLike}
+                    showReassignNote={showReassignNote}
+                    hideAssetSection={hideAssetSection}
+                    getDisplayUrl={getDisplayUrl}
+                    // copy / reveal stuff
+                    copied={copied}
+                    handleCopy={handleCopy}
+                    mask={mask}
+                    isPasswordVisible={isPasswordVisible}
+                    togglePassword={togglePassword}
+                    // badges / timer formatting
+                    getStatusBadge={getStatusBadge}
+                    getPriorityBadge={getPriorityBadge}
+                    formatTimerDisplay={formatTimerDisplay}
+                    // modal control
+                    setTaskToComplete={setTaskToComplete}
+                    setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
+                  />
+                </TabsContent>
+              )
+            )}
           </Tabs>
 
           {/* টাস্ক কাউন্টার */}
