@@ -325,23 +325,6 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center w-full md:w-auto">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 border-slate-300 bg-transparent"
-            >
-              <Download className="h-4 w-4" />
-              Export Report
-            </Button>
-            <Button
-              size="sm"
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <FileText className="h-4 w-4" />
-              Performance Summary
-            </Button>
-          </div>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-full sm:w-[180px] border-slate-300">
               <SelectValue placeholder="Select time range" />
