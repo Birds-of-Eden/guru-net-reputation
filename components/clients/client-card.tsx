@@ -10,6 +10,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
@@ -70,6 +71,7 @@ const ClientCardComponent = function ClientCard({
   const { user, loading: permsLoading } = useUserSession();
   const router = useRouter();
   const { mutate: mutateCache } = useSWRConfig();
+  const [, startNavigate] = useTransition();
 
   const [deleted, setDeleted] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -309,9 +311,9 @@ const ClientCardComponent = function ClientCard({
         event?.preventDefault?.();
         return onViewDetails();
       }
-      router.push(detailUrl);
+      startNavigate(() => router.push(detailUrl));
     },
-    [onViewDetails, router, detailUrl, primeDetails]
+    [onViewDetails, router, detailUrl, primeDetails, startNavigate]
   );
 
   const handleViewTasks = () => {
@@ -513,6 +515,7 @@ const ClientCardComponent = function ClientCard({
           {canViewDetails && (
             <Button
               onClick={handleViewDetails}
+              onPointerDown={primeDetails}
               onMouseEnter={prefetchDetails}
               onFocus={prefetchDetails}
               onTouchStart={prefetchDetails}
