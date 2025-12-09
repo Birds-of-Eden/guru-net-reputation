@@ -54,11 +54,7 @@ async function fetchQcTasks() {
   }
 }
 
-export default async function RoleBasedPage({
-  params,
-}: {
-  params: { role: Role };
-}) {
+export default async function RoleBasedPage(_props: any) {
   const user = await getAuthUser();
   if (!user) redirect("/auth/sign-in");
 

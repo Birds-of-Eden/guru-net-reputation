@@ -2,134 +2,117 @@
 
 export const DEFAULT_SOCIAL_SITES = [
   { name: "Behance", url: "https://www.behance.net/", isRequired: true },
+  { name: "YouTube", url: "https://www.youtube.com", isRequired: true },
+  { name: "Crunchbase", url: "https://www.crunchbase.com/", isRequired: true },
+  { name: "MuckRack", url: "https://muckrack.com/", isRequired: true },
+  { name: "Issuu", url: "https://issuu.com/", isRequired: true },
+  { name: "About.me", url: "https://about.me/", isRequired: true },
+  { name: "Flipboard", url: "https://flipboard.com/", isRequired: true },
+  { name: "Linktree", url: "https://linktr.ee/", isRequired: true },
+  { name: "Foursquare", url: "https://foursquare.com", isRequired: true },
+
+  { name: "HubPages", url: "https://hubpages.com", isRequired: true },
   {
-    name: "Crunchbase",
-    url: "https://www.crunchbase.com/register",
+    name: "Quora Profile",
+    url: "https://www.quora.com/profile",
     isRequired: true,
   },
-  {
-    name: "MuckRack",
-    url: "https://muckrack.com/account/signup",
-    isRequired: true,
-  },
-  { name: "Issuu", url: "https://issuu.com/signup", isRequired: true },
-  { name: "About.me", url: "http://about.me/", isRequired: true },
-  { name: "Flipboard", url: "https://flipboard.com/signup", isRequired: true },
-  { name: "Linktree", url: "http://linktr.ee/", isRequired: true },
-  {
-    name: "Foursquare",
-    url: "https://foursquare.com/signup/",
-    isRequired: true,
-  },
-  {
-    name: "HubPages",
-    url: "https://hubpages.com/user/new/",
-    isRequired: true,
-  },
-  { name: "Quora", url: "https://www.quora.com/", isRequired: true },
-  {
-    name: "CakeResume",
-    url: "https://www.cakeresume.com/users/sign_up?locale=en",
-    isRequired: true,
-  },
-  { name: "Apollo.io", url: "https://www.apollo.io/", isRequired: true },
-  {
-    name: "Dribbble",
-    url: "https://dribbble.com/signup/new",
-    isRequired: true,
-  },
-  {
-    name: "Gravatar",
-    url: "https://en.gravatar.com/site/signup/",
-    isRequired: true,
-  },
-  {
-    name: "Flickr",
-    url: "https://identity.flickr.com/sign-up",
-    isRequired: true,
-  },
-  {
-    name: "Wattpad",
-    url: "https://www.wattpad.com/stories/signup",
-    isRequired: true,
-  },
-  { name: "Patreon", url: "https://www.patreon.com/signup", isRequired: true },
-  {
-    name: "Reddit (Signup)",
-    url: "https://www.reddit.com/reddits/login/",
-    isRequired: true,
-  },
-  { name: "SoundCloud", url: "https://soundcloud.com/", isRequired: true },
-  { name: "FYI.to", url: "https://fyi.to", isRequired: true },
-  { name: "SlideShare", url: "https://slideshare.net", isRequired: true },
-  { name: "SpeakerHub", url: "https://speakerhub.com/", isRequired: true },
-  {
-    name: "MediaTech Ventures",
-    url: "https://mediatech.ventures/",
-    isRequired: true,
-  },
-  { name: "Sessionize", url: "https://sessionize.com/", isRequired: true },
-  { name: "Completed.com", url: "https://Completed.com", isRequired: true },
-  { name: "Substack", url: "https://substack.com/", isRequired: true },
+  { name: "Cake.me", url: "https://www.cake.me/", isRequired: true },
+  { name: "Scoop.it", url: "https://www.scoop.it/u/", isRequired: true },
+  { name: "Gravatar", url: "https://gravatar.com/", isRequired: true },
+  { name: "Giphy Channel", url: "https://giphy.com/channel", isRequired: true },
+  { name: "Completed.com", url: "https://completed.com/", isRequired: true },
+  { name: "JustPaste.it", url: "https://justpaste.it", isRequired: true },
+
+  { name: "SlideShare", url: "https://www.slideshare.net", isRequired: true },
+  { name: "Slides.com", url: "https://slides.com", isRequired: true },
+  { name: "Pinterest", url: "https://www.pinterest.com/", isRequired: true },
+  { name: "500px", url: "https://500px.com/", isRequired: true },
+  { name: "SpeakerDeck", url: "https://speakerdeck.com", isRequired: true },
+
+  { name: "Bluesky", url: "https://bsky.app/profile", isRequired: true },
+  { name: "Substack", url: "https://substack.com", isRequired: true },
+  { name: "SpeakerHub", url: "https://speakerhub.com", isRequired: true },
+  { name: "VelvetJobs", url: "https://www.velvetjobs.com", isRequired: true },
   { name: "Webflow", url: "https://webflow.io/", isRequired: true },
-  { name: "AngelList", url: "https://angel.co", isRequired: true },
+  { name: "Reddit", url: "https://reddit.com", isRequired: true },
+
+  { name: "F6S", url: "https://www.f6s.com/", isRequired: true },
+  { name: "Sessionize", url: "https://sessionize.com/", isRequired: true },
+  { name: "Wattpad", url: "https://www.wattpad.com", isRequired: true },
+  { name: "DoYouBuzz", url: "https://www.doyoubuzz.com/us", isRequired: true },
+  { name: "Infogram", url: "https://infogram.com/", isRequired: true },
+
   {
-    name: "Spring (Creator Spring)",
+    name: "Creator Spring",
     url: "https://www.creator-spring.com/",
     isRequired: true,
   },
-  { name: "Last.fm", url: "https://www.last.fm/", isRequired: true },
-  { name: "SpeakerDeck", url: "https://speakerdeck.com/", isRequired: true },
-  { name: "Imgur", url: "https://imgur.com/", isRequired: true },
 ];
 
 export const DEFAULT_WEB2_SITES = [
   { name: "Medium", url: "https://medium.com/", isRequired: true },
-  { name: "Wordpress", url: "https://wordpress.com/", isRequired: true },
   { name: "Strikingly", url: "https://www.strikingly.com/", isRequired: true },
   { name: "Tumblr", url: "https://www.tumblr.com/", isRequired: true },
-  { name: "Jigsy", url: "http://jigsy.com/", isRequired: true },
-  { name: "Minds", url: "https://www.minds.com/", isRequired: true },
+  { name: "WordPress", url: "https://wordpress.com/", isRequired: true },
+
+  { name: "Blogger", url: "https://www.blogger.com/", isRequired: true },
+  { name: "Jimdo", url: "https://jimdo.com", isRequired: true },
+
   {
     name: "Bravenet",
     url: "https://www.bravenet.com/register",
     isRequired: true,
   },
   { name: "Weebly", url: "https://weebly.com", isRequired: true },
+
   {
     name: "Google Sites",
     url: "https://sites.google.com/new",
     isRequired: true,
   },
+
   { name: "JotForm", url: "http://form.jotform.me/", isRequired: true },
-  { name: "GoDaddy Sites", url: "https://godaddysites.com", isRequired: true },
+
+  {
+    name: "Vocal Media (Authors)",
+    url: "https://vocal.media/authors",
+    isRequired: true,
+  },
 ];
 
 export const DEFAULT_ADDITIONAL_SITES = [
-  {
-    name: "MyOpportunity",
-    url: "https://www.myopportunity.com/",
-    isRequired: true,
-  },
   { name: "Triberr", url: "https://triberr.com/", isRequired: true },
+
+  { name: "OpenStreetMap", url: "https://openstreetmap.org", isRequired: true },
+
+  { name: "Disqus", url: "https://disqus.com", isRequired: true },
+
+  { name: "Dwell", url: "https://www.dwell.com/", isRequired: true },
+
   {
-    name: "OpenStreetMap",
-    url: "https://openstreetmap.org",
+    name: "Creator Spring",
+    url: "https://www.creator-spring.com/",
     isRequired: true,
   },
-  { name: "Crunchyroll", url: "https://crunchyroll.com", isRequired: true },
-  { name: "Disqus", url: "https://disqus.com", isRequired: true },
-  { name: "Dwell", url: "https://www.dwell.com/", isRequired: true },
+
+  {
+    name: "Product Hunt",
+    url: "https://www.producthunt.com",
+    isRequired: true,
+  },
+
   { name: "Docker Hub", url: "https://hub.docker.com", isRequired: true },
-  { name: "Netvibes", url: "https://www.netvibes.com", isRequired: true },
+
   { name: "Xing", url: "https://www.xing.com/en", isRequired: true },
-  { name: "So-net Blog", url: "https://blog.ss-blog.jp/", isRequired: true },
-  { name: "Infogram", url: "https://infogram.com/", isRequired: true },
-  { name: "CodePen", url: "https://codepen.io", isRequired: true },
-  { name: "Rebrandly", url: "https://rebrand.ly", isRequired: true },
-  { name: "Diigo", url: "https://www.diigo.com", isRequired: true },
-  { name: "F6S", url: "https://www.f6s.com/", isRequired: true },
-  { name: "DoYouBuzz", url: "https://www.doyoubuzz.com/us", isRequired: true },
+
+  { name: "Last.fm", url: "https://www.last.fm/", isRequired: true },
+
+  {
+    name: "Wellfound (AngelList Talent)",
+    url: "https://wellfound.com/",
+    isRequired: true,
+  },
 ];
 
 export const DEFAULT_GRAPHICS_DESIGN = [
