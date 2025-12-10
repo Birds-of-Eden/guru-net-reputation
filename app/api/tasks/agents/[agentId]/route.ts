@@ -37,9 +37,10 @@ export async function GET(
   try {
     const { agentId } = await params;
 
-    // ⚡ OPTIMIZATION: keep query light – drop heavy comments relation from this list endpoint
+    // ⚡ CRITICAL OPTIMIZATION: keep query light + LIMIT to 500 most recent tasks
+    // This prevents loading 10k+ tasks for agents with massive backlogs
     // UI (client-tasks-view, social-activity) only needs task + client + template + category + assignedTo here.
-    // Comments can be fetched via dedicated endpoints when really needed.
+    // Comments are dropped (not used by this endpoint's consumers).
     const tasks = await prisma.task.findMany({
       where: { assignedToId: agentId },
       include: {
@@ -64,6 +65,7 @@ export async function GET(
         },
       },
       orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
+      take: 500, // ⚡ CRITICAL: Limit to 500 most recent tasks to prevent massive queries
     });
 
     const stats = {
@@ -75,13 +77,15 @@ export async function GET(
       cancelled: tasks.filter((t) => t.status === "cancelled").length,
     };
 
-    // ⚡ OPTIMIZATION: add a small HTTP cache window so repeated hits in short time are near‑instant
+    // ⚡ OPTIMIZATION: add aggressive HTTP cache window so repeated hits in short time are near‑instant
+    // 30s cache + 60s stale-while-revalidate = instant repeats + background refresh
     return NextResponse.json(
       { tasks, stats },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
-          "CDN-Cache-Control": "public, s-maxage=15",
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+          "CDN-Cache-Control": "public, s-maxage=30",
+          "Vercel-CDN-Cache-Control": "public, s-maxage=30",
         },
       }
     );
