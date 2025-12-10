@@ -159,7 +159,7 @@ export async function PATCH(
     // If a completion link is provided, validate its reachability first
     if (typeof completionLink === "string" && completionLink.trim()) {
       try {
-        await (completionLink.trim());
+        await completionLink.trim();
       } catch (e: any) {
         return NextResponse.json(
           {
