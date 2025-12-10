@@ -13,13 +13,11 @@ export async function GET(
     searchParams.get("view")?.toLowerCase() === "distribution";
 
   try {
-    const [client, fresh] = await Promise.all([
-      prisma.client.findUnique({
-        where: { id },
-        select: buildClientSelect(isDistributionView),
-      }),
-      isDistributionView ? Promise.resolve(null) : recalcAndStoreClientProgress(id),
-    ]);
+    // ⚡ CRITICAL OPTIMIZATION: Fetch client data FIRST without waiting for progress calculation
+    const client = await prisma.client.findUnique({
+      where: { id },
+      select: buildClientSelect(isDistributionView),
+    });
 
     if (!client)
       return NextResponse.json(
@@ -34,9 +32,17 @@ export async function GET(
     const response = {
       ...client,
       socialMedias,
-      progress: fresh?.progress ?? client.progress ?? 0,
-      taskCounts: fresh?.taskCounts ?? null,
+      progress: client.progress ?? 0,
+      taskCounts: null,
     };
+
+    // ⚡ FIRE-AND-FORGET: Recalculate progress in background (non-blocking)
+    // This updates the database but doesn't block the response
+    if (!isDistributionView) {
+      recalcAndStoreClientProgress(id).catch((err) => {
+        console.error(`Background progress calc failed for ${id}:`, err);
+      });
+    }
 
     // OPTIMIZATION (conditional payload + cache): keep CDN caching but shrink response when distribution view only needs summary.
     return NextResponse.json(response, {

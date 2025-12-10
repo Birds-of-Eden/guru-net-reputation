@@ -133,6 +133,9 @@ export function buildClientSelect(compact: boolean): Prisma.ClientSelect {
   };
 
   if (!compact) {
+    // ⚡ OPTIMIZATION: Limit tasks to 500 for faster loading
+    // Clients with 500+ tasks will load the first 500 by creation date
+    // This prevents massive data transfers and database strain
     base.tasks = {
       select: {
         id: true,
@@ -168,6 +171,7 @@ export function buildClientSelect(compact: boolean): Prisma.ClientSelect {
         },
       },
       orderBy: { createdAt: "desc" },
+      take: 500, // ⚡ Limit to 500 most recent tasks
     };
 
     base.teamMembers = {
