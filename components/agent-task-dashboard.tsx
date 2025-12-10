@@ -47,6 +47,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { useAgentClients } from "@/lib/hooks/use-agent-clients";
 import {
   type TaskCounts,
   type ClientData,
@@ -73,14 +74,19 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // ⚡ OPTIMIZATION: Use optimized SWR hook with aggressive caching
+  const EXCLUDED_CATEGORIES = ["Social Communication"];
+  const { clients: rawClients, isLoading, error } = useAgentClients({
+    agentId,
+    excludeCategories: EXCLUDED_CATEGORIES,
+    enableCache: true,
+  });
+
   // State Management
-  const [clients, setClients] = useState<ClientData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearch = useDeferredValue(searchTerm.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState("all");
   const [progressFilter, setProgressFilter] = useState("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "card">("card");
   const [selectedClient, setSelectedClient] = useState<{
     id: string;
@@ -93,9 +99,22 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
     taskName: null,
   });
 
-  const EXCLUDED_CATEGORIES = ["Social Communication"];
   const PAGE_SIZE = 24;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // ⚡ OPTIMIZATION: Normalize clients data with memoization
+  const clients = useMemo(() => {
+    return rawClients.map((client) => {
+      const counts = pickCounts(client);
+      const progress = pickProgress(client);
+      return {
+        ...client,
+        progress,
+        taskCounts: counts,
+        agentTaskCounts: undefined,
+      };
+    });
+  }, [rawClients]);
 
   // Preselect from query params
   useEffect(() => {
@@ -106,54 +125,6 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
       setSelectedClient({ id: clientId, name: clientName });
     }
   }, [searchParams]);
-
-  // API Functions
-  const fetchClients = useCallback(
-    async (signal?: AbortSignal) => {
-      if (!agentId) return;
-
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams();
-        // backend will parse CSV
-        params.set("excludeCategories", EXCLUDED_CATEGORIES.join(","));
-
-        const response = await fetch(
-          `/api/tasks/clients/agents/${agentId}?${params.toString()}`,
-          { cache: "no-store", signal }
-        );
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-
-        const data: ClientData[] = await response.json();
-
-        // as-is: normalize
-        const normalized = data.map((client) => {
-          const counts = pickCounts(client);
-          const progress = pickProgress(client);
-          return {
-            ...client,
-            progress,
-            taskCounts: counts,
-            agentTaskCounts: undefined,
-          };
-        });
-
-        if (!signal?.aborted) setClients(normalized);
-      } catch (err: any) {
-        const errorMessage = err.message || "Failed to fetch clients.";
-        if (!signal?.aborted) {
-          setError(errorMessage);
-          console.error("Failed to fetch clients:", err);
-          toast.error(errorMessage, { description: "Error fetching clients" });
-        }
-      } finally {
-        if (!signal?.aborted) setLoading(false);
-      }
-    },
-    [agentId]
-  );
 
   // Event Handlers
   const handleViewTasks = useCallback(
@@ -243,15 +214,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
     setVisibleCount(PAGE_SIZE);
   }, [deferredSearch, progressFilter, statusFilter, clients.length]);
 
-  // Effects
-  useEffect(() => {
-    const controller = new AbortController();
-    if (agentId) {
-      fetchClients(controller.signal);
-    }
-    return () => controller.abort();
-  }, [agentId, fetchClients]);
-
+  // Load global timer lock from localStorage
   useEffect(() => {
     const loadGlobalLock = () => {
       try {
@@ -344,7 +307,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
     );
   }
 
-  if (loading) {
+  if (isLoading && clients.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -357,7 +320,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
     );
   }
 
-  if (error) {
+  if (error && clients.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -368,13 +331,6 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
             <p className="text-lg font-medium text-red-600 dark:text-red-400">
               Error: {error}
             </p>
-            <Button
-              onClick={() => fetchClients()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Retry
-            </Button>
           </div>
         </div>
       </div>
