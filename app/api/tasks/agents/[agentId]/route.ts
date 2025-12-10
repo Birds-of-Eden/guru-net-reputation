@@ -37,6 +37,9 @@ export async function GET(
   try {
     const { agentId } = await params;
 
+    // ⚡ OPTIMIZATION: keep query light – drop heavy comments relation from this list endpoint
+    // UI (client-tasks-view, social-activity) only needs task + client + template + category + assignedTo here.
+    // Comments can be fetched via dedicated endpoints when really needed.
     const tasks = await prisma.task.findMany({
       where: { assignedToId: agentId },
       include: {
@@ -59,19 +62,6 @@ export async function GET(
             image: true,
           },
         },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: { date: "desc" },
-        },
       },
       orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
     });
@@ -85,7 +75,16 @@ export async function GET(
       cancelled: tasks.filter((t) => t.status === "cancelled").length,
     };
 
-    return NextResponse.json({ tasks, stats });
+    // ⚡ OPTIMIZATION: add a small HTTP cache window so repeated hits in short time are near‑instant
+    return NextResponse.json(
+      { tasks, stats },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+          "CDN-Cache-Control": "public, s-maxage=15",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error fetching agent tasks:", error);
     return NextResponse.json(
