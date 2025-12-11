@@ -1,7 +1,9 @@
+// components/client-tasks-view/TaskViews.tsx
+
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,6 +26,75 @@ import {
 import type { TimerState } from "../client-tasks-view/client-tasks-view";
 
 type Task = any;
+
+function VirtualizedList<T>({
+  items,
+  renderItem,
+  estimatedItemHeight = 320,
+  overscan = 6,
+}: {
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  estimatedItemHeight?: number;
+  overscan?: number;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(720);
+
+  const onScroll = useCallback(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    setScrollTop(node.scrollTop);
+  }, []);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const handleResize = () => setViewportHeight(node.clientHeight || 720);
+    handleResize();
+    node.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      node.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [onScroll]);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (node) {
+      setViewportHeight(node.clientHeight || 720);
+    }
+  }, [items.length]);
+
+  const startIndex = Math.max(
+    0,
+    Math.floor(scrollTop / estimatedItemHeight) - overscan
+  );
+  const visibleCount =
+    Math.ceil(viewportHeight / estimatedItemHeight) + overscan * 2;
+  const endIndex = Math.min(items.length, startIndex + visibleCount);
+  const offsetY = startIndex * estimatedItemHeight;
+  const totalHeight = items.length * estimatedItemHeight;
+
+  return (
+    <div
+      ref={containerRef}
+      className="virtualized-task-list"
+      style={{ maxHeight: "75vh", overflowY: "auto" }}
+      onScroll={onScroll}
+    >
+      <div style={{ height: totalHeight, position: "relative" }}>
+        <div style={{ transform: `translateY(${offsetY}px)` }}>
+          {items.slice(startIndex, endIndex).map((item, idx) =>
+            renderItem(item, startIndex + idx)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function TaskViews({
   tab,
@@ -146,28 +217,27 @@ export default function TaskViews({
     completed: ["No completed tasks yet!", "Complete some tasks to see them here."],
   }[tab];
 
-  const listView = (
-    <div className="space-y-4">
-      {currentTasks.map((task) => {
-        const isTimerActive =
-          timerState?.taskId === task.id && timerState?.isRunning;
-        const displayUrl = getDisplayUrl(task);
-        const urlCopied = copied?.id === task.id && copied?.type === "url";
-        const emailCopied = copied?.id === task.id && copied?.type === "email";
-        const usernameCopied = copied?.id === task.id && copied?.type === "username";
-        const passwordCopied = copied?.id === task.id && copied?.type === "password";
-        const locked = isLocked(task);
-        const isThisTaskDisabled = locked || isTaskDisabled(task.id);
+  const renderTaskCard = (task: Task) => {
+    const isTimerActive =
+      timerState?.taskId === task.id && timerState?.isRunning;
+    const displayUrl = getDisplayUrl(task);
+    const urlCopied = copied?.id === task.id && copied?.type === "url";
+    const emailCopied = copied?.id === task.id && copied?.type === "email";
+    const usernameCopied =
+      copied?.id === task.id && copied?.type === "username";
+    const passwordCopied =
+      copied?.id === task.id && copied?.type === "password";
+    const locked = isLocked(task);
+    const isThisTaskDisabled = locked || isTaskDisabled(task.id);
 
-        const reveal = canReveal(task, timerState);
+    const reveal = canReveal(task, timerState);
 
-        return (
-          <div
-            key={task.id}
-            className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg ${
-              isThisTaskDisabled ? "opacity-70" : ""
-            }`}
-          >
+    const card = (
+      <div
+        className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg ${
+          isThisTaskDisabled ? "opacity-70" : ""
+        }`}
+      >
             <div className="p-6 w-full">
               <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center w-full">
                 <div className="flex items-start gap-4 min-w-0">
@@ -535,8 +605,24 @@ export default function TaskViews({
             </div>
           </div>
         );
-      })}
-    </div>
+
+    return (
+      <div className="mb-4 last:mb-0" key={task.id}>
+        {card}
+      </div>
+    );
+  };
+
+  const shouldVirtualize = currentTasks.length > 40;
+  const listView = shouldVirtualize ? (
+    <VirtualizedList
+      items={currentTasks}
+      estimatedItemHeight={340}
+      overscan={8}
+      renderItem={(item) => renderTaskCard(item)}
+    />
+  ) : (
+    <div className="space-y-4">{currentTasks.map(renderTaskCard)}</div>
   );
 
   // ✅ Grid view = original logic unchanged, just moved

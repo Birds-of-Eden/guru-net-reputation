@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -48,7 +48,9 @@ type Task = BaseTask & {
 };
 
 export default function TaskList({
+  agentId,
   clientName,
+  clientId,
   tasks,
   filteredTasks,
   overdueCount,
@@ -73,6 +75,7 @@ export default function TaskList({
 }: {
   agentId: string;
   clientName: string;
+  clientId: string;
   tasks: Task[];
   filteredTasks: Task[];
   selectedTasks?: string[];
@@ -269,6 +272,75 @@ export default function TaskList({
 
   const taskGroups = groupTasksByDate(filteredTasks);
   const [activeTab, setActiveTab] = useState("today");
+  const [tabData, setTabData] = useState<Record<string, Task[]>>({});
+  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>({});
+
+  const fetchTabTasks = useCallback(
+    async (tab: string) => {
+      const statusMap: Record<string, string[]> = {
+        completed: ["completed", "qc_approved"],
+        reassigned: ["reassigned"],
+      };
+      const statuses = statusMap[tab];
+      if (!clientId || !statuses) return [];
+
+      const collected: Task[] = [];
+      for (const status of statuses) {
+        let page = 1;
+        let hasMore = true;
+        while (hasMore) {
+          const params = new URLSearchParams({
+            page: String(page),
+            pageSize: "200",
+            status,
+          });
+          if (agentId) params.set("agentId", agentId);
+          const res = await fetch(
+            `/api/tasks/client/${clientId}?${params.toString()}`,
+            { cache: "no-store" }
+          );
+          if (!res.ok) {
+            throw new Error(`Failed to fetch ${tab} tasks (${res.status})`);
+          }
+          const json = await res.json();
+          const pageTasks = Array.isArray(json) ? json : json?.tasks ?? [];
+          collected.push(...pageTasks);
+          hasMore = Array.isArray(json) ? false : Boolean(json?.hasMore);
+          page += 1;
+          if (!pageTasks.length) break;
+        }
+      }
+
+      // dedupe by id
+      const map = new Map<string, Task>();
+      for (const t of collected) {
+        map.set(t.id, t as Task);
+      }
+      return Array.from(map.values());
+    },
+    [agentId, clientId]
+  );
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value);
+      const needsFetch = value === "completed" || value === "reassigned";
+      if (needsFetch && !tabData[value] && !tabLoading[value]) {
+        setTabLoading((prev) => ({ ...prev, [value]: true }));
+        fetchTabTasks(value)
+          .then((data) => {
+            setTabData((prev) => ({ ...prev, [value]: data }));
+          })
+          .catch((err) => {
+            console.error("Failed to load tab tasks", err);
+          })
+          .finally(() => {
+            setTabLoading((prev) => ({ ...prev, [value]: false }));
+          });
+      }
+    },
+    [fetchTabTasks, tabData, tabLoading]
+  );
 
   // তারিখ ফরম্যাট ফাংশন
   const formatDate = (date: Date) => {
@@ -280,6 +352,9 @@ export default function TaskList({
     });
   };
 
+  const completedTasksOverride = tabData.completed ?? taskGroups.completed;
+  const reassignedTasksOverride = tabData.reassigned ?? taskGroups.reassigned;
+
   const getTasksForCurrentTab = () => {
     switch (activeTab) {
       case "today":
@@ -289,9 +364,9 @@ export default function TaskList({
       case "upcoming":
         return taskGroups.upcoming;
       case "reassigned":
-        return taskGroups.reassigned;
+        return reassignedTasksOverride;
       case "completed":
-        return taskGroups.completed;
+        return completedTasksOverride;
       default:
         return filteredTasks;
     }
@@ -402,7 +477,7 @@ export default function TaskList({
           {/* তারিখ ভিত্তিক ট্যাব */}
           <Tabs
             value={activeTab}
-            onValueChange={setActiveTab}
+            onValueChange={handleTabChange}
             className="w-full mb-8"
           >
             <TabsList className="grid w-full grid-cols-5 h-14 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-1">
@@ -451,9 +526,9 @@ export default function TaskList({
               >
                 <CheckCircle className="h-4 w-4" />
                 Reassigned
-                {taskGroups.reassigned.length > 0 && (
+                {reassignedTasksOverride.length > 0 && (
                   <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
-                    {taskGroups.reassigned.length}
+                    {reassignedTasksOverride.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -464,9 +539,9 @@ export default function TaskList({
               >
                 <CheckCircle className="h-4 w-4" />
                 Completed
-                {taskGroups.completed.length > 0 && (
+                {completedTasksOverride.length > 0 && (
                   <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
-                    {taskGroups.completed.length}
+                    {completedTasksOverride.length}
                   </Badge>
                 )}
               </TabsTrigger>

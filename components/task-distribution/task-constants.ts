@@ -11,8 +11,10 @@ export const statusColors = {
   pending: "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
   in_progress: "bg-gradient-to-r from-blue-100 via-indigo-50 to-sky-100 text-blue-800 border-blue-300 shadow-blue-100",
   completed: "bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
+  qc_approved: "bg-gradient-to-r from-purple-100 via-violet-50 to-fuchsia-100 text-purple-800 border-purple-300 shadow-purple-100",
   overdue: "bg-gradient-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
   cancelled: "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
+  reassigned: "bg-gradient-to-r from-amber-100 via-orange-50 to-yellow-100 text-amber-800 border-amber-300 shadow-amber-100",
 };
 
 export const siteTypeIcons = {

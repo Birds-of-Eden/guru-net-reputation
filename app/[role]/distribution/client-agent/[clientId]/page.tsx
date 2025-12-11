@@ -400,7 +400,7 @@ export default function TaskDistributionForClient() {
     isLoading: tasksLoading,
     mutate: mutateTasks,
   } = useSWR<Task[]>(
-    clientId ? `/api/tasks/client/${clientId}` : null,
+    clientId ? `/api/tasks/client/${clientId}/all` : null,
     jsonFetcher,
     { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
   );
@@ -457,9 +457,25 @@ export default function TaskDistributionForClient() {
   // ⚡ OPTIMIZED: Use useMemo instead of useEffect + setState to prevent unnecessary re-renders
   // IMPORTANT: This must be declared BEFORE selectedTaskObjects that uses it
   const tasks = useMemo(() => {
-    return (allTasks ?? []).filter(
+    const list = (allTasks ?? []).filter(
       (t) => getUICategoryForTask(t) === selectedCategory
     );
+
+    const order: Record<string, number> = {
+      completed: 0,
+      qc_approved: 1,
+      overdue: 2,
+      reassigned: 3,
+      in_progress: 4,
+      pending: 5,
+      cancelled: 6,
+    };
+
+    return list.sort((a: any, b: any) => {
+      const A = order[a?.status] ?? 999;
+      const B = order[b?.status] ?? 999;
+      return A - B;
+    });
   }, [allTasks, selectedCategory]);
 
   useEffect(() => {
@@ -635,12 +651,18 @@ export default function TaskDistributionForClient() {
   }, []);
 
   const handleSelectAllTasks = useCallback((taskIds: string[], checked: boolean) => {
+    const taskMap = new Map(tasks.map((t) => [t.id, t]));
+    const selectableIds = taskIds.filter((id) => {
+      const t = taskMap.get(id);
+      return t && !(t as any)?.assignedToId;
+    });
+
     if (checked) {
-      setSelectedTasks(new Set(taskIds));
-      setSelectedTasksOrder(taskIds);
-      toast.info(`Selected ${taskIds.length} tasks from current view`);
+      setSelectedTasks(new Set(selectableIds));
+      setSelectedTasksOrder(selectableIds);
+      toast.info(`Selected ${selectableIds.length} tasks from current view`);
     } else {
-      const currentViewTaskIds = new Set(taskIds);
+      const currentViewTaskIds = new Set(selectableIds);
       const preserved = Array.from(selectedTasks).filter(
         (id) => !currentViewTaskIds.has(id)
       );
@@ -652,7 +674,7 @@ export default function TaskDistributionForClient() {
         assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
       );
     }
-  }, [selectedTasks]);
+  }, [selectedTasks, tasks]);
 
   const handleTaskAssignment = useCallback((
     taskId: string,
