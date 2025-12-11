@@ -1,7 +1,7 @@
 "use client";
 import React, { type ReactNode } from "react";
 
-import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,7 +12,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Globe, Star, ChevronDown } from "lucide-react";
+import { CheckCircle, Globe, Star } from "lucide-react";
 
 // ===== Types =====
 type TaskLite = {
@@ -347,33 +347,6 @@ function ClientTaskCard({
   const { client, tasks } = clientGroup;
   const isUnassigned = client.id === "no-client";
 
-  // ⚡ OPTIMIZATION: Virtual scrolling - only render visible tasks
-  const ITEMS_PER_PAGE = 20; // Render 20 tasks at a time
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && visibleCount < tasks.length) {
-          setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, tasks.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const sentinel = containerRef.current?.querySelector('[data-sentinel]');
-    if (sentinel) observer.observe(sentinel);
-
-    return () => observer.disconnect();
-  }, [visibleCount, tasks.length]);
-
-  const visibleTasks = useMemo(
-    () => tasks.slice(0, visibleCount),
-    [tasks, visibleCount]
-  );
-
   const clientStats = {
     total: tasks.length,
     pending: tasks.filter((t) => t.status === "pending").length,
@@ -385,8 +358,6 @@ function ClientTaskCard({
   const completionRate = clientStats.total
     ? Math.round((clientStats.completed / clientStats.total) * 100)
     : 0;
-
-  const hasMore = visibleCount < tasks.length;
 
   return (
     <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
@@ -439,35 +410,22 @@ function ClientTaskCard({
               variant="outline"
               className="px-3 py-1 font-semibold border-indigo-200 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300"
             >
-              {visibleCount}/{clientStats.total}
+              {clientStats.total} Total
             </Badge>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-0" ref={containerRef}>
+      <CardContent className="p-0">
         <div className="space-y-0">
-          {visibleTasks.map((task, index) => (
+          {tasks.map((task, index) => (
             <TaskListItem
               key={task.id}
               task={task}
-              isLast={index === visibleTasks.length - 1 && !hasMore}
+              isLast={index === tasks.length - 1}
             />
           ))}
         </div>
-
-        {/* ⚡ Infinite scroll sentinel */}
-        {hasMore && (
-          <div
-            data-sentinel
-            className="p-6 text-center border-t border-gray-100 dark:border-gray-700"
-          >
-            <div className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-              Loading more tasks... ({visibleCount}/{clientStats.total})
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
