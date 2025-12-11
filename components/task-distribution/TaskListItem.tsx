@@ -1,3 +1,5 @@
+// components/task-distribution/TaskListItem.tsx
+
 "use client";
 
 import { memo, useMemo, useState } from "react";
@@ -91,6 +93,12 @@ export const TaskListItem = memo(function TaskListItem({
       );
     });
   }, [baseList, siteType]);
+
+  const priorityValue = (task as any)?.priority ?? "medium";
+  const priorityKey = String(priorityValue).toLowerCase();
+  const statusValue = (task as any)?.status ?? "pending";
+  const statusKey = String(statusValue).toLowerCase();
+  const isAlreadyAssigned = Boolean((task as any)?.assignedToId);
 
   const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
   const shouldDisableDropdown =
@@ -193,7 +201,9 @@ export const TaskListItem = memo(function TaskListItem({
         <div className="flex items-center space-x-4">
           <Checkbox
             checked={isSelected}
+            disabled={isAlreadyAssigned}
             onCheckedChange={(checked) =>
+              !isAlreadyAssigned &&
               onTaskSelection(task.id, checked as boolean)
             }
             className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
@@ -215,17 +225,21 @@ export const TaskListItem = memo(function TaskListItem({
               <div className="flex items-center space-x-2 ml-4">
                 <Badge
                   className={`text-xs font-bold shadow-sm ${
-                    priorityColors[task.priority as keyof typeof priorityColors]
+                    priorityColors[
+                      (priorityKey as keyof typeof priorityColors) ?? "medium"
+                    ] || priorityColors.medium
                   }`}
                 >
-                  {task.priority.toUpperCase()}
+                  {priorityKey.toUpperCase()}
                 </Badge>
                 <Badge
                   className={`text-xs font-bold shadow-sm ${
-                    statusColors[task.status as keyof typeof statusColors]
+                    statusColors[
+                      (statusKey as keyof typeof statusColors) ?? "pending"
+                    ] || statusColors.pending
                   }`}
                 >
-                  {task.status.replace("_", " ").toUpperCase()}
+                  {statusKey.replace("_", " ").toUpperCase()}
                 </Badge>
               </div>
             </div>

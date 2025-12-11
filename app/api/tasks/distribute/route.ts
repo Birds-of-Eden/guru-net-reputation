@@ -27,6 +27,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // Block double-assign: if any task is already assigned, reject the request
+    const taskIds = assignments.map((a) => a.taskId);
+    const alreadyAssigned = await prisma.task.findMany({
+      where: {
+        id: { in: taskIds },
+        assignedToId: { not: null },
+      },
+      select: { id: true, assignedToId: true },
+    });
+    if (alreadyAssigned.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Some tasks are already assigned",
+          tasks: alreadyAssigned,
+        },
+        { status: 400 }
+      );
+    }
+
     // OPTIMIZATION (batched counter updates): pre-compute increments per agent for efficient upserts.
     const agentAssignmentCounts = assignments.reduce<Map<string, number>>(
       (map, { agentId }) => map.set(agentId, (map.get(agentId) ?? 0) + 1),

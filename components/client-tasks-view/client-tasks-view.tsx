@@ -2,7 +2,15 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useDeferredValue } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useDeferredValue,
+  useRef,
+} from "react";
+import useSWRInfinite from "swr/infinite";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -185,6 +193,7 @@ interface Agent {
 }
 
 // ===== Storage keys =====
+const PAGE_SIZE = 20;
 const RUN_KEY = "runningTaskTimer"; // only the actively running timer
 const PAUSE_KEY = "pausedTaskTimer"; // at most one paused task
 const LOCK_KEY = "globalTimerLock"; // navigation lock
@@ -310,8 +319,7 @@ export function ClientTasksView({
   excludedCategories,
 }: ClientTasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const tasksRef = useRef<Task[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -349,6 +357,142 @@ export function ClientTasksView({
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [pausedTimer, setPausedTimer] = useState<TimerState | null>(null); // new
 
+  const mergedExcludedCategories = useMemo(
+    () =>
+      Array.from(
+        new Set([...(excludedCategories ?? []), ...EXCLUDED_CATEGORIES])
+      ),
+    [excludedCategories]
+  );
+
+  const buildQueryString = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams();
+      params.set("agentId", agentId);
+      params.set("page", String(page));
+      params.set("pageSize", String(PAGE_SIZE));
+      if (mergedExcludedCategories.length > 0) {
+        params.set("excludeCategories", mergedExcludedCategories.join(","));
+      }
+      if (deferredSearch) params.set("search", deferredSearch);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      if (priorityFilter !== "all") params.set("priority", priorityFilter);
+      return params.toString();
+    },
+    [
+      agentId,
+      deferredSearch,
+      mergedExcludedCategories,
+      priorityFilter,
+      statusFilter,
+    ]
+  );
+
+  const getKey = useCallback(
+    (pageIndex: number, previousPageData: any) => {
+      if (!agentId) return null;
+      if (previousPageData && previousPageData.hasMore === false) return null;
+      return `/api/tasks/client/${clientId}?${buildQueryString(pageIndex + 1)}`;
+    },
+    [agentId, buildQueryString, clientId]
+  );
+
+  const {
+    data: taskPages,
+    error: fetchError,
+    isLoading: swrLoading,
+    isValidating,
+    size,
+    setSize,
+    mutate,
+  } = useSWRInfinite(
+    getKey,
+    async (url: string) => {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        const message =
+          payload?.error ||
+          payload?.message ||
+          `Failed to fetch tasks (${res.status})`;
+        throw new Error(message);
+      }
+      return res.json();
+    },
+    {
+      revalidateFirstPage: false,
+      keepPreviousData: true,
+    }
+  );
+
+  const tasksFromServer = useMemo(
+    () => taskPages?.flatMap((p: any) => p?.tasks ?? []) ?? [],
+    [taskPages]
+  );
+
+  useEffect(() => {
+    tasksRef.current = tasksFromServer;
+    setTasks(tasksFromServer);
+  }, [tasksFromServer]);
+
+  const serverCounts = useMemo(
+    () => (taskPages?.[0]?.counts as any) ?? null,
+    [taskPages]
+  );
+
+  useEffect(() => {
+    if (serverCounts) {
+      setStats({
+        total: serverCounts.total ?? 0,
+        pending: serverCounts.pending ?? 0,
+        inProgress: serverCounts.in_progress ?? 0,
+        completed: serverCounts.completed ?? 0,
+        overdue: serverCounts.overdue ?? 0,
+        cancelled: serverCounts.cancelled ?? 0,
+        reassigned: serverCounts.reassigned ?? 0,
+        qc_approved: serverCounts.qc_approved ?? 0,
+      });
+      return;
+    }
+    setStats({
+      total: tasksFromServer.length,
+      pending: tasksFromServer.filter((t) => t.status === "pending").length,
+      inProgress: tasksFromServer.filter((t) => t.status === "in_progress")
+        .length,
+      completed: tasksFromServer.filter((t) => t.status === "completed").length,
+      overdue: tasksFromServer.filter((t) => t.status === "overdue").length,
+      cancelled: tasksFromServer.filter((t) => t.status === "cancelled")
+        .length,
+      reassigned: tasksFromServer.filter((t) => t.status === "reassigned")
+        .length,
+      qc_approved: tasksFromServer.filter((t) => t.status === "qc_approved")
+        .length,
+    });
+  }, [serverCounts, tasksFromServer]);
+
+  const hasMore = Boolean(taskPages?.[taskPages.length - 1]?.hasMore);
+  const isInitialLoading = swrLoading && !taskPages;
+  const isLoadingMore =
+    isValidating && size > (taskPages?.length ?? 0) && Boolean(hasMore);
+  const isRefreshing =
+    isValidating && size === (taskPages?.length ?? 0) && !isLoadingMore;
+  const refreshTasks = useCallback(() => {
+    setSize(1);
+    void mutate();
+  }, [mutate, setSize]);
+
+  useEffect(() => {
+    setSize(1);
+  }, [
+    agentId,
+    clientId,
+    deferredSearch,
+    priorityFilter,
+    statusFilter,
+    mergedExcludedCategories,
+    setSize,
+  ]);
+
   const loadPausedFromStorage = useCallback(() => {
     try {
       const raw = localStorage.getItem("pausedTaskTimer"); // PAUSE_KEY
@@ -373,58 +517,6 @@ export function ClientTasksView({
       setPausedTimer(null);
     }
   }, []);
-
-  // ✅ UPDATED: fetch only from agents endpoint to get reassignNotes
-  const fetchClientTasks = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/tasks/agents/${agentId}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const json = await response.json();
-      const agentAllTasks: Task[] = json.tasks ?? [];
-
-      // ✅ Filter only tasks for this client
-      const agentTasksForClient = agentAllTasks.filter((task) => {
-        const cid =
-          task.assignment?.client?.id ??
-          (task as any).clientId ??
-          (task as any)?.assignment?.clientId;
-        return cid === clientId;
-      });
-
-      // Filter out excluded categories
-      const visibleTasks = agentTasksForClient.filter(
-        (t) => !EXCLUDED_CATEGORIES.includes(t.category?.name ?? "")
-      );
-
-      setTasks(visibleTasks);
-
-      setStats({
-        total: visibleTasks.length,
-        pending: visibleTasks.filter((t) => t.status === "pending").length,
-        inProgress: visibleTasks.filter((t) => t.status === "in_progress")
-          .length,
-        completed: visibleTasks.filter((t) => t.status === "completed").length,
-        overdue: visibleTasks.filter((t) => t.status === "overdue").length,
-        cancelled: visibleTasks.filter((t) => t.status === "cancelled").length,
-        reassigned: visibleTasks.filter((t) => t.status === "reassigned")
-          .length,
-        qc_approved: visibleTasks.filter((t) => t.status === "qc_approved")
-          .length,
-      });
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to fetch client tasks.";
-      setError(errorMessage);
-      console.error("Failed to fetch client tasks:", err);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [clientId, agentId]);
 
   // Normalize and fetch full client data for the modal
   const normalizeClientData = useCallback((apiData: any): Client => {
@@ -626,18 +718,18 @@ export function ClientTasksView({
 
         setTimerState(restored);
 
-        if (lockRaw) {
-          const lock = JSON.parse(lockRaw) as GlobalTimerLock;
+        const lock = lockRaw ? (JSON.parse(lockRaw) as GlobalTimerLock) : null;
+        if (lock) {
           setGlobalTimerLock(lock);
         }
 
-        const task = tasks.find((t) => t.id === restored.taskId);
+        const task =
+          tasksRef.current.find((t) => t.id === restored.taskId) ?? undefined;
+        const taskName = task?.name || lock?.taskName || "Unknown Task";
         toast.info(
           restored.isRunning
-            ? `Timer restored for "${task?.name || "Unknown Task"}".`
-            : `Paused timer data available for "${
-                task?.name || "Unknown Task"
-              }".`
+            ? `Timer restored for "${taskName}".`
+            : `Paused timer data available for "${taskName}".`
         );
         return restored;
       }
@@ -645,14 +737,12 @@ export function ClientTasksView({
       console.error("Failed to load timer:", e);
     }
     return null;
-  }, [tasks]);
+  }, [setGlobalTimerLock]);
 
   useEffect(() => {
-    if (tasks.length > 0) {
-      loadTimerFromStorage();
-      loadPausedFromStorage();
-    }
-  }, [tasks, loadTimerFromStorage, loadPausedFromStorage]);
+    loadTimerFromStorage();
+    loadPausedFromStorage();
+  }, [loadPausedFromStorage, loadTimerFromStorage]);
 
   const isTaskDisabled = useCallback((_taskId: string) => false, []);
   const isAnyTimerRunning = globalTimerLock.isLocked;
@@ -1054,24 +1144,7 @@ export function ClientTasksView({
       });
   }, [deferredSearch, priorityFilter, statusFilter, tasks]);
 
-  const overdueCount = tasks.filter((task) => task.status === "overdue").length;
-
-  useEffect(() => {
-    fetchClientTasks();
-  }, [fetchClientTasks]);
-
-  useEffect(() => {
-    setStats({
-      total: tasks.length,
-      pending: tasks.filter((t) => t.status === "pending").length,
-      inProgress: tasks.filter((t) => t.status === "in_progress").length,
-      completed: tasks.filter((t) => t.status === "completed").length,
-      overdue: tasks.filter((t) => t.status === "overdue").length,
-      cancelled: tasks.filter((t) => t.status === "cancelled").length,
-      reassigned: tasks.filter((t) => t.status === "reassigned").length,
-      qc_approved: tasks.filter((t) => t.status === "qc_approved").length,
-    });
-  }, [tasks]);
+  const overdueCount = stats.overdue;
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -1111,11 +1184,9 @@ export function ClientTasksView({
     };
   }, [timerState?.isRunning, saveTimerToStorage, tasks, handleUpdateTask]);
 
-  useEffect(() => {
-    if (tasks.length > 0) loadTimerFromStorage();
-  }, [tasks, loadTimerFromStorage]);
+  const error = fetchError ? fetchError.message : null;
 
-  if (loading) {
+  if (isInitialLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -1140,7 +1211,7 @@ export function ClientTasksView({
               Error: {error}
             </p>
             <Button
-              onClick={fetchClientTasks}
+              onClick={refreshTasks}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -1189,15 +1260,22 @@ export function ClientTasksView({
               </p>
             </div>
           </div>
-          <Button
-            onClick={fetchClientTasks}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2 bg-transparent"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {tasks.length} of {stats.total} tasks{" "}
+              {hasMore ? "(load more to see all)" : ""}
+            </span>
+            <Button
+              onClick={refreshTasks}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 bg-transparent"
+              disabled={isRefreshing}
+            >
+              <RefreshCw className="h-4 w-4" />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -1212,7 +1290,9 @@ export function ClientTasksView({
               </div>
             </CardHeader>
             <CardContent className="relative">
-              <div className="text-3xl font-bold text-white">{tasks.length}</div>
+              <div className="text-3xl font-bold text-white">
+                {stats.total}
+              </div>
               <p className="text-xs text-blue-100 mt-1">All assigned tasks</p>
             </CardContent>
           </Card>
@@ -1329,6 +1409,7 @@ export function ClientTasksView({
           <TaskList
             agentId={agentId}
             clientName={clientName}
+            clientId={clientId}
             tasks={tasks}
             filteredTasks={filteredTasks}
             overdueCount={overdueCount}
@@ -1355,9 +1436,21 @@ export function ClientTasksView({
             onTaskComplete={handleTaskCompletion}
             getPriorityBadge={getPriorityBadge}
             formatTimerDisplay={formatTimerDisplay}
-            pausedTimer={pausedTimer}
-          />
+          pausedTimer={pausedTimer}
+        />
         </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setSize(size + 1)}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? "Loading more..." : "Load more tasks"}
+            </Button>
+          </div>
+        )}
 
         <TaskDialogs
           isStatusModalOpen={isStatusModalOpen}
@@ -1391,7 +1484,7 @@ export function ClientTasksView({
           clientId={clientId}
           clientName={clientName}
           pausedTimer={pausedTimer}
-          refreshTasks={fetchClientTasks}
+          refreshTasks={refreshTasks}
           stopTimer={stopTimerNow}
         />
       </div>
