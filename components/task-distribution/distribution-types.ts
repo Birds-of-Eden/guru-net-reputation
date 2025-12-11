@@ -27,6 +27,11 @@ export type Agent = {
   address: string;
   bio: string;
   status: "active" | "inactive" | "pending";
+  qc?: {
+    id: string;
+    name: string;
+    email: string | null;
+  } | null;
   createdAt: string;
 };
 

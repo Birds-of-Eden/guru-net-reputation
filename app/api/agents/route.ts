@@ -1,18 +1,16 @@
+//api/agents
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
+/* ================================
+    GET ALL AGENTS
+================================ */
 export async function GET() {
   try {
     const agents = await prisma.user.findMany({
       where: {
-        // Assuming agents have a specific role or can be identified by having category field
-        category: {
-          not: null,
-        },
-        role: {
-          name: "agent", // ✅ only users with 'agent' role
-        },
+        role: { name: "agent" },
       },
       select: {
         id: true,
@@ -26,34 +24,31 @@ export async function GET() {
         status: true,
         createdAt: true,
         image: true,
-        role: {
-          select: {
-            name: true,
-          },
-        },
+        role: { select: { name: true } },
+        qcId: true, // 🆕 Add QC ID
+        qc: { select: { id: true, name: true, email: true } }, // 🆕 Add QC info
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
-    // Transform the data to match the expected format
-    const transformedAgents = agents.map((agent) => ({
-      id: agent.id,
-      firstName: agent.firstName || "",
-      lastName: agent.lastName || "",
-      email: agent.email,
-      phone: agent.phone || "",
-      category: agent.category || "",
-      address: agent.address || "",
-      bio: agent.biography || "",
-      status: agent.status.toLowerCase(),
-      createdAt: agent.createdAt.toISOString(),
-      image: agent.image,
-      role: agent.role?.name,
+    const transformed = agents.map((a) => ({
+      id: a.id,
+      firstName: a.firstName || "",
+      lastName: a.lastName || "",
+      email: a.email,
+      phone: a.phone || "",
+      category: a.category || "",
+      address: a.address || "",
+      bio: a.biography || "",
+      status: a.status.toLowerCase(),
+      createdAt: a.createdAt.toISOString(),
+      image: a.image,
+      role: a.role?.name,
+      qcId: a.qcId || null, // 🆕 Return QC ID
+      qc: a.qc || null, // 🆕 Return QC details
     }));
 
-    return NextResponse.json(transformedAgents, { status: 200 });
+    return NextResponse.json(transformed, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/agents:", error);
     return NextResponse.json(
@@ -63,41 +58,44 @@ export async function GET() {
   }
 }
 
+/* ================================
+    CREATE NEW AGENT
+================================ */
 export async function POST(request: Request) {
   try {
-    const agentData = await request.json();
-    console.log("Creating agent with data:", agentData);
+    const data = await request.json();
 
-    if (
-      !agentData.firstName ||
-      !agentData.lastName ||
-      !agentData.email ||
-      !agentData.password ||
-      !agentData.teamId
-    ) {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      address,
+      bio,
+      status,
+      teamId,
+      qcId, // 🆕 Accept QC Supervisor ID
+    } = data;
+
+    if (!firstName || !lastName || !email || !password || !teamId) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: agentData.email },
-    });
-
-    if (existingUser) {
+    // Email duplication check
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) {
       return NextResponse.json(
         { message: "Email already exists" },
         { status: 400 }
       );
     }
 
-    // Verify the team exists
-    const team = await prisma.team.findUnique({
-      where: { id: agentData.teamId },
-    });
-
+    // Validate team exists
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
     if (!team) {
       return NextResponse.json(
         { message: "Selected team not found" },
@@ -105,40 +103,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // ✅ Get or fallback create the 'agent' role
+    // Fetch agent role
     const agentRole = await prisma.role.findUnique({
       where: { name: "agent" },
     });
     if (!agentRole) {
       return NextResponse.json(
-        { message: "Agent role not found in DB. Please seed roles first." },
+        { message: "Agent role missing in DB" },
         { status: 500 }
       );
     }
 
-    // ---- Hash password ----
-    const passwordHash = await bcrypt.hash(agentData.password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create the agent
+    // 🆕 Create agent WITH QC assignment
     const newAgent = await prisma.user.create({
       data: {
-        firstName: agentData.firstName,
-        lastName: agentData.lastName,
-        email: agentData.email,
-        passwordHash, // Ensure this is hashed in your actual implementation
-        phone: agentData.phone || null,
-        category: team.name, // Set category to team name for backward compatibility
-        address: agentData.address || null,
-        biography: agentData.bio || null,
-        status: agentData.status === "active" ? "active" : "inactive",
-        emailVerified: false,
-        name: `${agentData.firstName} ${agentData.lastName}`,
-        roleId: agentRole.id,
-        // Credentials account (same pattern as your first user route)
+        firstName,
+        lastName,
+        email,
+        passwordHash,
+        phone,
+        address: address || null,
+        biography: bio || null,
+        status: status === "active" ? "active" : "inactive",
+        name: `${firstName} ${lastName}`,
+        role: {
+          connect: { id: agentRole.id },
+        },
+
+        emailVerified: false, // ✅ REQUIRED FIELD
+
+        category: team.name,
+
+        qc: qcId ? { connect: { id: qcId } } : undefined, // ✅ QC assignment via relation
+
         accounts: {
           create: {
             providerId: "credentials",
-            accountId: agentData.email,
+            accountId: email,
             password: passwordHash,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -146,38 +149,21 @@ export async function POST(request: Request) {
         },
       },
       include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        accounts: true,
+        role: true,
+        qc: { select: { id: true, name: true, email: true } },
       },
     });
-
-    console.log("Agent created successfully:", newAgent.id);
-
-    // For now, we'll just create the agent without team assignment
-    // You can later implement proper team assignment logic based on your business requirements
 
     return NextResponse.json(
       {
         message: "Agent created successfully",
         agent: {
-          id: newAgent.id,
-          firstName: newAgent.firstName,
-          lastName: newAgent.lastName,
-          email: newAgent.email,
-          phone: newAgent.phone,
-          category: newAgent.category,
-          address: newAgent.address,
+          ...newAgent,
           bio: newAgent.biography,
           status: newAgent.status.toLowerCase(),
           createdAt: newAgent.createdAt.toISOString(),
-          teamId: agentData.teamId,
+          teamId,
           teamName: team.name,
-          role: agentData.role,
         },
       },
       { status: 201 }
@@ -191,6 +177,9 @@ export async function POST(request: Request) {
   }
 }
 
+/* ================================
+    DELETE AGENT
+================================ */
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
@@ -202,51 +191,32 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // First, remove the agent from all teams (if any exist)
-    try {
-      await prisma.clientTeamMember.deleteMany({
-        where: { agentId: id },
-      });
+    // Remove team links
+    await prisma.clientTeamMember.deleteMany({ where: { agentId: id } });
+    await prisma.templateTeamMember.deleteMany({ where: { agentId: id } });
 
-      await prisma.templateTeamMember.deleteMany({
-        where: { agentId: id },
-      });
-    } catch (teamDeleteError) {
-      console.log(
-        "No team memberships to delete or error deleting:",
-        teamDeleteError
-      );
-    }
-
-    // Then delete the agent
-    const deletedAgent = await prisma.user.delete({
-      where: { id },
-    });
-
-    if (!deletedAgent) {
-      return NextResponse.json({ message: "Agent not found" }, { status: 404 });
-    }
+    const deleted = await prisma.user.delete({ where: { id } });
 
     return NextResponse.json(
       { message: "Agent deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in DELETE /api/agents:", error);
-    if (error.code === "P2025") {
-      return NextResponse.json({ message: "Agent not found" }, { status: 404 });
-    }
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Internal server error", error: error.message },
       { status: 500 }
     );
   }
 }
 
-
+/* ================================
+    UPDATE AGENT
+================================ */
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
+
     const {
       id,
       firstName,
@@ -254,73 +224,74 @@ export async function PUT(request: Request) {
       email,
       phone,
       address,
-      biography,   // preferred key from client
-      bio,         // fallback key
-      status,      // "active" | "inactive"
-      teamId,      // ✅ optional: map to category
-      password,    // optional: update if provided
+      biography,
+      bio,
+      status,
+      teamId,
+      password,
+      qcId, // 🆕 Accept QC Supervisor
     } = body;
 
     if (!id) {
-      return NextResponse.json({ message: "Missing agent ID" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Missing agent ID" },
+        { status: 400 }
+      );
     }
 
-    // Ensure the user exists (and get current values for comparisons)
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ message: "Agent not found" }, { status: 404 });
     }
 
-    // If email is changing, enforce uniqueness
     if (email && email !== existing.email) {
       const emailTaken = await prisma.user.findUnique({ where: { email } });
-      if (emailTaken) {
-        return NextResponse.json({ message: "Email already exists" }, { status: 400 });
-      }
+      if (emailTaken)
+        return NextResponse.json(
+          { message: "Email already exists" },
+          { status: 400 }
+        );
     }
 
-    // If teamId provided, map to legacy `category` (team name)
+    // Team update → map to category
     let categoryUpdate: string | undefined;
     if (teamId) {
       const team = await prisma.team.findUnique({ where: { id: teamId } });
       if (!team) {
-        return NextResponse.json({ message: "Selected team not found" }, { status: 400 });
+        return NextResponse.json(
+          { message: "Team not found" },
+          { status: 400 }
+        );
       }
       categoryUpdate = team.name;
     }
 
-    // Optional password update
+    // Password update
     let passwordHashUpdate: string | undefined;
-    if (typeof password === "string" && password.trim()) {
-      const bcrypt = (await import("bcryptjs")).default;
-      passwordHashUpdate = await bcrypt.hash(password, 10);
+    if (password?.trim()) {
+      passwordHashUpdate = await bcrypt.hash(password.trim(), 10);
     }
 
-    const updated = await prisma.user.update({
+    // 🆕 Update QC assignment
+    const updatedAgent = await prisma.user.update({
       where: { id },
       data: {
         firstName,
         lastName,
         email,
-        phone: phone ?? null,
-        address: address ?? null,
-        biography: (biography ?? bio) ?? null,
+        phone,
+        address: address || null,
+        biography: biography ?? bio ?? null,
         status: status === "active" ? "active" : "inactive",
-        name: `${firstName ?? existing.firstName ?? ""} ${lastName ?? existing.lastName ?? ""}`.trim(),
+        name: `${firstName ?? existing.firstName} ${
+          lastName ?? existing.lastName
+        }`.trim(),
+        qcId: qcId || null, // 🆕 Save QC Supervisor
         ...(categoryUpdate ? { category: categoryUpdate } : {}),
         ...(passwordHashUpdate ? { passwordHash: passwordHashUpdate } : {}),
       },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        category: true,
-        address: true,
-        biography: true,
-        status: true,
-        createdAt: true,
+      include: {
+        qc: { select: { id: true, name: true, email: true } }, // 🆕 Include QC details
       },
     });
 
@@ -328,20 +299,17 @@ export async function PUT(request: Request) {
       {
         message: "Agent updated successfully",
         agent: {
-          ...updated,
-          bio: updated.biography,
-          status: updated.status.toLowerCase(),
-          createdAt: updated.createdAt.toISOString(),
-          teamId, // echo back what was sent (useful for the UI)
+          ...updatedAgent,
+          bio: updatedAgent.biography,
+          status: updatedAgent.status.toLowerCase(),
+          createdAt: updatedAgent.createdAt.toISOString(),
+          teamId,
         },
       },
       { status: 200 }
     );
   } catch (error: any) {
     console.error("Error in PUT /api/agents:", error);
-    if (error.code === "P2025") {
-      return NextResponse.json({ message: "Agent not found" }, { status: 404 });
-    }
     return NextResponse.json(
       { message: "Internal server error", error: error.message },
       { status: 500 }

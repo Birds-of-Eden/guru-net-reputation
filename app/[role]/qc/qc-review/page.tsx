@@ -4,6 +4,7 @@
 import { Suspense, lazy, Component, ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUserSession } from "@/lib/hooks/use-user-session";
 
 // Lazy load the heavy QCReview component
 const QCReview = lazy(() =>
@@ -142,10 +143,13 @@ function ErrorFallback({
 }
 
 export default function Page() {
+  const { user } = useUserSession();
+  const qcId = (user as any)?.id ?? null;
+
   return (
     <ErrorBoundary>
       <Suspense fallback={<QCReviewSkeleton />}>
-        <QCReview />
+        <QCReview forceQcId={qcId} />
       </Suspense>
     </ErrorBoundary>
   );

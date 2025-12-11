@@ -127,6 +127,24 @@ export function AgentCard({ agent, onDelete, onViewDetails }: AgentCardProps) {
             </div>
           )}
 
+          {agent.qc?.name && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                QC Supervisor
+              </span>
+              <div className="text-right">
+                <p className="text-sm text-gray-900 dark:text-gray-50 font-medium">
+                  {agent.qc.name}
+                </p>
+                {agent.qc.email && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {agent.qc.email}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Joined

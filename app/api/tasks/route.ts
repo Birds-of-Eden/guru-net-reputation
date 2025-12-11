@@ -16,7 +16,10 @@ export async function GET(req: Request) {
     const status = searchParams.get("status");
     const assignedToId = searchParams.get("assignedToId");
 
-    // -------- Optional query tuning (safe defaults preserved) --------
+    // ⭐ NEW: QC SUPERVISOR FILTER
+    const qcSupervisorId = searchParams.get("qcSupervisorId");
+
+    // -------- Optional query tuning --------
     const sortByParam = searchParams.get("sortBy") || "dueDate";
     const sortDirParam =
       (searchParams.get("sortDir") || "asc").toLowerCase() === "desc"
@@ -28,7 +31,10 @@ export async function GET(req: Request) {
       searchParams.get("rangeField") ||
       "dueDate";
 
-    const SORT_FIELDS: Record<string, "dueDate" | "updatedAt" | "createdAt" | "completedAt"> = {
+    const SORT_FIELDS: Record<
+      string,
+      "dueDate" | "updatedAt" | "createdAt" | "completedAt"
+    > = {
       duedate: "dueDate",
       dueDate: "dueDate",
       updatedat: "updatedAt",
@@ -37,23 +43,29 @@ export async function GET(req: Request) {
       createdAt: "createdAt",
       completedat: "completedAt",
       completedAt: "completedAt",
-      activity: "updatedAt", // best-effort ordering for live views
+      activity: "updatedAt",
     };
 
-    const RANGE_FIELDS: Record<string, "dueDate" | "updatedAt" | "createdAt" | "completedAt" | "activity"> = {
+    const RANGE_FIELDS: Record<
+      string,
+      "dueDate" | "updatedAt" | "createdAt" | "completedAt" | "activity"
+    > = {
       duedate: "dueDate",
       dueDate: "dueDate",
       updatedat: "updatedAt",
       updatedAt: "updatedAt",
       completedat: "completedAt",
       completedAt: "completedAt",
-      activity: "activity", // updated/completed/created window
+      activity: "activity",
     };
 
     const sortField = SORT_FIELDS[sortByParam] ?? "dueDate";
     const sortDir: "asc" | "desc" = sortDirParam;
     const rangeField = RANGE_FIELDS[rangeByParam] ?? "dueDate";
-    const take = Math.min(Math.max(Number.isFinite(limitParam) ? limitParam : 100, 1), 500); // cap to protect DB
+    const take = Math.min(
+      Math.max(Number.isFinite(limitParam) ? limitParam : 100, 1),
+      500
+    );
 
     let where: any = {};
 
@@ -65,7 +77,6 @@ export async function GET(req: Request) {
       };
 
       if (rangeField === "activity") {
-        // Include any task touched in the window (updated/completed/created)
         where.OR = [
           { updatedAt: window },
           { completedAt: window },
@@ -81,7 +92,7 @@ export async function GET(req: Request) {
       where.clientId = clientId;
     }
 
-    // ----- Package Filter (via client relation) -----
+    // ----- Package Filter -----
     if (packageId) {
       where.client = { packageId };
     }
@@ -96,7 +107,23 @@ export async function GET(req: Request) {
       where.assignedToId = assignedToId;
     }
 
-    // Fetch tasks efficiently
+    // ⭐⭐⭐ NEW: QC SUPERVISOR FILTER ⭐⭐⭐
+    if (qcSupervisorId) {
+      const agents = await prisma.user.findMany({
+        where: { qcId: qcSupervisorId },
+        select: { id: true },
+      });
+
+      const agentIds = agents.map((a) => a.id);
+
+      if (agentIds.length === 0) {
+        return NextResponse.json([]); // No agents → no tasks
+      }
+
+      where.assignedToId = { in: agentIds };
+    }
+
+    // ----- Fetch tasks -----
     const tasks = await prisma.task.findMany({
       where,
       select: {
@@ -132,74 +159,3 @@ export async function GET(req: Request) {
     );
   }
 }
-
-
-// // app/api/tasks/route.ts
-
-// import { NextResponse } from "next/server";
-// import { startOfDay, endOfDay } from "date-fns";
-// import prisma from "@/lib/prisma";
-
-// // ========== READ TASKS WITH DATE RANGE & FILTERS ==========
-// export async function GET(req: Request) {
-//   try {
-//     const { searchParams } = new URL(req.url);
-
-//     const startDate = searchParams.get("startDate");
-//     const endDate = searchParams.get("endDate");
-//     const clientId = searchParams.get("clientId");
-//     const packageId = searchParams.get("packageId");
-//     const status = searchParams.get("status");
-//     const assignedToId = searchParams.get("assignedToId");
-
-//     let where: any = {};
-
-//     // ----- Date Range -----
-//     if (startDate && endDate) {
-//       where.dueDate = {
-//         gte: startOfDay(new Date(startDate)),
-//         lte: endOfDay(new Date(endDate)),
-//       };
-//     }
-
-//     // ----- Client Filter -----
-//     if (clientId) {
-//       where.clientId = clientId;
-//     }
-
-//     // ----- Package Filter (via client relation) -----
-//     if (packageId) {
-//       where.client = { packageId };
-//     }
-
-//     // ----- Status Filter -----
-//     if (status) {
-//       where.status = status;
-//     }
-
-//     // ----- Assigned User Filter -----
-//     if (assignedToId) {
-//       where.assignedToId = assignedToId;
-//     }
-
-//     // Fetch tasks efficiently
-//     const tasks = await prisma.task.findMany({
-//       where,
-//       include: {
-//         client: { select: { id: true, name: true, packageId: true } },
-//         category: { select: { id: true, name: true } },
-//         assignedTo: { select: { id: true, name: true, email: true } },
-//       },
-//       orderBy: { dueDate: "asc" },
-//       take: 100, // ✅ limit (add pagination later if needed)
-//     });
-
-//     return NextResponse.json(tasks);
-//   } catch (error) {
-//     console.error("Error fetching tasks:", error);
-//     return NextResponse.json(
-//       { error: "Failed to fetch tasks" },
-//       { status: 500 }
-//     );
-//   }
-// }

@@ -56,6 +56,8 @@ export default function UserFormDialog({
       biography?: string | null;
     }>
   >([]);
+  const [qcs, setQcs] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingQcs, setLoadingQcs] = useState(false);
 
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [loadingClients, setLoadingClients] = useState(false);
@@ -79,6 +81,7 @@ export default function UserFormDialog({
     category: "",
     clientId: "",
     teamId: "",
+    qcId: "",
     status: "active",
   });
 
@@ -151,6 +154,29 @@ export default function UserFormDialog({
     }
   }, []);
 
+  const fetchQcs = useCallback(async () => {
+    try {
+      setLoadingQcs(true);
+      const res = await fetch("/api/users?role=qc");
+      const json = await res.json();
+
+      if (res.ok && Array.isArray(json.users)) {
+        setQcs(
+          json.users.map((u: any) => ({
+            id: u.id,
+            name: u.name || `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim(),
+          }))
+        );
+      } else {
+        setQcs([]);
+      }
+    } catch {
+      setQcs([]);
+    } finally {
+      setLoadingQcs(false);
+    }
+  }, []);
+
   /** ---------- Effects ---------- */
   useEffect(() => {
     if (open) {
@@ -191,6 +217,7 @@ export default function UserFormDialog({
         category: initialUser.category || "",
         clientId: initialUser.clientId || "",
         teamId: "",
+        qcId: initialUser.qcId || "",
         status: initialUser.status || "active",
       });
 
@@ -211,10 +238,21 @@ export default function UserFormDialog({
         category: "",
         clientId: "",
         teamId: "",
+        qcId: "",
         status: "active",
       });
     }
   }, [open, mode, initialUser, fetchClients]);
+
+  // If user selects role = agent → load QCs
+  useEffect(() => {
+    const selectedRole = roles
+      .find((r) => r.id === formData.roleId)
+      ?.name?.toLowerCase();
+    if (selectedRole === "agent") {
+      fetchQcs();
+    }
+  }, [formData.roleId, roles, fetchQcs]);
 
   /** ---------- Derived ---------- */
   const isClientRole = useMemo(() => {
@@ -317,6 +355,7 @@ export default function UserFormDialog({
           firstName: formData.firstName?.trim(),
           lastName: formData.lastName?.trim(),
           category: selectedTeamName || formData.category || "",
+          qcId: formData.qcId || null,
           actorId: currentUser?.id,
         };
 
@@ -358,6 +397,7 @@ export default function UserFormDialog({
           category: selectedTeamName || formData.category,
           clientId: formData.clientId || null,
           teamId: formData.teamId || null,
+          qcId: formData.qcId || null,
           status: formData.status,
           actorId: currentUser?.id,
         };
@@ -394,103 +434,105 @@ export default function UserFormDialog({
           </DialogTitle>
         </DialogHeader>
 
-                  {/* Role */}
+        {/* Role */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="role">
+            Role <span className="text-red-500">*</span>
+          </Label>
+          <Select
+            value={formData.roleId}
+            onValueChange={(value) => {
+              setFormData({ ...formData, roleId: value });
+              const requiredLength = getPasswordRequirement(value);
+              const roleName =
+                roles.find((r) => r.id === value)?.name || "this role";
+              toast.info(
+                `Password must be at least ${requiredLength} characters for ${roleName} role`
+              );
+              const selected = roles
+                .find((r) => r.id === value)
+                ?.name?.toLowerCase();
+              if (selected === "client") {
+                fetchClients();
+              }
+            }}
+          >
+            <SelectTrigger id="role" className="w-full">
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Client (when client role) */}
+        {isClientRole && (
           <div className="flex flex-col gap-2">
-            <Label htmlFor="role">
-              Role <span className="text-red-500">*</span>
-            </Label>
+            <Label htmlFor="client">Client</Label>
             <Select
-              value={formData.roleId}
+              value={formData.clientId ?? undefined}
               onValueChange={(value) => {
-                setFormData({ ...formData, roleId: value });
-                const requiredLength = getPasswordRequirement(value);
-                const roleName =
-                  roles.find((r) => r.id === value)?.name || "this role";
-                toast.info(
-                  `Password must be at least ${requiredLength} characters for ${roleName} role`
-                );
-                const selected = roles
-                  .find((r) => r.id === value)
-                  ?.name?.toLowerCase();
-                if (selected === "client") {
-                  fetchClients();
-                }
+                const selected = clients.find((c) => c.id === value);
+                setFormData((prev) => {
+                  // derive first/last name from client name if available
+                  const fullName = (selected?.name || "").trim();
+                  let derivedFirst = prev.firstName || "";
+                  let derivedLast = prev.lastName || "";
+                  if (fullName) {
+                    const parts = fullName.split(/\s+/);
+                    const f = parts[0] || "";
+                    const l = parts.slice(1).join(" ") || "";
+                    derivedFirst = f || derivedFirst;
+                    derivedLast = l || derivedLast;
+                  }
+
+                  const composedName = `${derivedFirst}${
+                    derivedLast ? ` ${derivedLast}` : ""
+                  }`;
+
+                  return {
+                    ...prev,
+                    clientId: value,
+                    // optional auto-fill from client:
+                    email: selected?.email ?? prev.email,
+                    phone: selected?.phone ?? prev.phone,
+                    address: selected?.address ?? prev.address,
+                    biography: selected?.biography ?? prev.biography,
+                    firstName: derivedFirst,
+                    lastName: derivedLast,
+                    name: composedName || prev.name,
+                  };
+                });
               }}
             >
-              <SelectTrigger id="role" className="w-full">
-                <SelectValue placeholder="Select Role" />
+              <SelectTrigger id="client" className="w-full">
+                <SelectValue
+                  placeholder={
+                    loadingClients ? "Loading clients..." : "Select Client"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.id} value={role.id}>
-                    {role.name}
+                {availableClients.length === 0 ? (
+                  <SelectItem disabled value="no-clients">
+                    No clients found
                   </SelectItem>
-                ))}
+                ) : (
+                  availableClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
-
-          {/* Client (when client role) */}
-          {isClientRole && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="client">Client</Label>
-              <Select
-                value={formData.clientId ?? undefined}
-                onValueChange={(value) => {
-                  const selected = clients.find((c) => c.id === value);
-                  setFormData((prev) => {
-                    // derive first/last name from client name if available
-                    const fullName = (selected?.name || "").trim();
-                    let derivedFirst = prev.firstName || "";
-                    let derivedLast = prev.lastName || "";
-                    if (fullName) {
-                      const parts = fullName.split(/\s+/);
-                      const f = parts[0] || "";
-                      const l = parts.slice(1).join(" ") || "";
-                      derivedFirst = f || derivedFirst;
-                      derivedLast = l || derivedLast;
-                    }
-
-                    const composedName = `${derivedFirst}${derivedLast ? ` ${derivedLast}` : ""}`;
-
-                    return {
-                      ...prev,
-                      clientId: value,
-                      // optional auto-fill from client:
-                      email: selected?.email ?? prev.email,
-                      phone: selected?.phone ?? prev.phone,
-                      address: selected?.address ?? prev.address,
-                      biography: selected?.biography ?? prev.biography,
-                      firstName: derivedFirst,
-                      lastName: derivedLast,
-                      name: composedName || prev.name,
-                    };
-                  });
-                }}
-              >
-                <SelectTrigger id="client" className="w-full">
-                  <SelectValue
-                    placeholder={
-                      loadingClients ? "Loading clients..." : "Select Client"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableClients.length === 0 ? (
-                    <SelectItem disabled value="no-clients">
-                      No clients found
-                    </SelectItem>
-                  ) : (
-                    availableClients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+        )}
 
         <div className="grid gap-4 py-4">
           {/* First/Last Name (required) */}
@@ -619,14 +661,21 @@ export default function UserFormDialog({
             <div className="flex justify-between items-center">
               <Label htmlFor="biography">Biography</Label>
               <span className="text-sm text-muted-foreground">
-                {formData.biography ? formData.biography.trim().split(/\s+/).filter(Boolean).length : 0}/100 words
+                {formData.biography
+                  ? formData.biography.trim().split(/\s+/).filter(Boolean)
+                      .length
+                  : 0}
+                /100 words
               </span>
             </div>
             <Textarea
               id="biography"
               value={formData.biography}
               onChange={(e) => {
-                const words = e.target.value.trim().split(/\s+/).filter(Boolean);
+                const words = e.target.value
+                  .trim()
+                  .split(/\s+/)
+                  .filter(Boolean);
                 if (words.length <= 100) {
                   setFormData({ ...formData, biography: e.target.value });
                 }
@@ -638,7 +687,40 @@ export default function UserFormDialog({
           </div>
 
           {/* Status (and Team if not Client role) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* QC Selection (only if role = agent) */}
+            {roles
+              .find((r) => r.id === formData.roleId)
+              ?.name?.toLowerCase() === "agent" && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="qcId">QC Supervisor</Label>
+                <Select
+                  value={formData.qcId || "none"}
+                  onValueChange={(value) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      qcId: value === "none" ? "" : value,
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        loadingQcs ? "Loading QCs..." : "Select QC Supervisor"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No QC Assigned</SelectItem>
+                    {qcs.map((qc) => (
+                      <SelectItem key={qc.id} value={qc.id}>
+                        {qc.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {!isClientRole && (
               <div className="flex flex-col gap-2">
                 <Label htmlFor="team">Team</Label>
@@ -656,7 +738,11 @@ export default function UserFormDialog({
                       category: teamName,
                     }));
 
-                    if (mode === "edit" && initialUser?.id && value !== "none") {
+                    if (
+                      mode === "edit" &&
+                      initialUser?.id &&
+                      value !== "none"
+                    ) {
                       await assignTeam(initialUser.id, value);
                     }
                   }}

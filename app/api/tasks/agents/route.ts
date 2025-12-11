@@ -24,12 +24,21 @@ export async function GET(req: Request) {
     const teamId = searchParams.get("teamId") ?? undefined; // e.g., "asset-team"
     const teamName = searchParams.get("teamName") ?? undefined; // optional alternative
 
+    // Optional: limit agents to those supervised by a specific QC user
+    // When provided, we only return agents where user.qcId = qcSupervisorId
+    const qcSupervisorId = searchParams.get("qcSupervisorId") ?? undefined;
+
     // Base filter: only users with Agent role (case variants)
     const baseWhere: any = {
       role: {
         name: { in: ["agent", "Agent", "AGENT"] },
       },
     };
+
+    // If a QC supervisor id is provided, only include agents under that QC's supervision
+    if (qcSupervisorId) {
+      baseWhere.qcId = qcSupervisorId;
+    }
 
     // Optional team filter across either membership table
     if (teamId || teamName) {

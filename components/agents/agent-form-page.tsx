@@ -56,6 +56,7 @@ interface AgentFormPageProps {
     address: string;
     bio: string;
     status: string;
+    qcId?: string;
   };
 }
 
@@ -71,6 +72,9 @@ export default function AgentFormPage({
   const [showSuccess, setShowSuccess] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
+  const [qcList, setQcList] = useState<
+    Array<{ id: string; name: string; email: string }>
+  >([]);
 
   const [formData, setFormData] = useState({
     firstName: initialData?.firstName || "",
@@ -83,6 +87,7 @@ export default function AgentFormPage({
     address: initialData?.address || "",
     bio: initialData?.bio || "",
     status: initialData?.status || "active",
+    qcId: initialData?.qcId || "", // NEW
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -96,7 +101,7 @@ export default function AgentFormPage({
         const teamsData: Team[] = await res.json();
         setTeams(teamsData);
 
-        // 🔁 If editing and the incoming "teamId" is actually a team NAME (from category),
+        // If editing and the incoming "teamId" is actually a team NAME (from category),
         // map it to the real team id so the Select shows the right value and PUT can use it.
         if (mode === "edit") {
           const incoming = initialData?.teamId ?? "";
@@ -120,6 +125,34 @@ export default function AgentFormPage({
     };
 
     fetchTeams();
+  }, []);
+
+  // Fetch QC users
+  useEffect(() => {
+    const fetchQCs = async () => {
+      try {
+        const res = await fetch("/api/users?qc=list");
+        const json = await res.json();
+
+        // Filter QC role from all users
+        const qcUsers =
+          json.users?.filter(
+            (u: any) => u.role?.name?.toLowerCase() === "qc"
+          ) ?? [];
+
+        setQcList(
+          qcUsers.map((qc: any) => ({
+            id: qc.id,
+            name: qc.name || `${qc.firstName} ${qc.lastName}`,
+            email: qc.email,
+          }))
+        );
+      } catch (e) {
+        console.error("Failed to load QCs:", e);
+      }
+    };
+
+    fetchQCs();
   }, []);
 
   const validateForm = () => {
@@ -169,8 +202,9 @@ export default function AgentFormPage({
         address: formData.address,
         bio: formData.bio, // API accepts bio/biography
         status: formData.status, // "active" | "inactive"
-        teamId: formData.teamId, // ✅ ALWAYS send; API maps to category
+        teamId: formData.teamId, // ALWAYS send; API maps to category
         role: formData.role, // (useful for assignment too)
+        qcId: formData.qcId || null, // Send QC ID
       };
 
       if (mode === "edit") {
@@ -303,6 +337,7 @@ export default function AgentFormPage({
                           password: "",
                           phone: "",
                           teamId: "",
+                          qcId: "",
                           role: "Member",
                           address: "",
                           bio: "",
@@ -595,8 +630,9 @@ export default function AgentFormPage({
                   </div>
                 </CardHeader>
               </div>
+
               <CardContent className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-3">
                     <Label
                       htmlFor="teamId"
@@ -676,6 +712,42 @@ export default function AgentFormPage({
                         <SelectItem value="inactive" className="rounded-lg">
                           Inactive
                         </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* QC Assignment */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="qcId"
+                      className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2 text-blue-500" />
+                      Supervisor QC
+                    </Label>
+
+                    <Select
+                      value={formData.qcId}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, qcId: value }))
+                      }
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <SelectValue placeholder="Select QC Supervisor" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        {qcList.length === 0 ? (
+                          <SelectItem disabled value="none">
+                            No QC Found
+                          </SelectItem>
+                        ) : (
+                          qcList.map((qc) => (
+                            <SelectItem key={qc.id} value={qc.id}>
+                              {qc.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

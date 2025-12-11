@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role") || "";
 
     const where: any = {};
-    
+
     // Search filter
     if (q) {
       where.OR = [
@@ -28,17 +28,17 @@ export async function GET(request: NextRequest) {
         { phone: { contains: q, mode: "insensitive" } },
       ];
     }
-    
+
     // Status filter
     if (status && status !== "all") {
       where.status = status;
     }
-    
+
     // Category filter
     if (category && category !== "all") {
       where.category = category;
     }
-    
+
     // Role filter
     if (role && role !== "all") {
       where.role = { name: role };
@@ -136,19 +136,19 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json(
-      { 
-        users: usersWithStatus, 
-        total, 
-        limit, 
-        offset, 
+      {
+        users: usersWithStatus,
+        total,
+        limit,
+        offset,
         q,
-        filters: { status, category, role }
+        filters: { status, category, role },
       },
-      { 
+      {
         status: 200,
         headers: {
-          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30'
-        }
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+        },
       }
     );
   } catch (error) {
@@ -179,6 +179,7 @@ export async function POST(request: NextRequest) {
       biography,
       actorId,
       teamId,
+      qcId, // 🆕 NEW — QC Supervisor
     } = body;
 
     if (!email || !password || !roleId) {
@@ -198,6 +199,7 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Client must have clientId
     if (roleId) {
       const role = await prisma.role.findUnique({ where: { id: roleId } });
       if (role && role.name.toLowerCase() === "client" && !clientId) {
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 🔥 CREATE USER WITH QC SUPERVISION
     const newUser = await prisma.user.create({
       data: {
         name: name || null,
@@ -222,6 +225,7 @@ export async function POST(request: NextRequest) {
         category: category || null,
         clientId: clientId || null,
         status: status || "active",
+        qcId: qcId || null, // 🆕 Assign QC
         emailVerified: false,
         accounts: {
           create: {
@@ -236,6 +240,7 @@ export async function POST(request: NextRequest) {
       include: { role: { select: { id: true, name: true } }, accounts: true },
     });
 
+    // Team assignment (unchanged)
     if (teamId && teamId.trim() !== "") {
       try {
         const team = await prisma.team.findUnique({ where: { id: teamId } });
@@ -270,7 +275,7 @@ export async function POST(request: NextRequest) {
       entityId: newUser.id,
       userId: actorId || null,
       action: "create",
-      details: { email, roleId, name, teamId: teamId || null },
+      details: { email, roleId, name, teamId, qcId }, // 🆕 Log qcId
     });
 
     return NextResponse.json(
@@ -290,7 +295,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, password, biography, actorId, ...rest } = body;
+    const { id, password, biography, actorId, qcId, ...rest } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -322,8 +327,14 @@ export async function PUT(request: NextRequest) {
     if (typeof rest.status !== "undefined")
       allowed.status = rest.status || "active";
 
+    // 🔥 Add QC assignment
+    if (typeof qcId !== "undefined") {
+      allowed.qcId = qcId || null;
+    }
+
     const updateData: any = { ...allowed, biography: biography || null };
 
+    // Password update
     if (password && password.trim() !== "") {
       if (password.trim().length < 8) {
         return NextResponse.json(
@@ -352,6 +363,7 @@ export async function PUT(request: NextRequest) {
       details: {
         before: existingUser,
         after: updatedUser,
+        qcId, // 🆕 Log QC change
         passwordChanged: !!password && password.trim() !== "",
       },
     });

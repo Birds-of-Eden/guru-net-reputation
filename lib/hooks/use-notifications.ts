@@ -33,9 +33,13 @@ const fetcher = async <T = unknown>(url: string): Promise<T> => {
 };
 
 // --- Unread count (badge) ---
-export function useUnreadCount(apiBase: string = "/api/notifications") {
+export function useUnreadCount(
+  apiBase: string = "/api/notifications",
+  scope: string = "self"
+) {
+  const querySuffix = scope ? `?scope=${encodeURIComponent(scope)}` : "";
   const { data, error, isLoading, mutate } = useSWR<UnreadCountResp>(
-    `${apiBase}/unread-count`,
+    `${apiBase}/unread-count${querySuffix}`,
     fetcher,
     {
       refreshInterval: 8000, // poll

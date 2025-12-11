@@ -20,6 +20,7 @@ export interface UserInterface {
   role?: { id: string; name: string } | null;
   passwordHash?: string;
   clientId?: string | null;
+  qcId?: string | null;
 }
 
 export interface UserStats {
@@ -53,6 +54,7 @@ export interface FormData {
   category?: string; // kept for backward compatibility (will store team name)
   clientId?: string; // for client role
   teamId?: string; // selected team id (optional)
+  qcId?: string; // QC supervisor id (optional)
   biography?: string;
   status: UserStatus;
 }

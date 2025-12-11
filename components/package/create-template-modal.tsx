@@ -79,7 +79,7 @@ interface SiteAsset {
   defaultIdealDurationMinutes: number;
 }
 
-interface TemplateSiteAssetLike extends SiteAsset { }
+interface TemplateSiteAssetLike extends SiteAsset {}
 
 interface Template {
   id: string;
@@ -125,13 +125,17 @@ export function CreateTemplateModal({
   const [contentWriting, setContentWriting] = useState<SiteAsset[]>([]);
   const [backlinks, setBacklinks] = useState<SiteAsset[]>([]);
   const [completedCom, setCompletedCom] = useState<SiteAsset[]>([]);
-  const [youtubeOptimization, setYoutubeOptimization] = useState<SiteAsset[]>([]);
+  const [youtubeOptimization, setYoutubeOptimization] = useState<SiteAsset[]>(
+    []
+  );
   const [monitoring, setMonitoring] = useState<SiteAsset[]>([]);
   const [reviewRemoval, setReviewRemoval] = useState<SiteAsset[]>([]);
   const [summaryReport, setSummaryReport] = useState<SiteAsset[]>([]);
   const [monthlyReport, setMonthlyReport] = useState<SiteAsset[]>([]);
   // store dynamic custom type lists
-  const [customTypes, setCustomTypes] = useState<Record<string, SiteAsset[]>>({});
+  const [customTypes, setCustomTypes] = useState<Record<string, SiteAsset[]>>(
+    {}
+  );
   // Add this state near your other state declarations
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
@@ -155,24 +159,84 @@ export function CreateTemplateModal({
     "guest_posting",
   ];
 
-  const TYPE_CONFIG: Record<SiteAssetTypeTS, { title: string; colorClass: string; icon: React.ReactNode }> = {
-    social_site: { title: "Social Sites", colorClass: "bg-blue-500", icon: <Share2 className="w-5 h-5" /> },
-    web2_site: { title: "Web 2.0 Sites", colorClass: "bg-purple-500", icon: <Globe className="w-5 h-5" /> },
-    additional_site: { title: "Additional Sites", colorClass: "bg-green-500", icon: <Sparkles className="w-5 h-5" /> },
-    graphics_design: { title: "Graphics Design", colorClass: "bg-rose-500", icon: <Palette className="w-5 h-5" /> },
-    image_optimization: { title: "Image Optimization", colorClass: "bg-rose-500", icon: <Palette className="w-5 h-5" /> },
-    content_studio: { title: "Content Studio", colorClass: "bg-emerald-500", icon: <PenTool className="w-5 h-5" /> },
-    content_writing: { title: "Content Writing", colorClass: "bg-indigo-500", icon: <FileEdit className="w-5 h-5" /> },
-    backlinks: { title: "Backlinks", colorClass: "bg-sky-500", icon: <LinkIcon className="w-5 h-5" /> },
-    completed_com: { title: "Completed.com", colorClass: "bg-green-500", icon: <CheckCircle className="w-5 h-5" /> },
-    youtube_video_optimization: { title: "YouTube Optimization", colorClass: "bg-red-500", icon: <Youtube className="w-5 h-5" /> },
-    monitoring: { title: "Monitoring", colorClass: "bg-slate-500", icon: <BarChart className="w-5 h-5" /> },
-    review_removal: { title: "Review Removal", colorClass: "bg-amber-500", icon: <ShieldAlert className="w-5 h-5" /> },
-    summary_report: { title: "Summary Report", colorClass: "bg-fuchsia-500", icon: <FileBarChart className="w-5 h-5" /> },
-    guest_posting: { title: "Guest Posting", colorClass: "bg-fuchsia-500", icon: <FileBarChart className="w-5 h-5" /> },
+  const TYPE_CONFIG: Record<
+    SiteAssetTypeTS,
+    { title: string; colorClass: string; icon: React.ReactNode }
+  > = {
+    social_site: {
+      title: "Social Sites",
+      colorClass: "bg-blue-500",
+      icon: <Share2 className="w-5 h-5" />,
+    },
+    web2_site: {
+      title: "Web 2.0 Sites",
+      colorClass: "bg-purple-500",
+      icon: <Globe className="w-5 h-5" />,
+    },
+    additional_site: {
+      title: "Additional Sites",
+      colorClass: "bg-green-500",
+      icon: <Sparkles className="w-5 h-5" />,
+    },
+    graphics_design: {
+      title: "Graphics Design",
+      colorClass: "bg-rose-500",
+      icon: <Palette className="w-5 h-5" />,
+    },
+    image_optimization: {
+      title: "Image Optimization",
+      colorClass: "bg-rose-500",
+      icon: <Palette className="w-5 h-5" />,
+    },
+    content_studio: {
+      title: "Content Studio",
+      colorClass: "bg-emerald-500",
+      icon: <PenTool className="w-5 h-5" />,
+    },
+    content_writing: {
+      title: "Content Writing",
+      colorClass: "bg-indigo-500",
+      icon: <FileEdit className="w-5 h-5" />,
+    },
+    backlinks: {
+      title: "Backlinks",
+      colorClass: "bg-sky-500",
+      icon: <LinkIcon className="w-5 h-5" />,
+    },
+    completed_com: {
+      title: "Completed.com",
+      colorClass: "bg-green-500",
+      icon: <CheckCircle className="w-5 h-5" />,
+    },
+    youtube_video_optimization: {
+      title: "YouTube Optimization",
+      colorClass: "bg-red-500",
+      icon: <Youtube className="w-5 h-5" />,
+    },
+    monitoring: {
+      title: "Monitoring",
+      colorClass: "bg-slate-500",
+      icon: <BarChart className="w-5 h-5" />,
+    },
+    review_removal: {
+      title: "Review Removal",
+      colorClass: "bg-amber-500",
+      icon: <ShieldAlert className="w-5 h-5" />,
+    },
+    summary_report: {
+      title: "Summary Report",
+      colorClass: "bg-fuchsia-500",
+      icon: <FileBarChart className="w-5 h-5" />,
+    },
+    guest_posting: {
+      title: "Guest Posting",
+      colorClass: "bg-fuchsia-500",
+      icon: <FileBarChart className="w-5 h-5" />,
+    },
   };
 
-  const [enabledTypes, setEnabledTypes] = useState<SiteAssetTypeTS[]>(ALL_TYPES);
+  const [enabledTypes, setEnabledTypes] =
+    useState<SiteAssetTypeTS[]>(ALL_TYPES);
 
   const slugify = (name: string) =>
     name
@@ -181,7 +245,12 @@ export function CreateTemplateModal({
       .replace(/^_+|_+$/g, "");
 
   const steps = [
-    { id: "basic", title: "Basic Info", description: "Template details", icon: FileText },
+    {
+      id: "basic",
+      title: "Basic Info",
+      description: "Template details",
+      icon: FileText,
+    },
     ...enabledTypes.map((t) => {
       const cfg = TYPE_CONFIG[t];
       const title = cfg
@@ -197,17 +266,15 @@ export function CreateTemplateModal({
   ];
 
   // Helpers to create default SiteAsset from a simple default item
-  const mapDefaults =
-    (type: SiteAssetTypeTS) =>
-      (site: { name: string; url?: string; isRequired?: boolean }) => ({
-        type,
-        name: site.name,
-        url: site.url ?? "",
-        description: "",
-        isRequired: true,
-        defaultPostingFrequency: 3,
-        defaultIdealDurationMinutes: 30,
-      });
+  const mapDefaults = (type: SiteAssetTypeTS) => (site: SiteAsset) => ({
+    type,
+    name: site.name,
+    url: site.url ?? "",
+    description: site.description ?? "",
+    isRequired: site.isRequired ?? true,
+    defaultPostingFrequency: site.defaultPostingFrequency ?? 3,
+    defaultIdealDurationMinutes: site.defaultIdealDurationMinutes ?? 30,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -264,23 +331,23 @@ export function CreateTemplateModal({
           pick("completed_com").length
             ? pick("completed_com")
             : [
-              {
-                type: "completed_com",
-                name: "Completed.com",
-                url: "https://Completed.com",
-                description: "",
-                isRequired: true,
-                defaultPostingFrequency: 1,
-                defaultIdealDurationMinutes: 30,
-              },
-            ]
+                {
+                  type: "completed_com",
+                  name: "Completed.com",
+                  url: "https://Completed.com",
+                  description: "",
+                  isRequired: true,
+                  defaultPostingFrequency: 1,
+                  defaultIdealDurationMinutes: 30,
+                },
+              ]
         );
         setYoutubeOptimization(
           pick("youtube_video_optimization").length
             ? pick("youtube_video_optimization")
             : DEFAULT_YOUTUBE_VIDEO_OPTIMIZATION.map(
-              mapDefaults("youtube_video_optimization")
-            )
+                mapDefaults("youtube_video_optimization")
+              )
         );
         setMonitoring(
           pick("monitoring").length
@@ -313,7 +380,9 @@ export function CreateTemplateModal({
         if (unknownTypes.length) {
           const map: Record<string, SiteAsset[]> = {};
           for (const t of unknownTypes) {
-            map[t] = (assets as SiteAsset[]).filter((a) => a.type === t) as SiteAsset[];
+            map[t] = (assets as SiteAsset[]).filter(
+              (a) => a.type === t
+            ) as SiteAsset[];
           }
           setCustomTypes(map);
         } else {
@@ -333,11 +402,19 @@ export function CreateTemplateModal({
 
     setSocialSites(DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")));
     setWeb2Sites(DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")));
-    setAdditionalSites(DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site")));
-    setGraphicsDesign(DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design")));
-    setImageOptimization(DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization")));
+    setAdditionalSites(
+      DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site"))
+    );
+    setGraphicsDesign(
+      DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design"))
+    );
+    setImageOptimization(
+      DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization"))
+    );
     setContentStudio(DEFAULT_CONTENT_STUDIO.map(mapDefaults("content_studio")));
-    setContentWriting(DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing")));
+    setContentWriting(
+      DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing"))
+    );
     setBacklinks(DEFAULT_BACKLINKS.map(mapDefaults("backlinks")));
     setCompletedCom([
       {
@@ -403,10 +480,15 @@ export function CreateTemplateModal({
         return [monthlyReport, setMonthlyReport];
       default: {
         const list = customTypes[type] || [];
-        const setter: React.Dispatch<React.SetStateAction<SiteAsset[]>> = (updater) => {
+        const setter: React.Dispatch<React.SetStateAction<SiteAsset[]>> = (
+          updater
+        ) => {
           setCustomTypes((prev) => {
             const current = prev[type] || [];
-            const next = typeof updater === "function" ? (updater as any)(current) : updater;
+            const next =
+              typeof updater === "function"
+                ? (updater as any)(current)
+                : updater;
             return { ...prev, [type]: next };
           });
         };
@@ -448,8 +530,7 @@ export function CreateTemplateModal({
 
   const nextStep = () =>
     currentStep < steps.length - 1 && setCurrentStep(currentStep + 1);
-  const prevStep = () =>
-    currentStep > 0 && setCurrentStep(currentStep - 1);
+  const prevStep = () => currentStep > 0 && setCurrentStep(currentStep - 1);
   const canProceed = () => (currentStep === 0 ? name.trim().length > 0 : true);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -617,7 +698,12 @@ export function CreateTemplateModal({
                     <Textarea
                       value={site.description || ""}
                       onChange={(e) =>
-                        updateSiteAsset(type, index, "description", e.target.value)
+                        updateSiteAsset(
+                          type,
+                          index,
+                          "description",
+                          e.target.value
+                        )
                       }
                       placeholder="Brief description of this site/asset..."
                       rows={2}
@@ -727,7 +813,9 @@ export function CreateTemplateModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold">Basic Information</h2>
-              <p className="text-sm text-gray-500">Set up your template details</p>
+              <p className="text-sm text-gray-500">
+                Set up your template details
+              </p>
             </div>
           </div>
 
@@ -804,7 +892,13 @@ export function CreateTemplateModal({
       colorClass: "bg-gray-500",
       icon: <FileBarChart className="w-5 h-5" />,
     };
-    return renderSiteAssetFields(list, type, cfg.title, cfg.icon, cfg.colorClass);
+    return renderSiteAssetFields(
+      list,
+      type,
+      cfg.title,
+      cfg.icon,
+      cfg.colorClass
+    );
   };
 
   return (
@@ -829,19 +923,21 @@ export function CreateTemplateModal({
                 <div key={step.id} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${isActive
-                        ? "bg-blue-500 text-white shadow"
-                        : isCompleted
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-500 text-white shadow"
+                          : isCompleted
                           ? "bg-green-500 text-white"
                           : "bg-gray-200 text-gray-500"
-                        }`}
+                      }`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="mt-1 text-center">
                       <p
-                        className={`text-xs font-medium ${isActive ? "text-blue-600" : "text-gray-600"
-                          }`}
+                        className={`text-xs font-medium ${
+                          isActive ? "text-blue-600" : "text-gray-600"
+                        }`}
                       >
                         {step.title}
                       </p>
@@ -849,8 +945,9 @@ export function CreateTemplateModal({
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`flex-1 h-1 mx-2 rounded-full ${isCompleted ? "bg-green-400" : "bg-gray-200"
-                        }`}
+                      className={`flex-1 h-1 mx-2 rounded-full ${
+                        isCompleted ? "bg-green-400" : "bg-gray-200"
+                      }`}
                     />
                   )}
                 </div>
@@ -900,11 +997,7 @@ export function CreateTemplateModal({
           </Button>
 
           <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
 
@@ -1054,7 +1147,5 @@ export function CreateTemplateModal({
         </DialogContent>
       </Dialog>
     </Dialog>
-
-
   );
 }

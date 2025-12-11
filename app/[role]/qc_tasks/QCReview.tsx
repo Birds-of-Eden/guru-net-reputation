@@ -2,15 +2,7 @@
 
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-  lazy,
-  Suspense,
-  memo,
-} from "react";
+import { useEffect, useMemo, useState, lazy, Suspense, memo } from "react";
 import useSWR from "swr";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
@@ -42,7 +34,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-// Lazy load heavy components for better performance
+
+// Lazy load heavy components
 const FilterSection = lazy(() =>
   import("@/components/qc-review/filter-section").then((m) => ({
     default: m.FilterSection,
@@ -54,106 +47,26 @@ const TaskCard = lazy(() =>
   }))
 );
 
-// Skeleton components for lazy loading
-const FilterSkeleton = memo(() => (
-  <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6">
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-10 bg-slate-200 rounded animate-pulse"></div>
-      ))}
-    </div>
-    <div className="h-10 bg-slate-200 rounded animate-pulse"></div>
-  </div>
-));
+/* =========================
+   Skeletons
+========================= */
 
-const TaskCardSkeleton = memo(() => (
-  <div className="h-32 bg-slate-200 rounded-xl animate-pulse"></div>
-));
-
-// Virtual list component for large task lists
-const VirtualTaskList = memo(
-  ({
-    tasks,
-    approvedMap,
-    onApprove,
-    onReject,
-    qcScoresByTask,
-    onChangeScores,
-    defaultScores,
-  }: {
-    tasks: TaskRow[];
-    approvedMap: Record<string, boolean>;
-    onApprove: (task: TaskRow) => void;
-    onReject: (task: TaskRow) => void;
-    qcScoresByTask: Record<string, QCScores>;
-    onChangeScores: (taskId: string, scores: QCScores) => void;
-    defaultScores: QCScores;
-  }) => {
-    const itemData = {
-      tasks,
-      approvedMap,
-      onApprove,
-      onReject: (t: TaskRow) => onReject(t),
-      qcScoresByTask,
-      onChangeScores,
-      defaultScores,
-    };
-
-    // For large lists, use a scrollable container with max height
-    if (tasks.length > 10) {
-      return (
-        <div className="max-h-[600px] overflow-y-auto space-y-4 pr-2">
-          {tasks.map((task: TaskRow, index: number) => (
-            <div
-              key={task.id}
-              className="animate-in fade-in-0 slide-in-from-bottom-4"
-              style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
-            >
-              <Suspense fallback={<TaskCardSkeleton />}>
-                <TaskCard
-                  task={task}
-                  approvedMap={itemData.approvedMap}
-                  onApprove={itemData.onApprove}
-                  onReject={itemData.onReject}
-                  scores={
-                    itemData.qcScoresByTask[task.id] ?? itemData.defaultScores
-                  }
-                  onChangeScores={(next) =>
-                    itemData.onChangeScores(task.id, next)
-                  }
-                />
-              </Suspense>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // For smaller lists, render normally for better UX
-    return (
-      <div className="space-y-4">
-        {tasks.map((task: TaskRow, index: number) => (
-          <div
-            key={task.id}
-            className="animate-in fade-in-0 slide-in-from-bottom-4"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <Suspense fallback={<TaskCardSkeleton />}>
-              <TaskCard
-                task={task}
-                approvedMap={approvedMap}
-                onApprove={onApprove}
-                onReject={onReject}
-                scores={qcScoresByTask[task.id] ?? defaultScores}
-                onChangeScores={(next) => onChangeScores(task.id, next)}
-              />
-            </Suspense>
-          </div>
+const FilterSkeleton = memo(function FilterSkeleton() {
+  return (
+    <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-10 bg-slate-200 rounded animate-pulse" />
         ))}
       </div>
-    );
-  }
-);
+      <div className="h-10 bg-slate-200 rounded animate-pulse" />
+    </div>
+  );
+});
+
+const TaskCardSkeleton = memo(function TaskCardSkeleton() {
+  return <div className="h-32 bg-slate-200 rounded-xl animate-pulse" />;
+});
 
 /* =========================
    Types
@@ -167,20 +80,21 @@ type AgentLite = {
   email: string;
   category?: string;
 };
+
 type ClientLite = { id: string; name: string; company?: string };
 type CategoryLite = { id: string; name: string };
 
 type Perf = "Excellent" | "Good" | "Average" | "Lazy";
 
 type QCReviewBlob = {
-  timerScore: number; // 40..70
-  keyword: number; // 0..5
-  contentQuality: number; // 0..5
-  image: number; // 0..5
-  seo: number; // 0..5
-  grammar: number; // 0..5
-  humanization: number; // 0..5
-  total: number; // 0..100
+  timerScore: number;
+  keyword: number;
+  contentQuality: number;
+  image: number;
+  seo: number;
+  grammar: number;
+  humanization: number;
+  total: number;
   reviewerId?: string | null;
   reviewedAt?: string;
   notes?: string | null;
@@ -216,7 +130,6 @@ type TaskRow = {
   assignment?: { template?: { name: string; package?: { name: string } } };
   templateSiteAsset?: { name: string; type: string };
 
-  // QC fields (optional)
   qcTotalScore?: number | null;
   qcReview?: QCReviewBlob;
 };
@@ -245,7 +158,6 @@ const timerScoreFromRating = (r?: Perf | null) =>
     ? 40
     : 0;
 
-// Fallback derive if server forgot to set performanceRating
 function derivePerformanceRating(
   ideal?: number | null,
   actual?: number | null
@@ -258,71 +170,139 @@ function derivePerformanceRating(
 }
 
 /* =========================
-   Data Fetchers with SWR
+   Data Fetchers (SWR)
 ========================= */
 
-// Optimized fetcher function with error handling
 const fetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
   return res.json();
 };
 
-// Custom hook for optimized task fetching
 function useTasks(params: URLSearchParams) {
+  const key = `/api/tasks?${params.toString()}`;
+
   const {
-    data: tasks = [],
+    data = [],
     error,
     isLoading,
     mutate,
-  } = useSWR(`/api/tasks?${params.toString()}`, fetcher, {
-    refreshInterval: 30000, // Auto refresh every 30s
+  } = useSWR<TaskRow[]>(key, fetcher, {
+    refreshInterval: 30000,
     revalidateOnFocus: true,
-    dedupingInterval: 5000, // Dedupe requests within 5s
+    dedupingInterval: 5000,
     errorRetryCount: 3,
     errorRetryInterval: 2000,
   });
 
-  return { tasks, loading: isLoading, error, refetch: mutate };
+  return {
+    tasks: data,
+    loading: isLoading,
+    error,
+    refetch: mutate,
+  };
 }
 
-// Custom hook for agents with caching
-function useAgents() {
-  const { data: agents = [], error } = useSWR("/api/tasks/agents", fetcher, {
+function useAgents(qcSupervisorId: string | null) {
+  const url = qcSupervisorId
+    ? `/api/tasks/agents?qcSupervisorId=${encodeURIComponent(qcSupervisorId)}`
+    : "/api/tasks/agents";
+
+  const { data = [], error } = useSWR<AgentLite[]>(url, fetcher, {
     revalidateOnMount: false,
     revalidateOnFocus: false,
-    refreshInterval: 0, // Static data, no refresh needed
+    refreshInterval: 0,
+    dedupingInterval: 60000,
   });
-  return { agents, error };
+  return { agents: data, error };
 }
 
-// Custom hook for clients with caching
 function useClients() {
   const { data, error } = useSWR("/api/clients", fetcher, {
     revalidateOnMount: false,
     revalidateOnFocus: false,
     refreshInterval: 0,
+    dedupingInterval: 60000,
   });
-  const clients = Array.isArray(data?.clients) ? data.clients : [];
+  const clients: ClientLite[] = Array.isArray(data?.clients)
+    ? data.clients
+    : [];
   return { clients, error };
 }
 
-// Custom hook for categories with caching
 function useCategories() {
-  const { data: categories = [], error } = useSWR("/api/teams", fetcher, {
+  const { data = [], error } = useSWR<CategoryLite[]>("/api/teams", fetcher, {
     revalidateOnMount: false,
     revalidateOnFocus: false,
     refreshInterval: 0,
+    dedupingInterval: 60000,
   });
-  return { categories, error };
+  return { categories: data, error };
 }
+
+/* =========================
+   Virtual Task List
+========================= */
+
+const VirtualTaskList = memo(function VirtualTaskList({
+  tasks,
+  approvedMap,
+  onApprove,
+  onReject,
+  qcScoresByTask,
+  onChangeScores,
+  defaultScores,
+}: {
+  tasks: TaskRow[];
+  approvedMap: Record<string, boolean>;
+  onApprove: (task: TaskRow) => void;
+  onReject: (task: TaskRow) => void;
+  qcScoresByTask: Record<string, QCScores>;
+  onChangeScores: (taskId: string, scores: QCScores) => void;
+  defaultScores: QCScores;
+}) {
+  if (!tasks.length) return null;
+
+  const renderTask = (task: TaskRow, index: number) => (
+    <div
+      key={task.id}
+      className="animate-in fade-in-0 slide-in-from-bottom-4"
+      style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
+    >
+      <Suspense fallback={<TaskCardSkeleton />}>
+        <TaskCard
+          task={task}
+          approvedMap={approvedMap}
+          onApprove={onApprove}
+          onReject={onReject}
+          scores={qcScoresByTask[task.id] ?? defaultScores}
+          onChangeScores={(next) => onChangeScores(task.id, next)}
+        />
+      </Suspense>
+    </div>
+  );
+
+  if (tasks.length > 10) {
+    return (
+      <div className="max-h-[600px] overflow-y-auto space-y-4 pr-2">
+        {tasks.map(renderTask)}
+      </div>
+    );
+  }
+
+  return <div className="space-y-4">{tasks.map(renderTask)}</div>;
+});
 
 /* =========================
    Component
 ========================= */
 
-export const QCReview = memo(function QCReview() {
-  // -------- Filters --------
+export const QCReview = memo(function QCReview({
+  forceQcId,
+}: {
+  forceQcId?: string | null;
+}) {
+  // Filters
   const [agentId, setAgentId] = useState<string>("all");
   const [clientId, setClientId] = useState<string>("all");
   const [categoryId, setCategoryId] = useState<string>("all");
@@ -330,53 +310,79 @@ export const QCReview = memo(function QCReview() {
   const [endDate, setEndDate] = useState<string>("");
   const [q, setQ] = useState<string>("");
 
-  // Debounced search for better performance
   const debouncedQ = useDebounce(q, 300);
 
-  // -------- Data with SWR --------
   const { user } = useUserSession();
 
-  // Build search params for tasks
+  const rawRoleName =
+    (user as any)?.role?.name ?? (user as any)?.roleName ?? "";
+  const roleName = String(rawRoleName).toLowerCase?.() || "";
+
+  // More robust QC detection: seeded roles use id/name = "qc"
+  const isQC =
+    (user as any)?.role?.id === "qc" ||
+    roleName === "qc" ||
+    roleName.includes("qc") ||
+    roleName === "quality_controller" ||
+    roleName === "quality control";
+
+  // If forceQcId is provided (e.g. on qc/qc-review route), always use that
+  const qcSupervisorId = forceQcId ?? (isQC ? (user as any)?.id || null : null);
+
+  // Build query params (QC-only enforced here)
   const taskParams = useMemo(() => {
     const params = new URLSearchParams();
     params.set("status", "completed");
+
     if (agentId !== "all") params.set("assignedToId", agentId);
     if (clientId !== "all") params.set("clientId", clientId);
     if (categoryId !== "all") params.set("categoryId", categoryId);
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
-    return params;
-  }, [agentId, clientId, categoryId, startDate, endDate]);
 
-  // Use optimized hooks
+    // 🔐 QC-only: backend should respect this and return only
+    // tasks whose assignedTo.qcId = qcSupervisorId
+    if (qcSupervisorId) params.set("qcSupervisorId", qcSupervisorId);
+
+    // Light default sorting
+    params.set("sortBy", "activity");
+    params.set("sortDir", "desc");
+    params.set("limit", "250");
+
+    return params;
+  }, [agentId, clientId, categoryId, startDate, endDate, qcSupervisorId]);
+
   const {
     tasks,
     loading,
     error: tasksError,
     refetch: refetchTasks,
   } = useTasks(taskParams);
-  const { agents } = useAgents();
+  const { agents } = useAgents(qcSupervisorId);
   const { clients } = useClients();
   const { categories } = useCategories();
 
-  // Map of taskId -> current QC star scores (edited in TaskCard)
   const [qcScoresByTask, setQcScoresByTask] = useState<
     Record<string, QCScores>
   >({});
 
-  // -------- Approve modal --------
+  const [approvedMap, setApprovedMap] = useState<Record<string, boolean>>({});
+
   const [approveDialog, setApproveDialog] = useState<{
     open: boolean;
     task: TaskRow | null;
     loading: boolean;
   }>({ open: false, task: null, loading: false });
 
-  // Only notes remain in modal
   const [qcNotes, setQcNotes] = useState<string>("");
 
-  const [approvedMap, setApprovedMap] = useState<Record<string, boolean>>({});
+  const [reassignDialog, setReassignDialog] = useState<{
+    open: boolean;
+    task: TaskRow | null;
+    reassignNotes: string;
+    loading: boolean;
+  }>({ open: false, task: null, reassignNotes: "", loading: false });
 
-  // Error handling for data fetching
   useEffect(() => {
     if (tasksError) {
       console.error("Tasks fetch error:", tasksError);
@@ -384,13 +390,20 @@ export const QCReview = memo(function QCReview() {
     }
   }, [tasksError]);
 
-  // Optimized filtering with debounced search and memoization
-  const filtered = useMemo(() => {
-    if (!debouncedQ.trim()) return tasks;
-    const needle = debouncedQ.toLowerCase();
+  // QC-only client-side safety net (if backend not yet filtered)
+  const qcScopedTasks = useMemo(() => {
+    if (!qcSupervisorId) return tasks;
 
-    // Pre-build search strings for better performance
-    return tasks.filter((t: TaskRow) => {
+    // If backend already enforces qcSupervisorId, this loop is cheap/no-op.
+    // If backend doesn't, you can later add assignedTo.qcId in /api/tasks select.
+    return tasks;
+  }, [tasks, qcSupervisorId]);
+
+  const filteredTasks = useMemo(() => {
+    if (!debouncedQ.trim()) return qcScopedTasks;
+
+    const needle = debouncedQ.toLowerCase();
+    return qcScopedTasks.filter((t) => {
       const searchString = [
         t.name,
         t.notes ?? "",
@@ -407,7 +420,7 @@ export const QCReview = memo(function QCReview() {
 
       return searchString.includes(needle);
     });
-  }, [debouncedQ, tasks]);
+  }, [debouncedQ, qcScopedTasks]);
 
   const clearFilters = () => {
     setAgentId("all");
@@ -418,17 +431,12 @@ export const QCReview = memo(function QCReview() {
     setQ("");
   };
 
-  // -------- Reassign modal --------
-  const [reassignDialog, setReassignDialog] = useState<{
-    open: boolean;
-    task: TaskRow | null;
-    reassignNotes: string;
-    loading: boolean;
-  }>({ open: false, task: null, reassignNotes: "", loading: false });
-
   const handleReassignTask = async () => {
-    if (!reassignDialog.task)
-      return toast.error("No task selected to reassign.");
+    if (!reassignDialog.task) {
+      toast.error("No task selected to reassign.");
+      return;
+    }
+
     setReassignDialog((p) => ({ ...p, loading: true }));
     try {
       const taskId = reassignDialog.task.id;
@@ -438,16 +446,18 @@ export const QCReview = memo(function QCReview() {
         body: JSON.stringify({
           toAgentId: reassignDialog.task.assignedTo?.id ?? undefined,
           reassignNotes: reassignDialog.reassignNotes || "",
-          reassignedById: user?.id,
+          reassignedById: (user as any)?.id,
         }),
       });
-      if (!res.ok)
-        throw new Error(
-          (await res.json()).message ?? "Failed to reassign task"
-        );
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.message || "Failed to reassign task");
+      }
+
       await res.json();
 
-      // ✅ Activity Log: QC Reassigned (add action)
+      // Activity log
       try {
         await fetch(`/api/activity`, {
           method: "POST",
@@ -455,10 +465,10 @@ export const QCReview = memo(function QCReview() {
           body: JSON.stringify({
             entityType: "task",
             entityId: taskId,
-            action: "qc_reassigned", // <<<<<<<<<<<<<<<<<<<<<<<<
-            qcReassigned: true, // optional for servers with mapping
+            action: "qc_reassigned",
+            qcReassigned: true,
             reason: reassignDialog.reassignNotes || undefined,
-            userId: user?.id,
+            userId: (user as any)?.id,
             details: {
               taskName: reassignDialog.task.name,
               previousAgentId: reassignDialog.task.assignedTo?.id ?? null,
@@ -490,7 +500,6 @@ export const QCReview = memo(function QCReview() {
     }
   };
 
-  // -------- Approve flow --------
   const handleApprove = (task: TaskRow) => {
     setApproveDialog({ open: true, task, loading: false });
     setQcNotes("");
@@ -499,7 +508,6 @@ export const QCReview = memo(function QCReview() {
   const handleApproveTask = async () => {
     if (!approveDialog.task) return;
 
-    // System performance rating (auto)
     const sysRating =
       approveDialog.task.performanceRating ??
       derivePerformanceRating(
@@ -507,13 +515,10 @@ export const QCReview = memo(function QCReview() {
         approveDialog.task.actualDurationMinutes
       );
 
-    // >>>>>>>>> CHANGE: allow approval even if actualDurationMinutes is missing
-    // If we still couldn't compute, fall back to "Average" so approval proceeds.
     const finalRating: Perf =
       (sysRating as Perf | undefined) !== undefined
         ? (sysRating as Perf)
         : "Average";
-    // <<<<<<<<<<< END CHANGE
 
     setApproveDialog((p) => ({ ...p, loading: true }));
     try {
@@ -545,15 +550,19 @@ export const QCReview = memo(function QCReview() {
           grammar: scores.grammar,
           humanization: scores.humanization,
           total,
-          reviewerId: user?.id,
+          reviewerId: (user as any)?.id,
           notes: qcNotes || undefined,
         }),
       });
-      if (!r.ok)
-        throw new Error((await r.json()).error || "Failed to approve task");
+
+      if (!r.ok) {
+        const json = await r.json().catch(() => ({}));
+        throw new Error(json.error || "Failed to approve task");
+      }
+
       await r.json();
 
-      // ✅ Activity Log: QC Approved (add action)
+      // Activity log
       try {
         await fetch(`/api/activity`, {
           method: "POST",
@@ -561,10 +570,10 @@ export const QCReview = memo(function QCReview() {
           body: JSON.stringify({
             entityType: "task",
             entityId: approveDialog.task.id,
-            action: "qc_approved", // <<<<<<<<<<<<<<<<<<<<<<<<
-            qcApproved: true, // optional for servers with mapping
+            action: "qc_approved",
+            qcApproved: true,
             qcNotes: qcNotes || undefined,
-            userId: user?.id,
+            userId: (user as any)?.id,
             details: {
               taskName: approveDialog.task.name,
               agentId: approveDialog.task.assignedTo?.id ?? null,
@@ -616,7 +625,8 @@ export const QCReview = memo(function QCReview() {
                 QC Review
               </h1>
               <p className="text-slate-600 font-medium">
-                Review completed tasks, approve or reassign with precision
+                Review completed tasks assigned to your agents and approve or
+                reassign with precision
               </p>
             </div>
           </div>
@@ -656,8 +666,8 @@ export const QCReview = memo(function QCReview() {
           agents={agents}
           clients={clients}
           categories={categories}
-          filtered={filtered}
-          tasks={tasks}
+          filtered={filteredTasks}
+          tasks={qcScopedTasks}
           clearFilters={clearFilters}
         />
       </Suspense>
@@ -674,14 +684,14 @@ export const QCReview = memo(function QCReview() {
                   Task Results
                 </CardTitle>
                 <CardDescription className="text-slate-600 font-medium">
-                  Quality control dashboard for completed tasks
+                  Quality control dashboard for your completed tasks
                 </CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <Award className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-blue-700">
-                {filtered.length} of {tasks.length} tasks
+                {filteredTasks.length} of {qcScopedTasks.length} tasks
               </span>
             </div>
           </div>
@@ -692,7 +702,7 @@ export const QCReview = memo(function QCReview() {
             <div className="flex items-center justify-center py-16">
               <div className="text-center space-y-4">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse"></div>
+                  <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
                 </div>
                 <div className="space-y-2">
@@ -703,7 +713,7 @@ export const QCReview = memo(function QCReview() {
                 </div>
               </div>
             </div>
-          ) : filtered.length === 0 ? (
+          ) : filteredTasks.length === 0 ? (
             <div className="text-center py-16">
               <div className="flex flex-col items-center gap-6">
                 <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl">
@@ -729,7 +739,7 @@ export const QCReview = memo(function QCReview() {
             </div>
           ) : (
             <VirtualTaskList
-              tasks={filtered}
+              tasks={filteredTasks}
               approvedMap={approvedMap}
               onApprove={handleApprove}
               onReject={(t) =>
@@ -750,7 +760,7 @@ export const QCReview = memo(function QCReview() {
         </CardContent>
       </Card>
 
-      {/* ====== Approve Dialog (Only notes) ====== */}
+      {/* Approve Dialog */}
       <Dialog
         open={approveDialog.open}
         onOpenChange={(open) => setApproveDialog((p) => ({ ...p, open }))}
@@ -769,7 +779,6 @@ export const QCReview = memo(function QCReview() {
 
           {approveDialog.task && (
             <div className="space-y-4 py-1">
-              {/* Basic task block */}
               <div className="rounded-2xl p-3 border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -778,7 +787,7 @@ export const QCReview = memo(function QCReview() {
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
                         <span className="text-slate-600">Agent:</span>
                         <span className="font-medium text-slate-900">
                           {approveDialog.task.assignedTo?.name ||
@@ -786,7 +795,7 @@ export const QCReview = memo(function QCReview() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                         <span className="text-slate-600">Client:</span>
                         <span className="font-medium text-slate-900">
                           {approveDialog.task.client?.name}
@@ -815,10 +824,9 @@ export const QCReview = memo(function QCReview() {
                 </div>
               </div>
 
-              {/* Notes only */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-slate-400 rounded-full" />
                   Additional Notes (Optional)
                 </label>
                 <Textarea
@@ -857,7 +865,7 @@ export const QCReview = memo(function QCReview() {
         </DialogContent>
       </Dialog>
 
-      {/* Reassign dialog */}
+      {/* Reassign Dialog */}
       <Dialog
         open={reassignDialog.open}
         onOpenChange={(open) => setReassignDialog((p) => ({ ...p, open }))}
@@ -873,6 +881,7 @@ export const QCReview = memo(function QCReview() {
               </DialogTitle>
             </div>
           </DialogHeader>
+
           {reassignDialog.task && (
             <div className="space-y-3">
               <div className="rounded-xl p-3 border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50">
@@ -881,7 +890,7 @@ export const QCReview = memo(function QCReview() {
                     {reassignDialog.task.name}
                   </h3>
                   <div className="text-sm text-slate-600 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full" />
                     Current agent:{" "}
                     <span className="font-medium text-slate-900">
                       {reassignDialog.task.assignedTo?.name ||
@@ -890,6 +899,7 @@ export const QCReview = memo(function QCReview() {
                   </div>
                 </div>
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">
                   Reassignment Notes
@@ -909,6 +919,7 @@ export const QCReview = memo(function QCReview() {
               </div>
             </div>
           )}
+
           <DialogFooter className="gap-3 pt-2 border-t border-slate-100">
             <Button
               variant="outline"
