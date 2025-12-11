@@ -123,95 +123,23 @@ const ClientCardComponent = function ClientCard({
     return isNaN(d.getTime()) ? null : d;
   }, []);
 
-  // ⚡ OPTIMIZED: Memoize task counts (runs only when tasks change)
-  const taskCounts = useMemo(() => {
-    const tasks = client.tasks || [];
-    const counts: TaskStatusCounts = {
+  // ⚡ OPTIMIZED: Memoize task counts from taskSummary
+  const taskCounts: TaskStatusCounts = useMemo(() => {
+    return client.taskSummary ?? {
       pending: 0,
       in_progress: 0,
       completed: 0,
       overdue: 0,
       cancelled: 0,
     };
-    for (const t of tasks) {
-      const s = normalizeStatus((t as any).status);
-      if (s in counts) (counts as any)[s]++;
-      else counts.pending++;
-    }
-    return counts;
-  }, [client.tasks, normalizeStatus]);
+  }, [client.taskSummary]);
 
-  const totalTasks = client.tasks?.length || 0;
+  const totalTasks = taskCounts.pending +
+    taskCounts.in_progress +
+    taskCounts.completed +
+    taskCounts.overdue +
+    taskCounts.cancelled;
 
-  const derivedProgress = useMemo(
-    () =>
-      totalTasks ? Math.round((taskCounts.completed / totalTasks) * 100) : 0,
-    [totalTasks, taskCounts.completed]
-  );
-
-  // ⚡ OPTIMIZED: Memoize month boundaries (only recalculates when month changes)
-  const { monthStart, monthEnd } = useMemo(() => {
-    const now = new Date();
-    return {
-      monthStart: new Date(now.getFullYear(), now.getMonth(), 1),
-      monthEnd: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-    };
-  }, []);
-
-  // ⚡ OPTIMIZED: Memoize month progress calculation
-  const { derivedProgressThisMonth, completedThisMonth, totalThisMonth } =
-    useMemo(() => {
-      const tasks = client.tasks ?? [];
-
-      const getBestDate = (task: any): Date | null => {
-        return (
-          parseDate(task?.createdAt) ||
-          parseDate(task?.startDate) ||
-          parseDate(task?.dueDate)
-        );
-      };
-
-      const inThisMonth = (task: any) => {
-        const d = getBestDate(task);
-        if (!d) return false;
-        return d >= monthStart && d < monthEnd;
-      };
-
-      const tasksThisMonth = tasks.filter(inThisMonth);
-      const totalThisMonth = tasksThisMonth.length;
-
-      let completedThisMonth = 0;
-      let approvedThisMonth = 0;
-
-      for (const t of tasksThisMonth) {
-        const sRaw =
-          (t as any)?.status
-            ?.toString()
-            .trim()
-            .toLowerCase()
-            .replace(/[\-\s]+/g, "_") || "";
-        const sNorm = normalizeStatus((t as any)?.status);
-        const completedAt = parseDate((t as any)?.completedAt);
-
-        const isCompleted =
-          (completedAt
-            ? completedAt >= monthStart && completedAt < monthEnd
-            : false) || sNorm === "completed";
-
-        const isApproved = sRaw === "qc_approved" || sRaw === "approved";
-
-        if (isCompleted) completedThisMonth++;
-        if (isApproved) approvedThisMonth++;
-      }
-
-      const derivedProgressThisMonth = totalThisMonth
-        ? Math.round(
-            ((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100
-          )
-        : 0;
-
-      return { derivedProgressThisMonth, completedThisMonth, totalThisMonth };
-    }, [client.tasks, monthStart, monthEnd, normalizeStatus, parseDate]);
 
   // ⚡ OPTIMIZED: Memoize date formatting
   const formatDate = useCallback(
@@ -446,13 +374,13 @@ const ClientCardComponent = function ClientCard({
               Overall Progress
             </span>
             <span className="font-bold text-gray-900 whitespace-nowrap">
-              {derivedProgress}%
+              {client.overallProgress ?? 0}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2">
             <div
               className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-              style={{ width: `${derivedProgress}%` }}
+              style={{ width: `${client.overallProgress ?? 0}%` }}
             />
           </div>
 
@@ -461,13 +389,13 @@ const ClientCardComponent = function ClientCard({
               This Month Progress
             </span>
             <span className="font-bold text-gray-900 whitespace-nowrap">
-              {derivedProgressThisMonth}%
+              {client.monthProgress ?? 0}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div
               className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
-              style={{ width: `${derivedProgressThisMonth}%` }}
+              style={{ width: `${client.monthProgress ?? 0}%` }}
             />
           </div>
         </div>

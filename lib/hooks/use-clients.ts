@@ -1,164 +1,104 @@
 // lib/hooks/use-clients.ts
-// Enhanced custom hook with SWR integration and pre-indexed data for super-fast filtering
-
 "use client";
 
 import useSWR from "swr";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Client } from "@/types/client";
 
-// Pre-indexed data structure for O(1) lookups
-interface ClientIndex {
-  byStatus: Map<string, Client[]>;
-  byPackage: Map<string, Client[]>;
-  byAM: Map<string, Client[]>;
-  all: Client[];
+interface Pagination {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
 }
 
-interface UseClientsReturn {
+interface ApiResponse {
   clients: Client[];
-  loading: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-  // New: Pre-indexed data for super-fast filtering
-  index: ClientIndex;
-  // New: Optimized filter function
-  getFilteredClients: (filters: {
-    status?: string;
-    packageId?: string;
-    amId?: string;
-    searchQuery?: string;
-  }) => Client[];
+  pagination: Pagination;
 }
 
-// Fetcher function for SWR
-const fetcher = async (url: string): Promise<Client[]> => {
-  const response = await fetch(url, {
-    cache: "force-cache",
-    next: { revalidate: 10 },
-  });
-  
-  if (!response.ok) {
-    throw new Error("Failed to fetch clients");
-  }
-  
-  return response.json();
-};
+export function useClients() {
+  // Local UI state for filters + pagination
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string>("all");
+  const [packageId, setPackageId] = useState<string>("all");
+  const [amId, setAmId] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
 
-// Helper function to build pre-indexed data structure
-function buildClientIndex(clients: Client[]): ClientIndex {
-  const byStatus = new Map<string, Client[]>();
-  const byPackage = new Map<string, Client[]>();
-  const byAM = new Map<string, Client[]>();
+  // Build API URL dynamically
+  const query = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("pageSize", "30");
 
-  clients.forEach((client) => {
-    // Index by status
-    const status = (client.status || "unknown").toLowerCase();
-    if (!byStatus.has(status)) byStatus.set(status, []);
-    byStatus.get(status)!.push(client);
+    if (status !== "all") params.set("status", status);
+    if (packageId !== "all") params.set("packageId", packageId);
+    if (amId !== "all") params.set("amId", amId);
+    if (search.trim() !== "") params.set("search", search.trim());
 
-    // Index by package
-    const pkgId = client.packageId || "unassigned";
-    if (!byPackage.has(pkgId)) byPackage.set(pkgId, []);
-    byPackage.get(pkgId)!.push(client);
+    return `/api/clients?${params.toString()}`;
+  }, [page, status, packageId, amId, search]);
 
-    // Index by AM
-    const amId = client.amId || client.accountManager?.id || "unassigned";
-    if (!byAM.has(amId)) byAM.set(amId, []);
-    byAM.get(amId)!.push(client);
+  // SWR fetcher
+  const fetcher = async (url: string): Promise<ApiResponse> => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to load clients");
+    return res.json();
+  };
+
+  // Fetch via SWR
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse>(query, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 3000,
   });
 
-  return { byStatus, byPackage, byAM, all: clients };
-}
+  const clients = data?.clients ?? [];
+  const pagination = data?.pagination;
 
-export function useClients(): UseClientsReturn {
-  // ✅ SWR integration with auto-revalidation
-  const { data, error, mutate, isLoading } = useSWR<Client[]>(
-    "/api/clients",
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      dedupingInterval: 5000, // Dedupe requests within 5 seconds
-      refreshInterval: 30000, // Auto-refresh every 30 seconds
-      errorRetryCount: 3,
-      errorRetryInterval: 5000,
+  // Helpers
+  const nextPage = useCallback(() => {
+    if (pagination && page < pagination.totalPages) {
+      setPage(page + 1);
     }
-  );
+  }, [page, pagination]);
 
-  const clients = data || [];
+  const prevPage = useCallback(() => {
+    if (page > 1) setPage(page - 1);
+  }, [page]);
 
-  // ✅ Pre-indexed data structure - memoized for performance
-  const index = useMemo(() => {
-    return buildClientIndex(clients);
-  }, [clients]);
-
-  // ✅ Optimized filter function using pre-indexed data
-  const getFilteredClients = useMemo(
-    () =>
-      (filters: {
-        status?: string;
-        packageId?: string;
-        amId?: string;
-        searchQuery?: string;
-      }) => {
-        let result = clients;
-
-        // Use pre-indexed data for O(1) filtering when possible
-        if (filters.status && filters.status !== "all") {
-          const statusClients = index.byStatus.get(
-            filters.status.toLowerCase()
-          );
-          if (statusClients) {
-            result = result.filter((c) => statusClients.includes(c));
-          } else {
-            return []; // No clients with this status
-          }
-        }
-
-        if (filters.packageId && filters.packageId !== "all") {
-          const pkgClients = index.byPackage.get(filters.packageId);
-          if (pkgClients) {
-            result = result.filter((c) => pkgClients.includes(c));
-          } else {
-            return [];
-          }
-        }
-
-        if (filters.amId && filters.amId !== "all") {
-          const amClients = index.byAM.get(filters.amId);
-          if (amClients) {
-            result = result.filter((c) => amClients.includes(c));
-          } else {
-            return [];
-          }
-        }
-
-        // Search filter (still O(n) but on reduced dataset)
-        if (filters.searchQuery) {
-          const q = filters.searchQuery.toLowerCase();
-          result = result.filter(
-            (client) =>
-              client.name.toLowerCase().includes(q) ||
-              client.company?.toLowerCase().includes(q) ||
-              client.designation?.toLowerCase().includes(q) ||
-              client.email?.toLowerCase().includes(q)
-          );
-        }
-
-        return result;
-      },
-    [clients, index]
-  );
+  const resetFilters = useCallback(() => {
+    setStatus("all");
+    setPackageId("all");
+    setAmId("all");
+    setSearch("");
+    setPage(1);
+  }, []);
 
   return {
     clients,
     loading: isLoading,
-    error: error || null,
-    refetch: async () => {
-      await mutate();
-    },
-    index,
-    getFilteredClients,
+    error: error ?? null,
+    refetch: async () => mutate(),
+    pagination,
+
+    // UI state setters
+    page,
+    setPage,
+    nextPage,
+    prevPage,
+
+    status,
+    setStatus,
+
+    packageId,
+    setPackageId,
+
+    amId,
+    setAmId,
+
+    search,
+    setSearch,
+
+    resetFilters,
   };
 }

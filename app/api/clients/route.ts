@@ -1,12 +1,16 @@
 // app/api/clients/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 // Helper to normalize platform values
 const normalizePlatform = (input: unknown): string => {
   const raw = String(input ?? "").trim();
   return raw || "OTHER";
 };
+
 // Helper: allowed statuses for article topic usage
 const ARTICLE_TOPIC_STATUSES = new Set([
   "Used 1",
@@ -26,8 +30,8 @@ const ARTICLE_TOPIC_STATUSES = new Set([
 type ArticleTopic = {
   topicname: string;
   status: string; // constrained at runtime via ARTICLE_TOPIC_STATUSES
-  usedDate?: string | null; // ISO string or null
-  usedCount?: number; // derived/validated number
+  usedDate?: string | null;
+  usedCount?: number;
 };
 
 // Normalize and validate articleTopics input from request body
@@ -53,7 +57,6 @@ const normalizeArticleTopics = (input: unknown): ArticleTopic[] => {
       ) {
         usedCount = Math.max(0, Number(rawCount));
       } else {
-        // derive from status if not explicitly provided
         const match = /^Used\s+(\d+)$/.exec(status);
         if (match) {
           usedCount = Number(match[1]);
@@ -64,7 +67,7 @@ const normalizeArticleTopics = (input: unknown): ArticleTopic[] => {
         }
       }
 
-      // usedDate normalization -> ISO string or null
+      // usedDate normalization
       let usedDate: string | null | undefined = undefined;
       const rawDate = (item as any)?.usedDate;
       if (rawDate === null) {
@@ -133,7 +136,6 @@ const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
               ) {
                 usedCount = Math.max(0, Number(rawCount));
               } else {
-                // derive from status if not explicitly provided
                 const match = /^Used\s+(\d+)$/.exec(status);
                 if (match) {
                   usedCount = Number(match[1]);
@@ -144,7 +146,7 @@ const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
                 }
               }
 
-              // usedDate normalization -> ISO string or null
+              // usedDate normalization
               let usedDate: string | null | undefined = undefined;
               const rawDate = t?.usedDate;
               if (rawDate === null) {
@@ -173,14 +175,26 @@ const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
     .filter(Boolean) as ArticleCategory[];
 };
 
-// GET /api/clients - Get all clients (with clientUserId attached) or a single client by id
+const parseDate = (v: any): Date | undefined => {
+  if (!v) return undefined;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? undefined : d;
+};
+
+// ============ GET /api/clients ============
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    const packageId = searchParams.get("packageId");
-    const amId = searchParams.get("amId");
 
+    const id = searchParams.get("id");
+    const packageId = searchParams.get("packageId") || undefined;
+    const amId = searchParams.get("amId") || undefined;
+
+    const page = Number(searchParams.get("page") || "1");
+    const pageSize = Number(searchParams.get("pageSize") || "30");
+    const skip = (page - 1) * pageSize;
+
+    // ---------- SINGLE CLIENT ----------
     if (id) {
       const client = await prisma.client.findUnique({
         where: { id },
@@ -189,104 +203,234 @@ export async function GET(req: Request) {
         },
       });
       if (!client) return NextResponse.json(null);
+
       const user = await prisma.user.findFirst({
         where: { clientId: id, role: { name: "client" } },
         select: { id: true },
       });
-      const socialMedias = Array.isArray((client as any).socialMedia)
-        ? ((client as any).socialMedia as any[])
-        : [];
+
       return NextResponse.json({
         ...client,
-        socialMedias,
+        socialMedias: Array.isArray((client as any).socialMedia)
+          ? ((client as any).socialMedia as any[])
+          : [],
         clientUserId: user?.id ?? null,
       });
     }
 
-    // ⚡ CRITICAL OPTIMIZATION: Don't fetch all tasks for each client
-    // Tasks are heavy and not needed for list view - only for detail view
-    // This reduces response size from 50MB+ to <5MB
+    // ---------- TOTAL COUNT ----------
+    const totalCount = await prisma.client.count({
+      where: { packageId, amId },
+    });
+
+    // ---------- FETCH CLIENT LIST ----------
     const clients = await prisma.client.findMany({
-      where: {
-        packageId: packageId || undefined,
-        amId: amId || undefined,
-      },
-      // Only select fields needed for the client list view
+      where: { packageId, amId },
       select: {
         id: true,
         name: true,
         company: true,
         designation: true,
-        email: true,
-        phone: true,
         avatar: true,
         status: true,
-        progress: true,
         packageId: true,
         amId: true,
         startDate: true,
         dueDate: true,
         createdAt: true,
-        socialMedia: true,
         accountManager: { select: { id: true, name: true, email: true } },
         package: { select: { id: true, name: true } },
-        // ⚡ REMOVED: tasks relation (not needed for list view, causes massive payload)
-        // Tasks will be fetched separately if needed (e.g., in detail view)
+        teamMembers: {select: {agentId: true}},
       },
-      // Sort by recent first for better UX
+      skip,
+      take: pageSize,
       orderBy: { createdAt: "desc" },
-      // ⚡ OPTIMIZATION: Limit to 500 clients (prevents overwhelming response)
-      take: 500,
     });
 
     if (clients.length === 0) {
-      return NextResponse.json([]);
+      return NextResponse.json({
+        clients: [],
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        },
+      });
     }
 
+    // ---------- CLIENT IDS ----------
     const clientIds = clients.map((c) => c.id);
+
+    // ---------- GET CLIENT USER IDS ----------
     const clientUsers = await prisma.user.findMany({
-      where: {
-        clientId: { in: clientIds },
-        role: { name: "client" },
-      },
+      where: { clientId: { in: clientIds }, role: { name: "client" } },
       select: { id: true, clientId: true },
     });
 
-    const clientIdToUserId = new Map<string | number, string>();
+    const clientIdToUserId = new Map<string, string>();
     for (const u of clientUsers) {
-      const key = u.clientId as unknown as string | number;
-      if (!clientIdToUserId.has(key)) {
-        clientIdToUserId.set(key, String(u.id));
+      if (!clientIdToUserId.has(u.clientId)) {
+        clientIdToUserId.set(u.clientId, u.id);
       }
     }
 
+    // ---------- TASK SUMMARY (SAFE RAW SQL) ----------
+    const taskSummaryRaw =
+      clientIds.length === 0
+        ? []
+        : await prisma.$queryRaw<
+            { clientId: string; status: string; count: number }[]
+          >(Prisma.sql`
+          SELECT "clientId", status, COUNT(*)::int as count
+          FROM "Task"
+          WHERE "clientId" IN (${Prisma.join(clientIds)})
+          GROUP BY "clientId", status
+        `);
+
+    const summaryMap = new Map<
+      string,
+      {
+        pending: number;
+        in_progress: number;
+        completed: number;
+        overdue: number;
+        cancelled: number;
+      }
+    >();
+
+    for (const id of clientIds) {
+      summaryMap.set(id, {
+        pending: 0,
+        in_progress: 0,
+        completed: 0,
+        overdue: 0,
+        cancelled: 0,
+      });
+    }
+
+    for (const row of taskSummaryRaw) {
+      const map = summaryMap.get(row.clientId);
+      if (!map) continue;
+
+      const s = row.status.toLowerCase();
+      if (s in map) {
+        (map as any)[s] = row.count;
+      }
+    }
+
+    // ---------- PROGRESS CALCULATIONS (FAST RAW SQL) ----------
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const progressRaw = clientIds.length === 0
+      ? []
+      : await prisma.$queryRawUnsafe<{
+          clientId: string;
+          total: number;
+          completed: number;
+          totalThisMonth: number;
+          completedThisMonth: number;
+          approvedThisMonth: number;
+        }[]>(`
+          SELECT
+            "clientId",
+            COUNT(*) FILTER (WHERE status IS NOT NULL) AS total,
+            COUNT(*) FILTER (WHERE status IN ('completed','qc_approved')) AS completed,
+
+            COUNT(*) FILTER (
+              WHERE ("createdAt" >= '${monthStart.toISOString()}'
+              AND "createdAt" < '${nextMonth.toISOString()}')
+            ) AS "totalThisMonth",
+
+            COUNT(*) FILTER (
+              WHERE (
+                "completedAt" >= '${monthStart.toISOString()}'
+                AND "completedAt" < '${nextMonth.toISOString()}'
+              )
+            ) AS "completedThisMonth",
+
+            COUNT(*) FILTER (
+              WHERE status = 'qc_approved'
+              AND ("updatedAt" >= '${monthStart.toISOString()}'
+              AND "updatedAt" < '${nextMonth.toISOString()}')
+            ) AS "approvedThisMonth"
+
+          FROM "Task"
+          WHERE "clientId" IN (${clientIds.map((x) => `'${x}'`).join(",")})
+          GROUP BY "clientId"
+        `);
+
+    const progressMap = new Map();
+
+    for (const row of progressRaw) {
+      const {
+        clientId,
+        total,
+        completed,
+        totalThisMonth,
+        completedThisMonth,
+        approvedThisMonth,
+      } = row;
+
+      // Convert BigInt to Number
+      const totalNum = Number(total);
+      const completedNum = Number(completed);
+      const totalThisMonthNum = Number(totalThisMonth);
+      const completedThisMonthNum = Number(completedThisMonth);
+      const approvedThisMonthNum = Number(approvedThisMonth);
+
+      const overallProgress =
+        totalNum > 0 ? Math.round((completedNum / totalNum) * 100) : 0;
+
+      const monthProgress =
+        totalThisMonthNum > 0
+          ? Math.round(((completedThisMonthNum + approvedThisMonthNum) / totalThisMonthNum) * 100)
+          : 0;
+
+      progressMap.set(clientId, {
+        overallProgress,
+        monthProgress,
+      });
+    }
+
+    // ---------- FINAL MERGE ----------
     const result = clients.map((c) => ({
       ...c,
-      socialMedias: Array.isArray((c as any).socialMedia)
-        ? ((c as any).socialMedia as any[])
-        : [],
+      socialMedias: [], // list view doesn't need full socialMedia payload
       clientUserId: clientIdToUserId.get(c.id) ?? null,
+      taskSummary: summaryMap.get(c.id),
+      overallProgress: progressMap.get(c.id)?.overallProgress ?? 0,
+      monthProgress: progressMap.get(c.id)?.monthProgress ?? 0,
     }));
 
-    // ⚡ OPTIMIZATION: Aggressive cache headers for super-fast repeats
-    // 30s cache + 60s stale-while-revalidate = instant repeats + background refresh
-    return NextResponse.json(result, {
-      headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
-        "CDN-Cache-Control": "public, s-maxage=30",
-        "Vercel-CDN-Cache-Control": "public, s-maxage=30",
-      },
-    });
-  } catch (error) {
-    console.error("POST /api/clients error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      {
+        clients: result,
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        },
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=20, stale-while-revalidate=40",
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error("GET /api/clients ERROR:", error);
+    return NextResponse.json(
+      { error: error.message ?? "Unknown error" },
       { status: 500 }
     );
   }
 }
 
-// POST /api/clients - Create new client - activity log logic added by Faysal (29/09/2025)
+// ============ POST /api/clients ============
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -299,7 +443,6 @@ export async function POST(req: NextRequest) {
       designation,
       location,
 
-      // NEW fields
       email,
       phone,
       password,
@@ -322,14 +465,12 @@ export async function POST(req: NextRequest) {
       amId,
     } = body;
 
-    // Debug: Log received article data
     console.log("POST /api/clients - Received articleTopics:", articleTopics);
     console.log(
       "POST /api/clients - Received articleCategories:",
       articleCategories
     );
 
-    // (Optional) enforce AM role server-side
     if (amId) {
       const am = await prisma.user.findUnique({
         where: { id: amId },
@@ -343,7 +484,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Basic validation
     const trimmedName = String(name ?? "").trim();
     if (!trimmedName) {
       return NextResponse.json(
@@ -352,7 +492,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate optional foreign keys
     if (packageId) {
       const pkg = await prisma.package.findUnique({ where: { id: packageId } });
       if (!pkg) {
@@ -363,7 +502,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Coerce progress to number when provided
     const progressNumber =
       progress === undefined || progress === null || progress === ""
         ? undefined
@@ -375,14 +513,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse dates only if valid
-    const parseDate = (v: any) => {
-      if (!v) return undefined;
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? undefined : d;
-    };
-
-    // Create client
     let client;
     try {
       client = await prisma.client.create({
@@ -425,16 +555,14 @@ export async function POST(req: NextRequest) {
                 }))
             : [],
 
-          // Use articleTopics field for both old structure and new categories structure
-          // Check both articleCategories and articleTopics parameters
           articleTopics: articleCategories
             ? normalizeArticleCategories(articleCategories)
             : articleTopics &&
               Array.isArray(articleTopics) &&
               articleTopics.length > 0
             ? articleTopics[0] && "category" in articleTopics[0]
-              ? normalizeArticleCategories(articleTopics) // New structure in articleTopics
-              : normalizeArticleTopics(articleTopics) // Old structure in articleTopics
+              ? normalizeArticleCategories(articleTopics)
+              : normalizeArticleTopics(articleTopics)
             : undefined,
           amId: amId || undefined,
         } as any,
@@ -443,11 +571,10 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Debug: Log saved client data
       console.log("POST /api/clients - Client created with ID:", client.id);
       console.log(
         "POST /api/clients - Saved articleTopics:",
-        client.articleTopics
+        (client as any).articleTopics
       );
     } catch (err: any) {
       console.error(
@@ -471,7 +598,7 @@ export async function POST(req: NextRequest) {
       throw err;
     }
 
-    // === Activity via /api/activity with cookies forwarded ===
+    // Activity log via /api/activity
     try {
       const origin =
         req.headers.get("origin") || (req as any).nextUrl?.origin || "";
@@ -481,22 +608,19 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // forward auth/session so getAuthUser() works
           Cookie: cookie,
         },
         body: JSON.stringify({
           entityType: "client",
           entityId: String(client.id),
-          action: "onboarded", // or "created"
+          action: "onboarded",
           details: {
             name: client.name,
-            email: client.email ?? null,
-            packageId: client.packageId ?? null,
-            amId: client.amId ?? null,
-            status: client.status ?? null,
+            email: (client as any).email ?? null,
+            packageId: (client as any).packageId ?? null,
+            amId: (client as any).amId ?? null,
+            status: (client as any).status ?? null,
           },
-          // userId optional; /api/activity already tries getAuthUser()
-          // userId: amId,
         }),
       });
 
@@ -504,20 +628,21 @@ export async function POST(req: NextRequest) {
         const text = await res.text().catch(() => "");
         console.error("Activity POST failed:", res.status, text);
 
-        // Fallback: write directly so you never lose the log
         try {
           await prisma.activityLog.create({
             data: {
-              id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+              id: `log_${Date.now()}_${Math.random()
+                .toString(36)
+                .slice(2, 9)}`,
               entityType: "client",
               entityId: String(client.id),
               action: "onboarded",
               details: {
                 name: client.name,
-                email: client.email ?? null,
-                packageId: client.packageId ?? null,
-                amId: client.amId ?? null,
-                status: client.status ?? null,
+                email: (client as any).email ?? null,
+                packageId: (client as any).packageId ?? null,
+                amId: (client as any).amId ?? null,
+                status: (client as any).status ?? null,
               } as any,
             },
           });
@@ -527,7 +652,6 @@ export async function POST(req: NextRequest) {
       }
     } catch (e) {
       console.error("Activity POST error:", e);
-      // Fallback if network/origin resolution fails
       try {
         await prisma.activityLog.create({
           data: {
@@ -537,10 +661,10 @@ export async function POST(req: NextRequest) {
             action: "onboarded",
             details: {
               name: client.name,
-              email: client.email ?? null,
-              packageId: client.packageId ?? null,
-              amId: client.amId ?? null,
-              status: client.status ?? null,
+              email: (client as any).email ?? null,
+              packageId: (client as any).packageId ?? null,
+              amId: (client as any).amId ?? null,
+              status: (client as any).status ?? null,
             } as any,
           },
         });
@@ -551,6 +675,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {
+    console.error("POST /api/clients error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
@@ -558,7 +683,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT /api/clients?id=CLIENT_ID - Update existing client (including otherField and socialMedias)
+// ============ PUT /api/clients?id=CLIENT_ID ============
 export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -568,7 +693,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing client id" }, { status: 400 });
     }
 
-    // Check if client exists before attempting to update
     const existingClient = await prisma.client.findUnique({
       where: { id },
       select: { id: true },
@@ -603,13 +727,10 @@ export async function PUT(req: NextRequest) {
       socialLinks = [],
       otherField = [],
       amId,
-      // NEW: article topics
       articleTopics,
-      // NEW: allow categories structure too
       articleCategories,
     } = body;
 
-    // Replace social medias with the provided set
     const updated = await prisma.client.update({
       where: { id },
       data: {
@@ -634,16 +755,28 @@ export async function PUT(req: NextRequest) {
         startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
         otherField: Array.isArray(otherField) ? otherField : [],
-        // Accept both articleCategories and articleTopics (old/new structure)
+        socialMedia: Array.isArray(socialLinks)
+          ? socialLinks
+              .filter((l: any) => l && (l.platform || l.url))
+              .map((l: any) => ({
+                platform: normalizePlatform(l.platform),
+                url: l.url ?? null,
+                username: l.username ?? null,
+                email: l.email ?? null,
+                phone: l.phone ?? null,
+                password: l.password ?? null,
+                notes: l.notes ?? null,
+              }))
+          : [],
         articleTopics:
           articleCategories !== undefined
-            ? (normalizeArticleCategories as any)(articleCategories)
+            ? normalizeArticleCategories(articleCategories)
             : articleTopics !== undefined
             ? Array.isArray(articleTopics) &&
               articleTopics.length > 0 &&
               (articleTopics as any)[0] &&
               "category" in (articleTopics as any)[0]
-              ? (normalizeArticleCategories as any)(articleTopics)
+              ? normalizeArticleCategories(articleTopics)
               : normalizeArticleTopics(articleTopics)
             : undefined,
         amId: amId ?? null,
@@ -657,7 +790,6 @@ export async function PUT(req: NextRequest) {
   } catch (error) {
     console.error("Error in PUT /api/clients:", error);
 
-    // Handle Prisma specific errors
     if (error instanceof Error) {
       if (error.message.includes("Record to update not found")) {
         return NextResponse.json(
@@ -680,7 +812,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE /api/clients?id=CLIENT_ID  (also accepts { id } in JSON body)
+// ============ DELETE /api/clients?id=CLIENT_ID ============
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -699,7 +831,6 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Missing client id" }, { status: 400 });
     }
 
-    // Check if client exists before attempting to delete
     const existingClient = await prisma.client.findUnique({
       where: { id },
       select: { id: true },
@@ -713,7 +844,6 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // 1) Find assignments & tasks for this client
       const assignments = await tx.assignment.findMany({
         where: { clientId: id },
         select: { id: true },
@@ -724,18 +854,18 @@ export async function DELETE(req: NextRequest) {
         where: { clientId: id },
         select: { id: true },
       });
-      const assignmentTasks = assignmentIds.length
-        ? await tx.task.findMany({
-            where: { assignmentId: { in: assignmentIds } },
-            select: { id: true },
-          })
-        : [];
+      const assignmentTasks =
+        assignmentIds.length > 0
+          ? await tx.task.findMany({
+              where: { assignmentId: { in: assignmentIds } },
+              select: { id: true },
+            })
+          : [];
 
       const allTaskIds = Array.from(
         new Set([...directTasks, ...assignmentTasks].map((t) => t.id))
       );
 
-      // 2) Delete task children first
       if (allTaskIds.length) {
         await tx.comment.deleteMany({ where: { taskId: { in: allTaskIds } } });
         await tx.report.deleteMany({ where: { taskId: { in: allTaskIds } } });
@@ -744,12 +874,10 @@ export async function DELETE(req: NextRequest) {
         });
       }
 
-      // 3) Delete tasks
       if (allTaskIds.length) {
         await tx.task.deleteMany({ where: { id: { in: allTaskIds } } });
       }
 
-      // 4) Delete assignment extras, then assignments
       if (assignmentIds.length) {
         await tx.assignmentSiteAssetSetting.deleteMany({
           where: { assignmentId: { in: assignmentIds } },
@@ -759,10 +887,8 @@ export async function DELETE(req: NextRequest) {
         });
       }
 
-      // 5) Other client-owned records
       await tx.clientTeamMember.deleteMany({ where: { clientId: id } });
 
-      // 6) Finally delete the client
       await tx.client.delete({ where: { id } });
     });
 
@@ -770,7 +896,6 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     console.error("Error in DELETE /api/clients:", error);
 
-    // Handle Prisma specific errors
     if (error instanceof Error) {
       if (error.message.includes("Record to delete does not exist")) {
         return NextResponse.json(

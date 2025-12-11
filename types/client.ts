@@ -35,6 +35,9 @@ export type Client = {
       url: string
       clientId: string
     }[]
+    taskSummary?: TaskStatusCounts
+    overallProgress?: number
+    monthProgress?: number
     teamMembers?: {
       clientId: string
       agentId: string
