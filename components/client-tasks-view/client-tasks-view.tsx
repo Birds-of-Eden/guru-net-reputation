@@ -357,6 +357,74 @@ export function ClientTasksView({
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [pausedTimer, setPausedTimer] = useState<TimerState | null>(null); // new
 
+  const applyStatusDelta = useCallback(
+    (prevStatus?: string | null, nextStatus?: string | null) => {
+      setStats((prev) => {
+        const next = { ...prev };
+        const dec = (s?: string | null) => {
+          if (!s) return;
+          switch (s) {
+            case "pending":
+              next.pending = Math.max(0, next.pending - 1);
+              break;
+            case "in_progress":
+              next.inProgress = Math.max(0, next.inProgress - 1);
+              break;
+            case "completed":
+              next.completed = Math.max(0, next.completed - 1);
+              break;
+            case "overdue":
+              next.overdue = Math.max(0, next.overdue - 1);
+              break;
+            case "cancelled":
+              next.cancelled = Math.max(0, next.cancelled - 1);
+              break;
+            case "reassigned":
+              next.reassigned = Math.max(0, next.reassigned - 1);
+              break;
+            case "qc_approved":
+              next.qc_approved = Math.max(0, next.qc_approved - 1);
+              break;
+            default:
+              break;
+          }
+        };
+        const inc = (s?: string | null) => {
+          if (!s) return;
+          switch (s) {
+            case "pending":
+              next.pending += 1;
+              break;
+            case "in_progress":
+              next.inProgress += 1;
+              break;
+            case "completed":
+              next.completed += 1;
+              break;
+            case "overdue":
+              next.overdue += 1;
+              break;
+            case "cancelled":
+              next.cancelled += 1;
+              break;
+            case "reassigned":
+              next.reassigned += 1;
+              break;
+            case "qc_approved":
+              next.qc_approved += 1;
+              break;
+            default:
+              break;
+          }
+        };
+        dec(prevStatus);
+        inc(nextStatus);
+        return next;
+      });
+    },
+    []
+  );
+
   const mergedExcludedCategories = useMemo(
     () =>
       Array.from(
@@ -434,6 +502,11 @@ export function ClientTasksView({
     tasksRef.current = tasksFromServer;
     setTasks(tasksFromServer);
   }, [tasksFromServer]);
+
+  // Keep ref in sync with local mutations so status deltas use current data
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   const serverCounts = useMemo(
     () => (taskPages?.[0]?.counts as any) ?? null,
@@ -606,13 +679,20 @@ export function ClientTasksView({
             return merged as Task;
           })
         );
+        // Optimistic stats update if status changed
+        const prevStatus =
+          tasksRef.current.find((t) => t.id === taskId)?.status ??
+          updatedTask?.status;
+        if (updatedTask?.status) {
+          applyStatusDelta(prevStatus, updatedTask.status);
+        }
         return updatedTask;
       } catch (err: any) {
         console.error("Failed to update task:", err);
         throw err;
       }
     },
-    [agentId]
+    [agentId, applyStatusDelta]
   );
 
   const saveTimerToStorage = useCallback(
@@ -1072,10 +1152,18 @@ export function ClientTasksView({
               }
             }
 
+            const prevStatus =
+              tasksRef.current.find((t) => t.id === taskId)?.status ?? null;
             await handleUpdateTask(taskId, updates);
             setTasks((prev) =>
               prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
             );
+            tasksRef.current = tasksRef.current.map((t) =>
+              t.id === taskId ? ({ ...t, ...updates } as Task) : t
+            );
+            if (updates.status) {
+              applyStatusDelta(prevStatus, updates.status);
+            }
             successCount++;
 
             if (action === "completed" && timerState?.taskId === taskId) {
