@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import useSWR from "swr";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
@@ -243,8 +243,15 @@ export default function QCDashboardPro({
   const [customStart, setCustomStart] = useState<string>(toISODate(now));
   const [customEnd, setCustomEnd] = useState<string>(toISODate(now));
   
-  // --- QC Supervision filter
-  const [showQCOnly, setShowQCOnly] = useState(false);
+  // --- QC detection (match QCReview logic; dashboard always QC-scoped on backend)
+  const rawRoleName = (user as any)?.role?.name ?? (user as any)?.roleId ?? "";
+  const roleName = String(rawRoleName).toLowerCase?.() || "";
+  const isQC =
+    (user as any)?.role?.id === "qc" ||
+    roleName === "qc" ||
+    roleName.includes("qc") ||
+    roleName === "quality_controller" ||
+    roleName === "quality control";
 
   const { start, end } = useMemo(() => {
     const end = new Date();
@@ -276,13 +283,13 @@ export default function QCDashboardPro({
       endDate: toISODate(end),
     });
     
-    // Add QC supervisor filter if enabled and user is a QC supervisor
-    if (showQCOnly && user?.id) {
-      params.append("qcSupervisorId", user.id);
+    // 🔐 HARD QC SCOPING (NO TOGGLE)
+    if (isQC && user?.id) {
+      params.set("qcSupervisorId", user.id);
     }
     
     return `/api/tasks?${params.toString()}`;
-  }, [start.getTime(), end.getTime(), showQCOnly, user?.id]);
+  }, [start.getTime(), end.getTime(), isQC, user?.id]);
 
   // ✅ Use SWR for fresher task updates
   const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>(
@@ -300,15 +307,7 @@ export default function QCDashboardPro({
 
   const tasks = fetchedTasks || initialTasks;
 
-  // Track supervised agent IDs when QC filter is on
-  const supervisedAgentIds = useMemo(() => {
-    if (!showQCOnly || !tasks?.length) return null;
-    const ids = new Set<string>();
-    tasks.forEach(t => {
-      if (t.assignedTo?.id) ids.add(t.assignedTo.id);
-    });
-    return ids;
-  }, [tasks, showQCOnly]);
+  // supervisedAgentIds removed; backend scoping makes guessing unnecessary
 
   // Primary timestamp: updatedAt → completedAt → createdAt
   const withinRange = (t: AnyTask) => {
@@ -385,44 +384,35 @@ export default function QCDashboardPro({
     return hay.includes(q.toLowerCase());
   };
 
-  // sanitized rows with QC supervision filter
+  // sanitized rows (backend already QC-scoped)
   const rows = useMemo(() => {
-    let list = rangedTasks;
-
-    // Only tasks of supervised QC agents when QC filter is on
-    if (showQCOnly && supervisedAgentIds) {
-      list = list.filter(t => supervisedAgentIds.has(t?.assignedTo?.id));
-    }
-
-    // Apply search filter
-    list = list.filter(matches);
-
-    return list.map((t) => ({
-      id: t.id,
-      name: t.name,
-      client: t?.client?.name,
-      category: t?.category?.name,
-      assignee: t?.assignedTo?.name,
-      status: t.status,
-      priority: t.priority,
-      dueDate: t.dueDate,
-      completedAt: t.completedAt,
-      ideal: t.idealDurationMinutes,
-      actual: t.actualDurationMinutes,
-      rating: t.performanceRating,
-    }));
-  }, [rangedTasks, supervisedAgentIds, showQCOnly, q]);
+    return rangedTasks
+      .filter(matches)
+      .map((t) => ({
+        id: t.id,
+        name: t.name,
+        client: t?.client?.name,
+        category: t?.category?.name,
+        assignee: t?.assignedTo?.name,
+        status: t.status,
+        priority: t.priority,
+        dueDate: t.dueDate,
+        completedAt: t.completedAt,
+        ideal: t.idealDurationMinutes,
+        actual: t.actualDurationMinutes,
+        rating: t.performanceRating,
+      }));
+  }, [rangedTasks, q]);
 
   const reassignedRows = rows.filter((r) => {
     const t = rangedTasks.find((x) => x.id === r.id);
     return t ? String(t.status) === "reassigned" : false;
   });
 
-  // --- QC Agents breakdown (agents supervised by current QC user)
+  // --- QC Agents breakdown (backend-safe because tasks already scoped)
   const qcAgentsBreakdown = useMemo(() => {
-    if (!showQCOnly) return [];
-    return by(rangedTasks, (t) => t?.assignedTo?.name || "unassigned");
-  }, [rangedTasks, showQCOnly]);
+    return by(rangedTasks, (t) => t?.assignedTo?.name || "Unassigned");
+  }, [rangedTasks]);
 
   return (
     <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
@@ -434,7 +424,7 @@ export default function QCDashboardPro({
           </h1>
           <p className="text-muted-foreground mt-1">
             Real-time overview of QC throughput & task health
-            {showQCOnly && user?.name && (
+              {isQC && user?.name && (
               <span className="ml-2 text-sm font-medium text-blue-600">
                 • Supervised by {user.name}
               </span>
@@ -450,20 +440,12 @@ export default function QCDashboardPro({
               className="h-9 sm:w-72 border-slate-300 bg-white/80 backdrop-blur"
             />
           </div>
-          <Button
-            variant={showQCOnly ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowQCOnly(!showQCOnly)}
-            className={cn(
-              "h-9 transition-all",
-              showQCOnly
-                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
-                : ""
-            )}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            {showQCOnly ? "My Agents" : "All Tasks"}
-          </Button>
+          {!isQC && (
+            <Button variant="outline" size="sm" className="h-9 transition-all">
+              <Users className="h-4 w-4 mr-2" />
+              All Tasks
+            </Button>
+          )}
           <RangeControls
             range={range}
             setRange={setRange}
@@ -539,7 +521,7 @@ export default function QCDashboardPro({
       </div>
 
       {/* QC Agents Breakdown (when in QC supervision mode) */}
-      {showQCOnly && qcAgentsBreakdown.length > 0 && (
+      {isQC && qcAgentsBreakdown.length > 0 && (
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
           <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -670,7 +652,7 @@ export default function QCDashboardPro({
       <Tabs defaultValue="all" className="w-full space-y-4">
         <TabsList className={cn(
           "bg-gradient-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg",
-          showQCOnly ? "grid w-full grid-cols-4" : "grid w-full grid-cols-3"
+          isQC ? "grid w-full grid-cols-4" : "grid w-full grid-cols-3"
         )}>
           <TabsTrigger
             value="all"
@@ -693,7 +675,7 @@ export default function QCDashboardPro({
             <RotateCcw className="h-4 w-4 mr-2" />
             Reassign
           </TabsTrigger>
-          {showQCOnly && (
+          {isQC && (
             <TabsTrigger
               value="agents"
               className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
@@ -893,7 +875,7 @@ export default function QCDashboardPro({
         </TabsContent>
 
         {/* QC Agents Detail Tab */}
-        {showQCOnly && (
+        {isQC && (
           <TabsContent value="agents">
             <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
               <CardHeader className="border-b border-slate-200/70 py-5">

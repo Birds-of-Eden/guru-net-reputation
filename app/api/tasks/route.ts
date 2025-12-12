@@ -107,6 +107,33 @@ export async function GET(req: Request) {
       where.assignedToId = assignedToId;
     }
 
+    // ⭐⭐⭐ QC SUPERVISOR FILTER (FIXED: merge safely) ⭐⭐⭐
+    if (false && qcSupervisorId) {
+      const agents = await prisma.user.findMany({
+        where: { qcId: qcSupervisorId },
+        select: { id: true },
+      });
+
+      const agentIds = agents.map((a) => a.id);
+
+      if (agentIds.length === 0) {
+        return NextResponse.json([]); // No agents ⇒ no tasks
+      }
+
+      const existingAssignedTo = where.assignedToId;
+
+      if (existingAssignedTo) {
+        where.AND = [
+          ...(where.AND || []),
+          { assignedToId: existingAssignedTo },
+          { assignedToId: { in: agentIds } },
+        ];
+        delete where.assignedToId;
+      } else {
+        where.assignedToId = { in: agentIds };
+      }
+    }
+
     // ⭐⭐⭐ NEW: QC SUPERVISOR FILTER ⭐⭐⭐
     if (qcSupervisorId) {
       const agents = await prisma.user.findMany({

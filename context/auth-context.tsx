@@ -8,8 +8,10 @@ type User = {
   id: string;
   name: string | null;
   email: string | null;
-  role: string | null;
-  // permissions আপনি session callback-এ ids পাঠাচ্ছেন—number[]/string[] যেটা দিয়েছেন সেটা দিন
+  role?: {
+    id: string;
+    name: string | null;
+  };
   permissions?: string[] | number[];
   roleId?: string | null;
   clientId?: string | null;
