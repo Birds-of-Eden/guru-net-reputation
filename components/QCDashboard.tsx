@@ -2,9 +2,10 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import useSWR from "swr";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/auth-context";
 import {
   Card,
   CardContent,
@@ -220,6 +221,9 @@ export default function QCDashboardPro({
 }: {
   tasks?: AnyTask[];
 }) {
+  // --- Auth context
+  const { user } = useAuth();
+
   // --- helpers
   const now = new Date();
   const toISODate = (d: Date) => d.toISOString().slice(0, 10);
@@ -238,6 +242,9 @@ export default function QCDashboardPro({
   const [range, setRange] = useState<RangeType>("today");
   const [customStart, setCustomStart] = useState<string>(toISODate(now));
   const [customEnd, setCustomEnd] = useState<string>(toISODate(now));
+  
+  // --- QC Supervision filter
+  const [showQCOnly, setShowQCOnly] = useState(false);
 
   const { start, end } = useMemo(() => {
     const end = new Date();
@@ -268,8 +275,14 @@ export default function QCDashboardPro({
       startDate: toISODate(start),
       endDate: toISODate(end),
     });
+    
+    // Add QC supervisor filter if enabled and user is a QC supervisor
+    if (showQCOnly && user?.id) {
+      params.append("qcSupervisorId", user.id);
+    }
+    
     return `/api/tasks?${params.toString()}`;
-  }, [start.getTime(), end.getTime()]);
+  }, [start.getTime(), end.getTime(), showQCOnly, user?.id]);
 
   // ✅ Use SWR for fresher task updates
   const { data: fetchedTasks, isLoading } = useSWR<AnyTask[]>(
@@ -286,6 +299,16 @@ export default function QCDashboardPro({
   );
 
   const tasks = fetchedTasks || initialTasks;
+
+  // Track supervised agent IDs when QC filter is on
+  const supervisedAgentIds = useMemo(() => {
+    if (!showQCOnly || !tasks?.length) return null;
+    const ids = new Set<string>();
+    tasks.forEach(t => {
+      if (t.assignedTo?.id) ids.add(t.assignedTo.id);
+    });
+    return ids;
+  }, [tasks, showQCOnly]);
 
   // Primary timestamp: updatedAt → completedAt → createdAt
   const withinRange = (t: AnyTask) => {
@@ -362,30 +385,44 @@ export default function QCDashboardPro({
     return hay.includes(q.toLowerCase());
   };
 
-  // sanitized rows
-  const rows = useMemo(
-    () =>
-      rangedTasks.filter(matches).map((t) => ({
-        id: t.id,
-        name: t.name,
-        client: t?.client?.name,
-        category: t?.category?.name,
-        assignee: t?.assignedTo?.name,
-        status: t.status,
-        priority: t.priority,
-        dueDate: t.dueDate,
-        completedAt: t.completedAt,
-        ideal: t.idealDurationMinutes,
-        actual: t.actualDurationMinutes,
-        rating: t.performanceRating,
-      })),
-    [rangedTasks, q]
-  );
+  // sanitized rows with QC supervision filter
+  const rows = useMemo(() => {
+    let list = rangedTasks;
+
+    // Only tasks of supervised QC agents when QC filter is on
+    if (showQCOnly && supervisedAgentIds) {
+      list = list.filter(t => supervisedAgentIds.has(t?.assignedTo?.id));
+    }
+
+    // Apply search filter
+    list = list.filter(matches);
+
+    return list.map((t) => ({
+      id: t.id,
+      name: t.name,
+      client: t?.client?.name,
+      category: t?.category?.name,
+      assignee: t?.assignedTo?.name,
+      status: t.status,
+      priority: t.priority,
+      dueDate: t.dueDate,
+      completedAt: t.completedAt,
+      ideal: t.idealDurationMinutes,
+      actual: t.actualDurationMinutes,
+      rating: t.performanceRating,
+    }));
+  }, [rangedTasks, supervisedAgentIds, showQCOnly, q]);
 
   const reassignedRows = rows.filter((r) => {
     const t = rangedTasks.find((x) => x.id === r.id);
     return t ? String(t.status) === "reassigned" : false;
   });
+
+  // --- QC Agents breakdown (agents supervised by current QC user)
+  const qcAgentsBreakdown = useMemo(() => {
+    if (!showQCOnly) return [];
+    return by(rangedTasks, (t) => t?.assignedTo?.name || "unassigned");
+  }, [rangedTasks, showQCOnly]);
 
   return (
     <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
@@ -397,6 +434,11 @@ export default function QCDashboardPro({
           </h1>
           <p className="text-muted-foreground mt-1">
             Real-time overview of QC throughput & task health
+            {showQCOnly && user?.name && (
+              <span className="ml-2 text-sm font-medium text-blue-600">
+                • Supervised by {user.name}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-end gap-3 flex-wrap w-full md:w-auto">
@@ -408,6 +450,20 @@ export default function QCDashboardPro({
               className="h-9 sm:w-72 border-slate-300 bg-white/80 backdrop-blur"
             />
           </div>
+          <Button
+            variant={showQCOnly ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowQCOnly(!showQCOnly)}
+            className={cn(
+              "h-9 transition-all",
+              showQCOnly
+                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                : ""
+            )}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            {showQCOnly ? "My Agents" : "All Tasks"}
+          </Button>
           <RangeControls
             range={range}
             setRange={setRange}
@@ -481,6 +537,43 @@ export default function QCDashboardPro({
           />
         </motion.div>
       </div>
+
+      {/* QC Agents Breakdown (when in QC supervision mode) */}
+      {showQCOnly && qcAgentsBreakdown.length > 0 && (
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70">
+            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <Users className="h-5 w-5 text-cyan-600" />
+              Supervised Agents
+            </CardTitle>
+            <CardDescription>Task distribution by agent</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {qcAgentsBreakdown.map((g) => {
+                const total = rangedTasks.length || 1;
+                const pct = (g.value / total) * 100;
+                return (
+                  <div key={g.name} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-700">
+                        {g.name}
+                      </span>
+                      <span className="text-sm font-medium text-slate-900">
+                        {numberFmt(g.value)} ({pct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <Progress
+                      value={pct}
+                      className="h-2.5 bg-slate-200 [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Status & Priority breakdown (matches your gradient bars) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -575,7 +668,10 @@ export default function QCDashboardPro({
 
       {/* Tables */}
       <Tabs defaultValue="all" className="w-full space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg">
+        <TabsList className={cn(
+          "bg-gradient-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg",
+          showQCOnly ? "grid w-full grid-cols-4" : "grid w-full grid-cols-3"
+        )}>
           <TabsTrigger
             value="all"
             className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
@@ -597,6 +693,15 @@ export default function QCDashboardPro({
             <RotateCcw className="h-4 w-4 mr-2" />
             Reassign
           </TabsTrigger>
+          {showQCOnly && (
+            <TabsTrigger
+              value="agents"
+              className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Agents
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* All Tasks */}
@@ -786,6 +891,114 @@ export default function QCDashboardPro({
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* QC Agents Detail Tab */}
+        {showQCOnly && (
+          <TabsContent value="agents">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5">
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-cyan-600" />
+                  Supervised Agents Details
+                </CardTitle>
+                <CardDescription>
+                  Performance metrics for each supervised agent
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="max-h-[50vh] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Agent Name</TableHead>
+                        <TableHead>Total Tasks</TableHead>
+                        <TableHead>Completed</TableHead>
+                        <TableHead>QC Approved</TableHead>
+                        <TableHead>Pending</TableHead>
+                        <TableHead>Reassigned</TableHead>
+                        <TableHead>Avg Rating</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {qcAgentsBreakdown.map((agent) => {
+                        const agentTasks = rangedTasks.filter(
+                          (t) => t?.assignedTo?.name === agent.name
+                        );
+                        const completed = agentTasks.filter(
+                          (t) => t.status === "completed"
+                        ).length;
+                        const qcApproved = agentTasks.filter(
+                          (t) => t.status === "qc_approved"
+                        ).length;
+                        const pending = agentTasks.filter(
+                          (t) => t.status === "pending"
+                        ).length;
+                        const reassigned = agentTasks.filter(
+                          (t) => t.status === "reassigned"
+                        ).length;
+                        const avgRating =
+                          agentTasks.length > 0
+                            ? (
+                                agentTasks.reduce(
+                                  (sum, t) =>
+                                    sum +
+                                    (typeof t.performanceRating === "number"
+                                      ? t.performanceRating
+                                      : 0),
+                                  0
+                                ) / agentTasks.length
+                              ).toFixed(2)
+                            : "—";
+
+                        return (
+                          <TableRow key={agent.name} className="hover:bg-slate-100/60">
+                            <TableCell className="font-medium">
+                              {agent.name}
+                            </TableCell>
+                            <TableCell>{numberFmt(agent.value)}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-emerald-50">
+                                {completed}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-teal-50">
+                                {qcApproved}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-amber-50">
+                                {pending}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-violet-50">
+                                {reassigned}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {avgRating}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {qcAgentsBreakdown.length === 0 && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={7}
+                            className="text-center text-sm text-muted-foreground py-8"
+                          >
+                            No supervised agents in this range.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

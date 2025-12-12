@@ -1,6 +1,7 @@
 import QCDashboard from "@/components/QCDashboard";
 import { headers, cookies } from "next/headers";
 import { unstable_noStore as noStore } from "next/cache";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ function buildBaseUrl(proto: string, host: string) {
   return `${proto}://${host}`;
 }
 
-function todayRangeParams() {
+function todayRangeParams(qcSupervisorId?: string) {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date();
@@ -24,6 +25,11 @@ function todayRangeParams() {
     endDate: end.toISOString().slice(0, 10),
   });
 
+  // ⭐ Add QC supervisor filter to show only supervised agents' tasks
+  if (qcSupervisorId) {
+    params.append("qcSupervisorId", qcSupervisorId);
+  }
+
   return params.toString();
 }
 
@@ -32,6 +38,17 @@ export default async function Page() {
   let tasks: any[] = [];
 
   try {
+    // ✅ Get current user (QC supervisor)
+    const user = await getAuthUser();
+    if (!user?.id) {
+      console.error("❌ No authenticated user found");
+      return (
+        <div className="min-h-screen">
+          <QCDashboard tasks={[]} />
+        </div>
+      );
+    }
+
     // ✅ await dynamic APIs
     const h = await headers();
     const host =
@@ -56,11 +73,14 @@ export default async function Page() {
       .map((c) => `${c.name}=${c.value}`)
       .join("; ");
 
-    // ✅ fetch QC tasks securely (latest activity window, ordered)
-    const res = await fetch(`${baseUrl}/api/tasks?${todayRangeParams()}`, {
-      cache: "no-store",
-      headers: cookieHeader ? { cookie: cookieHeader } : {},
-    });
+    // ✅ fetch QC tasks for supervised agents only (today's range, ordered by activity)
+    const res = await fetch(
+      `${baseUrl}/api/tasks?${todayRangeParams(user.id)}`,
+      {
+        cache: "no-store",
+        headers: cookieHeader ? { cookie: cookieHeader } : {},
+      }
+    );
 
     if (res.ok) {
       tasks = await res.json();
