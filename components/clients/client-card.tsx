@@ -8,7 +8,6 @@ import {
   useState,
   useMemo,
   useCallback,
-  useEffect,
   useRef,
   useTransition,
 } from "react";
@@ -215,11 +214,6 @@ const ClientCardComponent = function ClientCard({
     prefetchDetails();
     warmClientDashboard();
   }, [prefetchDetails, warmClientDashboard]);
-
-  useEffect(() => {
-    if (!canViewDetails) return;
-    primeDetails();
-  }, [canViewDetails, primeDetails]);
 
   async function handleDelete() {
     setIsDeleting(true);
