@@ -98,7 +98,9 @@ export const TaskListItem = memo(function TaskListItem({
   const priorityKey = String(priorityValue).toLowerCase();
   const statusValue = (task as any)?.status ?? "pending";
   const statusKey = String(statusValue).toLowerCase();
-  const isAlreadyAssigned = Boolean((task as any)?.assignedToId);
+  const assignedAgent: Agent | null = (task as any)?.assignedTo ?? null;
+  const assignedAgentId: string | null = (task as any)?.assignedToId ?? null;
+  const combinedAgents = useMemo(() => [...teamAgents, ...allAgents], [teamAgents, allAgents]);
 
   const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
   const shouldDisableDropdown =
@@ -201,9 +203,7 @@ export const TaskListItem = memo(function TaskListItem({
         <div className="flex items-center space-x-4">
           <Checkbox
             checked={isSelected}
-            disabled={isAlreadyAssigned}
             onCheckedChange={(checked) =>
-              !isAlreadyAssigned &&
               onTaskSelection(task.id, checked as boolean)
             }
             className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
@@ -275,34 +275,40 @@ export const TaskListItem = memo(function TaskListItem({
           </div>
 
           <div className="w-full max-w-md">
-            {task.assignedTo ? (
+            {assignedAgent || assignedAgentId ? (
+              (() => {
+                const resolvedAgent =
+                  assignedAgent ||
+                  combinedAgents.find((a: any) => a.id === assignedAgentId) ||
+                  null;
+                const displayName =
+                  resolvedAgent?.name ||
+                  `${(resolvedAgent as any)?.firstName ?? ""} ${(resolvedAgent as any)?.lastName ?? ""}`.trim() ||
+                  resolvedAgent?.email ||
+                  "Assigned";
               /* Already assigned */
-              <div className="flex items-center gap-3 p-3 rounded-xl border shadow-sm bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 border-emerald-300">
-                <AvatarWithFallback
-                  name={
-                    task.assignedTo.name ||
-                    `${(task.assignedTo as any)?.firstName ?? ""} ${
-                      (task.assignedTo as any)?.lastName ?? ""
-                    }`.trim() ||
-                    "Agent"
-                  }
-                  image={task.assignedTo.image || undefined}
-                  ring="ring-2 ring-emerald-400"
-                  size="h-7 w-7"
-                  textClass="text-xs"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-emerald-900 truncate">
-                    {task.assignedTo.name}
-                  </p>
-                </div>
-                <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-              </div>
+                return (
+                  <div className="flex items-center gap-3 p-3 rounded-xl border shadow-sm bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 border-emerald-300">
+                    <AvatarWithFallback
+                      name={displayName}
+                      image={(resolvedAgent as any)?.image || undefined}
+                      ring="ring-2 ring-emerald-400"
+                      size="h-7 w-7"
+                      textClass="text-xs"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-emerald-900 truncate">
+                        {displayName}
+                      </p>
+                    </div>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+                  </div>
+                );
+              })()
             ) : assignment ? (
               /* Preview chosen agent */
               <div className="flex items-center gap-3 p-3 rounded-xl border shadow-sm bg-gradient-to-r from-blue-100 via-indigo-50 to-purple-100 border-blue-300">
                 {(() => {
-                  const combinedAgents = [...teamAgents, ...allAgents];
                   const ag: any = combinedAgents.find(
                     (a: any) => a.id === assignment.agentId
                   );

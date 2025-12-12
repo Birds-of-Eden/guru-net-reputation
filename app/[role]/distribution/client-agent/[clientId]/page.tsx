@@ -651,18 +651,12 @@ export default function TaskDistributionForClient() {
   }, []);
 
   const handleSelectAllTasks = useCallback((taskIds: string[], checked: boolean) => {
-    const taskMap = new Map(tasks.map((t) => [t.id, t]));
-    const selectableIds = taskIds.filter((id) => {
-      const t = taskMap.get(id);
-      return t && !(t as any)?.assignedToId;
-    });
-
     if (checked) {
-      setSelectedTasks(new Set(selectableIds));
-      setSelectedTasksOrder(selectableIds);
-      toast.info(`Selected ${selectableIds.length} tasks from current view`);
+      setSelectedTasks(new Set(taskIds));
+      setSelectedTasksOrder(taskIds);
+      toast.info(`Selected ${taskIds.length} tasks from current view`);
     } else {
-      const currentViewTaskIds = new Set(selectableIds);
+      const currentViewTaskIds = new Set(taskIds);
       const preserved = Array.from(selectedTasks).filter(
         (id) => !currentViewTaskIds.has(id)
       );
@@ -674,7 +668,7 @@ export default function TaskDistributionForClient() {
         assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
       );
     }
-  }, [selectedTasks, tasks]);
+  }, [selectedTasks]);
 
   const handleTaskAssignment = useCallback((
     taskId: string,
