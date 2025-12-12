@@ -282,6 +282,9 @@ export async function GET(req: NextRequest) {
       sourceTasks.length > 0 &&
       sourceTasks.every((t) => t.status === "qc_approved");
 
+    // Build creds map for web2 platforms (used for accurate preview counts)
+    const web2PlatformCreds = collectWeb2PlatformSources(sourceTasks as any);
+
     const assetIds = Array.from(
       new Set(
         sourceTasks
@@ -322,6 +325,23 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    // Build expanded copy names (matches POST creation naming)
+    const expandedCopies: { name: string; catName: string }[] = [];
+    for (const src of sourceTasks) {
+      const assetType = src.templateSiteAsset?.type;
+      const assetId = src.templateSiteAsset?.id;
+      const freq = getFrequency({
+        required: assetId ? requiredByAssetId.get(assetId) : undefined,
+        defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
+      });
+      const catName = resolveCategoryFromType(assetType);
+      const base = baseNameOf(src.name);
+      const totalCopies = Math.max(1, freq * packageTotalMonths);
+      for (let i = 1; i <= totalCopies; i++) {
+        expandedCopies.push({ name: `${base} -${i}`, catName });
+      }
+    }
+
     // --- NEW: Build Social Communication previews ---
 
     // social_site + other_asset: প্রতি অ্যাসেটে ১টা করে SC
@@ -360,15 +380,55 @@ export async function GET(req: NextRequest) {
     // আগের + নতুন SC প্রিভিউ একসাথে
     const tasksWithSC = [...tasks, ...scFromAssets, ...scFromWeb2Fixed];
 
-    const totalWillCreate = tasksWithSC.reduce(
-      (acc, t) => acc + (t.frequency ?? 1),
-      0
+    // ----- Accurate preview: account for existing tasks + missing web2 creds -----
+    const namesToCheck = Array.from(
+      new Set([
+        ...expandedCopies.map((e) => e.name),
+        ...scFromAssets.map((s) => s.name),
+        ...scFromWeb2Fixed.map((s) => s.name),
+      ])
     );
 
-    // const totalWillCreate = tasks.reduce(
-    //   (acc, t) => acc + (t.frequency ?? 1),
-    //   0
-    // );
+    const existingCopies = namesToCheck.length
+      ? await prisma.task.findMany({
+          where: {
+            assignmentId: assignment.id,
+            name: { in: namesToCheck },
+            category: {
+              is: {
+                name: {
+                  in: [
+                    CAT_SOCIAL_ACTIVITY,
+                    CAT_BLOG_POSTING,
+                    CAT_SOCIAL_COMMUNICATION,
+                  ],
+                },
+              },
+            },
+          },
+          select: { name: true },
+        })
+      : [];
+    const skipNameSet = new Set(existingCopies.map((t) => t.name));
+
+    let totalWillCreate = 0;
+
+    // Expanded copies (Social Activity / Blog Posting)
+    for (const item of expandedCopies) {
+      if (!skipNameSet.has(item.name)) totalWillCreate += 1;
+    }
+
+    // Social Communication from assets
+    for (const sc of scFromAssets) {
+      if (!skipNameSet.has(sc.name)) totalWillCreate += 1;
+    }
+
+    // Social Communication for fixed web2 platforms (always count; creds optional)
+    for (const p of WEB2_FIXED_PLATFORMS) {
+      const scName = `${PLATFORM_META[p].label} - ${CAT_SOCIAL_COMMUNICATION}`;
+      if (skipNameSet.has(scName)) continue;
+      totalWillCreate += 1;
+    }
 
     return NextResponse.json({
       message: "Preview of source tasks for copying.",
@@ -743,18 +803,13 @@ export async function POST(req: NextRequest) {
         .sort((a, b) => a.getTime() - b.getTime())
         .pop() ?? calculateTaskDueDate(new Date(), 1); // fallback = today + 15 days (cycle 1)
 
-    // --- REPLACE: Fixed Web2 SC creation (guarded by creds from web2 sources)
+    // --- REPLACE: Fixed Web2 SC creation (creds optional; always create unless duplicate)
     for (const p of ["medium", "tumblr", "wordpress"] as const) {
       const scName = `${PLATFORM_META[p].label} - Social Communication`;
       if (skipNameSet.has(scName)) continue;
 
-      // কেবল তখনই বানাবো, যখন web2PlatformCreds থেকে পুরো ক্রেডেনশিয়াল + url পাওয়া যায়
+      // Use creds if available; otherwise create with empty fields
       const creds = web2PlatformCreds.get(p);
-      if (!creds) {
-        // চাইলে লগ দিতে পারেন কেন স্কিপ হলো
-        // console.log(`[SC Web2] Skip ${p}: missing complete creds/url in web2 sources`);
-        continue;
-      }
 
       const catId = categoryIdByName.get("Social Communication")!;
       payloads.push({
@@ -764,12 +819,12 @@ export async function POST(req: NextRequest) {
         priority: overridePriority ?? "medium",
         dueDate: maxLastSocialDue.toISOString(),
 
-        // 🔐 কপি হচ্ছে web2 সোর্স থেকে
-        username: creds.username,
-        email: creds.email,
-        password: creds.password,
-        completionLink: creds.url, // url
-        idealDurationMinutes: creds.idealDurationMinutes ?? undefined,
+        // Optional web2 creds (may be undefined)
+        username: creds?.username ?? undefined,
+        email: creds?.email ?? undefined,
+        password: creds?.password ?? undefined,
+        completionLink: creds?.url ?? undefined, // url
+        idealDurationMinutes: creds?.idealDurationMinutes ?? undefined,
 
         assignment: { connect: { id: assignment.id } },
         client: { connect: { id: clientId } },

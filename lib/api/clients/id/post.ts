@@ -13,6 +13,8 @@ import {
   stripTaskSuffix,
 } from "./helpers";
 
+const WEB2_FIXED_PLATFORMS = new Set(["medium", "tumblr", "wordpress"]);
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -390,6 +392,7 @@ export async function POST(
               const meta = metaById.get(assetId);
               const rawName = meta?.name || `Asset ${assetId}`;
               const rawType = norm(meta?.type || "");
+              const rawNameNorm = norm(rawName);
 
               const catName = CATEGORY_BY_ASSET_TYPE[rawType];
               if (!catName) continue;
@@ -402,11 +405,16 @@ export async function POST(
               const typeBaseKey = `${rawType}::${finalBase}`;
               const assetBaseKey = `asset_${assetId}::${finalBase}`;
 
-              const isDup =
-                seededAssetIds.has(assetId) ||
-                catSets.nameBases.has(finalBase) ||
-                catSets.typeBaseKeys.has(typeBaseKey) ||
-                catSets.assetBaseKeys.has(assetBaseKey);
+              let isDup: boolean;
+              if (rawType === "web2_site" && WEB2_FIXED_PLATFORMS.has(rawNameNorm)) {
+                isDup = seededAssetIds.has(assetId);
+              } else {
+                isDup =
+                  seededAssetIds.has(assetId) ||
+                  catSets.nameBases.has(finalBase) ||
+                  catSets.typeBaseKeys.has(typeBaseKey) ||
+                  catSets.assetBaseKeys.has(assetBaseKey);
+              }
 
               if (!isDup) {
                 needSeeds.push(assetId);
