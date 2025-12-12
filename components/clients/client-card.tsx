@@ -8,7 +8,6 @@ import {
   useState,
   useMemo,
   useCallback,
-  useEffect,
   useRef,
   useTransition,
 } from "react";
@@ -211,15 +210,16 @@ const ClientCardComponent = function ClientCard({
     return p;
   }, [client.id, mutateCache]);
 
+  const primeDetailsLight = useCallback(() => {
+    if (!canViewDetails) return;
+    prefetchDetails();
+  }, [canViewDetails, prefetchDetails]);
+
   const primeDetails = useCallback(() => {
+    if (!canViewDetails) return;
     prefetchDetails();
     warmClientDashboard();
-  }, [prefetchDetails, warmClientDashboard]);
-
-  useEffect(() => {
-    if (!canViewDetails) return;
-    primeDetails();
-  }, [canViewDetails, primeDetails]);
+  }, [canViewDetails, prefetchDetails, warmClientDashboard]);
 
   async function handleDelete() {
     setIsDeleting(true);
@@ -264,7 +264,11 @@ const ClientCardComponent = function ClientCard({
   }
 
   return (
-    <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white">
+    <Card
+      className="overflow-hidden rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white"
+      onMouseEnter={primeDetailsLight}
+      onFocus={primeDetailsLight}
+    >
       {/* Header */}
       <CardHeader className="p-6 border-b border-gray-100 bg-gradient-to-r from-cyan-50 to-blue-50">
         <div className="flex items-center justify-between">

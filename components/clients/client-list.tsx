@@ -1,6 +1,7 @@
 //lint error fixed
 
 "use client";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +17,46 @@ interface ClientListProps {
 }
 
 export function ClientList({ clients, onViewDetails }: ClientListProps) {
+  // ƒs­ OPTIMIZATION: Virtual scrolling / infinite render for large lists
+  const ITEMS_PER_PAGE = 30;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [clients.length]);
+
+  useEffect(() => {
+    if (clients.length <= ITEMS_PER_PAGE) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < clients.length) {
+          setVisibleCount((prev) =>
+            Math.min(prev + ITEMS_PER_PAGE, clients.length)
+          );
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const sentinel = containerRef.current?.querySelector("[data-sentinel]");
+    if (sentinel) observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [visibleCount, clients.length]);
+
+  const visibleClients = useMemo(
+    () => clients.slice(0, visibleCount),
+    [clients, visibleCount]
+  );
+
+  const hasMore = visibleCount < clients.length;
+
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+    <div
+      ref={containerRef}
+      className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+    >
       <div className="grid grid-cols-[1.5fr_auto_auto_auto_auto_auto] p-4 bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-700">
         <div>Client</div>
         <div className="text-center w-28">Status</div>
@@ -26,7 +65,7 @@ export function ClientList({ clients, onViewDetails }: ClientListProps) {
         <div className="text-center w-28">Progress</div>
         <div className="text-center w-28">Actions</div>
       </div>
-      {clients.map((client) => (
+      {visibleClients.map((client) => (
         <div
           key={client.id}
           className="grid grid-cols-[1.5fr_auto_auto_auto_auto_auto] p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center last:border-b-0"
@@ -109,6 +148,12 @@ export function ClientList({ clients, onViewDetails }: ClientListProps) {
           </div>
         </div>
       ))}
+
+      {hasMore && (
+        <div data-sentinel className="p-4 text-center text-sm text-gray-500">
+          Loading more clients… ({visibleCount}/{clients.length})
+        </div>
+      )}
     </div>
   );
 }
