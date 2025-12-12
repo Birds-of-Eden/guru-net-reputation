@@ -251,13 +251,16 @@ export async function PATCH(
     });
 
     // ✅ Notify QC (শুধু completed এ)
-    const qcUsers =
-      status === "completed"
-        ? await prisma.user.findMany({
-            where: { role: { name: "qc" } },
-            select: { id: true },
-          })
-        : [];
+    let qcUsers: Array<{ id: string }> = [];
+    if (status === "completed") {
+      const agent = await prisma.user.findUnique({
+        where: { id: agentId },
+        select: { qcId: true },
+      });
+      if (agent?.qcId) {
+        qcUsers = [{ id: agent.qcId }];
+      }
+    }
 
     // যদি কারো notify করার থাকে
     const notifyUsers = Array.from(
