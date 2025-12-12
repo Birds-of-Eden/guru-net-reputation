@@ -476,7 +476,7 @@ export function ClientTasksView({
     isValidating && size > (taskPages?.length ?? 0) && Boolean(hasMore);
   const isRefreshing =
     isValidating && size === (taskPages?.length ?? 0) && !isLoadingMore;
-  const refreshTasks = useCallback(() => {
+  const refreshTasks = useCallback(async () => {
     setSize(1);
     void mutate();
   }, [mutate, setSize]);
@@ -1436,8 +1436,10 @@ export function ClientTasksView({
             onTaskComplete={handleTaskCompletion}
             getPriorityBadge={getPriorityBadge}
             formatTimerDisplay={formatTimerDisplay}
-          pausedTimer={pausedTimer}
-        />
+            pausedTimer={pausedTimer}
+            refreshTasks={refreshTasks}
+            stopTimer={stopTimerNow}
+          />
         </div>
 
         {hasMore && (

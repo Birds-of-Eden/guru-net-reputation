@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -170,6 +170,16 @@ export default function TaskViews({
   setTaskToComplete: (t: Task | null) => void;
   setIsCompletionConfirmOpen: (b: boolean) => void;
 }) {
+  const uniqueCurrentTasks = useMemo(() => {
+    const map = new Map<string, Task>();
+    for (const t of currentTasks) {
+      const id = (t as any)?.id;
+      if (!id) continue;
+      if (!map.has(id)) map.set(id, t);
+    }
+    return Array.from(map.values());
+  }, [currentTasks]);
+
   // ✅ same ScorePill + fmt
   function ScorePill({
     label,
@@ -613,22 +623,22 @@ export default function TaskViews({
     );
   };
 
-  const shouldVirtualize = currentTasks.length > 40;
+  const shouldVirtualize = uniqueCurrentTasks.length > 40;
   const listView = shouldVirtualize ? (
     <VirtualizedList
-      items={currentTasks}
+      items={uniqueCurrentTasks}
       estimatedItemHeight={340}
       overscan={8}
       renderItem={(item) => renderTaskCard(item)}
     />
   ) : (
-    <div className="space-y-4">{currentTasks.map(renderTaskCard)}</div>
+    <div className="space-y-4">{uniqueCurrentTasks.map(renderTaskCard)}</div>
   );
 
   // ✅ Grid view = original logic unchanged, just moved
   const gridView = (
     <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {currentTasks.map((task) => {
+      {uniqueCurrentTasks.map((task) => {
         const isTimerActive =
           timerState?.taskId === task.id && timerState?.isRunning;
 

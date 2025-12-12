@@ -103,6 +103,8 @@ export default function TaskList({
   getPriorityBadge: (priority: string) => React.ReactElement;
   formatTimerDisplay: (seconds: number) => string;
   pausedTimer: TimerState | null;
+  refreshTasks: () => Promise<void>;
+  stopTimer: (taskId: string) => TimerState | undefined;
 }) {
   // 🔒 completed / qc_approved = read-only
   const isLocked = (t: Task) =>
@@ -428,20 +430,47 @@ export default function TaskList({
   }, [tabData.reassigned, taskGroups.reassigned]);
 
   const getTasksForCurrentTab = () => {
-    switch (activeTab) {
-      case "today":
-        return taskGroups.today;
-      case "tomorrow":
-        return taskGroups.tomorrow;
-      case "upcoming":
-        return taskGroups.upcoming;
-      case "reassigned":
-        return reassignedTasksOverride;
-      case "completed":
-        return completedTasksOverride;
-      default:
-        return filteredTasks;
+    const tasks = (() => {
+      switch (activeTab) {
+        case "today":
+          return taskGroups.today;
+        case "tomorrow":
+          return taskGroups.tomorrow;
+        case "upcoming":
+          return taskGroups.upcoming;
+        case "reassigned":
+          return reassignedTasksOverride;
+        case "completed":
+          return completedTasksOverride;
+        default:
+          return filteredTasks;
+      }
+    })();
+
+    // Sort tasks:
+    // 1) pin the current running/paused timer task to the top
+    // 2) keep any "in_progress" tasks at the top (in every tab)
+    // 3) keep stable ordering for everything else (avoid items "jumping")
+    const pinnedTaskId = timerState?.taskId ?? pausedTimer?.taskId ?? null;
+    const indexById = new Map<string, number>();
+    for (let i = 0; i < tasks.length; i++) {
+      indexById.set(tasks[i].id, i);
     }
+
+    return [...tasks].sort((a, b) => {
+      const aPinned = pinnedTaskId !== null && a.id === pinnedTaskId;
+      const bPinned = pinnedTaskId !== null && b.id === pinnedTaskId;
+
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+
+      const aInProgress = a.status === "in_progress";
+      const bInProgress = b.status === "in_progress";
+      if (aInProgress && !bInProgress) return -1;
+      if (!aInProgress && bInProgress) return 1;
+
+      return (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0);
+    });
   };
 
   const currentTasks = getTasksForCurrentTab();
