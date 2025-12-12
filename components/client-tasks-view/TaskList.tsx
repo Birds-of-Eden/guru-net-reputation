@@ -201,14 +201,20 @@ export default function TaskList({
 
   const mask = (s?: string | null) => (s ? "*********" : "N/A");
 
-  // ✅ helper: reassigned-like task detect (timer start korleo reassigned e thakbe)
   const isReassignedLike = (task: Task) => {
-    return (
-      task.status === "reassigned" ||
-      (!!task.reassignNotes &&
-        task.status !== "completed" &&
-        task.status !== "qc_approved")
-    );
+    if (task.status === "reassigned") {
+      return true;
+    }
+
+    if (
+      task.reassignNotes &&
+      task.status !== "completed" &&
+      task.status !== "qc_approved"
+    ) {
+      return true;
+    }
+
+    return false;
   };
 
   // ✅ Complete only if timer is running for this task
@@ -238,16 +244,19 @@ export default function TaskList({
     };
 
     tasks.forEach((task) => {
+      // First check if task is completed or QC approved
       if (task.status === "completed" || task.status === "qc_approved") {
         groups.completed.push(task);
         return;
       }
 
+      // Then check if task is reassigned or has reassign notes
       if (isReassignedLike(task)) {
         groups.reassigned.push(task);
         return;
       }
 
+      // Then handle by due date
       if (!task.dueDate) {
         groups.upcoming.push(task);
         return;
@@ -277,14 +286,22 @@ export default function TaskList({
 
   const fetchTabTasks = useCallback(
     async (tab: string) => {
-      const statusMap: Record<string, string[]> = {
-        completed: ["completed", "qc_approved"],
-        reassigned: ["reassigned"],
+      const statusMap: Record<
+        string,
+        { statuses: string[]; includeReassigned: boolean }
+      > = {
+        completed: {
+          statuses: ["completed", "qc_approved"],
+          includeReassigned: false,
+        },
+        reassigned: { statuses: ["reassigned"], includeReassigned: true },
       };
-      const statuses = statusMap[tab];
+      const { statuses, includeReassigned } = statusMap[tab] || {};
       if (!clientId || !statuses) return [];
 
       const collected: Task[] = [];
+
+      // First, fetch by status
       for (const status of statuses) {
         let page = 1;
         let hasMore = true;
@@ -301,6 +318,35 @@ export default function TaskList({
           );
           if (!res.ok) {
             throw new Error(`Failed to fetch ${tab} tasks (${res.status})`);
+          }
+          const json = await res.json();
+          const pageTasks = Array.isArray(json) ? json : json?.tasks ?? [];
+          collected.push(...pageTasks);
+          hasMore = Array.isArray(json) ? false : Boolean(json?.hasMore);
+          page += 1;
+          if (!pageTasks.length) break;
+        }
+      }
+
+      // If we need to include tasks with reassignNotes
+      if (includeReassigned) {
+        let page = 1;
+        let hasMore = true;
+        while (hasMore) {
+          const params = new URLSearchParams({
+            page: String(page),
+            pageSize: "200",
+            hasReassignNotes: "true",
+          });
+          if (agentId) params.set("agentId", agentId);
+          const res = await fetch(
+            `/api/tasks/client/${clientId}?${params.toString()}`,
+            { cache: "no-store" }
+          );
+          if (!res.ok) {
+            throw new Error(
+              `Failed to fetch tasks with reassign notes (${res.status})`
+            );
           }
           const json = await res.json();
           const pageTasks = Array.isArray(json) ? json : json?.tasks ?? [];
@@ -352,8 +398,34 @@ export default function TaskList({
     });
   };
 
-  const completedTasksOverride = tabData.completed ?? taskGroups.completed;
-  const reassignedTasksOverride = tabData.reassigned ?? taskGroups.reassigned;
+  const isCompleted = (t: Task) =>
+    t.status === "completed" || t.status === "qc_approved";
+
+  // Keep tabs consistent with live status updates.
+  // If a reassigned task becomes completed, it should move to Completed tab immediately.
+  const completedTasksOverride = useMemo(() => {
+    const base = tabData.completed ?? taskGroups.completed;
+    const map = new Map<string, Task>();
+    for (const t of base) {
+      if (isCompleted(t)) map.set(t.id, t);
+    }
+    for (const t of taskGroups.completed) {
+      map.set(t.id, t);
+    }
+    return Array.from(map.values());
+  }, [tabData.completed, taskGroups.completed]);
+
+  const reassignedTasksOverride = useMemo(() => {
+    const base = tabData.reassigned ?? taskGroups.reassigned;
+    const map = new Map<string, Task>();
+    for (const t of base) {
+      if (!isCompleted(t) && isReassignedLike(t)) map.set(t.id, t);
+    }
+    for (const t of taskGroups.reassigned) {
+      if (!isCompleted(t) && isReassignedLike(t)) map.set(t.id, t);
+    }
+    return Array.from(map.values());
+  }, [tabData.reassigned, taskGroups.reassigned]);
 
   const getTasksForCurrentTab = () => {
     switch (activeTab) {
@@ -488,7 +560,10 @@ export default function TaskList({
                 <Clock className="h-4 w-4" />
                 Today
                 {taskGroups.today.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white text-violet-600"
+                  >
                     {taskGroups.today.length}
                   </Badge>
                 )}
@@ -501,7 +576,10 @@ export default function TaskList({
                 <Calendar className="h-4 w-4" />
                 Tomorrow
                 {taskGroups.tomorrow.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white text-violet-600"
+                  >
                     {taskGroups.tomorrow.length}
                   </Badge>
                 )}
@@ -514,7 +592,10 @@ export default function TaskList({
                 <Calendar className="h-4 w-4" />
                 Upcoming
                 {taskGroups.upcoming.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white text-violet-600"
+                  >
                     {taskGroups.upcoming.length}
                   </Badge>
                 )}
@@ -527,7 +608,10 @@ export default function TaskList({
                 <CheckCircle className="h-4 w-4" />
                 Reassigned
                 {reassignedTasksOverride.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white text-violet-600"
+                  >
                     {reassignedTasksOverride.length}
                   </Badge>
                 )}
@@ -540,7 +624,10 @@ export default function TaskList({
                 <CheckCircle className="h-4 w-4" />
                 Completed
                 {completedTasksOverride.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-violet-600">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-white text-violet-600"
+                  >
                     {completedTasksOverride.length}
                   </Badge>
                 )}
@@ -548,66 +635,75 @@ export default function TaskList({
             </TabsList>
 
             {/** ✅ Tabs content stays same, renderer moved */}
-            {(["today", "tomorrow", "upcoming", "reassigned", "completed"] as const).map(
-              (tab) => (
-                <TabsContent key={tab} value={tab} className="mt-6">
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      {tab === "today" && `Today's Tasks - ${formatDate(new Date())}`}
-                      {tab === "tomorrow" &&
-                        `Tomorrow's Tasks - ${formatDate(
-                          new Date(new Date().setDate(new Date().getDate() + 1))
-                        )}`}
-                      {tab === "upcoming" && "Upcoming Tasks"}
-                      {tab === "reassigned" && "Reassigned Tasks"}
-                      {tab === "completed" && "Completed Tasks"}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {tab === "today" && "Tasks due for today"}
-                      {tab === "tomorrow" && "Tasks scheduled for tomorrow"}
-                      {tab === "upcoming" && "Tasks scheduled for future dates"}
-                      {tab === "reassigned" && "Tasks that have been reassigned and need your attention"}
-                      {tab === "completed" && "Tasks that have been completed or QC approved"}
-                    </p>
-                  </div>
+            {(
+              [
+                "today",
+                "tomorrow",
+                "upcoming",
+                "reassigned",
+                "completed",
+              ] as const
+            ).map((tab) => (
+              <TabsContent key={tab} value={tab} className="mt-6">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    {tab === "today" &&
+                      `Today's Tasks - ${formatDate(new Date())}`}
+                    {tab === "tomorrow" &&
+                      `Tomorrow's Tasks - ${formatDate(
+                        new Date(new Date().setDate(new Date().getDate() + 1))
+                      )}`}
+                    {tab === "upcoming" && "Upcoming Tasks"}
+                    {tab === "reassigned" && "Reassigned Tasks"}
+                    {tab === "completed" && "Completed Tasks"}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {tab === "today" && "Tasks due for today"}
+                    {tab === "tomorrow" && "Tasks scheduled for tomorrow"}
+                    {tab === "upcoming" && "Tasks scheduled for future dates"}
+                    {tab === "reassigned" &&
+                      "Tasks that have been reassigned and need your attention"}
+                    {tab === "completed" &&
+                      "Tasks that have been completed or QC approved"}
+                  </p>
+                </div>
 
-                  <TaskViews
-                    tab={tab}
-                    currentTasks={currentTasks}
-                    viewMode={viewMode}
-                    tasks={tasks}
-                    overdueCount={overdueCount}
-                    activeTab={activeTab}
-                    // needed logic/handlers
-                    timerState={timerState}
-                    pausedTimer={pausedTimer}
-                    handleStartTimer={handleStartTimer}
-                    handlePauseTimer={handlePauseTimer}
-                    onRequestComplete={onRequestComplete}
-                    isTaskDisabled={isTaskDisabled}
-                    isLocked={isLocked}
-                    canReveal={canReveal}
-                    isReassignedLike={isReassignedLike}
-                    showReassignNote={showReassignNote}
-                    hideAssetSection={hideAssetSection}
-                    getDisplayUrl={getDisplayUrl}
-                    // copy / reveal stuff
-                    copied={copied}
-                    handleCopy={handleCopy}
-                    mask={mask}
-                    isPasswordVisible={isPasswordVisible}
-                    togglePassword={togglePassword}
-                    // badges / timer formatting
-                    getStatusBadge={getStatusBadge}
-                    getPriorityBadge={getPriorityBadge}
-                    formatTimerDisplay={formatTimerDisplay}
-                    // modal control
-                    setTaskToComplete={setTaskToComplete}
-                    setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
-                  />
-                </TabsContent>
-              )
-            )}
+                <TaskViews
+                  tab={tab}
+                  currentTasks={currentTasks}
+                  viewMode={viewMode}
+                  tasks={tasks}
+                  overdueCount={overdueCount}
+                  activeTab={activeTab}
+                  // needed logic/handlers
+                  timerState={timerState}
+                  pausedTimer={pausedTimer}
+                  handleStartTimer={handleStartTimer}
+                  handlePauseTimer={handlePauseTimer}
+                  onRequestComplete={onRequestComplete}
+                  isTaskDisabled={isTaskDisabled}
+                  isLocked={isLocked}
+                  canReveal={canReveal}
+                  isReassignedLike={isReassignedLike}
+                  showReassignNote={showReassignNote}
+                  hideAssetSection={hideAssetSection}
+                  getDisplayUrl={getDisplayUrl}
+                  // copy / reveal stuff
+                  copied={copied}
+                  handleCopy={handleCopy}
+                  mask={mask}
+                  isPasswordVisible={isPasswordVisible}
+                  togglePassword={togglePassword}
+                  // badges / timer formatting
+                  getStatusBadge={getStatusBadge}
+                  getPriorityBadge={getPriorityBadge}
+                  formatTimerDisplay={formatTimerDisplay}
+                  // modal control
+                  setTaskToComplete={setTaskToComplete}
+                  setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
+                />
+              </TabsContent>
+            ))}
           </Tabs>
 
           {/* টাস্ক কাউন্টার */}
