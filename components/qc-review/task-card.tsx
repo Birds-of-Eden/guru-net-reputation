@@ -1,8 +1,8 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,50 @@ import {
   RotateCcw,
   Star,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { lazy, Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { QCScores } from "@/app/qc/tasks/QCReview";
+import { Client } from "@/types/client";
+
+const ClientDashboard = lazy(() =>
+  import("@/components/clients/clientsID/client-dashboard").then((m) => ({
+    default: m.ClientDashboard,
+  }))
+);
+
+const ClientDashboardSkeleton = () => (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-8 w-24 rounded-md" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i} className="border border-muted/40">
+          <CardHeader>
+            <Skeleton className="h-4 w-24" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-3 w-32" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-40 w-full rounded-xl" />
+    </div>
+  </div>
+);
 
 interface TaskCardProps {
   task: any; // your TaskRow type is complex; keep as any for now
@@ -185,6 +228,9 @@ export function TaskCard({
   scores,
   onChangeScores,
 }: TaskCardProps) {
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [clientData, setClientData] = useState<Client | null>(null);
+  
   const efficiency = getDurationEfficiency(
     task.idealDurationMinutes,
     task.actualDurationMinutes
@@ -208,6 +254,57 @@ export function TaskCard({
 
   const setScore = (k: keyof QCScores, v: number) =>
     onChangeScores({ ...scores, [k]: Math.max(0, Math.min(5, v)) });
+
+  // Normalize and fetch full client data for the modal
+  const normalizeClientData = useCallback((apiData: any): Client => {
+    const uncategorized = {
+      id: "uncategorized",
+      name: "Uncategorized",
+      description: "",
+    } as any;
+    return {
+      ...apiData,
+      companywebsite:
+        apiData?.companywebsite && typeof apiData.companywebsite === "string"
+          ? apiData.companywebsite
+          : "",
+      tasks: (apiData?.tasks ?? []).map((t: any) => ({
+        ...t,
+        categoryId: t?.category?.id ?? t?.categoryId ?? "uncategorized",
+        category: t?.category ?? uncategorized,
+        name: String(t?.name ?? ""),
+        priority: String(t?.priority ?? "medium"),
+        status: String(t?.status ?? "pending"),
+        templateSiteAsset: {
+          ...t?.templateSiteAsset,
+          type: String(t?.templateSiteAsset?.type ?? ""),
+          name: String(t?.templateSiteAsset?.name ?? ""),
+          url: String(t?.templateSiteAsset?.url ?? ""),
+        },
+      })),
+    } as Client;
+  }, []);
+
+  const fetchClientData = useCallback(async () => {
+    if (!task.client?.id) return;
+    try {
+      const res = await fetch(`/api/clients/${task.client.id}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) return;
+      const raw = await res.json();
+      const normalized = normalizeClientData(raw);
+      setClientData(normalized);
+    } catch (e) {
+      console.error("Failed to fetch client data:", e);
+    }
+  }, [task.client?.id, normalizeClientData]);
+
+  useEffect(() => {
+    if (isClientModalOpen) {
+      fetchClientData();
+    }
+  }, [isClientModalOpen, fetchClientData]);
 
   return (
     <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group">
@@ -309,7 +406,7 @@ export function TaskCard({
                   </span>
                 </div>
                 {task.client ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="font-bold text-sm text-slate-900 dark:text-slate-100">
                       {task.client.name}
                     </div>
@@ -321,11 +418,38 @@ export function TaskCard({
                     {task.assignment?.template && (
                       <Badge
                         variant="secondary"
-                        className="text-xs mt-1 bg-white dark:bg-slate-800 shadow-sm"
+                        className="text-xs bg-white dark:bg-slate-800 shadow-sm"
                       >
                         {task.assignment.template.name}
                       </Badge>
                     )}
+                    <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="relative rounded-xl p-0 bg-transparent hover:bg-transparent overflow-hidden isolate mt-2 h-8">
+                          <BackgroundGradient className="rounded-xl">
+                            <div className="rounded-xl px-3 py-1 text-white text-xs">
+                              View Client Details
+                            </div>
+                          </BackgroundGradient>
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="w-[95vw] max-w-6xl h-[90vh] overflow-y-auto overflow-x-hidden bg-transparent p-0">
+                        <div className="bg-card p-6">
+                          <DialogHeader className="mb-4">
+                            <DialogTitle>{task.client.name}</DialogTitle>
+                          </DialogHeader>
+
+                          {clientData ? (
+                            <Suspense fallback={<ClientDashboardSkeleton />}>
+                              <ClientDashboard clientData={clientData} />
+                            </Suspense>
+                          ) : (
+                            <ClientDashboardSkeleton />
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 ) : (
                   <span className="text-slate-400 italic text-xs">
