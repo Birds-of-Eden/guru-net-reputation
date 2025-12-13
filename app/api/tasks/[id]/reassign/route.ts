@@ -142,6 +142,11 @@ export async function PUT(
     });
 
     // notifications
+    const adminManagers = await prisma.user.findMany({
+      where: { role: { name: { in: ["admin", "manager"] } } },
+      select: { id: true },
+    });
+
     const notifs: Promise<any>[] = [
       prisma.notification.create({
         data: {
@@ -163,6 +168,22 @@ export async function PUT(
             message: "A task previously assigned to you has been reassigned.",
             createdAt: new Date(),
           },
+        })
+      );
+    }
+    if (adminManagers.length) {
+      const message = toId
+        ? "A task has been reassigned to a new agent."
+        : "A task has been unassigned.";
+      notifs.push(
+        prisma.notification.createMany({
+          data: adminManagers.map((u) => ({
+            userId: u.id,
+            taskId,
+            type: "general",
+            message,
+            createdAt: new Date(),
+          })),
         })
       );
     }
