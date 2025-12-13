@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -72,6 +72,7 @@ export default function TaskList({
   getPriorityBadge,
   formatTimerDisplay,
   pausedTimer,
+  refreshTasks,
 }: {
   agentId: string;
   clientName: string;
@@ -285,6 +286,7 @@ export default function TaskList({
   const [activeTab, setActiveTab] = useState("today");
   const [tabData, setTabData] = useState<Record<string, Task[]>>({});
   const [tabLoading, setTabLoading] = useState<Record<string, boolean>>({});
+  const realtimeRefreshInFlight = useRef(false);
 
   const fetchTabTasks = useCallback(
     async (tab: string) => {
@@ -369,26 +371,65 @@ export default function TaskList({
     [agentId, clientId]
   );
 
-  const handleTabChange = useCallback(
-    (value: string) => {
-      setActiveTab(value);
-      const needsFetch = value === "completed" || value === "reassigned";
-      if (needsFetch && !tabData[value] && !tabLoading[value]) {
-        setTabLoading((prev) => ({ ...prev, [value]: true }));
-        fetchTabTasks(value)
-          .then((data) => {
-            setTabData((prev) => ({ ...prev, [value]: data }));
-          })
-          .catch((err) => {
-            console.error("Failed to load tab tasks", err);
-          })
-          .finally(() => {
-            setTabLoading((prev) => ({ ...prev, [value]: false }));
-          });
+  const loadTabTasks = useCallback(
+    async (tab: string, force = false) => {
+      const needsFetch = tab === "completed" || tab === "reassigned";
+      if (!needsFetch) return;
+      if (tabLoading[tab]) return;
+      if (!force && tabData[tab]) return;
+
+      setTabLoading((prev) => ({ ...prev, [tab]: true }));
+      try {
+        const data = await fetchTabTasks(tab);
+        setTabData((prev) => ({ ...prev, [tab]: data }));
+      } catch (err) {
+        console.error("Failed to load tab tasks", err);
+      } finally {
+        setTabLoading((prev) => ({ ...prev, [tab]: false }));
       }
     },
     [fetchTabTasks, tabData, tabLoading]
   );
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value);
+      void loadTabTasks(value);
+    },
+    [loadTabTasks]
+  );
+
+  // Lightweight polling + tab visibility refresh to keep data fresh without manual reloads.
+  useEffect(() => {
+    const tick = async () => {
+      if (realtimeRefreshInFlight.current) return;
+      if (typeof document !== "undefined" && document.hidden) return;
+      realtimeRefreshInFlight.current = true;
+      try {
+        await refreshTasks();
+        if (activeTab === "completed" || activeTab === "reassigned") {
+          await loadTabTasks(activeTab, true);
+        }
+      } catch (err) {
+        console.error("Realtime refresh failed", err);
+      } finally {
+        realtimeRefreshInFlight.current = false;
+      }
+    };
+
+    const interval = setInterval(tick, 15000);
+    return () => clearInterval(interval);
+  }, [activeTab, loadTabTasks, refreshTasks]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) return;
+      void refreshTasks();
+      void loadTabTasks(activeTab, true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [activeTab, loadTabTasks, refreshTasks]);
 
   // তারিখ ফরম্যাট ফাংশন
   const formatDate = (date: Date) => {
