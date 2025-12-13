@@ -171,6 +171,24 @@ export async function PUT(
       });
     }
 
+    // ---- Notify admins and managers ----
+    const adminsAndManagers = await prisma.user.findMany({
+      where: { role: { name: { in: ["admin", "manager"] } } },
+      select: { id: true },
+    });
+
+    if (adminsAndManagers.length) {
+      await prisma.notification.createMany({
+        data: adminsAndManagers.map((u) => ({
+          userId: u.id,
+          taskId: existing.id,
+          type: "performance",
+          message: `Task "${existing.name}" has been QC approved. Rating: ${performanceRating}. Score: ${total}%.`,
+          createdAt: new Date(),
+        })),
+      });
+    }
+
     // ---- 🚀 Auto-trigger posting task generation for QC tasks ----
     let postingResult: any = null;
     let postingTriggered = false;

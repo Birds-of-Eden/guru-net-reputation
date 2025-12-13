@@ -115,7 +115,7 @@ export async function PUT(
 
     // 2️⃣ Admin + QC role এর সব ইউজার বের করুন
     const notifyUsers = await prisma.user.findMany({
-      where: { role: { name: { in: ["admin", "qc"] } } }, // ✅ দুইটা role একসাথে
+      where: { role: { name: { in: ["admin", "manager", "qc"] } } }, // admins, managers, QC
       select: { id: true },
     });
 
