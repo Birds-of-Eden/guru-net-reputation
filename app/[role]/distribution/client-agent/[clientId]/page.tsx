@@ -494,6 +494,9 @@ export default function TaskDistributionForClient() {
   );
   const hasMoreTasks = remainingVirtualTasks > 0;
   const nextBatchSize = Math.min(remainingVirtualTasks, TASK_BATCH_SIZE);
+  const loadMoreLabel = `Load ${nextBatchSize} more task${
+    nextBatchSize !== 1 ? "s" : ""
+  } (${remainingVirtualTasks} left)`;
 
   const handleLoadMoreTasks = useCallback(() => {
     setVisibleTaskBatches((prev) => prev + 1);
@@ -1193,6 +1196,24 @@ export default function TaskDistributionForClient() {
                   Tasks
                 </h3>
 
+                {!loading && hasMoreTasks && (
+                  <div className="sticky top-4 z-30 flex justify-end">
+                    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur">
+                      <span className="text-xs text-slate-600">
+                        Showing {visibleTasks.length} of {deferredTasks.length} tasks
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLoadMoreTasks}
+                        className="rounded-full px-4"
+                      >
+                        {loadMoreLabel}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* ...existing imports and code above... */}
 
                 {loading ? (
@@ -1264,9 +1285,7 @@ export default function TaskDistributionForClient() {
                       className="rounded-full px-6"
                     >
                       {/* OPTIMIZATION (virtual batching control): manual pager keeps DOM nodes capped while still letting the user continue */}
-                      Load {nextBatchSize} more task
-                      {nextBatchSize !== 1 ? "s" : ""} (
-                      {remainingVirtualTasks} left)
+                      {loadMoreLabel}
                     </Button>
                   </div>
                 )}

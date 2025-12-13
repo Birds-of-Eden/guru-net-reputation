@@ -549,6 +549,12 @@ export function ClientTasksView({
     isValidating && size > (taskPages?.length ?? 0) && Boolean(hasMore);
   const isRefreshing =
     isValidating && size === (taskPages?.length ?? 0) && !isLoadingMore;
+  const remainingTasks = Math.max(0, stats.total - tasks.length);
+  const loadMoreLabel = isLoadingMore
+    ? "Loading more..."
+    : remainingTasks > 0
+    ? `Load more tasks (${remainingTasks} left)`
+    : "Load more tasks";
   const refreshTasks = useCallback(async () => {
     setSize(1);
     void mutate();
@@ -1348,11 +1354,22 @@ export function ClientTasksView({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap justify-end text-right">
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Showing {tasks.length} of {stats.total} tasks{" "}
-              {hasMore ? "(load more to see all)" : ""}
+              {hasMore ? `(${remainingTasks} left)` : ""}
             </span>
+            {hasMore && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSize(size + 1)}
+                disabled={isLoadingMore}
+                className="rounded-full"
+              >
+                {loadMoreLabel}
+              </Button>
+            )}
             <Button
               onClick={refreshTasks}
               variant="outline"
@@ -1461,6 +1478,25 @@ export function ClientTasksView({
           </Card>
         </div>
 
+        {hasMore && (
+          <div className="sticky top-4 z-30 flex justify-end">
+            <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur">
+              <span className="text-xs text-slate-600">
+                Showing {tasks.length} of {stats.total} tasks ({remainingTasks} left)
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSize(size + 1)}
+                disabled={isLoadingMore}
+                className="rounded-full px-4"
+              >
+                {loadMoreLabel}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end">
           <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
             <DialogTrigger asChild>
@@ -1537,7 +1573,7 @@ export function ClientTasksView({
               onClick={() => setSize(size + 1)}
               disabled={isLoadingMore}
             >
-              {isLoadingMore ? "Loading more..." : "Load more tasks"}
+              {loadMoreLabel}
             </Button>
           </div>
         )}
