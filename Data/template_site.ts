@@ -166,7 +166,6 @@ export const DEFAULT_ADDITIONAL_SITES = [
   },
 ];
 
-
 export const DEFAULT_GRAPHICS_DESIGN = [
   {
     name: "Graphic Design",

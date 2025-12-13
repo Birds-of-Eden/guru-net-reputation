@@ -6,6 +6,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
+import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
+import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/route";
 
 // ---------- Constants ----------
 const ALLOWED_ASSET_TYPES = [
@@ -742,7 +744,7 @@ export async function POST(req: NextRequest) {
         name: item.name,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: src.idealDurationMinutes ?? undefined,
+        idealDurationMinutes: resolveIdealDurationDynamic(item.name, item.catName as "Blog Posting" | "Social Activity", getRuntimeTaskDurationConfig()),
         dueDate: dueDate.toISOString(),
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,
@@ -784,7 +786,7 @@ export async function POST(req: NextRequest) {
         name: scName,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: src.idealDurationMinutes ?? undefined,
+        idealDurationMinutes: resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
         dueDate: dueDate.toISOString(), // EXACT last social posting due date
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,
@@ -824,7 +826,7 @@ export async function POST(req: NextRequest) {
         email: creds?.email ?? undefined,
         password: creds?.password ?? undefined,
         completionLink: creds?.url ?? undefined, // url
-        idealDurationMinutes: creds?.idealDurationMinutes ?? undefined,
+        idealDurationMinutes: creds?.idealDurationMinutes ?? resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
 
         assignment: { connect: { id: assignment.id } },
         client: { connect: { id: clientId } },

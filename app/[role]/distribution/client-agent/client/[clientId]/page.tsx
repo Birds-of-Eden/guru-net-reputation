@@ -23,7 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
+import PostingTaskDurationSettingsModal from "@/components/clients/clientsID/template-customization/PostingTaskTime";
 import {
   Repeat,
   Users,
@@ -375,6 +382,7 @@ export default function CreatePostingTasksPage() {
   const [createdCount, setCreatedCount] = useState<number | null>(null);
   const [createdTasks, setCreatedTasks] = useState<CreatedTask[]>([]);
   const [search, setSearch] = useState("");
+  const [openDurationModal, setOpenDurationModal] = useState(false);
 
   const [existingTasks, setExistingTasks] = useState<CreatedTask[]>([]);
   const [loadingExistingTasks, setLoadingExistingTasks] = useState(false);
@@ -1006,7 +1014,7 @@ export default function CreatePostingTasksPage() {
                     </div>
                   ) : (
                     <Button
-                      onClick={handleCreate}
+                      onClick={() => setOpenDurationModal(true)}
                       disabled={creating || !canCreateTasks}
                       className={cn(
                         "w-full h-14 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
@@ -1022,8 +1030,7 @@ export default function CreatePostingTasksPage() {
                       ) : (
                         <div className="flex items-center gap-3">
                           <ListChecks className="h-6 w-6" />
-                          Create Posting Tasks for{" "}
-                          {selectedClient?.name || "Client"}
+                          Configure Time & Create Tasks
                         </div>
                       )}
                     </Button>
@@ -1090,6 +1097,37 @@ export default function CreatePostingTasksPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Duration Settings Modal */}
+      <Dialog open={openDurationModal} onOpenChange={setOpenDurationModal}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Posting Task Duration Settings</DialogTitle>
+          </DialogHeader>
+
+          <PostingTaskDurationSettingsModal
+            onClose={() => setOpenDurationModal(false)}
+          />
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setOpenDurationModal(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={() => {
+                setOpenDurationModal(false);
+                handleCreate();
+              }}
+            >
+              Save & Create Tasks
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
