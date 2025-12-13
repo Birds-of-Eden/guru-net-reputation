@@ -1,3 +1,4 @@
+//components/task-distribution/CreateNewTask.tsx
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -7,9 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { ListTodo, AlertCircle, CheckCircle, Loader, CalendarDays, ChevronDown, ChevronUp, Check, X } from "lucide-react"
+import { ListTodo, AlertCircle, CheckCircle, Loader, CalendarDays, Check, X } from "lucide-react"
 import { type FormEvent, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
