@@ -556,9 +556,9 @@ export function ClientTasksView({
     ? `Load more tasks (${remainingTasks} left)`
     : "Load more tasks";
   const refreshTasks = useCallback(async () => {
-    setSize(1);
-    void mutate();
-  }, [mutate, setSize]);
+    // Revalidate existing pages without collapsing back to the first page
+    await mutate();
+  }, [mutate]);
 
   useEffect(() => {
     setSize(1);
@@ -1359,17 +1359,6 @@ export function ClientTasksView({
               Showing {tasks.length} of {stats.total} tasks{" "}
               {hasMore ? `(${remainingTasks} left)` : ""}
             </span>
-            {hasMore && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSize(size + 1)}
-                disabled={isLoadingMore}
-                className="rounded-full"
-              >
-                {loadMoreLabel}
-              </Button>
-            )}
             <Button
               onClick={refreshTasks}
               variant="outline"
@@ -1565,18 +1554,6 @@ export function ClientTasksView({
             stopTimer={stopTimerNow}
           />
         </div>
-
-        {hasMore && (
-          <div className="flex justify-center mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setSize(size + 1)}
-              disabled={isLoadingMore}
-            >
-              {loadMoreLabel}
-            </Button>
-          </div>
-        )}
 
         <TaskDialogs
           isStatusModalOpen={isStatusModalOpen}
