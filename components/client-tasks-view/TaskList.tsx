@@ -1,3 +1,5 @@
+// components/client-tasks-view/TaskList.tsx
+
 "use client";
 
 import * as React from "react";
@@ -428,7 +430,8 @@ export default function TaskList({
       void loadTabTasks(activeTab, true);
     };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, [activeTab, loadTabTasks, refreshTasks]);
 
   // তারিখ ফরম্যাট ফাংশন
