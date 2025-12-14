@@ -1,6 +1,7 @@
 // app/api/tasks/distribute/route.ts
 
 import { NextResponse } from "next/server";
+import { NotificationType } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
           data: {
             userId: agentId,
             taskId,
-            type: "general",
+            type: NotificationType.general,
             message: `You have been assigned a new task${
               dueDate ? ` (due ${new Date(dueDate).toLocaleDateString()})` : ""
             }.`,
@@ -268,7 +269,7 @@ export async function PUT(request: Request) {
             data: {
               userId: toAgentId,
               taskId,
-              type: "general",
+              type: NotificationType.general,
               message: "A task has been reassigned to you.",
               createdAt: new Date(),
             },
@@ -283,7 +284,7 @@ export async function PUT(request: Request) {
             data: {
               userId: fromAgentId,
               taskId,
-              type: "general",
+              type: NotificationType.general,
               message: toAgentId 
                 ? "A task previously assigned to you has been reassigned."
                 : "A task previously assigned to you has been unassigned.",
@@ -301,7 +302,7 @@ export async function PUT(request: Request) {
             data: adminManagers.map((u) => ({
               userId: u.id,
               taskId,
-              type: "general",
+              type: NotificationType.general,
               message,
               createdAt: new Date(),
             })),
@@ -453,7 +454,7 @@ export async function PUT(request: Request) {
           adminManagers.map((u) => ({
             userId: u.id,
             taskId,
-            type: "general",
+            type: NotificationType.general,
             message: "A task has been reassigned to a new agent.",
             createdAt: new Date(),
           }))

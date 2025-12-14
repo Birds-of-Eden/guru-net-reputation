@@ -6,7 +6,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
-import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/route";
+import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 
 const ALLOWED_ASSET_TYPES = [
   "social_site",

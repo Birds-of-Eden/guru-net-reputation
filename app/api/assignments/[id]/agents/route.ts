@@ -68,3 +68,6 @@
 //     return NextResponse.json({ message: "Failed to remove agent from assignment" }, { status: 500 })
 //   }
 // }
+
+// Mark this file as a module so Next.js type generation succeeds even though the route handlers are commented out.
+export {};

@@ -4,16 +4,15 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: taskId } = await params;
   try {
     const user = await getAuthUser();
 
     if (!user?.id) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
-
-    const taskId = params.id;
 
     if (!taskId) {
       return new NextResponse('Task ID is required', { status: 400 });
@@ -66,7 +65,7 @@ export async function POST(
   } catch (error) {
     console.error('❌ Error pausing task:', {
       error: error instanceof Error ? error.message : error,
-      taskId: params.id,
+      taskId: taskId,
       stack: error instanceof Error ? error.stack : undefined
     });
     return new NextResponse('Internal Server Error', { status: 500 });
