@@ -122,6 +122,8 @@ export default function UserFormDialog({
         ? json
         : Array.isArray(json?.data)
         ? json.data
+        : Array.isArray(json?.clients)
+        ? json.clients
         : [];
       if (res.ok && Array.isArray(list)) {
         const mapped = list.map((c: any) => ({
@@ -495,6 +497,15 @@ export default function UserFormDialog({
                     derivedLast ? ` ${derivedLast}` : ""
                   }`;
 
+                  // Truncate biography to 100 words if needed
+                  let biography = selected?.biography ?? prev.biography;
+                  if (biography && biography !== prev.biography) {
+                    const words = biography.trim().split(/\s+/).filter(Boolean);
+                    if (words.length > 100) {
+                      biography = words.slice(0, 100).join(' ');
+                    }
+                  }
+
                   return {
                     ...prev,
                     clientId: value,
@@ -502,7 +513,7 @@ export default function UserFormDialog({
                     email: selected?.email ?? prev.email,
                     phone: selected?.phone ?? prev.phone,
                     address: selected?.address ?? prev.address,
-                    biography: selected?.biography ?? prev.biography,
+                    biography: biography,
                     firstName: derivedFirst,
                     lastName: derivedLast,
                     name: composedName || prev.name,
