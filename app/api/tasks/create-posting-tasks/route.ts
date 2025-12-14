@@ -7,7 +7,7 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
-import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/route";
+import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 
 // ---------- Constants ----------
 const ALLOWED_ASSET_TYPES = [

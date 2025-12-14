@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DEFAULT_TASK_DURATION_CONFIG, TaskDurationConfig } from '../../../../config/task-duration.config';
-
-// Runtime configuration stored in memory
-let runtimeConfig: TaskDurationConfig = { ...DEFAULT_TASK_DURATION_CONFIG };
+import {
+  TaskDurationConfig,
+} from '../../../../config/task-duration.config';
+import {
+  getRuntimeTaskDurationConfig,
+  updateRuntimeTaskDurationConfig,
+} from './config';
 
 export async function GET() {
   try {
     return NextResponse.json({
       success: true,
-      data: runtimeConfig
+      data: getRuntimeTaskDurationConfig()
     });
   } catch (error) {
     console.error('Error getting task duration config:', error);
@@ -33,25 +36,31 @@ export async function PUT(request: NextRequest) {
 
     // Update runtime config with new values
     // Deep merge to preserve existing structure
-    if (body.blogPosting) {
-      runtimeConfig.blogPosting = {
-        ...runtimeConfig.blogPosting,
-        ...body.blogPosting,
-        rules: body.blogPosting.rules || runtimeConfig.blogPosting.rules
-      };
-    }
+    const updated = updateRuntimeTaskDurationConfig((current) => {
+      const next: TaskDurationConfig = { ...current };
 
-    if (body.socialActivity) {
-      runtimeConfig.socialActivity = {
-        ...runtimeConfig.socialActivity,
-        ...body.socialActivity,
-        rules: body.socialActivity.rules || runtimeConfig.socialActivity.rules
-      };
-    }
+      if (body.blogPosting) {
+        next.blogPosting = {
+          ...next.blogPosting,
+          ...body.blogPosting,
+          rules: body.blogPosting.rules || next.blogPosting.rules
+        };
+      }
+
+      if (body.socialActivity) {
+        next.socialActivity = {
+          ...next.socialActivity,
+          ...body.socialActivity,
+          rules: body.socialActivity.rules || next.socialActivity.rules
+        };
+      }
+
+      return next;
+    });
 
     return NextResponse.json({
       success: true,
-      data: runtimeConfig
+      data: updated
     });
   } catch (error) {
     console.error('Error updating task duration config:', error);
@@ -60,9 +69,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Export function to get current runtime config for internal use
-export function getRuntimeTaskDurationConfig(): TaskDurationConfig {
-  return runtimeConfig;
 }

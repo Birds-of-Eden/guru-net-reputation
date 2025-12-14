@@ -46,7 +46,8 @@ interface Template {
   }[]
 }
 
-export default function TemplateDetailPage({ params }: { params: { id: string } }) {
+export default function TemplateDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const [templateId, setTemplateId] = useState<string | null>(null)
   const [template, setTemplate] = useState<Template | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -62,9 +63,20 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   const router = useRouter()
 
   useEffect(() => {
+    let active = true
+    Promise.resolve(params).then((resolved) => {
+      if (active) setTemplateId(resolved.id)
+    })
+    return () => {
+      active = false
+    }
+  }, [params])
+
+  useEffect(() => {
+    if (!templateId) return
     const fetchTemplate = async () => {
       try {
-        const response = await fetch(`/api/templates/${params.id}`)
+        const response = await fetch(`/api/templates/${templateId}`)
         const data = await response.json()
         setTemplate(data)
       } catch (error) {
@@ -76,13 +88,13 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
     }
     
     fetchTemplate()
-  }, [params.id, toast])
+  }, [templateId, toast])
 
   const handleSave = async () => {
-    if (!template) return
+    if (!template || !templateId) return
     
     try {
-      const response = await fetch(`/api/templates/${params.id}`, {
+      const response = await fetch(`/api/templates/${templateId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -107,10 +119,10 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
   }
 
   const handleAddAsset = async () => {
-    if (!newAsset.name || !template) return
+    if (!newAsset.name || !template || !templateId) return
     
     try {
-      const response = await fetch(`/api/templates/${params.id}/assets`, {
+      const response = await fetch(`/api/templates/${templateId}/assets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +155,8 @@ export default function TemplateDetailPage({ params }: { params: { id: string } 
     if (!confirm('Are you sure you want to delete this asset?')) return
     
     try {
-      await fetch(`/api/templates/${params.id}/assets/${assetId}`, {
+      if (!templateId) return
+      await fetch(`/api/templates/${templateId}/assets/${assetId}`, {
         method: 'DELETE',
       })
       
