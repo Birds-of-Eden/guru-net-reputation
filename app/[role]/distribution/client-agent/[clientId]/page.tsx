@@ -292,17 +292,16 @@ type SimpleCategoryStats = { total: number; assigned: number };
 
 // ✅ NEW: decide which UI category a task belongs to
 function getUICategoryForTask(t: Task): string {
-  const enumType = (t as any)?.templateSiteAsset?.type as string | undefined;
-
-  // Asset Creation (from enum)
-  if (["social_site", "web2_site", "other_asset"].includes(enumType ?? "")) {
-    return "Asset Creation";
-  }
-
-  // Posting categories (from t.category.name)
   const catName = (t as any)?.category?.name as string | undefined;
   if (catName && (POSTING_CATEGORIES as readonly string[]).includes(catName)) {
     return catName;
+  }
+
+  const enumType = (t as any)?.templateSiteAsset?.type as string | undefined;
+
+  // Asset Creation (from enum) only when not already classified as posting
+  if (["social_site", "web2_site", "other_asset"].includes(enumType ?? "")) {
+    return "Asset Creation";
   }
 
   // Fallback to existing enum->label map

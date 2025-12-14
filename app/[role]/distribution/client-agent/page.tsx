@@ -210,9 +210,12 @@ export default function ClientUnifiedDashboard() {
 
   const conditionalRouteAndLabel = (client: Client) => {
     const ready = client.taskStats?.isReadyForTaskCreation === true;
-    const already = client.postingTasksCreated === true;
+    const already =
+      client.postingTasksCreated === true ||
+      (client.existingPostingTasksCount ?? 0) > 0 ||
+      (client.taskStats?.posting?.totalPostingTasks ?? 0) > 0;
 
-    if (ready && already) {
+    if (already) {
       return {
         label: "Show Tasks",
         icon: <Layers className="h-4 w-4" />,
@@ -245,6 +248,11 @@ export default function ClientUnifiedDashboard() {
   /** ---------- UI helpers ---------- */
   const getStatusBadge = (client: Client) => {
     const t = client.taskStats;
+    const already =
+      client.postingTasksCreated === true ||
+      (client.existingPostingTasksCount ?? 0) > 0 ||
+      (client.taskStats?.posting?.totalPostingTasks ?? 0) > 0;
+
     if (!t || t.totalTasks === 0) {
       return (
         <Badge
@@ -257,7 +265,7 @@ export default function ClientUnifiedDashboard() {
       );
     }
 
-    if (t.isReadyForTaskCreation && client.postingTasksCreated) {
+    if (already) {
       return (
         <Badge
           variant="outline"

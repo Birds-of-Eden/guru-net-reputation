@@ -8,6 +8,14 @@ import prisma from "@/lib/prisma";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/route";
 
+const ALLOWED_ASSET_TYPES = [
+  "social_site",
+  "web2_site",
+  "other_asset",
+] as const;
+const CAT_SOCIAL_ACTIVITY = "Social Activity";
+const CAT_BLOG_POSTING = "Blog Posting";
+
 // Node 18+ has global crypto.randomUUID()
 const makeId = () =>
   `task_${Date.now()}_${
@@ -33,28 +41,14 @@ function fail(stage: string, err: unknown, http = 500) {
   );
 }
 
-// Determine category name based on asset type (matches posting tasks logic)
+// Determine category name based on asset type (strict posting logic)
 function resolveCategoryFromType(assetType?: string): string {
-  if (!assetType) return "Social Activity";
-  if (assetType === "web2_site") return "Blog Posting";
-  if (assetType === "social_site" || assetType === "other_asset") {
-    return "Social Activity";
+  if (!assetType) return CAT_SOCIAL_ACTIVITY;
+  if (assetType === "social_site") return CAT_SOCIAL_ACTIVITY;
+  if (assetType === "web2_site" || assetType === "other_asset") {
+    return CAT_BLOG_POSTING;
   }
-  // For other types, use their mapped category
-  const categoryMappings: Record<string, string> = {
-    graphics_design: "Graphics Design",
-    image_optimization: "Image Optimization",
-    content_studio: "Content Studio",
-    content_writing: "Content Writing",
-    backlinks: "Backlinks",
-    completed_com: "Completed.com",
-    youtube_video_optimization: "YouTube Video Optimization",
-    monitoring: "Monitoring",
-    review_removal: "Review Removal",
-    summary_report: "Summary Report",
-    guest_posting: "Guest Posting",
-  };
-  return categoryMappings[assetType] || "General";
+  return CAT_SOCIAL_ACTIVITY;
 }
 
 // POST: create manual tasks
@@ -94,11 +88,28 @@ export async function POST(req: NextRequest) {
     }
 
     const baseDueDate = new Date(dueDateRaw);
-    const siteAssetTypes = siteAssetTypesRaw;
 
     if (Number.isNaN(baseDueDate.getTime())) {
       return NextResponse.json(
         { message: "Invalid dueDate format" },
+        { status: 400 }
+      );
+    }
+
+    const siteAssetTypes = Array.from(
+      new Set(
+        siteAssetTypesRaw.filter((type): type is (typeof ALLOWED_ASSET_TYPES)[number] =>
+          ALLOWED_ASSET_TYPES.includes(type as any)
+        )
+      )
+    );
+
+    if (siteAssetTypes.length === 0) {
+      return NextResponse.json(
+        {
+          message:
+            "Invalid site asset types. Allowed types: social_site, web2_site, other_asset.",
+        },
         { status: 400 }
       );
     }
@@ -165,19 +176,16 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // Get unique category names for selected asset types
-    const uniqueCategoryNames = Array.from(
-      new Set(siteAssetTypes.map(type => resolveCategoryFromType(type)))
-    );
+    // Ensure posting categories exist
+    const [socialCategory, blogCategory] = await Promise.all([
+      ensureCategory(CAT_SOCIAL_ACTIVITY),
+      ensureCategory(CAT_BLOG_POSTING),
+    ]);
 
-    // Ensure all required categories exist
-    const categories = await Promise.all(
-      uniqueCategoryNames.map(name => ensureCategory(name))
-    );
-
-    const categoryIdByName = new Map(
-      categories.map(cat => [cat.name, cat.id])
-    );
+    const categoryIdByName = new Map<string, string>([
+      [socialCategory.name, socialCategory.id],
+      [blogCategory.name, blogCategory.id],
+    ]);
 
     // Load template assets for selected types
     if (!assignment.templateId) {
@@ -201,6 +209,17 @@ export async function POST(req: NextRequest) {
     });
 
     console.log("[create-manual-tasks] Template assets fetched:", templateAssets.length);
+
+    if (!templateAssets.length) {
+      return NextResponse.json(
+        {
+          message: "No template site assets found for the selected posting types.",
+          created: 0,
+          tasks: [],
+        },
+        { status: 200 }
+      );
+    }
 
     // Build payloads with proper category mapping
     const payloads: Array<{
@@ -313,7 +332,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: `Created ${created.length} manual task(s)`,
+        message: `Created ${created.length} manual posting task(s)`,
         created: created.length,
         skipped: 0,
         assignmentId: assignment.id,

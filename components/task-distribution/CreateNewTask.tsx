@@ -27,19 +27,9 @@ interface CreateNewTaskModalProps {
 }
 
 const SITE_ASSET_TYPES = [
-  { value: "social_site", label: "Social Site" },
-  { value: "web2_site", label: "Web2 Site" },
-  { value: "other_asset", label: "Other Asset" },
-  { value: "graphics_design", label: "Graphics Design" },
-  { value: "content_studio", label: "Content Studio" },
-  { value: "content_writing", label: "Content Writing" },
-  { value: "backlinks", label: "Backlinks" },
-  { value: "completed_com", label: "Completed.com" },
-  { value: "youtube_video_optimization", label: "YouTube Video Optimization" },
-  { value: "monitoring", label: "Monitoring" },
-  { value: "review_removal", label: "Review Removal" },
-  { value: "summary_report", label: "Summary Report" },
-  { value: "guest_posting", label: "Guest Posting" },
+  { value: "social_site", label: "Social Site (-> Social Activity)" },
+  { value: "web2_site", label: "Web2 Site (-> Blog Posting)" },
+  { value: "other_asset", label: "Other Asset (-> Blog Posting)" },
 ];
 
 export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: CreateNewTaskModalProps) {
@@ -116,8 +106,8 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
         throw new Error(json.message || "Unknown error occurred")
       }
 
-      toast.success("Tasks created successfully!", {
-        description: `${json.created} manual task(s) created`,
+      toast.success("Posting tasks created successfully!", {
+        description: `${json.created} manual posting task(s) created`,
         icon: <CheckCircle className="h-4 w-4" />,
       })
 
@@ -180,10 +170,10 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
               <div className="p-2 bg-white/20 rounded-lg">
                 <ListTodo className="h-5 w-5" />
               </div>
-              <span>Create New Tasks</span>
+              <span>Create Posting Tasks Manually</span>
             </DialogTitle>
             <DialogDescription className="text-white/80 pt-1">
-              Configure and schedule new tasks for the client
+              Social Site -&gt; Social Activity | Web2 / Other Asset -&gt; Blog Posting
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -196,7 +186,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
                   <ListTodo className="w-5 h-5 text-sky-600" />
                 </div>
                 <span className="text-sm font-semibold text-sky-900 dark:text-sky-100">
-                  Total Tasks to Create
+                  Total Posting Tasks
                 </span>
               </div>
               <span className="text-3xl font-bold text-sky-600 dark:text-sky-400">
@@ -208,6 +198,10 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
 
         <ScrollArea className="max-h-[60vh] px-6 py-4">
           <form id="create-task-form" onSubmit={handleSubmit} className="space-y-6 py-2">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Manual creation follows posting logic: Social Site goes to <strong>Social Activity</strong>,
+              while Web2 Site and Other Asset go to <strong>Blog Posting</strong>.
+            </p>
             <div className="space-y-2">
               <Label htmlFor="dueDate" className="text-sm font-medium">Due Date *</Label>
               <div className="relative">
