@@ -130,6 +130,7 @@ export default function TaskViews({
 
   setTaskToComplete,
   setIsCompletionConfirmOpen,
+  disableVirtualization,
 }: {
   tab: "today" | "tomorrow" | "upcoming" | "reassigned" | "completed";
   currentTasks: Task[];
@@ -169,6 +170,7 @@ export default function TaskViews({
 
   setTaskToComplete: (t: Task | null) => void;
   setIsCompletionConfirmOpen: (b: boolean) => void;
+  disableVirtualization?: boolean;
 }) {
   const uniqueCurrentTasks = useMemo(() => {
     const map = new Map<string, Task>();
@@ -623,7 +625,7 @@ export default function TaskViews({
     );
   };
 
-  const shouldVirtualize = uniqueCurrentTasks.length > 40;
+  const shouldVirtualize = !disableVirtualization && uniqueCurrentTasks.length > 40;
   const listView = shouldVirtualize ? (
     <VirtualizedList
       items={uniqueCurrentTasks}
