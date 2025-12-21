@@ -222,6 +222,7 @@ export default function ClientEditModal({
       raw.some((x) => typeof x?.category === "string")
     ) {
       return raw
+        .filter((item) => !(item.title === "name_keywords" && item.category === "system"))
         .map((it) => ({
           category: String(it?.category ?? "").trim(),
           title: String(it?.title ?? "").trim(),
@@ -264,9 +265,37 @@ export default function ClientEditModal({
     normalizeOtherField((clientData as any).otherField)
   );
 
+  // Extract and manage keywords separately
+  const [keywords, setKeywords] = useState<string[]>(() => {
+    const otherField = (clientData as any).otherField;
+    if (!Array.isArray(otherField)) return [];
+    
+    const nameKeywordsField = otherField.find(
+      (field: any) => field.title === "name_keywords" && field.category === "system"
+    );
+    
+    if (!nameKeywordsField || !Array.isArray(nameKeywordsField.data)) return [];
+    
+    return nameKeywordsField.data.filter((keyword: any) => keyword && typeof keyword === 'string');
+  });
+
   useEffect(() => {
-    if (open)
+    if (open) {
       setOtherPairs(normalizeOtherField((clientData as any).otherField));
+      
+      // Extract keywords
+      const otherField = (clientData as any).otherField;
+      if (Array.isArray(otherField)) {
+        const nameKeywordsField = otherField.find(
+          (field: any) => field.title === "name_keywords" && field.category === "system"
+        );
+        if (nameKeywordsField && Array.isArray(nameKeywordsField.data)) {
+          setKeywords(nameKeywordsField.data.filter((keyword: any) => keyword && typeof keyword === 'string'));
+        } else {
+          setKeywords([]);
+        }
+      }
+    }
   }, [open]);
 
   // helpers for array item ops
@@ -303,6 +332,13 @@ export default function ClientEditModal({
           : r
       )
     );
+
+  // Keyword management functions
+  const addKeyword = () => setKeywords(prev => [...prev, ""]);
+  const updateKeyword = (idx: number, value: string) => 
+    setKeywords(prev => prev.map((k, i) => i === idx ? value : k));
+  const removeKeyword = (idx: number) => 
+    setKeywords(prev => prev.filter((_, i) => i !== idx));
 
   const fetchPackages = async () => {
     try {
@@ -394,12 +430,23 @@ export default function ClientEditModal({
           ...rest
         } = values;
         const cleanedPairs = otherPairs
+          .filter((p) => !(p.title === "name_keywords" && p.category === "system"))
           .map((p) => ({
             category: p.category.trim(),
             title: p.title.trim(),
             data: p.data.map((d) => d.trim()).filter(Boolean),
           }))
           .filter((p) => p.title || p.data.length);
+
+        // Add keywords to otherField if they exist
+        const finalOtherField = [...cleanedPairs];
+        if (keywords.some(k => k.trim())) {
+          finalOtherField.push({
+            category: "system",
+            title: "name_keywords",
+            data: keywords.filter(k => k.trim()).map(k => k.trim())
+          });
+        }
 
         const webArray = (rest as any).websites as string[] | undefined;
         const cleanedWebsites = (webArray ?? [])
@@ -417,7 +464,7 @@ export default function ClientEditModal({
           dueDate: values.dueDate || undefined,
           amId: values.amId && values.amId.trim() !== "" ? values.amId : null,
           // attach arbitrary JSON
-          otherField: cleanedPairs,
+          otherField: finalOtherField,
         };
       }
 
@@ -475,101 +522,101 @@ export default function ClientEditModal({
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-6 p-6"
         >
-          {isAgent ? (
-            <>
-              {/* AGENT-ONLY: Contact & Credentials */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-blue-600" />
-                    Contact & Credentials
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="email"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Email
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        className="border-slate-300 focus:border-blue-500"
-                        {...register("email")}
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="phone"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Phone
-                      </Label>
-                      <Input
-                        id="phone"
-                        className="border-slate-300 focus:border-blue-500"
-                        {...register("phone")}
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="password"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Password
-                      </Label>
-                      <Input
-                        id="password"
-                        type="text"
-                        className="border-slate-300 focus:border-blue-500"
-                        {...register("password")}
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="recoveryEmail"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Recovery Email
-                      </Label>
-                      <Input
-                        id="recoveryEmail"
-                        type="email"
-                        className="border-slate-300 focus:border-blue-500"
-                        {...register("recoveryEmail")}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Contact & Credentials - Available to all users */}
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <Mail className="h-5 w-5 text-blue-600" />
+                Contact & Credentials
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-slate-700 mb-2 block"
+                  >
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    className="border-slate-300 focus:border-blue-500"
+                    {...register("email")}
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="phone"
+                    className="text-sm font-medium text-slate-700 mb-2 block"
+                  >
+                    Phone
+                  </Label>
+                  <Input
+                    id="phone"
+                    className="border-slate-300 focus:border-blue-500"
+                    {...register("phone")}
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-slate-700 mb-2 block"
+                  >
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="text"
+                    className="border-slate-300 focus:border-blue-500"
+                    {...register("password")}
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="recoveryEmail"
+                    className="text-sm font-medium text-slate-700 mb-2 block"
+                  >
+                    Recovery Email
+                  </Label>
+                  <Input
+                    id="recoveryEmail"
+                    type="email"
+                    className="border-slate-300 focus:border-blue-500"
+                    {...register("recoveryEmail")}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* AGENT-ONLY: Media (Image Drive Link only) */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Image className="h-5 w-5 text-purple-600" aria-label="media" />
-                    Media
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="imageDrivelink"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Image Drive Link
-                      </Label>
-                      <Input
-                        id="imageDrivelink"
-                        className="border-slate-300 focus:border-purple-500"
-                        {...register("imageDrivelink")}
-                      />
-                    </div>
+          {/* AGENT-ONLY: Media (Image Drive Link only) */}
+          {isAgent && (
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <Image className="h-5 w-5 text-purple-600" aria-label="media" />
+                  Media
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="imageDrivelink"
+                      className="text-sm font-medium text-slate-700 mb-2 block"
+                    >
+                      Image Drive Link
+                    </Label>
+                    <Input
+                      id="imageDrivelink"
+                      className="border-slate-300 focus:border-purple-500"
+                      {...register("imageDrivelink")}
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isAgent && (
             <>
               {/* FULL FORM for non-agents — Basic */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
@@ -591,6 +638,42 @@ export default function ClientEditModal({
                         className="border-slate-300 focus:border-blue-500"
                         {...register("name", { required: true })}
                       />
+                    </div>
+                    
+                    {/* Keywords Section */}
+                    <div className="md:col-span-3">
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                        Keywords
+                      </Label>
+                      <div className="space-y-2">
+                        {keywords.map((keyword, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <Input
+                              value={keyword}
+                              onChange={(e) => updateKeyword(idx, e.target.value)}
+                              className="border-slate-300 focus:border-blue-500"
+                              placeholder={`Keyword-${idx + 1}`}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="border-slate-300 bg-red-500 text-white hover:bg-red-600 hover:text-white hover:border-red-600"
+                              onClick={() => removeKeyword(idx)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-slate-300 bg-gradient-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                          onClick={addKeyword}
+                        >
+                          + Add Keyword
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <div>

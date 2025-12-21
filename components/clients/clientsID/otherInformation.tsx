@@ -396,6 +396,7 @@ function normalizeOtherField(raw: any): NormalizedItem[] {
   // New shape: [{ category, title, data: string[] }]
   if (Array.isArray(raw) && raw.some((x) => typeof x?.category === "string")) {
     return raw
+      .filter((item) => !(item.title === "name_keywords" && item.category === "system"))
       .map((r) => ({
         category: String(r?.category ?? "").trim() || "Uncategorized",
         title: String(r?.title ?? "").trim() || "(Untitled)",

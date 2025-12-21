@@ -659,6 +659,20 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
   };
 
 
+  // Extract name_keywords from otherField
+  const nameKeywords = useMemo(() => {
+    const otherField = (clientData as any).otherField;
+    if (!Array.isArray(otherField)) return [];
+    
+    const nameKeywordsField = otherField.find(
+      (field: any) => field.title === "name_keywords" && field.category === "system"
+    );
+    
+    if (!nameKeywordsField || !Array.isArray(nameKeywordsField.data)) return [];
+    
+    return nameKeywordsField.data.filter((keyword: any) => keyword && typeof keyword === 'string');
+  }, [clientData]);
+
   const amDisplay = clientData.accountManager
     ? clientData.accountManager.name ||
       clientData.accountManager.email ||
@@ -701,6 +715,25 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
                 </div>
               </div>
             </div>
+
+            {nameKeywords.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Keywords
+                </label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {nameKeywords.map((keyword, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    >
+                      {keyword}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4">
               <div>
