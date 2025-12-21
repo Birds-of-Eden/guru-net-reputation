@@ -10,7 +10,7 @@ import {
   useDeferredValue,
   useRef,
 } from "react";
-import useSWRInfinite from "swr/infinite";
+import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -320,6 +320,10 @@ export function ClientTasksView({
 }: ClientTasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const tasksRef = useRef<Task[]>([]);
+  const [page, setPage] = useState(1);
+  const pageRef = useRef(1);
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [pinnedTask, setPinnedTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -456,25 +460,34 @@ export function ClientTasksView({
     ]
   );
 
-  const getKey = useCallback(
-    (pageIndex: number, previousPageData: any) => {
-      if (!agentId) return null;
-      if (previousPageData && previousPageData.hasMore === false) return null;
-      return `/api/tasks/client/${clientId}?${buildQueryString(pageIndex + 1)}`;
-    },
-    [agentId, buildQueryString, clientId]
-  );
+  const buildCompletedTasksQuery = useCallback(() => {
+    const params = new URLSearchParams();
+    params.set("agentId", agentId);
+    params.set("status", "completed");
+    params.set("pageSize", "1000"); // Large number to get all completed tasks
+    if (mergedExcludedCategories.length > 0) {
+      params.set("excludeCategories", mergedExcludedCategories.join(","));
+    }
+    return params.toString();
+  }, [agentId, mergedExcludedCategories]);
+
+  const taskKey = agentId
+    ? `/api/tasks/client/${clientId}?${buildQueryString(page)}`
+    : null;
+
+  // Separate query for completed tasks to get all of them
+  const completedTasksKey = agentId
+    ? `/api/tasks/client/${clientId}?${buildCompletedTasksQuery()}`
+    : null;
 
   const {
-    data: taskPages,
+    data: taskResponse,
     error: fetchError,
     isLoading: swrLoading,
     isValidating,
-    size,
-    setSize,
     mutate,
-  } = useSWRInfinite(
-    getKey,
+  } = useSWR(
+    taskKey,
     async (url: string) => {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
@@ -488,14 +501,38 @@ export function ClientTasksView({
       return res.json();
     },
     {
-      revalidateFirstPage: false,
       keepPreviousData: true,
     }
   );
 
+  const {
+    data: completedTasksResponse,
+    error: completedTasksError,
+    isLoading: isLoadingCompletedTasks,
+  } = useSWR(
+    completedTasksKey,
+    async (url: string) => {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        const message =
+          payload?.error ||
+          payload?.message ||
+          `Failed to fetch completed tasks (${res.status})`;
+        throw new Error(message);
+      }
+      return res.json();
+    }
+  );
+
   const tasksFromServer = useMemo(
-    () => taskPages?.flatMap((p: any) => p?.tasks ?? []) ?? [],
-    [taskPages]
+    () => (taskResponse?.tasks as Task[]) ?? [],
+    [taskResponse]
+  );
+
+  const completedTasksFromServer = useMemo(
+    () => (completedTasksResponse?.tasks as Task[]) ?? [],
+    [completedTasksResponse]
   );
 
   useEffect(() => {
@@ -503,73 +540,101 @@ export function ClientTasksView({
     setTasks(tasksFromServer);
   }, [tasksFromServer]);
 
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+
+  useEffect(() => {
+    if (
+      typeof taskResponse?.page === "number" &&
+      taskResponse.page !== pageRef.current
+    ) {
+      setPage(taskResponse.page);
+    }
+  }, [taskResponse?.page]);
+
+  const pinnedTaskId = timerState?.taskId ?? pausedTimer?.taskId ?? null;
+
+  useEffect(() => {
+    if (!pinnedTaskId) {
+      setPinnedTask(null);
+      return;
+    }
+
+    const inPage = tasksFromServer.find((t) => t.id === pinnedTaskId) ?? null;
+    if (inPage) {
+      setPinnedTask(inPage);
+      return;
+    }
+
+    let isActive = true;
+    const loadPinnedTask = async () => {
+      try {
+        const params = new URLSearchParams({ taskId: pinnedTaskId });
+        if (agentId) params.set("agentId", agentId);
+        const res = await fetch(
+          `/api/tasks/client/${clientId}?${params.toString()}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const payload = await res.json();
+        const task = payload?.tasks?.[0] ?? null;
+        if (isActive) {
+          setPinnedTask(task);
+        }
+      } catch (err) {
+        console.error("Failed to load pinned task:", err);
+      }
+    };
+
+    void loadPinnedTask();
+    return () => {
+      isActive = false;
+    };
+  }, [agentId, clientId, pinnedTaskId, tasksFromServer]);
+
   // Keep ref in sync with local mutations so status deltas use current data
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
 
   const serverCounts = useMemo(
-    () => (taskPages?.[0]?.counts as any) ?? null,
-    [taskPages]
+    () => (taskResponse?.counts as any) ?? null,
+    [taskResponse]
   );
 
   useEffect(() => {
-    if (serverCounts) {
-      setStats({
-        total: serverCounts.total ?? 0,
-        pending: serverCounts.pending ?? 0,
-        inProgress: serverCounts.in_progress ?? 0,
-        completed: serverCounts.completed ?? 0,
-        overdue: serverCounts.overdue ?? 0,
-        cancelled: serverCounts.cancelled ?? 0,
-        reassigned: serverCounts.reassigned ?? 0,
-        qc_approved: serverCounts.qc_approved ?? 0,
-      });
-      return;
-    }
+    if (!serverCounts) return;
     setStats({
-      total: tasksFromServer.length,
-      pending: tasksFromServer.filter((t) => t.status === "pending").length,
-      inProgress: tasksFromServer.filter((t) => t.status === "in_progress")
-        .length,
-      completed: tasksFromServer.filter((t) => t.status === "completed").length,
-      overdue: tasksFromServer.filter((t) => t.status === "overdue").length,
-      cancelled: tasksFromServer.filter((t) => t.status === "cancelled")
-        .length,
-      reassigned: tasksFromServer.filter((t) => t.status === "reassigned")
-        .length,
-      qc_approved: tasksFromServer.filter((t) => t.status === "qc_approved")
-        .length,
+      total: serverCounts.total ?? 0,
+      pending: serverCounts.pending ?? 0,
+      inProgress: serverCounts.in_progress ?? 0,
+      completed: serverCounts.completed ?? 0,
+      overdue: serverCounts.overdue ?? 0,
+      cancelled: serverCounts.cancelled ?? 0,
+      reassigned: serverCounts.reassigned ?? 0,
+      qc_approved: serverCounts.qc_approved ?? 0,
     });
-  }, [serverCounts, tasksFromServer]);
+  }, [serverCounts]);
 
-  const hasMore = Boolean(taskPages?.[taskPages.length - 1]?.hasMore);
-  const isInitialLoading = swrLoading && !taskPages;
-  const isLoadingMore =
-    isValidating && size > (taskPages?.length ?? 0) && Boolean(hasMore);
-  const isRefreshing =
-    isValidating && size === (taskPages?.length ?? 0) && !isLoadingMore;
-  const remainingTasks = Math.max(0, stats.total - tasks.length);
-  const loadMoreLabel = isLoadingMore
-    ? "Loading more..."
-    : remainingTasks > 0
-    ? `Load more tasks (${remainingTasks} left)`
-    : "Load more tasks";
+  const totalTasks = taskResponse?.total ?? 0;
+  const totalPages = taskResponse?.totalPages ?? 0;
+  const isInitialLoading = swrLoading && !taskResponse;
+  const isRefreshing = isValidating && !isInitialLoading;
   const refreshTasks = useCallback(async () => {
     // Revalidate existing pages without collapsing back to the first page
     await mutate();
   }, [mutate]);
 
   useEffect(() => {
-    setSize(1);
+    setPage(1);
   }, [
     agentId,
     clientId,
-    deferredSearch,
+    searchTerm,
     priorityFilter,
     statusFilter,
     mergedExcludedCategories,
-    setSize,
   ]);
 
   const loadPausedFromStorage = useCallback(() => {
@@ -647,6 +712,22 @@ export function ClientTasksView({
     }
   }, [isClientModalOpen, fetchClientData]);
 
+  const applyLocalTaskPatch = useCallback(
+    (taskId: string, updates: Partial<Task>) => {
+      setTasks((prev) => {
+        const next = prev.map((t) =>
+          t.id === taskId ? ({ ...t, ...updates } as Task) : t
+        );
+        tasksRef.current = next;
+        return next;
+      });
+      setPinnedTask((prev) =>
+        prev && prev.id === taskId ? ({ ...prev, ...updates } as Task) : prev
+      );
+    },
+    []
+  );
+
   // ✅ PATCH merge-guard
   const handleUpdateTask = useCallback(
     async (taskId: string, updates: any) => {
@@ -664,8 +745,8 @@ export function ClientTasksView({
         }
         const updatedTask = await response.json();
 
-        setTasks((prev) =>
-          prev.map((t) => {
+        setTasks((prev) => {
+          const next = prev.map((t) => {
             if (t.id !== taskId) return t;
 
             const merged: any = { ...t, ...updatedTask };
@@ -680,11 +761,28 @@ export function ClientTasksView({
             if (updatedTask.email == null) merged.email = t.email;
             if (updatedTask.username == null) merged.username = t.username;
             if (updatedTask.reassignNotes == null)
-              merged.reassignNotes = t.reassignNotes; // ✅ keep old note if patch doesn't return it
+              merged.reassignNotes = t.reassignNotes; // keep old note if patch doesn't return it
 
             return merged as Task;
-          })
-        );
+          });
+          tasksRef.current = next;
+          return next;
+        });
+        setPinnedTask((prev) => {
+          if (!prev || prev.id !== taskId) return prev;
+          const merged: any = { ...prev, ...updatedTask };
+          if (updatedTask.templateSiteAsset == null)
+            merged.templateSiteAsset = prev.templateSiteAsset;
+          if (updatedTask.assignment == null) merged.assignment = prev.assignment;
+          if (updatedTask.category == null) merged.category = prev.category;
+          if (updatedTask.completionLink == null)
+            merged.completionLink = prev.completionLink;
+          if (updatedTask.email == null) merged.email = prev.email;
+          if (updatedTask.username == null) merged.username = prev.username;
+          if (updatedTask.reassignNotes == null)
+            merged.reassignNotes = prev.reassignNotes;
+          return merged as Task;
+        });
         // Optimistic stats update if status changed
         const prevStatus =
           tasksRef.current.find((t) => t.id === taskId)?.status ??
@@ -1047,9 +1145,7 @@ export function ClientTasksView({
 
       await handleUpdateTask(taskToComplete.id, updates);
 
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskToComplete.id ? { ...t, ...updates } : t))
-      );
+      applyLocalTaskPatch(taskToComplete.id, updates);
 
       setIsCompletionConfirmOpen(false);
       setTaskToComplete(null);
@@ -1091,6 +1187,7 @@ export function ClientTasksView({
     password,
     stopTimerNow,
     handleUpdateTask,
+    applyLocalTaskPatch,
     saveTimerToStorage,
   ]);
 
@@ -1161,12 +1258,7 @@ export function ClientTasksView({
             const prevStatus =
               tasksRef.current.find((t) => t.id === taskId)?.status ?? null;
             await handleUpdateTask(taskId, updates);
-            setTasks((prev) =>
-              prev.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
-            );
-            tasksRef.current = tasksRef.current.map((t) =>
-              t.id === taskId ? ({ ...t, ...updates } as Task) : t
-            );
+            applyLocalTaskPatch(taskId, updates);
             if (updates.status) {
               applyStatusDelta(prevStatus, updates.status);
             }
@@ -1204,7 +1296,14 @@ export function ClientTasksView({
         setIsUpdating(false);
       }
     },
-    [selectedTasks, handleUpdateTask, tasks, timerState, saveTimerToStorage]
+    [
+      selectedTasks,
+      handleUpdateTask,
+      applyLocalTaskPatch,
+      tasks,
+      timerState,
+      saveTimerToStorage,
+    ]
   );
 
   const handleBulkCompletion = useCallback(() => {
@@ -1216,27 +1315,7 @@ export function ClientTasksView({
     setBulkCompletionLink("");
   }, []);
 
-  const filteredTasks = useMemo(() => {
-    const needle = deferredSearch;
-    return tasks
-      .filter((task) => {
-        const matchesSearch =
-          needle.length === 0 ||
-          task.name.toLowerCase().includes(needle) ||
-          task.category?.name?.toLowerCase().includes(needle) ||
-          task.templateSiteAsset?.name?.toLowerCase().includes(needle);
-        const matchesStatus =
-          statusFilter === "all" || task.status === statusFilter;
-        const matchesPriority =
-          priorityFilter === "all" || task.priority === priorityFilter;
-        return matchesSearch && matchesStatus && matchesPriority;
-      })
-      .sort((a, b) => {
-        if (a.status === "reassigned" && b.status !== "reassigned") return -1;
-        if (b.status === "reassigned" && a.status !== "reassigned") return 1;
-        return 0;
-      });
-  }, [deferredSearch, priorityFilter, statusFilter, tasks]);
+  const filteredTasks = useMemo(() => tasks, [tasks]);
 
   const overdueCount = stats.overdue;
 
@@ -1356,8 +1435,7 @@ export function ClientTasksView({
           </div>
           <div className="flex items-center gap-3 flex-wrap justify-end text-right">
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {tasks.length} of {stats.total} tasks{" "}
-              {hasMore ? `(${remainingTasks} left)` : ""}
+              Showing {visibleCount} of {totalTasks} tasks
             </span>
             <Button
               onClick={refreshTasks}
@@ -1467,25 +1545,6 @@ export function ClientTasksView({
           </Card>
         </div>
 
-        {hasMore && (
-          <div className="sticky top-4 z-30 flex justify-end">
-            <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur">
-              <span className="text-xs text-slate-600">
-                Showing {tasks.length} of {stats.total} tasks ({remainingTasks} left)
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSize(size + 1)}
-                disabled={isLoadingMore}
-                className="rounded-full px-4"
-              >
-                {loadMoreLabel}
-              </Button>
-            </div>
-          </div>
-        )}
-
         <div className="flex justify-end">
           <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
             <DialogTrigger asChild>
@@ -1520,11 +1579,10 @@ export function ClientTasksView({
 
         <div className="max-w-full overflow-x-hidden">
           <TaskList
-            agentId={agentId}
             clientName={clientName}
-            clientId={clientId}
             tasks={tasks}
             filteredTasks={filteredTasks}
+            pinnedTask={pinnedTask}
             overdueCount={overdueCount}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -1532,6 +1590,12 @@ export function ClientTasksView({
             setStatusFilter={setStatusFilter}
             priorityFilter={priorityFilter}
             setPriorityFilter={setPriorityFilter}
+            page={page}
+            totalPages={totalPages}
+            totalTasks={totalTasks}
+            onPageChange={setPage}
+            onVisibleCountChange={setVisibleCount}
+            paginationEnabled={false}
             selectedTasks={selectedTasks}
             setSelectedTasks={setSelectedTasks}
             timerState={timerState}
@@ -1552,6 +1616,7 @@ export function ClientTasksView({
             pausedTimer={pausedTimer}
             refreshTasks={refreshTasks}
             stopTimer={stopTimerNow}
+            completedTasks={completedTasksFromServer}
           />
         </div>
 

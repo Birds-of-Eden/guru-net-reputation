@@ -139,16 +139,41 @@ export async function GET(
     const status = searchParams.get("status");
     const priority = searchParams.get("priority");
     const search = (searchParams.get("search") ?? "").trim();
+    const taskId = searchParams.get("taskId");
     const excludedCategories = parseExcludedCategories(req);
 
-    const filters: any[] = [
-      {
-        OR: [
-          { clientId },
-          { assignment: { clientId } },
-        ],
-      },
-    ];
+    const baseClientFilter = {
+      OR: [{ clientId }, { assignment: { clientId } }],
+    };
+
+    if (taskId) {
+      const task = await prisma.task.findFirst({
+        where: {
+          id: taskId,
+          ...baseClientFilter,
+          ...(agentId ? { assignedToId: agentId } : {}),
+        },
+        select: TASK_SELECT,
+      });
+
+      const tasks = task ? [task] : [];
+      const total = tasks.length;
+      const counts = task
+        ? normalizeStatusCounts([{ status: task.status, _count: { _all: 1 } }], total)
+        : { ...EMPTY_COUNTS };
+
+      return NextResponse.json({
+        tasks,
+        page: 1,
+        pageSize: 1,
+        total,
+        totalPages: 1,
+        hasMore: false,
+        counts,
+      });
+    }
+
+    const filters: any[] = [baseClientFilter];
     if (agentId) {
       filters.push({ assignedToId: agentId });
     }
@@ -199,12 +224,14 @@ export async function GET(
 
     const counts = normalizeStatusCounts(groupedStatusCounts, total);
     const hasMore = skip + tasks.length < total;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return NextResponse.json({
       tasks,
       page,
       pageSize,
       total,
+      totalPages,
       hasMore,
       counts,
     });

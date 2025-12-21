@@ -50,11 +50,10 @@ type Task = BaseTask & {
 };
 
 export default function TaskList({
-  agentId,
   clientName,
-  clientId,
   tasks,
   filteredTasks,
+  pinnedTask,
   overdueCount,
   searchTerm,
   setSearchTerm,
@@ -62,6 +61,12 @@ export default function TaskList({
   setStatusFilter,
   priorityFilter,
   setPriorityFilter,
+  page,
+  totalPages,
+  totalTasks,
+  onPageChange,
+  onVisibleCountChange,
+  paginationEnabled,
   timerState,
   handleStartTimer,
   handlePauseTimer,
@@ -75,12 +80,12 @@ export default function TaskList({
   formatTimerDisplay,
   pausedTimer,
   refreshTasks,
+  completedTasks,
 }: {
-  agentId: string;
   clientName: string;
-  clientId: string;
   tasks: Task[];
   filteredTasks: Task[];
+  pinnedTask?: Task | null;
   selectedTasks?: string[];
   setSelectedTasks: React.Dispatch<React.SetStateAction<string[]>>;
   overdueCount: number;
@@ -90,6 +95,12 @@ export default function TaskList({
   setStatusFilter: (v: string) => void;
   priorityFilter: string;
   setPriorityFilter: (v: string) => void;
+  page: number;
+  totalPages: number;
+  totalTasks: number;
+  onPageChange: (page: number) => void;
+  onVisibleCountChange?: (count: number) => void;
+  paginationEnabled?: boolean;
   timerState: TimerState | null;
   handleStartTimer: (taskId: string) => void;
   handlePauseTimer: (taskId: string) => void;
@@ -108,6 +119,7 @@ export default function TaskList({
   pausedTimer: TimerState | null;
   refreshTasks: () => Promise<void>;
   stopTimer: (taskId: string) => TimerState | undefined;
+  completedTasks?: Task[];
 }) {
   // 🔒 completed / qc_approved = read-only
   const isLocked = (t: Task) =>
@@ -261,7 +273,7 @@ export default function TaskList({
         return;
       }
 
-      // Then handle by due date
+      // Then handle by due date for non-completed tasks
       if (!task.dueDate) {
         groups.upcoming.push(task);
         return;
@@ -286,120 +298,13 @@ export default function TaskList({
 
   const taskGroups = groupTasksByDate(filteredTasks);
   const [activeTab, setActiveTab] = useState("today");
-  const [tabData, setTabData] = useState<Record<string, Task[]>>({});
-  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>({});
   const realtimeRefreshInFlight = useRef(false);
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
 
-  const fetchTabTasks = useCallback(
-    async (tab: string) => {
-      const statusMap: Record<
-        string,
-        { statuses: string[]; includeReassigned: boolean }
-      > = {
-        completed: {
-          statuses: ["completed", "qc_approved"],
-          includeReassigned: false,
-        },
-        reassigned: { statuses: ["reassigned"], includeReassigned: true },
-      };
-      const { statuses, includeReassigned } = statusMap[tab] || {};
-      if (!clientId || !statuses) return [];
-
-      const collected: Task[] = [];
-
-      // First, fetch by status
-      for (const status of statuses) {
-        let page = 1;
-        let hasMore = true;
-        while (hasMore) {
-          const params = new URLSearchParams({
-            page: String(page),
-            pageSize: "200",
-            status,
-          });
-          if (agentId) params.set("agentId", agentId);
-          const res = await fetch(
-            `/api/tasks/client/${clientId}?${params.toString()}`,
-            { cache: "no-store" }
-          );
-          if (!res.ok) {
-            throw new Error(`Failed to fetch ${tab} tasks (${res.status})`);
-          }
-          const json = await res.json();
-          const pageTasks = Array.isArray(json) ? json : json?.tasks ?? [];
-          collected.push(...pageTasks);
-          hasMore = Array.isArray(json) ? false : Boolean(json?.hasMore);
-          page += 1;
-          if (!pageTasks.length) break;
-        }
-      }
-
-      // If we need to include tasks with reassignNotes
-      if (includeReassigned) {
-        let page = 1;
-        let hasMore = true;
-        while (hasMore) {
-          const params = new URLSearchParams({
-            page: String(page),
-            pageSize: "200",
-            hasReassignNotes: "true",
-          });
-          if (agentId) params.set("agentId", agentId);
-          const res = await fetch(
-            `/api/tasks/client/${clientId}?${params.toString()}`,
-            { cache: "no-store" }
-          );
-          if (!res.ok) {
-            throw new Error(
-              `Failed to fetch tasks with reassign notes (${res.status})`
-            );
-          }
-          const json = await res.json();
-          const pageTasks = Array.isArray(json) ? json : json?.tasks ?? [];
-          collected.push(...pageTasks);
-          hasMore = Array.isArray(json) ? false : Boolean(json?.hasMore);
-          page += 1;
-          if (!pageTasks.length) break;
-        }
-      }
-
-      // dedupe by id
-      const map = new Map<string, Task>();
-      for (const t of collected) {
-        map.set(t.id, t as Task);
-      }
-      return Array.from(map.values());
-    },
-    [agentId, clientId]
-  );
-
-  const loadTabTasks = useCallback(
-    async (tab: string, force = false) => {
-      const needsFetch = tab === "completed" || tab === "reassigned";
-      if (!needsFetch) return;
-      if (tabLoading[tab]) return;
-      if (!force && tabData[tab]) return;
-
-      setTabLoading((prev) => ({ ...prev, [tab]: true }));
-      try {
-        const data = await fetchTabTasks(tab);
-        setTabData((prev) => ({ ...prev, [tab]: data }));
-      } catch (err) {
-        console.error("Failed to load tab tasks", err);
-      } finally {
-        setTabLoading((prev) => ({ ...prev, [tab]: false }));
-      }
-    },
-    [fetchTabTasks, tabData, tabLoading]
-  );
-
-  const handleTabChange = useCallback(
-    (value: string) => {
-      setActiveTab(value);
-      void loadTabTasks(value);
-    },
-    [loadTabTasks]
-  );
+  // Use completedTasks prop for completed tab, otherwise fall back to grouped completed tasks
+  const allCompletedTasks = completedTasks || taskGroups.completed;
 
   // Lightweight polling + tab visibility refresh to keep data fresh without manual reloads.
   useEffect(() => {
@@ -409,9 +314,6 @@ export default function TaskList({
       realtimeRefreshInFlight.current = true;
       try {
         await refreshTasks();
-        if (activeTab === "completed" || activeTab === "reassigned") {
-          await loadTabTasks(activeTab, true);
-        }
       } catch (err) {
         console.error("Realtime refresh failed", err);
       } finally {
@@ -419,20 +321,24 @@ export default function TaskList({
       }
     };
 
-    const interval = setInterval(tick, 15000);
+    const interval = setInterval(tick, 10000); // Reduced interval for better real-time updates
     return () => clearInterval(interval);
-  }, [activeTab, loadTabTasks, refreshTasks]);
+  }, [refreshTasks]);
 
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) return;
       void refreshTasks();
-      void loadTabTasks(activeTab, true);
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibility);
-  }, [activeTab, loadTabTasks, refreshTasks]);
+  }, [refreshTasks]);
+
+  // Additional refresh when switching tabs
+  useEffect(() => {
+    void refreshTasks();
+  }, [activeTab, refreshTasks]);
 
   // তারিখ ফরম্যাট ফাংশন
   const formatDate = (date: Date) => {
@@ -444,37 +350,11 @@ export default function TaskList({
     });
   };
 
-  const isCompleted = (t: Task) =>
-    t.status === "completed" || t.status === "qc_approved";
+  const completedTabTasks = allCompletedTasks;
+  const reassignedTasks = taskGroups.reassigned;
 
-  // Keep tabs consistent with live status updates.
-  // If a reassigned task becomes completed, it should move to Completed tab immediately.
-  const completedTasksOverride = useMemo(() => {
-    const base = tabData.completed ?? taskGroups.completed;
-    const map = new Map<string, Task>();
-    for (const t of base) {
-      if (isCompleted(t)) map.set(t.id, t);
-    }
-    for (const t of taskGroups.completed) {
-      map.set(t.id, t);
-    }
-    return Array.from(map.values());
-  }, [tabData.completed, taskGroups.completed]);
-
-  const reassignedTasksOverride = useMemo(() => {
-    const base = tabData.reassigned ?? taskGroups.reassigned;
-    const map = new Map<string, Task>();
-    for (const t of base) {
-      if (!isCompleted(t) && isReassignedLike(t)) map.set(t.id, t);
-    }
-    for (const t of taskGroups.reassigned) {
-      if (!isCompleted(t) && isReassignedLike(t)) map.set(t.id, t);
-    }
-    return Array.from(map.values());
-  }, [tabData.reassigned, taskGroups.reassigned]);
-
-  const getTasksForCurrentTab = () => {
-    const tasks = (() => {
+  const currentTasks = useMemo(() => {
+    const baseTasks = (() => {
       switch (activeTab) {
         case "today":
           return taskGroups.today;
@@ -483,41 +363,60 @@ export default function TaskList({
         case "upcoming":
           return taskGroups.upcoming;
         case "reassigned":
-          return reassignedTasksOverride;
+          return reassignedTasks;
         case "completed":
-          return completedTasksOverride;
+          return completedTabTasks;
         default:
           return filteredTasks;
       }
     })();
 
     // Sort tasks:
-    // 1) pin the current running/paused timer task to the top
-    // 2) keep any "in_progress" tasks at the top (in every tab)
-    // 3) keep stable ordering for everything else (avoid items "jumping")
-    const pinnedTaskId = timerState?.taskId ?? pausedTimer?.taskId ?? null;
+    // 1) pin the current running/paused timer task to the top (only if it belongs to current tab)
+    // 2) keep stable ordering for everything else (avoid items "jumping")
+    const pinnedTaskId =
+      pinnedTask?.id ?? timerState?.taskId ?? pausedTimer?.taskId ?? null;
+    const resolvedPinned =
+      (pinnedTaskId &&
+        (pinnedTask ?? tasks.find((t) => t.id === pinnedTaskId))) ||
+      null;
+
+    // Only include pinned task if it belongs to the current tab
+    const shouldIncludePinned =
+      resolvedPinned && baseTasks.some((t) => t.id === resolvedPinned.id);
+    const unpinnedTasks = shouldIncludePinned
+      ? baseTasks.filter((t) => t.id !== resolvedPinned.id)
+      : baseTasks;
+
     const indexById = new Map<string, number>();
-    for (let i = 0; i < tasks.length; i++) {
-      indexById.set(tasks[i].id, i);
+    for (let i = 0; i < unpinnedTasks.length; i++) {
+      indexById.set(unpinnedTasks[i].id, i);
     }
 
-    return [...tasks].sort((a, b) => {
-      const aPinned = pinnedTaskId !== null && a.id === pinnedTaskId;
-      const bPinned = pinnedTaskId !== null && b.id === pinnedTaskId;
-
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-
-      const aInProgress = a.status === "in_progress";
-      const bInProgress = b.status === "in_progress";
-      if (aInProgress && !bInProgress) return -1;
-      if (!aInProgress && bInProgress) return 1;
-
+    const sorted = [...unpinnedTasks].sort((a, b) => {
       return (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0);
     });
-  };
 
-  const currentTasks = getTasksForCurrentTab();
+    return shouldIncludePinned && resolvedPinned
+      ? [resolvedPinned, ...sorted]
+      : sorted;
+  }, [
+    activeTab,
+    allCompletedTasks,
+    filteredTasks,
+    pausedTimer?.taskId,
+    pinnedTask,
+    reassignedTasks,
+    taskGroups.today,
+    taskGroups.tomorrow,
+    taskGroups.upcoming,
+    tasks,
+    timerState?.taskId,
+  ]);
+
+  useEffect(() => {
+    onVisibleCountChange?.(currentTasks.length);
+  }, [currentTasks.length, onVisibleCountChange]);
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -680,12 +579,12 @@ export default function TaskList({
               >
                 <CheckCircle className="h-4 w-4" />
                 Reassigned
-                {reassignedTasksOverride.length > 0 && (
+                {reassignedTasks.length > 0 && (
                   <Badge
                     variant="secondary"
                     className="ml-1 bg-white text-violet-600"
                   >
-                    {reassignedTasksOverride.length}
+                    {reassignedTasks.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -696,12 +595,12 @@ export default function TaskList({
               >
                 <CheckCircle className="h-4 w-4" />
                 Completed
-                {completedTasksOverride.length > 0 && (
+                {allCompletedTasks.length > 0 && (
                   <Badge
                     variant="secondary"
                     className="ml-1 bg-white text-violet-600"
                   >
-                    {completedTasksOverride.length}
+                    {allCompletedTasks.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -774,6 +673,7 @@ export default function TaskList({
                   // modal control
                   setTaskToComplete={setTaskToComplete}
                   setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
+                  disableVirtualization={paginationEnabled}
                 />
               </TabsContent>
             ))}
@@ -791,7 +691,7 @@ export default function TaskList({
                     </span>{" "}
                     of{" "}
                     <span className="text-gray-900 dark:text-gray-50 text-xl">
-                      {tasks.length}
+                      {totalTasks}
                     </span>{" "}
                     tasks
                   </p>
