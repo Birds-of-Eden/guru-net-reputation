@@ -33,6 +33,7 @@ import {
   Clock,
   Target,
   ArrowLeft,
+  PlusCircle,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,6 +49,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
+import { EditKeywordsModal } from './EditKeywordsModal';
 
 // ✅ Drop-in full-page version of the old modal UI
 // Place this file at: app/clients/[clientId]/page.tsx
@@ -70,6 +72,7 @@ export default function ClientDetailsPage({
 }) {
   const router = useRouter();
   const roleSegment = useRoleSegment();
+  const [isEditKeywordsModalOpen, setIsEditKeywordsModalOpen] = useState(false);
 
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
@@ -82,6 +85,7 @@ export default function ClientDetailsPage({
     socialLinks: true,
     biography: true,
     companyInfo: true,
+    keywords: true,
   });
 
   const toggleSection = (section: string) => {
@@ -98,7 +102,7 @@ export default function ClientDetailsPage({
     return res.json();
   };
 
-  const { data: client, isLoading: loading, error } = useSWR<Client>(
+  const { data: client, isLoading: loading, error, mutate } = useSWR<Client>(
     clientId ? `/api/clients/${clientId}` : null,
     jsonFetcher,
     {
@@ -194,31 +198,23 @@ export default function ClientDetailsPage({
               </InfoCard>
             )}
             {client.location && (
-              <InfoCard iconBg="bg-emerald-100" icon={<MapPin className="h-4 w-4 text-emerald-600" />} label="Location">
+              <InfoCard iconBg="bg-fuchsia-100" icon={<MapPin className="h-4 w-4 text-fuchsia-600" />} label="Location">
                 {client.location}
               </InfoCard>
             )}
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-slate-500 font-medium mb-1">Status</p>
-                  <Badge
-                    className={
-                      client.status === "active"
-                        ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                        : client.status === "inactive"
-                        ? "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100"
-                        : "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100"
-                    }
-                  >
-                    {client.status || "Pending"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
+            <InfoCard iconBg="bg-teal-100" icon={<Shield className="h-4 w-4 text-teal-600" />} label="Status">
+              <Badge
+                className={
+                  client.status === "active"
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                    : client.status === "inactive"
+                    ? "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100"
+                    : "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100"
+                }
+              >
+                {client.status || "Pending"}
+              </Badge>
+            </InfoCard>
             {client.phone && (
               <InfoCard iconBg="bg-blue-100" icon={<Phone className="h-4 w-4 text-blue-600" />} label="Phone">
                 {client.phone}
@@ -239,6 +235,22 @@ export default function ClientDetailsPage({
                 {client.category}
               </InfoCard>
             )}
+          </div>
+          <Separator className="my-4" />
+          <div>
+            <h4 className="text-sm text-slate-500 font-medium mb-3">Name Keywords</h4>
+            <div className="flex flex-wrap items-center gap-2">
+              {client.keywords?.map((keyword, index) => (
+                <Badge key={index} variant="secondary">
+                  {keyword}
+                </Badge>
+              ))}
+              {!client.keywords?.length && <p className="text-sm text-slate-500">No keywords assigned.</p>}
+              <Button variant="outline" size="sm" className="h-7" onClick={() => setIsEditKeywordsModalOpen(true)}>
+                <Edit className="h-3 w-3 mr-1.5" />
+                Edit
+              </Button>
+            </div>
           </div>
         </Section>
 
@@ -508,6 +520,15 @@ export default function ClientDetailsPage({
           </Button>
         </div>
       </main>
+
+      <EditKeywordsModal
+        isOpen={isEditKeywordsModalOpen}
+        onOpenChange={setIsEditKeywordsModalOpen}
+        client={client}
+        onKeywordsUpdate={(updatedClient) => {
+          mutate(updatedClient, { revalidate: false });
+        }}
+      />
     </div>
   );
 }

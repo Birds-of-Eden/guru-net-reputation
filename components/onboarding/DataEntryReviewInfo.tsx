@@ -126,6 +126,19 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         { label: "Designation", value: formData.designation, icon: BadgeCheck },
         { label: "Status", value: formData.status, icon: FileText },
         { label: "Account Manager", value: fetchedData.amName, icon: User },
+        {
+          label: "Name Keywords",
+          value: formData.keywords && formData.keywords.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {formData.keywords.map((keyword: string, index: number) => (
+                <Badge key={index} variant="secondary">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+          ) : null,
+          icon: User,
+        },
       ].filter((item) => item.value),
     });
 

@@ -78,6 +78,7 @@ interface OnboardingData {
   articleCategories?: ArticleCategory[];
   amId?: string;
   socialLinks?: SocialLink[];
+  keywords?: string[];
   otherField?: OtherField[];
 }
 
@@ -311,6 +312,19 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
         { label: "Location", value: formData.location, icon: MapPin },
         { label: "Company", value: formData.company, icon: Building },
         { label: "Designation", value: formData.designation, icon: BadgeCheck },
+        {
+          label: "Name Keywords",
+          value: formData.keywords && formData.keywords.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {formData.keywords.map((keyword, index) => (
+                <Badge key={index} variant="secondary">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+          ) : null,
+          icon: User,
+        },
       ].filter((item) => item.value),
     });
 

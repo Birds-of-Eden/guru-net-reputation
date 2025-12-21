@@ -223,9 +223,20 @@ export async function GET(
       ? ((client as any).socialMedia as any[])
       : [];
 
+    const keywordsBlock = Array.isArray((client as any).otherField)
+      ? (client as any).otherField.find(
+          (f: any) => f?.category === 'system' && f?.title === 'name_keywords'
+        )
+      : null;
+
+    const keywords = Array.isArray(keywordsBlock?.data)
+      ? keywordsBlock.data.filter((k: any) => typeof k === 'string')
+      : [];
+
     const response = {
       ...client,
       socialMedias,
+      keywords,
       progress: fresh?.progress ?? client.progress ?? 0,
       taskCounts: fresh?.taskCounts ?? null,
     };

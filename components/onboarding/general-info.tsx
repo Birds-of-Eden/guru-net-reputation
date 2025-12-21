@@ -20,6 +20,7 @@ import type { StepProps } from "@/types/onboarding";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { KeywordInput } from './KeywordInput';
 
 type AMUser = {
   id: string;
@@ -143,6 +144,8 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               required
             />
           </div>
+
+          <KeywordInput formData={formData} updateFormData={updateFormData} />
 
           <div className="group">
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Profile Picture</Label>

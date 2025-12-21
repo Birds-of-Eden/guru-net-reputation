@@ -463,6 +463,7 @@ export async function POST(req: NextRequest) {
       articleTopics,
       articleCategories,
       amId,
+      keywords,
     } = body;
 
     console.log("POST /api/clients - Received articleTopics:", articleTopics);
@@ -539,7 +540,14 @@ export async function POST(req: NextRequest) {
           packageId,
           startDate: parseDate(startDate) as any,
           dueDate: parseDate(dueDate) as any,
-          otherField: Array.isArray(otherField) ? otherField : [],
+          otherField: [
+            ...(Array.isArray(otherField) ? otherField.filter((f: any) => f?.title !== 'name_keywords') : []),
+            {
+              category: 'system',
+              title: 'name_keywords',
+              data: Array.isArray(keywords) ? keywords : [],
+            },
+          ],
 
           socialMedia: Array.isArray(socialLinks)
             ? socialLinks
@@ -596,6 +604,26 @@ export async function POST(req: NextRequest) {
         );
       }
       throw err;
+    }
+
+    if (client.id && Array.isArray(keywords) && keywords.length > 0) {
+      const clientUser = await prisma.user.findFirst({
+        where: { clientId: client.id, role: { name: 'client' } },
+        select: { id: true, user_field_06: true },
+      });
+
+      if (clientUser) {
+        const existingData = (clientUser.user_field_06 as any) || {};
+        await prisma.user.update({
+          where: { id: clientUser.id },
+          data: {
+            user_field_06: {
+              ...existingData,
+              keywords,
+            },
+          },
+        });
+      }
     }
 
     // Activity log via /api/activity
@@ -729,6 +757,7 @@ export async function PUT(req: NextRequest) {
       amId,
       articleTopics,
       articleCategories,
+      keywords,
     } = body;
 
     const updated = await prisma.client.update({
@@ -754,7 +783,14 @@ export async function PUT(req: NextRequest) {
         packageId,
         startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
-        otherField: Array.isArray(otherField) ? otherField : [],
+        otherField: [
+          ...(Array.isArray(otherField) ? otherField.filter((f: any) => f?.title !== 'name_keywords') : []),
+          {
+            category: 'system',
+            title: 'name_keywords',
+            data: Array.isArray(keywords) ? keywords : [],
+          },
+        ],
         socialMedia: Array.isArray(socialLinks)
           ? socialLinks
               .filter((l: any) => l && (l.platform || l.url))
@@ -785,6 +821,26 @@ export async function PUT(req: NextRequest) {
         accountManager: { select: { id: true, name: true, email: true } },
       },
     });
+
+    if (updated.id && Array.isArray(keywords)) {
+      const clientUser = await prisma.user.findFirst({
+        where: { clientId: updated.id, role: { name: 'client' } },
+        select: { id: true, user_field_06: true },
+      });
+
+      if (clientUser) {
+        const existingData = (clientUser.user_field_06 as any) || {};
+        await prisma.user.update({
+          where: { id: clientUser.id },
+          data: {
+            user_field_06: {
+              ...existingData,
+              keywords,
+            },
+          },
+        });
+      }
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

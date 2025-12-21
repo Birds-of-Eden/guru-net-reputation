@@ -1,6 +1,8 @@
 export interface OnboardingFormData {
   // Personal Information
   name: string;
+  // Name related keywords (stored in User.user_field_06 as JSON)
+  keywords?: string[];
   birthdate?: string;
   gender?: "male" | "female" | "other";
   location?: string;

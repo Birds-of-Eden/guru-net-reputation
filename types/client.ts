@@ -158,7 +158,7 @@ export type Client = {
           defaultPostingFrequency: number | null
           defaultIdealDurationMinutes: number | null
         }[]
-        templateTeamMembers: any[]
+        templateTeamMembers?: any[]
       } | null
       siteAssetSettings: any[]
       tasks: any[]
@@ -170,6 +170,7 @@ export type Client = {
     category?: string | null
     // Account manager relationship (from Prisma: amId + accountManager)
     amId?: string | null
+    keywords?: string[];
     accountManager?: {
       id: string
       email: string
