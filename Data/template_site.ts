@@ -189,7 +189,7 @@ export const DEFAULT_CONTENT_STUDIO = [
     name: "Content Studio",
     url: "https://contentstudio.io/",
     isRequired: true,
-    defaultIdealDurationMinutes: 80,
+    defaultIdealDurationMinutes: 190,
   },
 ];
 
@@ -198,7 +198,7 @@ export const DEFAULT_CONTENT_WRITING = [
     name: "Content Writing",
     url: "https://docs.google.com/document/u/0/",
     isRequired: true,
-    defaultIdealDurationMinutes: 30,
+    defaultIdealDurationMinutes: 15,
   },
 ];
 
@@ -221,13 +221,13 @@ export const DEFAULT_MONITORING = [
 ];
 
 export const DEFAULT_REVIEW_REMOVAL = [
-  { name: "Review Removal", url: "https://www.google.com/", isRequired: true },
+  { name: "Review Removal", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 6 },
 ];
 
 export const DEFAULT_SUMMARY_REPORT = [
-  { name: "Summary Report", url: "https://www.google.com/", isRequired: true },
+  { name: "Summary Report", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 40 },
 ];
 
 export const DEFAULT_guest_posting = [
-  { name: "Guest Posting", url: "https://www.google.com/", isRequired: true },
+  { name: "Guest Posting", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 15 },
 ];
