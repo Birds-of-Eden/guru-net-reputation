@@ -197,10 +197,9 @@ export type Client = {
   }
   
   export type TaskStatusCounts = {
+    total: number
     pending: number
     in_progress: number
     completed: number
     overdue: number
-    cancelled: number
   }
-  

@@ -193,7 +193,7 @@ interface Agent {
 }
 
 // ===== Storage keys =====
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 1000; // load all tasks in one request for full lists
 const RUN_KEY = "runningTaskTimer"; // only the actively running timer
 const PAUSE_KEY = "pausedTaskTimer"; // at most one paused task
 const LOCK_KEY = "globalTimerLock"; // navigation lock
@@ -618,7 +618,6 @@ export function ClientTasksView({
   }, [serverCounts]);
 
   const totalTasks = taskResponse?.total ?? 0;
-  const totalPages = taskResponse?.totalPages ?? 0;
   const isInitialLoading = swrLoading && !taskResponse;
   const isRefreshing = isValidating && !isInitialLoading;
   const refreshTasks = useCallback(async () => {
@@ -1590,12 +1589,8 @@ export function ClientTasksView({
             setStatusFilter={setStatusFilter}
             priorityFilter={priorityFilter}
             setPriorityFilter={setPriorityFilter}
-            page={page}
-            totalPages={totalPages}
             totalTasks={totalTasks}
-            onPageChange={setPage}
             onVisibleCountChange={setVisibleCount}
-            paginationEnabled={false}
             selectedTasks={selectedTasks}
             setSelectedTasks={setSelectedTasks}
             timerState={timerState}

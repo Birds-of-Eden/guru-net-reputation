@@ -125,19 +125,18 @@ const ClientCardComponent = function ClientCard({
   // ⚡ OPTIMIZED: Memoize task counts from taskSummary
   const taskCounts: TaskStatusCounts = useMemo(() => {
     return client.taskSummary ?? {
+      total: 0,
       pending: 0,
       in_progress: 0,
       completed: 0,
       overdue: 0,
-      cancelled: 0,
     };
   }, [client.taskSummary]);
 
-  const totalTasks = taskCounts.pending +
+  const totalTasks = taskCounts.total ?? (taskCounts.pending +
     taskCounts.in_progress +
     taskCounts.completed +
-    taskCounts.overdue +
-    taskCounts.cancelled;
+    taskCounts.overdue);
 
 
   // ⚡ OPTIMIZED: Memoize date formatting

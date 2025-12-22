@@ -61,12 +61,8 @@ export default function TaskList({
   setStatusFilter,
   priorityFilter,
   setPriorityFilter,
-  page,
-  totalPages,
   totalTasks,
-  onPageChange,
   onVisibleCountChange,
-  paginationEnabled,
   timerState,
   handleStartTimer,
   handlePauseTimer,
@@ -95,12 +91,8 @@ export default function TaskList({
   setStatusFilter: (v: string) => void;
   priorityFilter: string;
   setPriorityFilter: (v: string) => void;
-  page: number;
-  totalPages: number;
   totalTasks: number;
-  onPageChange: (page: number) => void;
   onVisibleCountChange?: (count: number) => void;
-  paginationEnabled?: boolean;
   timerState: TimerState | null;
   handleStartTimer: (taskId: string) => void;
   handlePauseTimer: (taskId: string) => void;
@@ -169,6 +161,23 @@ export default function TaskList({
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(
     new Set()
   );
+
+  // Pagination state
+  const PAGE_SIZE = 50;
+  const [pageByTab, setPageByTab] = useState<Record<string, number>>({
+    today: 1,
+    tomorrow: 1,
+    upcoming: 1,
+    reassigned: 1,
+    completed: 1,
+  });
+
+  // Always keep in_progress tasks at top
+  const sortWithInProgressFirst = (list: Task[]) => {
+    const inProgress = list.filter((t) => t.status === "in_progress");
+    const others = list.filter((t) => t.status !== "in_progress");
+    return [...inProgress, ...others];
+  };
 
   const handleCopy = async (
     text: string,
@@ -301,6 +310,7 @@ export default function TaskList({
   const realtimeRefreshInFlight = useRef(false);
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
+    setPageByTab((p) => ({ ...p, [value]: 1 }));
   }, []);
 
   // Use completedTasks prop for completed tab, otherwise fall back to grouped completed tasks
@@ -353,27 +363,30 @@ export default function TaskList({
   const completedTabTasks = allCompletedTasks;
   const reassignedTasks = taskGroups.reassigned;
 
-  const currentTasks = useMemo(() => {
-    const baseTasks = (() => {
-      switch (activeTab) {
-        case "today":
-          return taskGroups.today;
-        case "tomorrow":
-          return taskGroups.tomorrow;
-        case "upcoming":
-          return taskGroups.upcoming;
-        case "reassigned":
-          return reassignedTasks;
-        case "completed":
-          return completedTabTasks;
-        default:
-          return filteredTasks;
-      }
-    })();
+  // Step 1: Get raw tab tasks
+  const rawTabTasks = useMemo(() => {
+    switch (activeTab) {
+      case "today":
+        return taskGroups.today;
+      case "tomorrow":
+        return taskGroups.tomorrow;
+      case "upcoming":
+        return taskGroups.upcoming;
+      case "reassigned":
+        return reassignedTasks;
+      case "completed":
+        return completedTabTasks;
+      default:
+        return filteredTasks;
+    }
+  }, [activeTab, taskGroups, reassignedTasks, completedTabTasks, filteredTasks]);
 
-    // Sort tasks:
-    // 1) pin the current running/paused timer task to the top (only if it belongs to current tab)
-    // 2) keep stable ordering for everything else (avoid items "jumping")
+  // Step 2: Sort with in_progress tasks first, then apply pinned logic
+  const sortedTasks = useMemo(() => {
+    // First sort with in_progress first
+    const baseSorted = sortWithInProgressFirst(rawTabTasks);
+
+    // Then apply pinned timer logic
     const pinnedTaskId =
       pinnedTask?.id ?? timerState?.taskId ?? pausedTimer?.taskId ?? null;
     const resolvedPinned =
@@ -383,10 +396,10 @@ export default function TaskList({
 
     // Only include pinned task if it belongs to the current tab
     const shouldIncludePinned =
-      resolvedPinned && baseTasks.some((t) => t.id === resolvedPinned.id);
+      resolvedPinned && baseSorted.some((t) => t.id === resolvedPinned.id);
     const unpinnedTasks = shouldIncludePinned
-      ? baseTasks.filter((t) => t.id !== resolvedPinned.id)
-      : baseTasks;
+      ? baseSorted.filter((t) => t.id !== resolvedPinned.id)
+      : baseSorted;
 
     const indexById = new Map<string, number>();
     for (let i = 0; i < unpinnedTasks.length; i++) {
@@ -397,26 +410,26 @@ export default function TaskList({
       return (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0);
     });
 
+    // Place pinned task at the very top if it exists and belongs to current tab
     return shouldIncludePinned && resolvedPinned
       ? [resolvedPinned, ...sorted]
       : sorted;
-  }, [
-    activeTab,
-    allCompletedTasks,
-    filteredTasks,
-    pausedTimer?.taskId,
-    pinnedTask,
-    reassignedTasks,
-    taskGroups.today,
-    taskGroups.tomorrow,
-    taskGroups.upcoming,
-    tasks,
-    timerState?.taskId,
-  ]);
+  }, [rawTabTasks, pinnedTask, timerState, pausedTimer, tasks]);
 
+  // Step 3: Paginate after sorting
+  const currentPage = pageByTab[activeTab] ?? 1;
+  const paginatedTasks = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedTasks.slice(start, start + PAGE_SIZE);
+  }, [sortedTasks, currentPage]);
+
+  // Step 4: Calculate total pages
+  const totalPages = Math.ceil(sortedTasks.length / PAGE_SIZE);
+
+  // Apply show more/less logic
   useEffect(() => {
-    onVisibleCountChange?.(currentTasks.length);
-  }, [currentTasks.length, onVisibleCountChange]);
+    onVisibleCountChange?.(sortedTasks.length);
+  }, [sortedTasks.length, onVisibleCountChange]);
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -642,7 +655,7 @@ export default function TaskList({
 
                 <TaskViews
                   tab={tab}
-                  currentTasks={currentTasks}
+                  currentTasks={paginatedTasks}
                   viewMode={viewMode}
                   tasks={tasks}
                   overdueCount={overdueCount}
@@ -673,37 +686,51 @@ export default function TaskList({
                   // modal control
                   setTaskToComplete={setTaskToComplete}
                   setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
-                  disableVirtualization={paginationEnabled}
+                  disableVirtualization={false}
                 />
+
+                {/* Pagination UI */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2 mt-8">
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      const p = i + 1;
+                      return (
+                        <Button
+                          key={p}
+                          size="sm"
+                          variant={p === currentPage ? "default" : "outline"}
+                          onClick={() =>
+                            setPageByTab((prev) => ({ ...prev, [activeTab]: p }))
+                          }
+                        >
+                          {p}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
               </TabsContent>
             ))}
           </Tabs>
 
           {/* টাস্ক কাউন্টার */}
-          {currentTasks.length > 0 && (
+          {/* Task counter */}
+          {sortedTasks.length > 0 && (
             <div className="max-w-full flex flex-col lg:flex-row items-start lg:items-center justify-between pt-8 mt-8 border-t-2 border-gradient-to-r from-violet-200 to-purple-200 dark:from-violet-800 dark:to-purple-800 gap-6">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-4 py-3 rounded-2xl border-2 border-violet-200 dark:border-violet-700 shadow-lg">
                   <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                     Showing{" "}
                     <span className="text-violet-700 dark:text-violet-400 text-xl">
-                      {currentTasks.length}
+                      {paginatedTasks.length}
                     </span>{" "}
                     of{" "}
                     <span className="text-gray-900 dark:text-gray-50 text-xl">
-                      {totalTasks}
+                      {sortedTasks.length}
                     </span>{" "}
                     tasks
                   </p>
                 </div>
-                {overdueCount > 0 && activeTab === "today" && (
-                  <Badge
-                    variant="destructive"
-                    className="text-base font-bold px-4 py-2 rounded-xl shadow-lg border-2 border-red-300"
-                  >
-                    {overdueCount} overdue
-                  </Badge>
-                )}
               </div>
             </div>
           )}
