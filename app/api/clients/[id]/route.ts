@@ -1009,7 +1009,9 @@ export async function POST(
         }
 
         createdPostingNewOnly = await runCreatePosting(newOnlyAssetIds);
-        createdPostingCommon = await runCreatePosting(commonAssetIds);
+        // Frontend rule: posting tasks only for assets new to the client.
+        // Do NOT attempt posting creation for common assets (dedupe would skip, but we avoid the call).
+        createdPostingCommon = 0;
       } catch (e) {
         console.warn("[migration-posting-tasks] flow error:", e);
       }

@@ -180,6 +180,9 @@ export async function POST(req: NextRequest) {
     const includeAssetIdsRaw = Array.isArray(body?.includeAssetIds)
       ? body?.includeAssetIds
       : undefined;
+    // NOTE: Callers are expected to send only the asset IDs that need new posting tasks
+    // (e.g., assets that are new to the client). This endpoint does not detect “new vs common”
+    // and will attempt creation for whatever IDs it receives (dedupe still protects against dupes).
     const excludeAssetIdsRaw = Array.isArray(body?.excludeAssetIds)
       ? body?.excludeAssetIds
       : undefined;

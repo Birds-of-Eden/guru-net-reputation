@@ -71,6 +71,31 @@ type Template = {
   _count?: { sitesAssets: number; templateTeamMembers: number };
 };
 
+// Helpers aligned with backend migration-posting dedupe:
+// - strip "Task" suffix
+// - strip trailing "-<n>"
+// - lowercase + collapse spaces
+const stripTaskSuffix = (s: string) =>
+  String(s)
+    .replace(/\s*task\s*$/i, "")
+    .trim();
+const normalizeForDedupe = (s: string) =>
+  stripTaskSuffix(
+    String(s)
+      .replace(/\s*-\s*\d+$/i, "")
+      .trim()
+  )
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+const normalizeType = (s: string | null | undefined) =>
+  String(s ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+const assetKey = (a: { name: string; type: string }) =>
+  `${normalizeType(a.type)}::${normalizeForDedupe(a.name)}`;
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -120,6 +145,8 @@ export default function PackageUpgradeDialog({
   const [migrateCompleted, setMigrateCompleted] = React.useState(true);
   const [createPostingTasks, setCreatePostingTasks] = React.useState(true);
 
+  const effectiveCurrentPackageId = currentPackageId ?? currentPackage?.id ?? null;
+
   // load packages
   React.useEffect(() => {
     if (!open) return;
@@ -134,7 +161,7 @@ export default function PackageUpgradeDialog({
 
         const q = query.trim().toLowerCase();
         const filtered = data
-          .filter((p) => p.id !== (currentPackageId || "")) // exclude current
+          .filter((p) => p.id !== (effectiveCurrentPackageId || "")) // exclude current
           .filter((p) =>
             !q
               ? true
@@ -153,7 +180,7 @@ export default function PackageUpgradeDialog({
         setFetchingPkgs(false);
       }
     })();
-  }, [open, query, currentPackageId]);
+  }, [open, query, effectiveCurrentPackageId]);
 
   // load current client (package, tasks grouped by category)
   React.useEffect(() => {
@@ -231,29 +258,20 @@ export default function PackageUpgradeDialog({
         const tpl = await res.json();
         setNewTemplateDetails(tpl);
 
-        // collect existing assets from client's current assignments/templates
+        // collect existing assets from ALL of the client's assignments/templates
         const oldAssets: { name: string; type: string }[] = [];
         const seenKey = new Set<string>();
-        const norm = (s: string | null | undefined) =>
-          String(s ?? "")
-            .toLowerCase()
-            .replace(/\s+/g, " ")
-            .trim();
-        const keyOf = (a: { name: string; type: string }) =>
-          `${norm(a.type)}::${norm(a.name)}`;
         try {
           const c = clientSnapshot;
           if (c?.assignments?.length) {
             for (const asn of c.assignments) {
-              const pkgId = asn?.template?.packageId;
-              if (currentPackageId && pkgId !== currentPackageId) continue;
               const assets = asn?.template?.sitesAssets || [];
               for (const a of assets) {
                 const rec = {
                   name: a?.name || "",
                   type: a?.type || "",
                 } as { name: string; type: string };
-                const k = keyOf(rec);
+                const k = assetKey(rec);
                 if (!seenKey.has(k)) {
                   seenKey.add(k);
                   oldAssets.push(rec);
@@ -272,9 +290,9 @@ export default function PackageUpgradeDialog({
           name: a.name || "",
           type: a.type || "",
         }));
-        const oldKeys = new Set(oldAssets.map((a) => keyOf(a)));
-        const common = newAssets.filter((a) => oldKeys.has(keyOf(a)));
-        const onlyInNew = newAssets.filter((a) => !oldKeys.has(keyOf(a)));
+        const oldKeys = new Set(oldAssets.map((a) => assetKey(a)));
+        const common = newAssets.filter((a) => oldKeys.has(assetKey(a)));
+        const onlyInNew = newAssets.filter((a) => !oldKeys.has(assetKey(a)));
         setAssetComparison({ common, onlyInNew });
       } catch (e: any) {
         console.error(e);
@@ -283,11 +301,17 @@ export default function PackageUpgradeDialog({
         setAssetComparison(null);
       }
     })();
-  }, [open, selectedTemplateId, clientSnapshot, currentPackageId]);
+  }, [open, selectedTemplateId, clientSnapshot, effectiveCurrentPackageId]);
 
   const handleConfirm = async () => {
     if (!selectedPackageId) return toast.error("Please select a package.");
     if (!selectedTemplateId) return toast.error("Please select a template.");
+    if (
+      effectiveCurrentPackageId &&
+      selectedPackageId === effectiveCurrentPackageId
+    ) {
+      return toast.error("Please choose a different package than the current one.");
+    }
 
     setLoading(true);
     try {
