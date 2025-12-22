@@ -287,30 +287,40 @@ export async function GET(req: Request) {
         : await prisma.$queryRaw<
             { clientId: string; status: string; count: number }[]
           >(Prisma.sql`
-          SELECT "clientId", status, COUNT(*)::int as count
+          SELECT "clientId", 
+                 CASE 
+                   WHEN status = 'qc_approved' THEN 'completed'
+                   ELSE status
+                 END as status, 
+                 COUNT(*)::int as count
           FROM "Task"
           WHERE "clientId" IN (${Prisma.join(clientIds)})
-          GROUP BY "clientId", status
+            AND status != 'cancelled'
+          GROUP BY "clientId", 
+                   CASE 
+                     WHEN status = 'qc_approved' THEN 'completed'
+                     ELSE status
+                   END
         `);
 
     const summaryMap = new Map<
       string,
       {
+        total: number;
         pending: number;
         in_progress: number;
         completed: number;
         overdue: number;
-        cancelled: number;
       }
     >();
 
     for (const id of clientIds) {
       summaryMap.set(id, {
+        total: 0,
         pending: 0,
         in_progress: 0,
         completed: 0,
         overdue: 0,
-        cancelled: 0,
       });
     }
 
@@ -319,8 +329,9 @@ export async function GET(req: Request) {
       if (!map) continue;
 
       const s = row.status.toLowerCase();
-      if (s in map) {
+      if (s === 'pending' || s === 'in_progress' || s === 'completed' || s === 'overdue') {
         (map as any)[s] = row.count;
+        (map as any).total += row.count;
       }
     }
 
