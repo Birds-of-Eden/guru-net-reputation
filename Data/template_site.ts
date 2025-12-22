@@ -203,7 +203,7 @@ export const DEFAULT_CONTENT_WRITING = [
 ];
 
 export const DEFAULT_BACKLINKS = [
-  { name: "Backlinks", url: "https://backlinko.com/", isRequired: true, defaultIdealDurationMinutes: 30 },
+  { name: "Backlinks", url: "https://www.blackhatlinks.com/get_spintax_generator.php", isRequired: true, defaultIdealDurationMinutes: 30 },
 
 ];
 

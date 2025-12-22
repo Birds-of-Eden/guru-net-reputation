@@ -61,7 +61,8 @@ export default function BacklinkingModal({
   submit,
 }: BacklinkingModalProps) {
   const { user } = useUserSession();
-  const [links, setLinks] = useState<string[]>([""]);
+  const [links, setLinks] = useState<string>("");
+  const [anchorText, setAnchorText] = useState("");
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   const [month, setMonth] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -145,8 +146,8 @@ export default function BacklinkingModal({
       toast.error("Please fill all required fields");
       return;
     }
-    if (links.some((l) => !l.trim())) {
-      toast.error("Please fill all link fields");
+    if (!links.trim()) {
+      toast.error("Please enter backlink URLs/text");
       return;
     }
 
@@ -157,14 +158,23 @@ export default function BacklinkingModal({
         ? Math.ceil(timerInfo.elapsedSeconds / 60)
         : 0;
 
-      let performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy" = "Average";
+      let performanceRating:
+        | "Excellent"
+        | "Good"
+        | "Average"
+        | "Poor"
+        | "Lazy" = "Average";
       if (timerInfo && task?.idealDurationMinutes) {
         const ratio = actualDurationMinutes / task.idealDurationMinutes;
 
-        if (ratio <= 1.2) performanceRating = "Excellent"; // Within 20% of ideal
-        else if (ratio <= 1.5) performanceRating = "Good"; // Within 50% of ideal
-        else if (ratio <= 2.0) performanceRating = "Average"; // Within 100% of ideal
-        else if (ratio <= 3.0) performanceRating = "Poor"; // 100-200% over ideal
+        if (ratio <= 1.2)
+          performanceRating = "Excellent"; // Within 20% of ideal
+        else if (ratio <= 1.5)
+          performanceRating = "Good"; // Within 50% of ideal
+        else if (ratio <= 2.0)
+          performanceRating = "Average"; // Within 100% of ideal
+        else if (ratio <= 3.0)
+          performanceRating = "Poor"; // 100-200% over ideal
         else performanceRating = "Lazy"; // More than 200% over ideal
       }
 
@@ -180,7 +190,8 @@ export default function BacklinkingModal({
           actualDurationMinutes,
           performanceRating,
           taskCompletionJson: {
-            backlinkingLinks: links,
+            anchorText: anchorText.trim(),
+            backlinkingLinks: links.trim(),
             orderDate: toLocalMiddayISOString(orderDate),
             month,
             quantity: parseInt(quantity),
@@ -265,37 +276,39 @@ export default function BacklinkingModal({
               </div>
             </div>
           </div>
+
+          {/* Anchor Text Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
+              <div className="bg-emerald-100 p-2 rounded-lg">
+                <ListOrdered className="h-4 w-4 text-emerald-600" />
+              </div>
+              Anchor Text
+            </label>
+            <textarea
+              placeholder="Paste anchor text (plain text). Use commas or new lines; we'll save it as text."
+              value={anchorText}
+              onChange={(e) => setAnchorText(e.target.value)}
+              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all"
+              rows={8}
+            />
+          </div>
+
           {/* Backlinks Textarea Section */}
           <div className="space-y-3">
             <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
               <div className="bg-orange-100 p-2 rounded-lg">
                 <LinkIcon className="h-4 w-4 text-orange-600" />
               </div>
-              Backlink URLs *
+              Backlink URLs (text) *
             </label>
             <textarea
-              placeholder="Paste your comma-separated or newline-separated backlink URLs here...&#10;Example:&#10;https://example.com/link1&#10;https://example.com/link2"
-              value={links.join(", ")}
-              onChange={(e) => {
-                const pastedLinks = e.target.value
-                  .split(/[\n,]+/)
-                  .map((link) => link.trim())
-                  .filter((link) => link.length > 0)
-                  .map((link) => {
-                    if (!/^https?:\/\//i.test(link)) {
-                      return "https://" + link;
-                    }
-                    return link;
-                  });
-                setLinks(pastedLinks);
-              }}
+              placeholder="Paste backlink URLs here (plain text). Use commas or new lines; we'll save it as text."
+              value={links}
+              onChange={(e) => setLinks(e.target.value)}
               className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all"
               rows={8}
             />
-            <p className="text-xs text-slate-600 font-medium">
-              💡 Tip: Paste multiple URLs separated by commas or new lines.
-              We'll automatically format them.
-            </p>
           </div>
 
           {/* Backlinking Details - Premium Design */}
