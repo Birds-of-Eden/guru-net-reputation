@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Clock,
   TrendingUp,
@@ -20,7 +21,9 @@ import {
   FileDown,
   ClipboardList,
   ListChecks,
+  Copy,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -35,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 // ---------- Small UI Helpers ----------
@@ -500,37 +504,81 @@ export function Tasks({ clientData }: TasksProps) {
   const RenderBacklinks = (task: TaskItem) => {
     const status = normalizeStatus((task as any).status);
     const data = (task as any)?.taskCompletionJson || {};
-    const links: string[] = Array.isArray(data?.backlinkingLinks)
-      ? data.backlinkingLinks
+    const anchor = (data?.anchorText ?? "").toString().trim();
+    const backlinkRaw = data?.backlinkingLinks;
+    const backlinkText = Array.isArray(backlinkRaw)
+      ? backlinkRaw.join("\n")
+      : (backlinkRaw ?? "").toString().trim();
+
+    const links: string[] = Array.isArray(backlinkRaw)
+      ? backlinkRaw
+      : backlinkText
+      ? backlinkText
+          .split(/[\n,]+/)
+          .map((l) => l.trim())
+          .filter(Boolean)
       : [];
+
+    const copyToClipboard = async (text: string) => {
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("Copied to clipboard");
+      } catch (err) {
+        console.error("Copy failed", err);
+        toast.error("Failed to copy");
+      }
+    };
 
     if (status !== "completed") return <PendingBox />;
     return (
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4 font-bold">
           <KeyStat label="Month" value={data?.month ?? "—"} />
           <KeyStat label="Quantity" value={data?.quantity ?? "—"} />
           <KeyStat label="Drip Period" value={data?.dripPeriod ?? "—"} />
           <KeyStat label="Order Date" value={formatDate(data?.orderDate)} />
-          {data?.doneByAgentId && (
-            <KeyStat label="Done By" value={data.doneByAgentId} />
-          )}
         </div>
-        <div>
-          <SectionTitle
-            icon={<ListChecks className="h-4 w-4" />}
-            title="Backlink URLs"
-          />
-          <div className="flex flex-wrap gap-2">
-            {links.length ? (
-              links.map((raw, i) => {
-                const href = cleanUrl(raw);
-                const label = `Link ${i + 1}`;
-                return <LinkPill key={i} href={href} label={label} />;
-              })
-            ) : (
-              <p className="text-sm text-slate-500">No links attached.</p>
-            )}
+
+        <div className="space-y-2">
+          <SectionTitle icon={<LinkIcon className="h-4 w-4" />} title="Anchor Text" />
+          <div className="flex items-center gap-3">
+            <textarea
+              readOnly
+              value={anchor || "N/A"}
+              className="flex-1 min-h-[140px] rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-white dark:bg-slate-800 text-sm"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl"
+              onClick={() => copyToClipboard(anchor)}
+              disabled={!anchor}
+              title="Copy anchor text"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <SectionTitle icon={<ListChecks className="h-4 w-4" />} title="Backlink URLs/Text" />
+          <div className="flex items-start gap-3">
+            <textarea
+              readOnly
+              value={backlinkText || "No backlinks provided."}
+              className="flex-1 min-h-[140px] rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-white dark:bg-slate-800 text-sm"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl mt-1"
+              onClick={() => copyToClipboard(backlinkText)}
+              disabled={!backlinkText}
+              title="Copy backlinks text"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
