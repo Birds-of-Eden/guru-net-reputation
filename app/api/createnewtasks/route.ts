@@ -270,7 +270,7 @@ export async function POST(req: NextRequest) {
 
       // Find existing tasks for this asset to determine next number
       const label = asset.name || asset.type || "Task";
-      const prefix = `Manual ${label} -`;
+      const prefix = `Manual ${label} Task -`;
       
       const existingForAsset = await prisma.task.findMany({
         where: {

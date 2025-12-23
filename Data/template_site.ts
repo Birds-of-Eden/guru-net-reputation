@@ -203,7 +203,7 @@ export const DEFAULT_CONTENT_WRITING = [
 ];
 
 export const DEFAULT_BACKLINKS = [
-  { name: "Backlinks", url: "https://www.blackhatlinks.com/get_spintax_generator.php", isRequired: true, defaultIdealDurationMinutes: 30 },
+  { name: "Backlinks", url: "https://docs.google.com/spreadsheets/d/1AFZIMvAre3g9WhcUZ8rXm1ZpUiBXcKMiylFNs34DF88/edit?gid=102132737#gid=102132737", isRequired: true, defaultIdealDurationMinutes: 30 },
 
 ];
 

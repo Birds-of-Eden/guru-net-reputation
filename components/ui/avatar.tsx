@@ -12,6 +12,7 @@ function Avatar({
 }: React.ComponentProps<typeof AvatarPrimitive.Root>) {
   return (
     <AvatarPrimitive.Root
+      suppressHydrationWarning
       data-slot="avatar"
       className={cn(
         "relative flex size-8 shrink-0 overflow-hidden rounded-full",
@@ -63,6 +64,7 @@ function AvatarFallback({
 
   return (
     <AvatarPrimitive.Fallback
+      suppressHydrationWarning
       data-slot="avatar-fallback"
       className={cn(
         "flex size-full items-center justify-center rounded-full font-semibold text-white",
