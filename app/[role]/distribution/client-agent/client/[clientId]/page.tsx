@@ -535,7 +535,7 @@ export default function CreatePostingTasksPage() {
 
   const hasExistingPostingTasks = existingTasks.length > 0;
   const canCreateTasks =
-    preview.allApproved && preview.tasks.length > 0 && !hasExistingPostingTasks;
+    preview.allApproved && preview.totalWillCreate > 0;
 
   // ---------- Create handler with QC gate ----------
   const handleCreate = async () => {
@@ -550,10 +550,8 @@ export default function CreatePostingTasksPage() {
       return;
     }
 
-    if (hasExistingPostingTasks) {
-      toast.warning(
-        "Posting tasks already exist for this client. Cannot create duplicates."
-      );
+    if (preview.totalWillCreate <= 0) {
+      toast.warning("No new posting cycles to create (all existing).");
       return;
     }
 
@@ -725,9 +723,8 @@ export default function CreatePostingTasksPage() {
                     </h3>
                     <p className="text-sm text-amber-700">
                       This client already has {existingTasks.length} posting
-                      task
-                      {existingTasks.length === 1 ? "" : "s"}. Cannot create
-                      duplicates.
+                      task{existingTasks.length === 1 ? "" : "s"}. New cycles
+                      will continue from the last created number.
                     </p>
                   </div>
                 </div>
@@ -1001,40 +998,27 @@ export default function CreatePostingTasksPage() {
                 </div>
 
                 <div className="mt-8">
-                  {hasExistingPostingTasks ? (
-                    <div className="w-full p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl text-center">
-                      <AlertTriangle className="h-8 w-8 text-amber-600 mx-auto mb-3" />
-                      <h4 className="text-lg font-bold text-amber-900 mb-2">
-                        Tasks Already Created
-                      </h4>
-                      <p className="text-sm text-amber-700">
-                        Posting tasks already exist for this client. Cannot
-                        create duplicates.
-                      </p>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => setOpenDurationModal(true)}
-                      disabled={creating || !canCreateTasks}
-                      className={cn(
-                        "w-full h-14 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
-                        (creating || !canCreateTasks) &&
-                          "opacity-60 cursor-not-allowed"
-                      )}
-                    >
-                      {creating ? (
-                        <div className="flex items-center gap-3">
-                          <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent" />
-                          Creating Posting Tasks...
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <ListChecks className="h-6 w-6" />
-                          Configure Time & Create Tasks
-                        </div>
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => setOpenDurationModal(true)}
+                    disabled={creating || !canCreateTasks}
+                    className={cn(
+                      "w-full h-14 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
+                      (creating || !canCreateTasks) &&
+                        "opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    {creating ? (
+                      <div className="flex items-center gap-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent" />
+                        Creating Posting Tasks...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <ListChecks className="h-6 w-6" />
+                        Configure Time & Create Tasks
+                      </div>
+                    )}
+                  </Button>
                 </div>
               </div>
             </section>
