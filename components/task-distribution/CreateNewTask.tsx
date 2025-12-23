@@ -26,10 +26,39 @@ interface CreateNewTaskModalProps {
   clientId: string
 }
 
+const CATEGORY_BY_ASSET: Record<string, string> = {
+  // Posting categories: social_site + other_asset -> Social Activity; web2_site -> Blog Posting
+  social_site: "Social Activity",
+  web2_site: "Blog Posting",
+  other_asset: "Social Activity",
+  graphics_design: "Graphics Design",
+  image_optimization: "Image Optimization",
+  content_studio: "Content Studio",
+  content_writing: "Content Writing",
+  backlinks: "Backlinks",
+  completed_com: "Completed Communication",
+  youtube_video_optimization: "YouTube Video Optimization",
+  monitoring: "Monitoring",
+  review_removal: "Review Removal",
+  summary_report: "Summary Report",
+  guest_posting: "Guest Posting",
+};
+
 const SITE_ASSET_TYPES = [
-  { value: "social_site", label: "Social Site (-> Social Activity)" },
-  { value: "web2_site", label: "Web2 Site (-> Blog Posting)" },
-  { value: "other_asset", label: "Other Asset (-> Blog Posting)" },
+  { value: "social_site", label: "Social Site" },
+  { value: "web2_site", label: "Web2 Site" },
+  { value: "other_asset", label: "Other Asset" },
+  { value: "graphics_design", label: "Graphics Design" },
+  { value: "image_optimization", label: "Image Optimization" },
+  { value: "content_studio", label: "Content Studio" },
+  { value: "content_writing", label: "Content Writing" },
+  { value: "backlinks", label: "Backlinks" },
+  { value: "completed_com", label: "Completed.com" },
+  { value: "youtube_video_optimization", label: "YouTube Video Optimization" },
+  { value: "monitoring", label: "Monitoring" },
+  { value: "review_removal", label: "Review Removal" },
+  { value: "summary_report", label: "Summary Report" },
+  { value: "guest_posting", label: "Guest Posting" },
 ];
 
 export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: CreateNewTaskModalProps) {
@@ -173,7 +202,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
               <span>Create Posting Tasks Manually</span>
             </DialogTitle>
             <DialogDescription className="text-white/80 pt-1">
-              Social Site -&gt; Social Activity | Web2 / Other Asset -&gt; Blog Posting
+              Social Site &amp; Other Asset -&gt; Social Activity | Web2 Site -&gt; Blog Posting
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -199,8 +228,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
         <ScrollArea className="max-h-[60vh] px-6 py-4">
           <form id="create-task-form" onSubmit={handleSubmit} className="space-y-6 py-2">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Manual creation follows posting logic: Social Site goes to <strong>Social Activity</strong>,
-              while Web2 Site and Other Asset go to <strong>Blog Posting</strong>.
+              Manual creation follows asset-category mapping shown beside each type (e.g., Social Site → Social Asset Creation, Web2 Site → Web 2.0 Asset Creation, etc.).
             </p>
             <div className="space-y-2">
               <Label htmlFor="dueDate" className="text-sm font-medium">Due Date *</Label>
@@ -257,7 +285,11 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
                     className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-md transition-all duration-200"
                   >
                     <Label className="font-medium text-gray-700 dark:text-gray-300 text-sm flex-1 cursor-pointer">
-                      {type.label}
+                      <span>{type.label}</span>
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                        <ListTodo className="h-3 w-3" />
+                        {CATEGORY_BY_ASSET[type.value]}
+                      </span>
                     </Label>
                     <Checkbox
                       id={`asset-${type.value}`}

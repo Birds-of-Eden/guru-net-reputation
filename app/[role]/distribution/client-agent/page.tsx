@@ -760,8 +760,8 @@ export default function ClientUnifiedDashboard() {
                           </div>
                         )}
 
-                        {/* Buttons: 1) Open Distribution, 2) Conditional */}
-                        <div className="mt-6 flex flex-col sm:flex-row gap-2">
+                        {/* Buttons: 1) Open Distribution, 2) Conditional, 3) View Details */}
+                        <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2">
                           <Button
                             variant="outline"
                             onClick={(e) => {
@@ -789,6 +789,24 @@ export default function ClientUnifiedDashboard() {
                             <div className="flex items-center gap-2">
                               {conditional.icon}
                               {conditional.label}
+                              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                          </Button>
+
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`${distributionBasePath}/client/${client.id}`);
+                            }}
+                            className={cn(
+                              "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
+                              "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            )}
+                            title="View client details"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4" />
+                              View Details
                               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                             </div>
                           </Button>

@@ -12,9 +12,37 @@ const ALLOWED_ASSET_TYPES = [
   "social_site",
   "web2_site",
   "other_asset",
+  "graphics_design",
+  "image_optimization",
+  "content_studio",
+  "content_writing",
+  "backlinks",
+  "completed_com",
+  "youtube_video_optimization",
+  "monitoring",
+  "review_removal",
+  "summary_report",
+  "guest_posting",
 ] as const;
-const CAT_SOCIAL_ACTIVITY = "Social Activity";
-const CAT_BLOG_POSTING = "Blog Posting";
+
+// Category mapping mirrors posting-task logic
+const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
+  // Posting categories: social_site + other_asset -> Social Activity; web2_site -> Blog Posting
+  social_site: "Social Activity",
+  web2_site: "Blog Posting",
+  other_asset: "Social Activity",
+  graphics_design: "Graphics Design",
+  image_optimization: "Image Optimization",
+  content_studio: "Content Studio",
+  content_writing: "Content Writing",
+  backlinks: "Backlinks",
+  completed_com: "Completed Communication",
+  youtube_video_optimization: "YouTube Video Optimization",
+  monitoring: "Monitoring",
+  review_removal: "Review Removal",
+  summary_report: "Summary Report",
+  guest_posting: "Guest Posting",
+};
 
 // Node 18+ has global crypto.randomUUID()
 const makeId = () =>
@@ -43,12 +71,8 @@ function fail(stage: string, err: unknown, http = 500) {
 
 // Determine category name based on asset type (strict posting logic)
 function resolveCategoryFromType(assetType?: string): string {
-  if (!assetType) return CAT_SOCIAL_ACTIVITY;
-  if (assetType === "social_site") return CAT_SOCIAL_ACTIVITY;
-  if (assetType === "web2_site" || assetType === "other_asset") {
-    return CAT_BLOG_POSTING;
-  }
-  return CAT_SOCIAL_ACTIVITY;
+  if (!assetType) return "Social Asset Creation";
+  return CATEGORY_BY_ASSET_TYPE[assetType] ?? "Social Asset Creation";
 }
 
 // POST: create manual tasks
@@ -108,7 +132,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Invalid site asset types. Allowed types: social_site, web2_site, other_asset.",
+            "Invalid site asset types. Allowed types: social_site, web2_site, other_asset, graphics_design, image_optimization, content_studio, content_writing, backlinks, completed_com, youtube_video_optimization, monitoring, review_removal, summary_report, guest_posting.",
         },
         { status: 400 }
       );
@@ -176,16 +200,15 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // Ensure posting categories exist
-    const [socialCategory, blogCategory] = await Promise.all([
-      ensureCategory(CAT_SOCIAL_ACTIVITY),
-      ensureCategory(CAT_BLOG_POSTING),
-    ]);
-
-    const categoryIdByName = new Map<string, string>([
-      [socialCategory.name, socialCategory.id],
-      [blogCategory.name, blogCategory.id],
-    ]);
+    // Ensure categories exist for selected asset types
+    const neededCategories = Array.from(
+      new Set(
+        siteAssetTypes.map((t) => resolveCategoryFromType(t as string))
+      )
+    );
+    const ensured = await Promise.all(neededCategories.map((name) => ensureCategory(name)));
+    const categoryIdByName = new Map<string, string>();
+    ensured.forEach((cat) => categoryIdByName.set(cat.name, cat.id));
 
     // Load template assets for selected types
     if (!assignment.templateId) {
@@ -247,7 +270,7 @@ export async function POST(req: NextRequest) {
 
       // Find existing tasks for this asset to determine next number
       const label = asset.name || asset.type || "Task";
-      const prefix = `${label} -`;
+      const prefix = `Manual ${label} -`;
       
       const existingForAsset = await prisma.task.findMany({
         where: {
@@ -260,13 +283,13 @@ export async function POST(req: NextRequest) {
 
       const nums = existingForAsset
         .map((t) => {
-          const m = t.name.match(/-(\d+)\s*$/);
+          const m = t.name.match(/-\s*(\d+)\s*$/);
           return m ? Number(m[1]) : null;
         })
         .filter((n): n is number => typeof n === "number" && !Number.isNaN(n));
       
       const next = nums.length ? Math.max(...nums) + 1 : 1;
-      const taskName = `${label} -${next}`;
+      const taskName = `${prefix}${next}`;
 
       console.log("[create-manual-tasks] Creating task:", {
         assetId: asset.id,
@@ -276,9 +299,11 @@ export async function POST(req: NextRequest) {
       });
 
       // Resolve ideal duration dynamically (matches posting tasks)
+      // Map category names to the expected types for the duration function
+      const durationCategory = categoryName.includes("Social") ? "Social Activity" : "Blog Posting";
       const idealDuration = resolveIdealDurationDynamic(
         taskName,
-        categoryName as "Blog Posting" | "Social Activity",
+        durationCategory,
         getRuntimeTaskDurationConfig()
       );
 
