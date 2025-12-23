@@ -662,12 +662,27 @@ export async function POST(
           }
 
           if (targetAssignment) {
-            // dedupe by exact name (migration keeps original names)
+            // Dedupe across the entire client (not just the target assignment) so
+            // we don't create a second copy of tasks that already exist from the
+            // previous package. We prefer the older copy and skip inserting a duplicate.
             const existingNames = await prisma.task.findMany({
               where: { assignmentId: targetAssignment.id },
               select: { name: true },
             });
-            const nameSkip = new Set(existingNames.map((t) => t.name));
+            const existingClientTasks = await prisma.task.findMany({
+              where: { clientId },
+              select: { name: true },
+            });
+            const nameSkip = new Set(
+              existingNames
+                .map((t) => normalizeForDedupe(t.name || ""))
+                .filter(Boolean)
+            );
+            const clientWideNameSkip = new Set(
+              existingClientTasks
+                .map((t) => normalizeForDedupe(t.name || ""))
+                .filter(Boolean)
+            );
 
             const doneStatuses: TaskStatus[] = [
               "completed",
@@ -705,7 +720,18 @@ export async function POST(
             if (oldDone.length) {
               const payloads: Prisma.TaskCreateArgs["data"][] = [];
               for (const src of oldDone) {
-                if (!src.name || nameSkip.has(src.name)) continue;
+                if (!src.name) continue;
+
+                const normalizedName = normalizeForDedupe(src.name);
+                if (!normalizedName) continue;
+
+                // If this normalized name already exists anywhere for the client,
+                // skip creating a duplicate in the new package.
+                if (nameSkip.has(normalizedName) || clientWideNameSkip.has(normalizedName)) {
+                  continue;
+                }
+                nameSkip.add(normalizedName);
+                clientWideNameSkip.add(normalizedName);
 
                 // Strictly keep original dates; do NOT coerce invalid dates   // <-- CHANGED
                 const data: Prisma.TaskCreateArgs["data"] = {
