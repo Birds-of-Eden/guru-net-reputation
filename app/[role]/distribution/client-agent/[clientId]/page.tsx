@@ -114,7 +114,6 @@ const POSTING_CATEGORIES = [
 const TEAM_ID_BY_CATEGORY: Record<string, string> = {
   "Asset Creation": "asset-team",
   "Image Optimization": "asset-team",
-  "AWS Upload": "asset-team",
   "Graphics Design": "graphics-design-team",
   // ✅ NEW: both go to social-team
   "Social Activity": "social-team",
@@ -156,7 +155,6 @@ const CATEGORY_LABELS = [
   "Graphics Design",
   "Asset Creation",
   "Image Optimization",
-  "AWS Upload",
   ...POSTING_CATEGORIES,
   "Content Studio",
   "Content Writing",
@@ -391,7 +389,11 @@ export default function TaskDistributionForClient() {
   const { data: client, isLoading: clientLoading } = useSWR<Client>(
     clientId ? `/api/clients/${clientId}?view=distribution` : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
   );
 
   const {
@@ -401,7 +403,11 @@ export default function TaskDistributionForClient() {
   } = useSWR<Task[]>(
     clientId ? `/api/tasks/client/${clientId}/all` : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
   );
 
   // ⚡ OPTIMIZED: Removed useState, using useMemo instead for better performance
@@ -418,7 +424,11 @@ export default function TaskDistributionForClient() {
   } = useSWR<AgentWithLoad[]>(
     clientId ? ["agents", "team", selectedCategory] : null,
     () => enrichedAgentsFetcher(teamIdForCategory(selectedCategory)),
-    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
   );
 
   const {
@@ -428,7 +438,11 @@ export default function TaskDistributionForClient() {
   } = useSWR<AgentWithLoad[]>(
     clientId ? ["agents", "all"] : null,
     () => enrichedAgentsFetcher(undefined),
-    { revalidateOnFocus: false, dedupingInterval: 30000, refreshInterval: 60000 }
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
   );
 
   const currentAgents = agentSource === "team" ? teamAgents : allAgents;
@@ -517,7 +531,11 @@ export default function TaskDistributionForClient() {
   );
 
   // ✅ NEW: Handle reassign functionality at page level
-  const handleReassign = async (taskIds: string[], newAgentId: string, dueDate?: Date) => {
+  const handleReassign = async (
+    taskIds: string[],
+    newAgentId: string,
+    dueDate?: Date
+  ) => {
     // Use the existing PUT endpoint for reassignments
     const response = await fetch("/api/tasks/distribute", {
       method: "PUT",
@@ -528,7 +546,9 @@ export default function TaskDistributionForClient() {
         reassignments: taskIds.map((taskId) => ({
           taskId,
           toAgentId: newAgentId,
-          reassignNotes: `Reassigned via modal - New due date: ${dueDate ? new Date(dueDate).toISOString() : 'No change'}`,
+          reassignNotes: `Reassigned via modal - New due date: ${
+            dueDate ? new Date(dueDate).toISOString() : "No change"
+          }`,
         })),
       }),
     });
@@ -538,10 +558,10 @@ export default function TaskDistributionForClient() {
     }
 
     const result = await response.json();
-    
+
     // Refresh the data after reassignment
     await mutateTasks();
-    
+
     return result;
   };
 
@@ -575,17 +595,25 @@ export default function TaskDistributionForClient() {
       }
 
       const result = await response.json();
-      
+
       // Show success toast
-      toast.success(`Successfully unassigned ${taskIds.length} task${taskIds.length > 1 ? 's' : ''}`);
-      
+      toast.success(
+        `Successfully unassigned ${taskIds.length} task${
+          taskIds.length > 1 ? "s" : ""
+        }`
+      );
+
       // Refresh the data after unassign
       await refreshData();
-      
+
       return result;
     } catch (error) {
       // Show error toast
-      toast.error(`Failed to unassign tasks: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to unassign tasks: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
       throw error;
     }
   };
@@ -630,90 +658,99 @@ export default function TaskDistributionForClient() {
     [mutateTeamAgents, startCategoryTransition]
   );
 
-  const handleTaskSelection = useCallback((taskId: string, checked: boolean) => {
-    setSelectedTasks((prev) => {
-      const newSet = new Set(prev);
-      if (checked) newSet.add(taskId);
-      else {
-        newSet.delete(taskId);
+  const handleTaskSelection = useCallback(
+    (taskId: string, checked: boolean) => {
+      setSelectedTasks((prev) => {
+        const newSet = new Set(prev);
+        if (checked) newSet.add(taskId);
+        else {
+          newSet.delete(taskId);
+          setCategoryAssignments((assignments) =>
+            assignments.filter((assignment) => assignment.taskId !== taskId)
+          );
+        }
+        return newSet;
+      });
+
+      setSelectedTasksOrder((prev) =>
+        checked
+          ? prev.includes(taskId)
+            ? prev
+            : [...prev, taskId]
+          : prev.filter((id) => id !== taskId)
+      );
+    },
+    []
+  );
+
+  const handleSelectAllTasks = useCallback(
+    (taskIds: string[], checked: boolean) => {
+      if (checked) {
+        setSelectedTasks(new Set(taskIds));
+        setSelectedTasksOrder(taskIds);
+        toast.info(`Selected ${taskIds.length} tasks from current view`);
+      } else {
+        const currentViewTaskIds = new Set(taskIds);
+        const preserved = Array.from(selectedTasks).filter(
+          (id) => !currentViewTaskIds.has(id)
+        );
+        setSelectedTasks(new Set(preserved));
+        setSelectedTasksOrder((prev) =>
+          prev.filter((id) => !currentViewTaskIds.has(id))
+        );
         setCategoryAssignments((assignments) =>
-          assignments.filter((assignment) => assignment.taskId !== taskId)
+          assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
         );
       }
-      return newSet;
-    });
+    },
+    [selectedTasks]
+  );
 
-    setSelectedTasksOrder((prev) =>
-      checked
-        ? prev.includes(taskId)
-          ? prev
-          : [...prev, taskId]
-        : prev.filter((id) => id !== taskId)
-    );
-  }, []);
+  const handleTaskAssignment = useCallback(
+    (
+      taskId: string,
+      agentId: string,
+      isMultipleSelected: boolean,
+      isFirstSelectedTask: boolean
+    ) => {
+      const task = tasks.find((t) => t.id === taskId);
+      const assetType = (task as any)?.templateSiteAsset?.type as
+        | string
+        | undefined;
 
-  const handleSelectAllTasks = useCallback((taskIds: string[], checked: boolean) => {
-    if (checked) {
-      setSelectedTasks(new Set(taskIds));
-      setSelectedTasksOrder(taskIds);
-      toast.info(`Selected ${taskIds.length} tasks from current view`);
-    } else {
-      const currentViewTaskIds = new Set(taskIds);
-      const preserved = Array.from(selectedTasks).filter(
-        (id) => !currentViewTaskIds.has(id)
-      );
-      setSelectedTasks(new Set(preserved));
-      setSelectedTasksOrder((prev) =>
-        prev.filter((id) => !currentViewTaskIds.has(id))
-      );
-      setCategoryAssignments((assignments) =>
-        assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
-      );
-    }
-  }, [selectedTasks]);
+      // bulk apply if multiple selected
+      if (isMultipleSelected && isFirstSelectedTask) {
+        const selectedArray = Array.from(selectedTasks);
+        const newAssignments: CategoryAssignment[] = selectedArray.map((id) => {
+          const t = tasks.find((x) => x.id === id);
+          return {
+            taskId: id,
+            agentId,
+            assetType: (t as any)?.templateSiteAsset?.type,
+          };
+        });
 
-  const handleTaskAssignment = useCallback((
-    taskId: string,
-    agentId: string,
-    isMultipleSelected: boolean,
-    isFirstSelectedTask: boolean
-  ) => {
-    const task = tasks.find((t) => t.id === taskId);
-    const assetType = (task as any)?.templateSiteAsset?.type as
-      | string
-      | undefined;
+        setCategoryAssignments((prev) => {
+          const filtered = prev.filter((a) => !selectedTasks.has(a.taskId));
+          return [...filtered, ...newAssignments];
+        });
 
-    // bulk apply if multiple selected
-    if (isMultipleSelected && isFirstSelectedTask) {
-      const selectedArray = Array.from(selectedTasks);
-      const newAssignments: CategoryAssignment[] = selectedArray.map((id) => {
-        const t = tasks.find((x) => x.id === id);
-        return {
-          taskId: id,
-          agentId,
-          assetType: (t as any)?.templateSiteAsset?.type,
-        };
-      });
+        setSelectedTasks(new Set());
+        setSelectedTasksOrder([]);
+        toast.success(`Assigned ${selectedArray.length} tasks to agent`);
+      } else {
+        setCategoryAssignments((prev) => {
+          const filtered = prev.filter((a) => a.taskId !== taskId);
+          if (agentId) return [...filtered, { taskId, agentId, assetType }];
+          return filtered;
+        });
 
-      setCategoryAssignments((prev) => {
-        const filtered = prev.filter((a) => !selectedTasks.has(a.taskId));
-        return [...filtered, ...newAssignments];
-      });
-
-      setSelectedTasks(new Set());
-      setSelectedTasksOrder([]);
-      toast.success(`Assigned ${selectedArray.length} tasks to agent`);
-    } else {
-      setCategoryAssignments((prev) => {
-        const filtered = prev.filter((a) => a.taskId !== taskId);
-        if (agentId) return [...filtered, { taskId, agentId, assetType }];
-        return filtered;
-      });
-
-      setSelectedTasks(new Set());
-      setSelectedTasksOrder([]);
-    }
-  }, [selectedTasks, tasks]);
+        setSelectedTasks(new Set());
+        setSelectedTasksOrder([]);
+      }
+    },
+    [selectedTasks, tasks]
+  );
 
   const handleNoteChange = useCallback((taskId: string, note: string) => {
     setTaskNotes((prev) => ({ ...prev, [taskId]: note }));
@@ -797,41 +834,32 @@ export default function TaskDistributionForClient() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-zinc-100">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
       <div className="mx-auto">
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-gray-50 to-slate-50 overflow-hidden">
-          <CardHeader className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 text-slate-800 p-2 md:p-4 rounded-t-2xl border-b border-slate-100/80 backdrop-blur-sm">
-            {/* Ambient lighting effects */}
+        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden">
+          <CardHeader className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white p-2 md:p-4 rounded-t-2xl border-b border-purple-200/80 backdrop-blur-sm">
+            {/* Premium ambient lighting effects */}
             <div className="pointer-events-none absolute inset-0">
-              <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-radial from-blue-400/8 via-transparent to-transparent rounded-full blur-3xl" />
-              <div className="absolute top-0 right-0 w-96 h-48 bg-gradient-radial from-indigo-400/6 via-transparent to-transparent rounded-full blur-3xl" />
+              <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-radial from-pink-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse" />
+              <div
+                className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"
+                style={{ animationDelay: "1s" }}
+              />
+              <div
+                className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-radial from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"
+                style={{ animationDelay: "2s" }}
+              />
             </div>
 
             {/* Main content */}
             <div className="relative z-10">
-              {/* Header section with enhanced spacing */}
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-700 to-indigo-700 bg-clip-text text-transparent tracking-tight leading-tight mb-2">
-                    Category-Based Task Distribution
-                  </CardTitle>
-                </div>
-
-                {/* Enhanced icon container */}
-                <div className="group flex items-center justify-center w-12 h-12 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-blue-50 via-white to-indigo-50 ring-1 ring-blue-200/50 shadow-lg shadow-blue-100/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-200/60 hover:scale-105 shrink-0">
-                  <Repeat
-                    className="h-6 w-6 md:h-7 md:w-7 text-blue-600 transition-all duration-300 group-hover:rotate-180"
-                    aria-hidden
-                  />
-                </div>
-              </div>
-
-              {/* Client section with improved layout */}
+              {/* Client section with enhanced premium design */}
               {client && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-white/60 via-white/40 to-white/60 backdrop-blur-sm border border-white/50 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/70">
-                  {/* Enhanced avatar */}
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-white/20 via-white/10 to-white/20 backdrop-blur-md border border-white/30 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/30">
+                  {/* Enhanced avatar with glow effect */}
                   <div className="relative shrink-0">
-                    <Avatar className="h-12 w-12 md:h-14 md:w-14 ring-2 ring-white shadow-md transition-all duration-300 hover:ring-4 hover:ring-blue-200/50">
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full blur-lg opacity-60 animate-pulse" />
+                    <Avatar className="h-12 w-12 md:h-14 md:w-14 ring-4 ring-white/50 shadow-xl transition-all duration-300 hover:ring-4 hover:ring-pink-300/50 relative">
                       {client.avatar ? (
                         <AvatarImage
                           src={client.avatar}
@@ -840,7 +868,7 @@ export default function TaskDistributionForClient() {
                         />
                       ) : (
                         <AvatarFallback
-                          className="text-white text-sm md:text-base font-bold transition-all duration-300 hover:scale-110"
+                          className="text-white text-sm md:text-base font-bold transition-all duration-300 hover:scale-110 bg-gradient-to-br from-pink-500 to-purple-600"
                           style={{
                             backgroundColor: nameToColor(
                               client.name || client.id
@@ -852,50 +880,52 @@ export default function TaskDistributionForClient() {
                       )}
                     </Avatar>
                     {client.status === "active" && (
-                      <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full ring-2 ring-white shadow-sm animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full ring-2 ring-white shadow-lg animate-pulse">
+                        <div className="w-full h-full rounded-full bg-green-400 animate-ping" />
+                      </div>
                     )}
                   </div>
 
-                  {/* Client info with better typography */}
+                  {/* Enhanced client info with premium typography */}
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <h3 className="text-lg md:text-xl font-bold text-slate-900 truncate">
+                      <h3 className="text-lg md:text-xl font-bold text-white truncate drop-shadow-sm">
                         {client.name || "Unnamed Client"}
                       </h3>
                       {client.status === "active" && (
                         <Star
-                          className="h-4 w-4 text-teal-500 shrink-0"
+                          className="h-5 w-5 text-yellow-300 shrink-0 drop-shadow-sm"
                           fill="currentColor"
                         />
                       )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                      {/* Company info */}
-                      <div className="flex items-center gap-1.5 text-slate-600">
-                        <Building2 className="h-4 w-4 text-slate-500 shrink-0" />
-                        <span className="text-sm font-medium truncate max-w-[200px]">
+                      {/* Company info with enhanced styling */}
+                      <div className="flex items-center gap-1.5 text-white/90">
+                        <Building2 className="h-4 w-4 text-white/80 shrink-0" />
+                        <span className="text-sm font-medium truncate max-w-[200px] drop-shadow-sm">
                           {client.company || "No company"}
                         </span>
                       </div>
 
-                      {/* Status and package badges */}
+                      {/* Enhanced status and package badges */}
                       <div className="flex items-center gap-2">
                         {client.status && (
                           <span
                             className={cn(
-                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:scale-105",
+                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-lg backdrop-blur-sm",
                               client.status === "active"
-                                ? "bg-green-100 text-green-700 ring-1 ring-green-200"
-                                : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                                ? "bg-gradient-to-r from-green-400/80 to-emerald-500/80 text-white border border-green-300/50 ring-1 ring-green-300/30"
+                                : "bg-gradient-to-r from-slate-400/80 to-slate-500/80 text-white border border-slate-300/50 ring-1 ring-slate-300/30"
                             )}
                           >
                             <span
                               className={cn(
-                                "w-1.5 h-1.5 rounded-full mr-1.5",
+                                "w-2 h-2 rounded-full mr-1.5 animate-pulse",
                                 client.status === "active"
-                                  ? "bg-green-500"
-                                  : "bg-slate-400"
+                                  ? "bg-white"
+                                  : "bg-white/70"
                               )}
                             />
                             {client.status.charAt(0).toUpperCase() +
@@ -906,12 +936,10 @@ export default function TaskDistributionForClient() {
                         {client.package?.name && (
                           <span
                             title={client.package.name}
-                            className="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200 px-3 py-1 text-xs font-semibold transition-all duration-200 hover:scale-105 hover:bg-indigo-200"
+                            className="inline-flex items-center rounded-full bg-gradient-to-r from-indigo-400/80 to-purple-500/80 text-white border border-indigo-300/50 px-3 py-1 text-xs font-bold transition-all duration-200 hover:scale-105 hover:from-indigo-500/80 hover:to-purple-600/80 shadow-lg backdrop-blur-sm ring-1 ring-indigo-300/30"
                           >
                             <span className="mr-1.5">📦</span>
-                            <span className="truncate max-w-[120px] md:max-w-[160px]">
-                              {client.package.name}
-                            </span>
+                            {client.package.name}
                           </span>
                         )}
                       </div>
@@ -919,391 +947,385 @@ export default function TaskDistributionForClient() {
                   </div>
                 </div>
               )}
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-300/60 to-transparent" />
             </div>
-
-            {/* Subtle bottom accent */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300/60 to-transparent" />
           </CardHeader>
 
           <CardContent className="p-2 md:px-4 lg:px-4 space-y-8">
-            {/* CATEGORY CONTROLS & SUMMARY */}
-            <section
-              aria-labelledby="category-assignment-heading"
-              className="space-y-4"
-            >
-              <div className="border rounded-2xl p-6 md:p-7 bg-gradient-to-br from-purple-50 to-white border-purple-200/70">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  {/* Category Selector */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-slate-700">
-                        Select Category to Assign
-                      </label>
-                      {isCategoryPending && (
-                        <span className="text-xs text-slate-500 animate-pulse">
-                          Updating&hellip;
-                        </span>
-                      )}
-                    </div>
-                    <Select
-                      value={selectedCategory}
-                      onValueChange={handleCategoryChange}
-                    >
-                      <SelectTrigger
-                        className="w-full h-11 rounded-xl border-slate-300"
-                        aria-busy={isCategoryPending}
-                      >
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-
-                      <SelectContent className="rounded-xl shadow-lg border border-slate-200 bg-white">
-                        {CATEGORY_LABELS.map((label) => {
-                          const s = statsByCategory[label];
-                          const fully =
-                            !!s && s.total > 0 && s.assigned === s.total;
-                          const teamName = teamNameForCategory(label);
-
-                          return (
-                            <SelectItem
-                              key={label}
-                              value={label}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-slate-800">
-                                  {label}
-                                </span>
-                                <span className="text-[10px] uppercase tracking-wide bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full border border-slate-200">
-                                  {teamName}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {s ? (
-                                  fully ? (
-                                    <span className="flex items-center text-emerald-600 text-xs font-semibold">
-                                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                                      All Assigned
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                                      {s.assigned}/{s.total}
-                                    </span>
-                                  )
-                                ) : (
-                                  <span className="text-xs text-slate-400 italic">
-                                    No tasks
-                                  </span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Due Date */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      Due Date for All Tasks in {selectedCategory}{" "}
-                      <span className="text-green-500">( Optional )</span>
-                    </label>
-                    <Popover
-                      open={duePickerOpen}
-                      onOpenChange={setDuePickerOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full h-10 justify-start text-left font-medium rounded-xl border-slate-300",
-                            !categoryDueDate && "text-muted-foreground"
-                          )}
-                          aria-label="Open date picker"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {categoryDueDate
-                            ? format(categoryDueDate, "PPP")
-                            : "Select due date"}
-                        </Button>
-                      </PopoverTrigger>
-
-                      <PopoverContent
-                        align="start"
-                        sideOffset={8}
-                        className="p-0 w-[300px] overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
-                      >
-                        <div className="px-3 py-2 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500">
-                          <div className="text-[10px] uppercase tracking-wide text-white/80">
-                            Due date
-                          </div>
-                          <div className="text-lg font-semibold text-white leading-5">
-                            {categoryDueDate
-                              ? format(categoryDueDate, "EEE, MMM d")
-                              : "Pick a date"}
-                          </div>
-                        </div>
-
-                        <div className="p-2 flex justify-center">
-                          <Calendar
-                            mode="single"
-                            selected={categoryDueDate}
-                            onSelect={(d) => {
-                              if (!d) return;
-                              d.setHours(0, 0, 0, 0);
-                              setCategoryDueDate(d);
-                              setDuePickerOpen(false);
-                            }}
-                            disabled={(date) => date < startOfToday()}
-                            initialFocus
-                            className="rounded-lg"
-                          />
-                        </div>
-
-                        <div className="px-2 py-2 border-t bg-white flex flex-wrap gap-1.5">
-                          <button
-                            className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
-                            onClick={() => {
-                              const d = startOfToday();
-                              setCategoryDueDate(d);
-                              setDuePickerOpen(false);
-                            }}
-                          >
-                            Today
-                          </button>
-                          <button
-                            className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
-                            onClick={() => {
-                              const d = addDaysSafe(new Date(), 1);
-                              setCategoryDueDate(d);
-                              setDuePickerOpen(false);
-                            }}
-                          >
-                            Tomorrow
-                          </button>
-                          <button
-                            className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
-                            onClick={() => {
-                              const d = addDaysSafe(new Date(), 7);
-                              setCategoryDueDate(d);
-                              setDuePickerOpen(false);
-                            }}
-                          >
-                            +7 days
-                          </button>
-
-                          <div className="flex-1" />
-                          <button
-                            className="h-7 px-3 text-xs bg-slate-100 rounded-full text-cyan-600 hover:bg-slate-100 font-semibold"
-                            onClick={() => {
-                              setCategoryDueDate(undefined);
-                              setDuePickerOpen(false);
-                            }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-
-                <h3
-                  id="category-assignment-heading"
-                  className="text-lg md:text-xl font-semibold text-slate-800 mb-4"
-                >
-                  {selectedCategory} Assignment
-                </h3>
-
-                {/* Summary */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/70 rounded-2xl p-2 md:p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-base md:text-lg font-semibold text-blue-900">
-                      Assignment Summary
-                    </h4>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs",
-                        stats.fullyAssigned
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-blue-100 text-blue-800 border-blue-200"
-                      )}
-                      aria-live="polite"
-                    >
-                      {`${stats.assigned}/${stats.total} assigned`}
-                      {stats.fullyAssigned ? " • All Set ✓" : ""}
-                    </Badge>
-                  </div>
-
-                  {(categoryDueDate || categoryAssignments.length > 0) && (
-                    <div className="mb-4 p-3 bg-cyan-50 border border-cyan-200 rounded-xl">
-                      <p className="text-sm text-cyan-900">
-                        {categoryDueDate && (
-                          <>
-                            <CalendarIcon className="inline h-4 w-4 mr-1" />
-                            Planned due date:{" "}
-                            <strong>{format(categoryDueDate, "PPP")}</strong>
-                          </>
-                        )}
-                        {categoryAssignments.length > 0 && (
-                          <>
-                            {categoryDueDate ? " • " : ""}
-                            Pending to distribute now:{" "}
-                            <strong>{categoryAssignments.length}</strong>{" "}
-                            {categoryAssignments.length > 1 ? "tasks" : "task"}
-                          </>
-                        )}
+            <section className="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full">
+              {/* Sidebar category tabs - keep fixed in place */}
+              <aside className="w-full lg:w-72 shrink-0 sticky top-4 self-start">
+                <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col max-h-[calc(100vh-6rem)]">
+                  <div className="px-4 py-3 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-100 to-indigo-100">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-purple-700 font-bold">
+                        Select Category
                       </p>
                     </div>
-                  )}
+                    {isCategoryPending && (
+                      <span className="text-xs text-purple-600 animate-pulse font-medium">
+                        Updating&hellip;
+                      </span>
+                    )}
+                  </div>
+                  <div className="divide-y divide-purple-100 flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
+                    {CATEGORY_LABELS.map((label) => {
+                      const s = statsByCategory[label];
+                      const fully =
+                        !!s && s.total > 0 && s.assigned === s.total;
+                      const teamName = teamNameForCategory(label);
+                      const active = selectedCategory === label;
 
-                  {/* Distribute button */}
-                  <div className="mt-2">
-                    <Button
-                      onClick={submitTaskDistribution}
-                      disabled={submitting || categoryAssignments.length === 0}
-                      className={cn(
-                        "w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
-                        (submitting || categoryAssignments.length === 0) &&
-                          "opacity-60 cursor-not-allowed"
-                      )}
-                      aria-disabled={
-                        submitting || categoryAssignments.length === 0
-                      }
-                    >
-                      {submitting ? (
-                        <div className="flex items-center gap-2">
-                          <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                          Distributing Tasks...
-                        </div>
-                      ) : (
-                        `Distribute ${categoryAssignments.length} Task${
-                          categoryAssignments.length !== 1 ? "s" : ""
-                        } for ${selectedCategory}`
-                      )}
-                    </Button>
+                      return (
+                        <button
+                          key={label}
+                          onClick={() => handleCategoryChange(label)}
+                          className={cn(
+                            "w-full px-4 py-3 text-left flex items-center justify-between gap-3 transition-all",
+                            active
+                              ? "bg-indigo-50 border-l-4 border-indigo-500 shadow-inner"
+                              : "hover:bg-slate-50"
+                          )}
+                          aria-pressed={active}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-900 truncate">
+                                {label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500">
+                              {s
+                                ? `${s.assigned}/${s.total} assigned`
+                                : "No tasks yet"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {fully ? (
+                              <span className="flex items-center text-emerald-600 text-xs font-semibold">
+                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                All Assigned
+                              </span>
+                            ) : s ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-0.5"
+                              >
+                                {s.assigned}/{s.total}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">
+                                —
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-            </section>
+              </aside>
 
-            {/* TASKS AREA */}
-            {tasks.length > 0 ? (
-              <section aria-labelledby="tasks-heading" className="space-y-8">
-                <h3 id="tasks-heading" className="sr-only">
-                  Tasks
-                </h3>
+              {/* Main content */}
+              <div className="flex-1 space-y-6 flex flex-col h-full">
+                {/* Header actions */}
+                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 flex-shrink-0 backdrop-blur">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500 font-semibold">
+                        Distribute tasks for
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-xl md:text-2xl font-semibold text-slate-900">
+                          {selectedCategory}
+                        </h3>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "rounded-full px-3 py-1 text-xs",
+                            stats.fullyAssigned
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : "bg-blue-100 text-blue-800 border-blue-200"
+                          )}
+                          aria-live="polite"
+                        >
+                          {`${stats.assigned}/${stats.total} assigned`}
+                          {stats.fullyAssigned ? " • All Set ✓" : ""}
+                        </Badge>
+                        {categoryDueDate && (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded-full border border-cyan-200">
+                            <CalendarIcon className="h-3.5 w-3.5" />
+                            {format(categoryDueDate, "PPP")}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-500">
+                        Pick a category on the left, select tasks on the right,
+                        then assign agents.
+                      </p>
+                    </div>
 
-                {!loading && hasMoreTasks && (
-                  <div className="sticky top-4 z-30 flex justify-end">
-                    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white/90 px-4 py-2 shadow-md backdrop-blur">
-                      <span className="text-xs text-slate-600">
-                        Showing {visibleTasks.length} of {deferredTasks.length} tasks
-                      </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Popover
+                        open={duePickerOpen}
+                        onOpenChange={setDuePickerOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-[180px]",
+                              !categoryDueDate && "text-muted-foreground"
+                            )}
+                            aria-label="Open date picker"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {categoryDueDate
+                              ? format(categoryDueDate, "PPP")
+                              : "Set due date"}
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent
+                          align="end"
+                          sideOffset={8}
+                          className="p-0 w-[300px] overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
+                        >
+                          <div className="px-3 py-2 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500">
+                            <div className="text-[10px] uppercase tracking-wide text-white/80">
+                              Due date
+                            </div>
+                            <div className="text-lg font-semibold text-white leading-5">
+                              {categoryDueDate
+                                ? format(categoryDueDate, "EEE, MMM d")
+                                : "Pick a date"}
+                            </div>
+                          </div>
+
+                          <div className="p-2 flex justify-center">
+                            <Calendar
+                              mode="single"
+                              selected={categoryDueDate}
+                              onSelect={(d) => {
+                                if (!d) return;
+                                d.setHours(0, 0, 0, 0);
+                                setCategoryDueDate(d);
+                                setDuePickerOpen(false);
+                              }}
+                              disabled={(date) => date < startOfToday()}
+                              initialFocus
+                              className="rounded-lg"
+                            />
+                          </div>
+
+                          <div className="px-2 py-2 border-t bg-white flex flex-wrap gap-1.5">
+                            <button
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              onClick={() => {
+                                const d = startOfToday();
+                                setCategoryDueDate(d);
+                                setDuePickerOpen(false);
+                              }}
+                            >
+                              Today
+                            </button>
+                            <button
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              onClick={() => {
+                                const d = addDaysSafe(new Date(), 1);
+                                setCategoryDueDate(d);
+                                setDuePickerOpen(false);
+                              }}
+                            >
+                              Tomorrow
+                            </button>
+                            <button
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              onClick={() => {
+                                const d = addDaysSafe(new Date(), 7);
+                                setCategoryDueDate(d);
+                                setDuePickerOpen(false);
+                              }}
+                            >
+                              +7 days
+                            </button>
+
+                            <div className="flex-1" />
+                            <button
+                              className="h-7 px-3 text-xs bg-slate-100 rounded-full text-cyan-600 hover:bg-slate-100 font-semibold"
+                              onClick={() => {
+                                setCategoryDueDate(undefined);
+                                setDuePickerOpen(false);
+                              }}
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={handleLoadMoreTasks}
-                        className="rounded-full px-4"
+                        onClick={async () => {
+                          if (!selectedTasks.size) {
+                            toast.info(
+                              "Select at least one task to un-assign."
+                            );
+                            return;
+                          }
+                          const selectedTaskIds = Array.from(selectedTasks);
+                          await handleUnassign(selectedTaskIds);
+                        }}
+                        disabled={submitting}
+                        className="bg-purple-800 text-white hover:text-white hover:bg-purple-700"
                       >
-                        {loadMoreLabel}
+                        Un-Assign
+                      </Button>
+
+                      <Button
+                        onClick={() => {
+                          if (!selectedTasks.size) {
+                            toast.info("Select tasks to reassign.");
+                            return;
+                          }
+                          setIsReassignModalOpen(true);
+                        }}
+                        variant="secondary"
+                        size="sm"
+                        disabled={submitting}
+                        className="bg-orange-700 hover:bg-orange-800 text-white hover:text-white"
+                      >
+                        Reassign ({selectedTasks.size})
+                      </Button>
+
+                      <Button
+                        onClick={submitTaskDistribution}
+                        disabled={
+                          submitting || categoryAssignments.length === 0
+                        }
+                        className={cn(
+                          "h-10 md:h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
+                          (submitting || categoryAssignments.length === 0) &&
+                            "opacity-60 cursor-not-allowed"
+                        )}
+                        aria-disabled={
+                          submitting || categoryAssignments.length === 0
+                        }
+                      >
+                        {submitting ? (
+                          <div className="flex items-center gap-2">
+                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Distributing...
+                          </div>
+                        ) : (
+                          `Distribute ${categoryAssignments.length || ""} ${
+                            categoryAssignments.length === 1 ? "Task" : "Tasks"
+                          }`
+                        )}
                       </Button>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {/* ...existing imports and code above... */}
-
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <LoadingSpinner />
-                  </div>
-                ) : selectedCategory === "Asset Creation" ? (
-                  // Tabs (Asset Creation)
-                  <TaskTabs
-                    categorizedTasks={categorizedTasksForAssetCreation}
-                    // NEW: pass both lists
-                    teamAgents={teamAgents}
-                    allAgents={allAgents}
-                    agents={currentAgents}
-                    selectedTasks={selectedTasks}
-                    selectedTasksOrder={selectedTasksOrder}
-                    taskAssignments={memoizedTaskAssignments}
-                    taskNotes={taskNotes}
-                    viewMode={viewMode}
-                    onTaskSelection={handleTaskSelection}
-                    onSelectAllTasks={handleSelectAllTasks}
-                    onTaskAssignment={handleTaskAssignment}
-                    onNoteChange={handleNoteChange}
-                    onViewModeChange={setViewMode}
-                    // ✅ NEW: Modal props from parent
-                    isReassignModalOpen={isReassignModalOpen}
-                    onReassignModalOpen={setIsReassignModalOpen}
-                    onReassign={handleReassign}
-                    onUnassign={handleUnassign}
-                    onRefresh={refreshData}
-                    selectedTaskObjects={selectedTaskObjects}
-                  />
-                ) : (
-                  // Single-tab view for posting/new/other categories
-                  <TaskTabs
-                    singleTabTitle={selectedCategory}
-                    singleTabTasks={visibleTasks}
-                    // NEW: pass both lists
-                    teamAgents={teamAgents}
-                    allAgents={allAgents}
-                    agents={currentAgents}
-                    selectedTasks={selectedTasks}
-                    selectedTasksOrder={selectedTasksOrder}
-                    taskAssignments={memoizedTaskAssignments}
-                    taskNotes={taskNotes}
-                    viewMode={viewMode}
-                    onTaskSelection={handleTaskSelection}
-                    onSelectAllTasks={handleSelectAllTasks}
-                    onTaskAssignment={handleTaskAssignment}
-                    onNoteChange={handleNoteChange}
-                    onViewModeChange={setViewMode}
-                    // ✅ NEW: Pass modal handlers from parent
-                    isReassignModalOpen={isReassignModalOpen}
-                    onReassignModalOpen={setIsReassignModalOpen}
-                    onReassign={handleReassign}
-                    onUnassign={handleUnassign}
-                    onRefresh={refreshData}
-                    selectedTaskObjects={selectedTaskObjects}
-                  />
-                )}
-                {!loading && hasMoreTasks && (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-300/70 p-4 bg-white/70">
-                    <p className="text-xs text-slate-600">
-                      Showing {visibleTasks.length} of {deferredTasks.length} tasks
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={handleLoadMoreTasks}
-                      className="rounded-full px-6"
+                {/* TASKS AREA - with proper scrolling for TabContent */}
+                <div
+                  className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100"
+                  style={{ height: "calc(100vh - 6rem)" }}
+                >
+                  {tasks.length > 0 ? (
+                    <section
+                      aria-labelledby="tasks-heading"
+                      className="space-y-8"
                     >
-                      {/* OPTIMIZATION (virtual batching control): manual pager keeps DOM nodes capped while still letting the user continue */}
-                      {loadMoreLabel}
-                    </Button>
-                  </div>
-                )}
-              </section>
-            ) : (
-              // EMPTY STATE
-              <section
-                aria-live="polite"
-                className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 text-center"
-              >
-                <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-1.5">
-                  No Tasks Available for {selectedCategory}
-                </h3>
-                <p className="text-sm text-yellow-800/90">
-                  Either all tasks in this category are completed or none exist
-                  yet.
-                </p>
-              </section>
-            )}
+                      <h3 id="tasks-heading" className="sr-only">
+                        Tasks
+                      </h3>
+
+                      {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                          <LoadingSpinner />
+                        </div>
+                      ) : (
+                        <>
+                          {selectedCategory === "Asset Creation" ? (
+                            // Tabs (Asset Creation)
+                            <TaskTabs
+                              categorizedTasks={
+                                categorizedTasksForAssetCreation
+                              }
+                              // NEW: pass both lists
+                              teamAgents={teamAgents}
+                              allAgents={allAgents}
+                              agents={currentAgents}
+                              selectedTasks={selectedTasks}
+                              selectedTasksOrder={selectedTasksOrder}
+                              taskAssignments={memoizedTaskAssignments}
+                              taskNotes={taskNotes}
+                              viewMode={viewMode}
+                              onTaskSelection={handleTaskSelection}
+                              onSelectAllTasks={handleSelectAllTasks}
+                              onTaskAssignment={handleTaskAssignment}
+                              onNoteChange={handleNoteChange}
+                              onViewModeChange={setViewMode}
+                            />
+                          ) : (
+                            // Single-tab view for posting/new/other categories
+                            <TaskTabs
+                              singleTabTitle={selectedCategory}
+                              singleTabTasks={visibleTasks}
+                              // NEW: pass both lists
+                              teamAgents={teamAgents}
+                              allAgents={allAgents}
+                              agents={currentAgents}
+                              selectedTasks={selectedTasks}
+                              selectedTasksOrder={selectedTasksOrder}
+                              taskAssignments={memoizedTaskAssignments}
+                              taskNotes={taskNotes}
+                              viewMode={viewMode}
+                              onTaskSelection={handleTaskSelection}
+                              onSelectAllTasks={handleSelectAllTasks}
+                              onTaskAssignment={handleTaskAssignment}
+                              onNoteChange={handleNoteChange}
+                              onViewModeChange={setViewMode}
+                            />
+                          )}
+                        </>
+                      )}
+                      {!loading && hasMoreTasks && (
+                        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-purple-300 p-4 bg-white/70">
+                          <p className="text-xs text-purple-600">
+                            Showing {visibleTasks.length} of{" "}
+                            {deferredTasks.length} tasks
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={handleLoadMoreTasks}
+                            className="rounded-full bg-purple-700 hover:bg-purple-800 text-white hover:text-white px-6"
+                          >
+                            {loadMoreLabel}
+                          </Button>
+                        </div>
+                      )}
+                    </section>
+                  ) : (
+                    // EMPTY STATE
+                    <section
+                      aria-live="polite"
+                      className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 text-center"
+                    >
+                      <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-1.5">
+                        No Tasks Available for {selectedCategory}
+                      </h3>
+                      <p className="text-sm text-yellow-800/90">
+                        Either all tasks in this category are completed or none
+                        exist yet.
+                      </p>
+                    </section>
+                  )}
+                </div>
+              </div>
+            </section>
           </CardContent>
         </Card>
       </div>

@@ -237,7 +237,9 @@ export default function CreatedTasksPage() {
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [cycleHeaders, setCycleHeaders] = useState<any[]>([]);
+  const [cycleTasks, setCycleTasks] = useState<Record<string, Task[]>>({});
+  const [loadingCycle, setLoadingCycle] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   // UI State
@@ -266,9 +268,27 @@ export default function CreatedTasksPage() {
   const clientId = params.get("clientId") ?? "";
 
   const fetcher = async (url: string) => {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
-    return res.json();
+    console.log("Fetching:", url);
+    try {
+      const res = await fetch(url, { 
+        cache: "no-store",
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Fetch error:", res.status, errorText);
+        throw new Error(`Failed to fetch (${res.status}): ${errorText}`);
+      }
+      const data = await res.json();
+      console.log("Fetch success:", data);
+      return data;
+    } catch (error) {
+      console.error("Fetch failed:", error);
+      throw error;
+    }
   };
 
   // Debounced search
@@ -278,51 +298,72 @@ export default function CreatedTasksPage() {
     return () => clearTimeout(t);
   }, [q]);
 
-  // SWR for tasks list + summary
-  const tasksKey = useMemo(() => {
+  // SWR for cycle headers only
+  const cycleHeadersKey = useMemo(() => {
     const qs = new URLSearchParams();
     if (clientId) qs.set("clientId", clientId);
     if (debouncedQ) qs.set("q", debouncedQ);
     if (status !== "all") qs.set("status", status);
     if (priority !== "all") qs.set("priority", priority);
     if (category !== "all") qs.set("category", category);
+    qs.set("cycleHeadersOnly", "true");
     return `/api/tasks/created?${qs.toString()}`;
   }, [clientId, debouncedQ, status, priority, category]);
 
   const {
-    data: tasksResp,
-    isLoading: loading,
-    error,
-    mutate,
-  } = useSWR(tasksKey, fetcher, {
+    data: cycleHeadersResp,
+    isLoading: loadingHeaders,
+    error: headersError,
+    mutate: mutateHeaders,
+  } = useSWR(cycleHeadersKey, fetcher, {
     revalidateOnFocus: false,
-    dedupingInterval: 30000,
-    refreshInterval: 60000,
+    dedupingInterval: 0, // Remove aggressive deduping
+    refreshInterval: 0,   // Remove auto-refresh
+    onSuccess: (data) => {
+      console.log("Cycle headers loaded:", data);
+      setCycleHeaders(data.cycles || []);
+      setSummary(data.summary || null);
+    },
+    onError: (error) => {
+      console.error("Failed to load cycle headers:", error);
+    },
   });
-  const refreshTasks = () => mutate();
 
-  useEffect(() => {
-    if (!tasksResp) return;
-    setTasks(Array.isArray(tasksResp.tasks) ? tasksResp.tasks : []);
-    setSummary(tasksResp.summary || null);
-    if (clientId) {
-      const firstWithClient = (tasksResp.tasks || []).find(
-        (t: any) => t.client
-      )?.client;
-      if (firstWithClient) {
-        setClient({
-          id: firstWithClient.id,
-          name: firstWithClient.name ?? "",
-          company: firstWithClient.company ?? null,
-          avatar: firstWithClient.avatar ?? null,
-          status: firstWithClient.status ?? null,
-          package: firstWithClient.package
-            ? { name: firstWithClient.package.name ?? null }
-            : null,
-        });
-      }
+  // Load tasks for a specific cycle
+  const loadCycleTasks = async (cycleKey: string) => {
+    if (cycleTasks[cycleKey]) return;
+
+    setLoadingCycle(cycleKey);
+    try {
+      const qs = new URLSearchParams();
+      if (clientId) qs.set("clientId", clientId);
+      if (debouncedQ) qs.set("q", debouncedQ);
+      if (status !== "all") qs.set("status", status);
+      if (priority !== "all") qs.set("priority", priority);
+      if (category !== "all") qs.set("category", category);
+      qs.set("cycleKey", cycleKey);
+
+      const res = await fetch(`/api/tasks/created?${qs.toString()}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(`Failed to fetch cycle tasks (${res.status})`);
+      const data = await res.json();
+
+      setCycleTasks((prev) => ({
+        ...prev,
+        [cycleKey]: data.tasks || [],
+      }));
+    } catch (error) {
+      console.error("Failed to load cycle tasks:", error);
+      toast.error("Failed to load tasks for this cycle");
+    } finally {
+      setLoadingCycle(null);
     }
-  }, [tasksResp, clientId]);
+  };
+
+  const refreshTasks = () => {
+    mutateHeaders();
+    setCycleTasks({});
+    setExpandedCycles({});
+  };
 
   // Fallback client header via SWR if not present from tasks
   const { data: clientFromApi } = useSWR<ClientHeader | null>(
@@ -347,72 +388,38 @@ export default function CreatedTasksPage() {
     // re-derive sorted groups when filters change (SWR handles data)
   }, [q, status, priority, category, sort]);
 
-  /* ===== Sort then Group By Cycle ===== */
-  const sortedTasks = useMemo(() => {
-    const copy = [...tasks];
-    if (sort === "dueAsc") {
-      copy.sort(
-        (a, b) =>
-          (new Date(a.dueDate ?? 0).getTime() || 0) -
-          (new Date(b.dueDate ?? 0).getTime() || 0)
-      );
-    } else if (sort === "dueDesc") {
-      copy.sort(
-        (a, b) =>
-          (new Date(b.dueDate ?? 0).getTime() || 0) -
-          (new Date(a.dueDate ?? 0).getTime() || 0)
-      );
-    } else {
-      copy.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    }
-    return copy;
-  }, [tasks, sort]);
-
-  const cycles = useMemo<CycleGroup[]>(() => {
-    // Group by exact due date (YYYY-MM-DD). Preserve task order from sortedTasks
-    const map = new Map<string, Task[]>();
-    for (const t of sortedTasks) {
-      const d = dateOnlyISO(t.dueDate) ?? "No Due Date";
-      if (!map.has(d)) map.set(d, []);
-      map.get(d)!.push(t);
-    }
-
-    // Sort sections by date asc; place "No Due Date" last
-    const keys = Array.from(map.keys()).sort((a, b) => {
-      if (a === "No Due Date") return 1;
-      if (b === "No Due Date") return -1;
-      return a.localeCompare(b);
-    });
-
-    const groups: CycleGroup[] = keys.map((k) => {
-      const items = map.get(k)!;
-      const label = k === "No Due Date" ? "No Due Date" : formatDateLong(k);
-      return { key: k, items, label };
-    });
-
-    return groups;
-  }, [sortedTasks]);
-
-  const allCycleLabels = cycles.map((c) => c.label);
-
+  // Initialize expanded cycles state when headers load
   useEffect(() => {
-    setExpandedCycles((prev) => {
-      if (Object.keys(prev).length) return prev;
+    if (cycleHeaders.length > 0) {
+      setExpandedCycles((prev) => {
+        if (Object.keys(prev).length) return prev;
 
-      const init: Record<string, boolean> = {};
-      cycles.forEach((c) => {
-        init[c.key] = false; // ✅ all collapsed initially
+        const init: Record<string, boolean> = {};
+        cycleHeaders.forEach((c: any) => {
+          init[c.cycleKey] = false; // ✅ all collapsed initially
+        });
+
+        return init;
       });
+    }
+  }, [cycleHeaders]);
 
-      return init;
-    });
-  }, [cycles]);
+  // Immediate fetch trigger for initial load
+  useEffect(() => {
+    if (clientId && cycleHeadersKey && !cycleHeadersResp && !loadingHeaders) {
+      console.log("Triggering immediate fetch for cycle headers");
+      mutateHeaders();
+    }
+  }, [clientId, cycleHeadersKey, cycleHeadersResp, loadingHeaders, mutateHeaders]);
 
-  const toggleCycle = (key: string) =>
+  const toggleCycle = (key: string) => {
     setExpandedCycles((s) => ({ ...s, [key]: !s[key] }));
+    
+    // Load tasks if expanding and not already loaded
+    if (!expandedCycles[key] && !cycleTasks[key]) {
+      loadCycleTasks(key);
+    }
+  };
 
   const goBack = () => router.push(distributionBasePath);
 
@@ -595,7 +602,7 @@ export default function CreatedTasksPage() {
                   <div>
                     <div className="text-sm text-indigo-700">Total Tasks</div>
                     <div className="text-2xl font-bold text-indigo-900">
-                      {summary?.total ?? (loading ? "…" : 0)}
+                      {summary?.total ?? (loadingHeaders ? "…" : 0)}
                     </div>
                   </div>
                   <ListTodo className="h-10 w-10 text-indigo-600" />
@@ -667,14 +674,19 @@ export default function CreatedTasksPage() {
               </TabsList>
 
               <TabsContent value={sort} className="mt-6">
-                {loading ? (
+                {loadingHeaders ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent" />
                     <span className="ml-4 text-lg text-slate-600">
-                      Loading tasks…
+                      Loading cycle headers…
                     </span>
                   </div>
-                ) : sortedTasks.length === 0 ? (
+                ) : headersError ? (
+                  <div className="text-center py-16">
+                    <div className="text-red-600 mb-4">Error loading cycles</div>
+                    <Button onClick={refreshTasks}>Retry</Button>
+                  </div>
+                ) : cycleHeaders.length === 0 ? (
                   <div className="text-center py-16">
                     <LayoutList className="h-16 w-16 mx-auto mb-6 text-slate-400" />
                     <h3 className="text-xl font-semibold text-slate-900 mb-2">
@@ -691,8 +703,8 @@ export default function CreatedTasksPage() {
                       ref={cyclesNavRef}
                       className="flex flex-wrap gap-2 mb-6"
                     >
-                      {cycles.map((group, idx) => {
-                        const { key, label } = group;
+                      {cycleHeaders.map((cycle: any, idx: number) => {
+                        const { cycleKey: key, label, count } = cycle;
                         const active = expandedCycles[key];
                         return (
                           <Button
@@ -717,7 +729,7 @@ export default function CreatedTasksPage() {
                             )}
                           >
                             <Hash className="h-4 w-4 mr-1" />
-                            {label}
+                            {label} ({count})
                           </Button>
                         );
                       })}
@@ -725,19 +737,18 @@ export default function CreatedTasksPage() {
 
                     {/* Cycle sections */}
                     <div className="space-y-10">
-                      {cycles.map(({ key, items, label }, idx) => {
+                      {cycleHeaders.map((cycle: any, idx: number) => {
+                        const { cycleKey: key, label, count } = cycle;
                         const open = !!expandedCycles[key];
-                        const headerLabel = label;
+                        const items = cycleTasks[key] || [];
 
-                        // mini-stats for the cycle header
-                        const byStatus = items.reduce<Record<string, number>>(
-                          (acc, t) => {
-                            acc[t.status] = (acc[t.status] ?? 0) + 1;
-                            return acc;
-                          },
-                          {}
-                        );
-                        const dueDateLabel = headerLabel;
+                        // mini-stats for the cycle header (from loaded items or fallback)
+                        const byStatus = items.length > 0 
+                          ? items.reduce<Record<string, number>>((acc, t) => {
+                              acc[t.status] = (acc[t.status] ?? 0) + 1;
+                              return acc;
+                            }, {})
+                          : {};
 
                         return (
                           <section
@@ -759,12 +770,10 @@ export default function CreatedTasksPage() {
                                   </div>
                                   <div>
                                     <div className="text-xl font-bold leading-5">
-                                      {headerLabel}
+                                      {label}
                                     </div>
                                     <div className="text-slate-600 text-sm">
-                                      {items.length} task
-                                      {items.length !== 1 ? "s" : ""} • Due
-                                      date: {dueDateLabel}
+                                      {count} task{count !== 1 ? "s" : ""}
                                     </div>
                                   </div>
                                 </div>
@@ -802,293 +811,304 @@ export default function CreatedTasksPage() {
                             {/* Section Body */}
                             {open && (
                               <div className="p-6 bg-white">
-                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                  {items.map((task) => {
-                                    const assignee = task.assignedTo;
-                                    const showPwd = !!showPasswordIds[task.id];
+                                {loadingCycle === key ? (
+                                  <div className="flex items-center justify-center py-10">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mr-3" />
+                                    <span className="text-slate-600">Loading tasks...</span>
+                                  </div>
+                                ) : items.length === 0 ? (
+                                  <div className="text-center py-10 text-slate-500">
+                                    No tasks found for this cycle
+                                  </div>
+                                ) : (
+                                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {items.map((task) => {
+                                      const assignee = task.assignedTo;
+                                      const showPwd = !!showPasswordIds[task.id];
 
-                                    return (
-                                      <Card
-                                        key={task.id}
-                                        className="group border-2 hover:border-indigo-300 rounded-2xl transition-all bg-white/90"
-                                      >
-                                        <CardContent className="p-5">
-                                          {/* Title & Badges */}
-                                          <div className="flex items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                              <div className="flex flex-wrap items-center gap-2 mb-1">
-                                                <Badge
-                                                  variant="outline"
-                                                  className={cn(
-                                                    "border",
-                                                    categoryColor(
-                                                      task.category?.name
-                                                    )
-                                                  )}
+                                      return (
+                                        <Card
+                                          key={task.id}
+                                          className="group border-2 hover:border-indigo-300 rounded-2xl transition-all bg-white/90"
+                                        >
+                                          <CardContent className="p-5">
+                                            {/* Title & Badges */}
+                                            <div className="flex items-start justify-between gap-3">
+                                              <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                  <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                      "border",
+                                                      categoryColor(
+                                                        task.category?.name
+                                                      )
+                                                    )}
+                                                  >
+                                                    <Bookmark className="h-3 w-3 mr-1" />
+                                                    {task.category?.name ??
+                                                      "Uncategorized"}
+                                                  </Badge>
+                                                  <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                      "border capitalize",
+                                                      statusColor(task.status)
+                                                    )}
+                                                  >
+                                                    {task.status.replaceAll(
+                                                      "_",
+                                                      " "
+                                                    )}
+                                                  </Badge>
+                                                  <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                      "border",
+                                                      priorityColor(task.priority)
+                                                    )}
+                                                  >
+                                                    {task.priority}
+                                                  </Badge>
+                                                </div>
+                                                <div
+                                                  className="font-semibold text-slate-900 text-base truncate"
+                                                  title={task.name}
                                                 >
-                                                  <Bookmark className="h-3 w-3 mr-1" />
-                                                  {task.category?.name ??
-                                                    "Uncategorized"}
-                                                </Badge>
-                                                <Badge
-                                                  variant="outline"
-                                                  className={cn(
-                                                    "border capitalize",
-                                                    statusColor(task.status)
-                                                  )}
-                                                >
-                                                  {task.status.replaceAll(
-                                                    "_",
-                                                    " "
-                                                  )}
-                                                </Badge>
-                                                <Badge
-                                                  variant="outline"
-                                                  className={cn(
-                                                    "border",
-                                                    priorityColor(task.priority)
-                                                  )}
-                                                >
-                                                  {task.priority}
-                                                </Badge>
+                                                  {task.name}
+                                                </div>
                                               </div>
-                                              <div
-                                                className="font-semibold text-slate-900 text-base truncate"
-                                                title={task.name}
-                                              >
-                                                {task.name}
-                                              </div>
                                             </div>
-                                          </div>
 
-                                          {/* Meta */}
-                                          <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
-                                            <div className="flex items-center gap-2">
-                                              <CalendarDays className="h-4 w-4" />
-                                              <span title={task.dueDate ?? ""}>
-                                                Due: {formatDate(task.dueDate)}
-                                              </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <Clock className="h-4 w-4" />
-                                              <span>
-                                                Created:{" "}
-                                                {formatDate(task.createdAt)}
-                                              </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <Timer className="h-4 w-4" />
-                                              <span>
-                                                Duration:{" "}
-                                                {task.idealDurationMinutes ??
-                                                  "—"}{" "}
-                                                min
-                                              </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <User className="h-4 w-4" />
-                                              {assignee ? (
-                                                <span
-                                                  className="truncate"
-                                                  title={assignee.email ?? ""}
-                                                >
-                                                  {assignee.name ??
-                                                    assignee.email ??
-                                                    "—"}
-                                                </span>
-                                              ) : (
-                                                <span>Unassigned</span>
-                                              )}
-                                            </div>
-                                          </div>
-
-                                          {/* Credentials (URL / Username / Email / Password) */}
-                                          <div className="mt-4 space-y-2 text-sm">
-                                            <div className="flex items-center justify-between gap-2">
-                                              <span className="text-slate-500">
-                                                URL
-                                              </span>
+                                            {/* Meta */}
+                                            <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
                                               <div className="flex items-center gap-2">
-                                                {task.completionLink ? (
-                                                  <>
-                                                    <a
-                                                      href={task.completionLink}
-                                                      target="_blank"
-                                                      rel="noreferrer"
-                                                      className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
-                                                    >
-                                                      <Link2 className="h-4 w-4 mr-1" />
-                                                      Open
-                                                    </a>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-8 w-8"
-                                                      onClick={() =>
-                                                        copyToClipboard(
-                                                          task.completionLink,
-                                                          "URL copied"
-                                                        )
-                                                      }
-                                                      title="Copy URL"
-                                                    >
-                                                      <ClipboardCopy className="h-4 w-4" />
-                                                    </Button>
-                                                  </>
-                                                ) : (
-                                                  <span className="text-slate-400">
-                                                    —
+                                                <CalendarDays className="h-4 w-4" />
+                                                <span title={task.dueDate ?? ""}>
+                                                  Due: {formatDate(task.dueDate)}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <Clock className="h-4 w-4" />
+                                                <span>
+                                                  Created:{" "}
+                                                  {formatDate(task.createdAt)}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <Timer className="h-4 w-4" />
+                                                <span>
+                                                  Duration:{" "}
+                                                  {task.idealDurationMinutes ??
+                                                    "—"}{" "}
+                                                  min
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4" />
+                                                {assignee ? (
+                                                  <span
+                                                    className="truncate"
+                                                    title={assignee.email ?? ""}
+                                                  >
+                                                    {assignee.name ??
+                                                      assignee.email ??
+                                                      "—"}
                                                   </span>
+                                                ) : (
+                                                  <span>Unassigned</span>
                                                 )}
                                               </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between gap-2">
-                                              <span className="text-slate-500">
-                                                Username
-                                              </span>
-                                              <div className="flex items-center gap-2">
-                                                <span
-                                                  className="truncate max-w-[170px]"
-                                                  title={task.username ?? ""}
-                                                >
-                                                  {task.username ?? "—"}
+                                            {/* Credentials (URL / Username / Email / Password) */}
+                                            <div className="mt-4 space-y-2 text-sm">
+                                              <div className="flex items-center justify-between gap-2">
+                                                <span className="text-slate-500">
+                                                  URL
                                                 </span>
-                                                {task.username && (
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() =>
-                                                      copyToClipboard(
-                                                        task.username!,
-                                                        "Username copied"
-                                                      )
-                                                    }
-                                                    title="Copy username"
-                                                  >
-                                                    <ClipboardCopy className="h-4 w-4" />
-                                                  </Button>
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between gap-2">
-                                              <span className="text-slate-500">
-                                                Email
-                                              </span>
-                                              <div className="flex items-center gap-2">
-                                                <span
-                                                  className="truncate max-w-[170px]"
-                                                  title={task.email ?? ""}
-                                                >
-                                                  {task.email ?? "—"}
-                                                </span>
-                                                {task.email && (
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                    onClick={() =>
-                                                      copyToClipboard(
-                                                        task.email!,
-                                                        "Email copied"
-                                                      )
-                                                    }
-                                                    title="Copy email"
-                                                  >
-                                                    <ClipboardCopy className="h-4 w-4" />
-                                                  </Button>
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between gap-2">
-                                              <span className="text-slate-500">
-                                                Password
-                                              </span>
-                                              <div className="flex items-center gap-2">
-                                                {task.password ? (
-                                                  <>
-                                                    <span className="font-mono">
-                                                      {showPwd
-                                                        ? task.password
-                                                        : "•".repeat(
-                                                            Math.min(
-                                                              12,
-                                                              Math.max(
-                                                                6,
-                                                                task.password
-                                                                  .length
-                                                              )
-                                                            )
-                                                          )}
+                                                <div className="flex items-center gap-2">
+                                                  {task.completionLink ? (
+                                                    <>
+                                                      <a
+                                                        href={task.completionLink}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
+                                                      >
+                                                        <Link2 className="h-4 w-4 mr-1" />
+                                                        Open
+                                                      </a>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                        onClick={() =>
+                                                          copyToClipboard(
+                                                            task.completionLink,
+                                                            "URL copied"
+                                                          )
+                                                        }
+                                                        title="Copy URL"
+                                                      >
+                                                        <ClipboardCopy className="h-4 w-4" />
+                                                      </Button>
+                                                    </>
+                                                  ) : (
+                                                    <span className="text-slate-400">
+                                                      —
                                                     </span>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-8 w-8"
-                                                      onClick={() =>
-                                                        setShowPasswordIds(
-                                                          (s) => ({
-                                                            ...s,
-                                                            [task.id]:
-                                                              !s[task.id],
-                                                          })
-                                                        )
-                                                      }
-                                                      title={
-                                                        showPwd
-                                                          ? "Hide password"
-                                                          : "Reveal password"
-                                                      }
-                                                    >
-                                                      {showPwd ? (
-                                                        <EyeOff className="h-4 w-4" />
-                                                      ) : (
-                                                        <Eye className="h-4 w-4" />
-                                                      )}
-                                                    </Button>
+                                                  )}
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center justify-between gap-2">
+                                                <span className="text-slate-500">
+                                                  Username
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                  <span
+                                                    className="truncate max-w-[170px]"
+                                                    title={task.username ?? ""}
+                                                  >
+                                                    {task.username ?? "—"}
+                                                  </span>
+                                                  {task.username && (
                                                     <Button
                                                       variant="ghost"
                                                       size="icon"
                                                       className="h-8 w-8"
                                                       onClick={() =>
                                                         copyToClipboard(
-                                                          task.password!,
-                                                          "Password copied"
+                                                          task.username!,
+                                                          "Username copied"
                                                         )
                                                       }
-                                                      title="Copy password"
+                                                      title="Copy username"
                                                     >
                                                       <ClipboardCopy className="h-4 w-4" />
                                                     </Button>
-                                                  </>
-                                                ) : (
-                                                  <span className="text-slate-400">
-                                                    —
-                                                  </span>
-                                                )}
+                                                  )}
+                                                </div>
                                               </div>
-                                            </div>
-                                          </div>
 
-                                          {/* Notes */}
-                                          {task.notes ? (
-                                            <div className="mt-4 text-sm text-slate-700">
-                                              <div className="text-slate-500 mb-1">
-                                                Notes
+                                              <div className="flex items-center justify-between gap-2">
+                                                <span className="text-slate-500">
+                                                  Email
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                  <span
+                                                    className="truncate max-w-[170px]"
+                                                    title={task.email ?? ""}
+                                                  >
+                                                    {task.email ?? "—"}
+                                                  </span>
+                                                  {task.email && (
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="h-8 w-8"
+                                                      onClick={() =>
+                                                        copyToClipboard(
+                                                          task.email!,
+                                                          "Email copied"
+                                                        )
+                                                      }
+                                                      title="Copy email"
+                                                    >
+                                                      <ClipboardCopy className="h-4 w-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
                                               </div>
-                                              <div className="line-clamp-3">
-                                                {task.notes}
+
+                                              <div className="flex items-center justify-between gap-2">
+                                                <span className="text-slate-500">
+                                                  Password
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                  {task.password ? (
+                                                    <>
+                                                      <span className="font-mono">
+                                                        {showPwd
+                                                          ? task.password
+                                                          : "•".repeat(
+                                                              Math.min(
+                                                                12,
+                                                                Math.max(
+                                                                  6,
+                                                                  task.password
+                                                                    .length
+                                                                )
+                                                              )
+                                                            )}
+                                                      </span>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                        onClick={() =>
+                                                          setShowPasswordIds(
+                                                            (s) => ({
+                                                              ...s,
+                                                              [task.id]:
+                                                                !s[task.id],
+                                                            })
+                                                          )
+                                                        }
+                                                        title={
+                                                          showPwd
+                                                            ? "Hide password"
+                                                            : "Reveal password"
+                                                        }
+                                                      >
+                                                        {showPwd ? (
+                                                          <EyeOff className="h-4 w-4" />
+                                                        ) : (
+                                                          <Eye className="h-4 w-4" />
+                                                        )}
+                                                      </Button>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                        onClick={() =>
+                                                          copyToClipboard(
+                                                            task.password!,
+                                                            "Password copied"
+                                                          )
+                                                        }
+                                                        title="Copy password"
+                                                      >
+                                                        <ClipboardCopy className="h-4 w-4" />
+                                                      </Button>
+                                                    </>
+                                                  ) : (
+                                                    <span className="text-slate-400">
+                                                      —
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
-                                          ) : null}
-                                        </CardContent>
-                                      </Card>
-                                    );
-                                  })}
-                                </div>
+
+                                            {/* Notes */}
+                                            {task.notes ? (
+                                              <div className="mt-4 text-sm text-slate-700">
+                                                <div className="text-slate-500 mb-1">
+                                                  Notes
+                                                </div>
+                                                <div className="line-clamp-3">
+                                                  {task.notes}
+                                                </div>
+                                              </div>
+                                            ) : null}
+                                          </CardContent>
+                                        </Card>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </section>

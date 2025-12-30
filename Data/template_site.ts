@@ -71,6 +71,7 @@ export const DEFAULT_SOCIAL_SITES = [
 ];
 
 export const DEFAULT_WEB2_SITES = [
+  { name: "EMD", url: "https://emd.com/", isRequired: true, defaultIdealDurationMinutes: 130 },
   { name: "Medium", url: "https://medium.com/", isRequired: true, defaultIdealDurationMinutes: 30 },
 
   { name: "Strikingly", url: "https://www.strikingly.com/", isRequired: true, defaultIdealDurationMinutes: 40 },

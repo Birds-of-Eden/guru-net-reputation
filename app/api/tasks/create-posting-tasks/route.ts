@@ -33,6 +33,14 @@ const PLATFORM_META: Record<
 };
 
 // ---------- Helpers ----------
+function chunk<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 function normalizeTaskPriority(v: unknown): TaskPriority {
   switch (String(v ?? "").toLowerCase()) {
     case "low":
@@ -339,7 +347,7 @@ export async function GET(req: NextRequest) {
         status: src.status,
         priority: src.priority,
         assetType,
-        // 👇 multiply original frequency by package months
+        // multiply original frequency by package months
         frequency: freq * packageTotalMonths,
         categoryName: resolveCategoryFromType(assetType),
       };
@@ -441,7 +449,7 @@ export async function GET(req: NextRequest) {
       countsByStatus,
       allApproved,
       totalWillCreate,
-      packageTotalMonths, // 👈 added
+      packageTotalMonths, // added
       runtime: "nodejs",
     });
   } catch (err) {
@@ -456,7 +464,7 @@ export async function POST(req: NextRequest) {
     const clientId: string | undefined = body?.clientId;
     const templateIdRaw: string | undefined = body?.templateId;
     const onlyType: string | undefined = body?.onlyType;
-    // ✅ NEW: allow filtering by TemplateSiteAsset ids
+    // NEW: allow filtering by TemplateSiteAsset ids
     const includeAssetIdsRaw = Array.isArray(body?.includeAssetIds)
       ? body?.includeAssetIds
       : undefined;
@@ -536,7 +544,7 @@ export async function POST(req: NextRequest) {
             ...(onlyType
               ? { type: onlyType as any }
               : { type: { in: ALLOWED_ASSET_TYPES as unknown as string[] } }),
-            // ✅ NEW: asset id include/exclude filters
+            // NEW: asset id include/exclude filters
             ...(includeAssetIds && includeAssetIds.length
               ? { id: { in: includeAssetIds as any } }
               : {}),
@@ -718,8 +726,23 @@ export async function POST(req: NextRequest) {
       ? normalizeTaskPriority(body?.priority)
       : undefined;
 
-    type TaskCreate = Parameters<typeof prisma.task.create>[0]["data"];
-    const payloads: TaskCreate[] = [];
+    type TaskCreateData = {
+      id: string;
+      name: string;
+      status: TaskStatus;
+      priority: TaskPriority;
+      idealDurationMinutes?: number | null;
+      dueDate: string;
+      completionLink?: string | null;
+      email?: string | null;
+      password?: string | null;
+      username?: string | null;
+      notes?: string | null;
+      assignmentId: string;
+      clientId: string;
+      categoryId: string;
+    };
+    const payloads: TaskCreateData[] = [];
 
     // 1) Original two categories (resume from last existing cycle)
     for (const item of postingSources) {
@@ -742,17 +765,21 @@ export async function POST(req: NextRequest) {
           name,
           status: "pending",
           priority: overridePriority ?? src.priority,
-          idealDurationMinutes: resolveIdealDurationDynamic(name, item.catName as "Blog Posting" | "Social Activity", getRuntimeTaskDurationConfig()),
+          idealDurationMinutes: resolveIdealDurationDynamic(
+            name,
+            item.catName as "Blog Posting" | "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
           dueDate: dueDate.toISOString(),
           completionLink: src.completionLink ?? undefined,
           email: src.email ?? undefined,
           password: src.password ?? undefined,
           username: src.username ?? undefined,
           notes: src.notes ?? undefined,
-          assignment: { connect: { id: assignment.id } },
-          client: { connect: { id: clientId } },
-          category: { connect: { id: catId } },
-        } as TaskCreate);
+          assignmentId: assignment.id,
+          clientId: clientId,
+          categoryId: catId,
+        });
 
         skipNameSet.add(name);
       }
@@ -787,17 +814,21 @@ export async function POST(req: NextRequest) {
         name: scName,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
+        idealDurationMinutes: resolveIdealDurationDynamic(
+          scName,
+          "Social Activity",
+          getRuntimeTaskDurationConfig()
+        ),
         dueDate: dueDate.toISOString(), // EXACT last social posting due date
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,
         password: src.password ?? undefined,
         username: src.username ?? undefined,
         notes: src.notes ?? undefined,
-        assignment: { connect: { id: assignment.id } },
-        client: { connect: { id: clientId } },
-        category: { connect: { id: catId } },
-      } as TaskCreate);
+        assignmentId: assignment.id,
+        clientId: clientId,
+        categoryId: catId,
+      });
 
       skipNameSet.add(scName);
     }
@@ -829,12 +860,18 @@ export async function POST(req: NextRequest) {
         email: creds?.email ?? undefined,
         password: creds?.password ?? undefined,
         completionLink: creds?.url ?? undefined, // url
-        idealDurationMinutes: creds?.idealDurationMinutes ?? resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
+        idealDurationMinutes:
+          creds?.idealDurationMinutes ??
+          resolveIdealDurationDynamic(
+            scName,
+            "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
 
-        assignment: { connect: { id: assignment.id } },
-        client: { connect: { id: clientId } },
-        category: { connect: { id: catId } },
-      } as TaskCreate);
+        assignmentId: assignment.id,
+        clientId: clientId,
+        categoryId: catId,
+      });
 
       skipNameSet.add(scName);
     }
@@ -853,43 +890,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create inside a transaction (can chunk if very large)
-    const created = await prisma.$transaction((tx) =>
-      Promise.all(
-        payloads.map((data) =>
-          tx.task.create({
-            data,
-            select: {
-              id: true,
-              name: true,
-              status: true,
-              priority: true,
-              createdAt: true,
-              dueDate: true,
-              idealDurationMinutes: true,
-              completionLink: true,
-              email: true,
-              password: true,
-              username: true,
-              notes: true,
-              assignment: { select: { id: true } },
-              category: { select: { id: true, name: true } },
-              templateSiteAsset: {
-                select: { id: true, name: true, type: true },
-              },
-            },
-          })
-        )
-      )
-    );
+    // Batch insert tasks using createMany with chunks of 1000
+    const BATCH_SIZE = 300;
+    const batches = chunk(payloads, BATCH_SIZE);
+    let totalCreated = 0;
+
+    for (const batch of batches) {
+      const result = await prisma.task.createMany({
+        data: batch,
+        skipDuplicates: true,
+      });
+      totalCreated += result.count;
+    }
+
+    // Fetch the created tasks for response
+    const createdTasks = await prisma.task.findMany({
+      where: {
+        id: { in: payloads.map((p) => p.id) },
+      },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        createdAt: true,
+        dueDate: true,
+        idealDurationMinutes: true,
+        completionLink: true,
+        email: true,
+        password: true,
+        username: true,
+        notes: true,
+        assignment: { select: { id: true } },
+        category: { select: { id: true, name: true } },
+        templateSiteAsset: {
+          select: { id: true, name: true, type: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
     return NextResponse.json(
       {
-        message: `Created ${created.length} task(s) across Social Activity, Blog Posting, and Social Communication.`,
-        created: created.length,
+        message: `Created ${totalCreated} task(s) across Social Activity, Blog Posting, and Social Communication.`,
+        created: totalCreated,
         skipped: Array.from(skipNameSet).length,
         assignmentId: assignment.id,
-        tasks: created,
+        tasks: createdTasks,
         runtime: "nodejs",
       },
       { status: 201 }

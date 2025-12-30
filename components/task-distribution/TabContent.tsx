@@ -43,7 +43,6 @@ interface TabContentProps {
   onViewModeChange: (mode: "list" | "grid") => void;
 
   titleOverride?: string;
-  descriptionOverride?: string;
 }
 
 function displayName(a: Partial<Agent>) {
@@ -67,7 +66,7 @@ function formatAgentLabel(
   const r = byStatus["reassigned"] ?? 0;
   return `${displayName(
     a
-  )} — ${activeCount} active (P:${p} | IP:${ip} | O:${o} | R:${r}) • W:${weightedScore}`;
+  )} • ${activeCount} active (P:${p} | IP:${ip} | O:${o} | R:${r}) • W:${weightedScore}`;
 }
 
 export function TabContent({
@@ -87,7 +86,6 @@ export function TabContent({
   onNoteChange,
   onViewModeChange,
   titleOverride,
-  descriptionOverride,
 }: TabContentProps) {
   // normalize/label sort for each list
   const prep = (list: AgentWithLoad[]) => {
@@ -136,23 +134,14 @@ export function TabContent({
     social_site: {
       title: "Social Media Tasks",
       description: "Manage social media content and engagement tasks",
-      gradient: "from-violet-600 via-purple-600 to-fuchsia-600",
-      bgGradient: "from-violet-100 via-purple-50 to-fuchsia-100",
-      iconBg: "from-violet-500 to-purple-600",
     },
     web2_site: {
       title: "Web2 Platform Tasks",
       description: "Handle web2 platform content and management",
-      gradient: "from-blue-600 via-cyan-600 to-sky-600",
-      bgGradient: "from-blue-100 via-cyan-50 to-sky-100",
-      iconBg: "from-blue-500 to-cyan-600",
     },
     other_asset: {
       title: "Other Asset Tasks",
       description: "Manage miscellaneous assets and content",
-      gradient: "from-slate-600 via-gray-600 to-zinc-600",
-      bgGradient: "from-slate-100 via-gray-50 to-zinc-100",
-      iconBg: "from-slate-500 to-gray-600",
     },
   };
 
@@ -168,61 +157,16 @@ export function TabContent({
     ? (inferFromFirstTask as keyof typeof siteTypeConfig)
     : "other_asset";
 
-  const config = siteTypeConfig[safeSiteType];
-  const IconComp =
-    siteTypeIcons[safeSiteType as keyof typeof siteTypeIcons] ?? DefaultIcon;
-
-  const finalTitle = titleOverride ?? config.title;
-  const finalDescription = descriptionOverride ?? config.description;
+  const finalTitle = titleOverride;
 
   return (
-    <div className="space-y-6">
-      {/* header */}
-      <div
-        className={`rounded-2xl bg-gradient-to-r ${config.bgGradient} p-8 border-2 border-white shadow-xl`}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-5">
-            <div
-              className={`p-4 rounded-2xl bg-gradient-to-r ${config.iconBg} text-white shadow-lg`}
-            >
-              <IconComp className="h-7 w-7" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {finalTitle}
-              </h3>
-              <p className="text-gray-700 font-medium">{finalDescription}</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-8">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">
-                {tasks.length}
-              </div>
-              <div className="text-sm text-gray-600 font-medium">
-                Total Tasks
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-700">
-                {selectedTasksInTab}
-              </div>
-              <div className="text-sm text-gray-600 font-medium">Selected</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-emerald-700">
-                {assignedTasksInTab}
-              </div>
-              <div className="text-sm text-gray-600 font-medium">Assigned</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center space-x-4">
+    <div className="space-y-6 h-full flex flex-col">
+      {/* controls header - simplified */}
+      <div className="rounded-xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-white to-sky-50 p-4 shadow-sm flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() =>
                 onSelectAllTasks(
@@ -231,12 +175,12 @@ export function TabContent({
                 )
               }
               disabled={tasks.length === 0}
-              className={`bg-gradient-to-r ${config.gradient} text-white hover:text-gray-100 border-0 font-bold px-6 py-2.5`}
+              className="border-slate-200"
             >
-              ✅ Select All ({tasks.length})
+              Select All ({tasks.length})
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() =>
                 onSelectAllTasks(
@@ -245,65 +189,48 @@ export function TabContent({
                 )
               }
               disabled={selectedTasksInTab === 0}
-              className="bg-white text-gray-800 border-2 border-gray-400 font-bold px-6 py-2.5"
             >
-              ❌ Deselect All
+              Clear Selection
             </Button>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-bold text-gray-800">View Mode:</span>
-            <div className="flex items-center bg-white rounded-xl p-1.5 border-2 border-gray-200">
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("list")}
-                className="h-9 px-4 font-bold"
-              >
-                <List className="h-4 w-4 mr-2" />
-                List
-              </Button>
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewModeChange("grid")}
-                className="h-9 px-4 font-bold"
-              >
-                <Grid3X3 className="h-4 w-4 mr-2" />
-                Grid
-              </Button>
+
+            <div className="flex items-center gap-2 text-xs text-slate-600 pl-1">
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-900">
+                {tasks.length} <span className="text-[11px] font-medium text-slate-600">Total</span>
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-semibold text-blue-800">
+                {selectedTasksInTab} <span className="text-[11px] font-medium text-blue-700">Selected</span>
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-800">
+                {assignedTasksInTab} <span className="text-[11px] font-medium text-emerald-700">Assigned</span>
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* list/grid */}
+      {/* list/grid with scrolling */}
       {tasks.length === 0 ? (
-        <div className="bg-gradient-to-br from-white via-gray-50 to-slate-100 rounded-2xl border-2 border-gray-200 shadow-xl">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div
-                className={`w-24 h-24 rounded-full bg-gradient-to-r ${config.iconBg} flex items-center justify-center mx-auto mb-8 shadow-2xl`}
-              >
-                <IconComp className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                No {finalTitle} Found
-              </h3>
-              <p className="text-gray-600 font-medium">
-                There are currently no tasks in this category for the selected
-                client.
-              </p>
-            </div>
-          </div>
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm flex-1 flex items-center justify-center">
+          <h3 className="text-base font-semibold text-slate-900">
+            No Tasks Found
+          </h3>
+          <p className="text-sm text-slate-600">
+            There are currently no tasks in this category for the selected
+            client.
+          </p>
         </div>
       ) : (
-        <div
-          className={
-            viewMode === "grid"
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              : "space-y-4"
-          }
+        <div 
+          className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100"
+          style={{ maxHeight: 'calc(100vh - 16rem)' }}
         >
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                : "space-y-3"
+            }
+          >
           {tasks.map((task) => {
             const isSelected = selectedTasks.has(task.id);
             const assignment = taskAssignments.find(
@@ -355,6 +282,7 @@ export function TabContent({
               />
             );
           })}
+          </div>
         </div>
       )}
     </div>

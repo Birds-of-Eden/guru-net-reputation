@@ -20,6 +20,7 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
+  Building2 as DefaultIcon,
 } from "lucide-react";
 import { Agent, Task, TaskAssignment } from "./distribution-types";
 import {
@@ -59,6 +60,7 @@ interface TaskListItemProps {
     isFirstSelectedTask: boolean
   ) => void;
   onNoteChange: (note: string) => void;
+  isNested?: boolean;
 }
 
 export const TaskListItem = memo(function TaskListItem({
@@ -74,6 +76,7 @@ export const TaskListItem = memo(function TaskListItem({
   onTaskSelection,
   onTaskAssignment,
   onNoteChange,
+  isNested,
 }: TaskListItemProps) {
   // Per-row source selector
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
@@ -100,9 +103,16 @@ export const TaskListItem = memo(function TaskListItem({
   const statusKey = String(statusValue).toLowerCase();
   const assignedAgent: Agent | null = (task as any)?.assignedTo ?? null;
   const assignedAgentId: string | null = (task as any)?.assignedToId ?? null;
-  const combinedAgents = useMemo(() => [...teamAgents, ...allAgents], [teamAgents, allAgents]);
+  const combinedAgents = useMemo(
+    () => [...teamAgents, ...allAgents],
+    [teamAgents, allAgents]
+  );
 
-  const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
+  const SiteIcon =
+    siteTypeIcons[siteType as keyof typeof siteTypeIcons] || DefaultIcon;
+  const siteTone =
+    siteTypeColors[siteType as keyof typeof siteTypeColors] ??
+    "bg-slate-50 text-slate-700 border-slate-200";
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
   const isLinkedToFirst = shouldDisableDropdown;
@@ -121,42 +131,24 @@ export const TaskListItem = memo(function TaskListItem({
     const W = a?.weightedScore ?? P * 1 + IP * 2 + O * 3 + R * 2;
 
     return (
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        <Badge
-          variant="outline"
-          className="bg-emerald-100/70 text-emerald-900 border-emerald-300"
-        >
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+        <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
           {active} active
         </Badge>
-        <Badge
-          variant="outline"
-          className="bg-amber-100/70 text-amber-900 border-amber-300"
-        >
+        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
           W:{W}
         </Badge>
         <div className="mx-1 h-3.5 w-px bg-slate-200" />
-        <Badge
-          variant="outline"
-          className="bg-slate-100 text-slate-900 border-slate-300"
-        >
+        <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
           P:{P}
         </Badge>
-        <Badge
-          variant="outline"
-          className="bg-indigo-100 text-indigo-900 border-indigo-300"
-        >
+        <Badge variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-700">
           IP:{IP}
         </Badge>
-        <Badge
-          variant="outline"
-          className="bg-rose-100 text-rose-900 border-rose-300"
-        >
+        <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
           O:{O}
         </Badge>
-        <Badge
-          variant="outline"
-          className="bg-orange-100 text-orange-900 border-orange-300"
-        >
+        <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700">
           R:{R}
         </Badge>
       </div>
@@ -167,7 +159,7 @@ export const TaskListItem = memo(function TaskListItem({
     name,
     image,
     size = "h-7 w-7",
-    ring = "ring-2 ring-blue-400",
+    ring = "ring-2 ring-blue-300",
     textClass = "text-xs",
   }: {
     name: string;
@@ -193,51 +185,45 @@ export const TaskListItem = memo(function TaskListItem({
 
   return (
     <Card
-      className={`transition-all duration-300 ${
+      className={[
+        "transition-all duration-200 shadow-sm border bg-white",
+        isNested ? "rounded-lg" : "rounded-xl",
         isSelected
-          ? "ring-2 ring-blue-400 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-blue-300 shadow-lg"
-          : "hover:shadow-md bg-gradient-to-r from-white via-gray-50 to-slate-50 border-gray-200 hover:border-gray-300"
-      }`}
+          ? "border-blue-300 ring-2 ring-blue-100"
+          : "border-slate-200 hover:border-slate-300",
+      ].join(" ")}
     >
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-4">
+      <CardContent className="p-5 max-h-[calc(100vh-12rem)] overflow-y-auto pr-2">
+        <div className="flex items-start gap-4">
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) =>
               onTaskSelection(task.id, checked as boolean)
             }
-            className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
+            className="mt-1 w-4 h-4 rounded border border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"
           />
 
-          <div
-            className={`p-2.5 rounded-xl ${
-              siteTypeColors[siteType as keyof typeof siteTypeColors]
-            } shadow-sm`}
-          >
+          <div className={`p-2 rounded-lg border ${siteTone}`}>
             <SiteIcon className="h-4 w-4" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-900 truncate">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+              <h3 className="text-sm font-semibold text-slate-900 truncate">
                 {task.name}
               </h3>
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center space-x-2">
                 <Badge
-                  className={`text-xs font-bold shadow-sm ${
-                    priorityColors[
-                      (priorityKey as keyof typeof priorityColors) ?? "medium"
-                    ] || priorityColors.medium
-                  }`}
+                  className={`text-[11px] font-semibold ${priorityColors[
+                    (priorityKey as keyof typeof priorityColors) ?? "medium"
+                  ] || priorityColors.medium}`}
                 >
                   {priorityKey.toUpperCase()}
                 </Badge>
                 <Badge
-                  className={`text-xs font-bold shadow-sm ${
-                    statusColors[
-                      (statusKey as keyof typeof statusColors) ?? "pending"
-                    ] || statusColors.pending
-                  }`}
+                  className={`text-[11px] font-semibold ${statusColors[
+                    (statusKey as keyof typeof statusColors) ?? "pending"
+                  ] || statusColors.pending}`}
                 >
                   {statusKey.replace("_", " ").toUpperCase()}
                 </Badge>
@@ -245,30 +231,30 @@ export const TaskListItem = memo(function TaskListItem({
             </div>
 
             {task.templateSiteAsset?.description && (
-              <p className="text-xs text-gray-700 mt-1 truncate font-medium">
+              <p className="text-xs text-slate-600 mt-1 truncate">
                 {task.templateSiteAsset.description}
               </p>
             )}
 
-            <div className="flex items-center space-x-3 mt-2 text-xs">
-              <div className="flex items-center space-x-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 px-2.5 py-1 rounded-lg shadow-sm">
-                <CalendarDays className="h-3.5 w-3.5 text-blue-700" />
-                <span className="text-blue-800 font-bold">
+            <div className="flex items-center flex-wrap gap-3 mt-2 text-xs text-slate-600">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50">
+                <CalendarDays className="h-3.5 w-3.5 text-slate-600" />
+                <span className="font-medium">
                   {new Date(task.dueDate).toLocaleDateString()}
                 </span>
               </div>
               {task.idealDurationMinutes && (
-                <div className="flex items-center space-x-1.5 bg-gradient-to-r from-violet-100 to-purple-100 px-2.5 py-1 rounded-lg shadow-sm">
-                  <Clock className="h-3.5 w-3.5 text-violet-700" />
-                  <span className="text-violet-800 font-bold">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50">
+                  <Clock className="h-3.5 w-3.5 text-slate-600" />
+                  <span className="font-medium">
                     {task.idealDurationMinutes}min
                   </span>
                 </div>
               )}
               {task.templateSiteAsset?.isRequired && (
-                <div className="flex items-center space-x-1.5 bg-gradient-to-r from-orange-100 to-red-100 px-2.5 py-1 rounded-lg shadow-sm">
-                  <AlertCircle className="h-3.5 w-3.5 text-orange-700" />
-                  <span className="text-orange-800 font-bold">Required</span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50 text-amber-700">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span className="font-medium">Required</span>
                 </div>
               )}
             </div>
@@ -283,21 +269,23 @@ export const TaskListItem = memo(function TaskListItem({
                   null;
                 const displayName =
                   resolvedAgent?.name ||
-                  `${(resolvedAgent as any)?.firstName ?? ""} ${(resolvedAgent as any)?.lastName ?? ""}`.trim() ||
+                  `${(resolvedAgent as any)?.firstName ?? ""} ${
+                    (resolvedAgent as any)?.lastName ?? ""
+                  }`.trim() ||
                   resolvedAgent?.email ||
                   "Assigned";
-              /* Already assigned */
+                /* Already assigned */
                 return (
-                  <div className="flex items-center gap-3 p-3 rounded-xl border shadow-sm bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 border-emerald-300">
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
                     <AvatarWithFallback
                       name={displayName}
                       image={(resolvedAgent as any)?.image || undefined}
-                      ring="ring-2 ring-emerald-400"
+                      ring="ring-2 ring-emerald-300"
                       size="h-7 w-7"
                       textClass="text-xs"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-emerald-900 truncate">
+                      <p className="text-xs font-semibold text-emerald-800 truncate">
                         {displayName}
                       </p>
                     </div>
@@ -307,7 +295,7 @@ export const TaskListItem = memo(function TaskListItem({
               })()
             ) : assignment ? (
               /* Preview chosen agent */
-              <div className="flex items-center gap-3 p-3 rounded-xl border shadow-sm bg-gradient-to-r from-blue-100 via-indigo-50 to-purple-100 border-blue-300">
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
                 {(() => {
                   const ag: any = combinedAgents.find(
                     (a: any) => a.id === assignment.agentId
@@ -322,12 +310,12 @@ export const TaskListItem = memo(function TaskListItem({
                       <AvatarWithFallback
                         name={display}
                         image={ag?.image || undefined}
-                        ring="ring-2 ring-blue-400"
+                        ring="ring-2 ring-blue-300"
                         size="h-7 w-7"
                         textClass="text-xs"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-blue-900 truncate">
+                        <p className="text-xs font-semibold text-blue-800 truncate">
                           {display}
                         </p>
                       </div>
@@ -343,7 +331,7 @@ export const TaskListItem = memo(function TaskListItem({
                     {/* Top row: Source select + available count + (optional) Bulk chip */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="flex items-center gap-2 sm:flex-1">
-                        <span className="text-sm font-semibold text-blue-600 shrink-0">
+                        <span className="text-xs font-semibold text-slate-700 shrink-0">
                           Choose Agent List:
                         </span>
 
@@ -356,7 +344,7 @@ export const TaskListItem = memo(function TaskListItem({
                           <SelectTrigger
                             disabled={isLinkedToFirst}
                             className={[
-                              "border-2 border-blue-300 hover:border-blue-500 h-9 text-xs sm:text-sm w-full sm:max-w-[180px] rounded-lg",
+                              "border border-slate-300 hover:border-slate-400 h-9 text-xs sm:text-sm w-full sm:max-w-[180px] rounded-lg bg-white",
                               isLinkedToFirst
                                 ? "opacity-60 cursor-not-allowed"
                                 : "",
@@ -376,21 +364,21 @@ export const TaskListItem = memo(function TaskListItem({
                           </SelectContent>
                         </Select>
 
-                        <span className="text-[11px] text-slate-600  px-2 py-1 rounded-full bg-slate-100 border border-slate-200">
+                        <span className="text-[11px] text-slate-600 px-2 py-1 rounded-full bg-slate-100 border border-slate-200">
                           {agentSource === "team"
                             ? teamAgents.length
                             : allAgents.length}{" "}
                           available
                         </span>
                         {isLinkedToFirst && (
-                          <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-200 text-slate-700 border border-slate-300">
+                          <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                             Linked
                           </span>
                         )}
                       </div>
 
                       {isFirstSelectedTask && isMultipleSelected && (
-                        <span className="inline-flex items-center self-start sm:self-auto gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full shadow bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white">
+                        <span className="inline-flex items-center self-start sm:self-auto gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                           Bulk
                         </span>
                       )}
@@ -405,10 +393,10 @@ export const TaskListItem = memo(function TaskListItem({
                       >
                         <SelectTrigger
                           className={[
-                            "h-10 text-sm w-full rounded-xl transition-all duration-200 shadow-sm",
+                            "h-10 text-sm w-full rounded-lg transition-all duration-150 shadow-sm",
                             shouldDisableDropdown
-                              ? "border-gray-300 bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 cursor-not-allowed"
-                              : "border-2 border-blue-300 hover:border-blue-500 bg-gradient-to-r from-white to-blue-50 hover:shadow-md",
+                              ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                              : "border-slate-300 hover:border-slate-400 bg-white",
                           ].join(" ")}
                         >
                           <SelectValue
@@ -422,9 +410,9 @@ export const TaskListItem = memo(function TaskListItem({
                           />
                         </SelectTrigger>
 
-                        <SelectContent className="rounded-xl border-2 shadow-xl p-2 w-[min(28rem,90vw)]">
+                        <SelectContent className="rounded-xl border shadow-lg p-2 w-[min(28rem,90vw)]">
                           {/* Legend bar */}
-                          <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border rounded-lg">
+                          <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
                             <div className="flex items-center gap-3">
                               <span className="inline-flex items-center gap-1">
                                 <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
@@ -447,7 +435,7 @@ export const TaskListItem = memo(function TaskListItem({
                           </div>
 
                           {/* Agent list */}
-                          <div className="flex flex-col gap-1 max-h-[320px] overflow-auto pr-1">
+                          <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                             {filteredAgents.map((agent: any) => {
                               const display =
                                 agent.name ||
@@ -467,10 +455,10 @@ export const TaskListItem = memo(function TaskListItem({
                                 <SelectItem
                                   key={agent.id}
                                   value={agent.id}
-                                  className="rounded-lg m-0 px-2 py-2 hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50"
+                                  className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
                                 >
                                   <div className="flex items-start gap-2">
-                                    <Avatar className="h-7 w-7 ring-2 ring-blue-300 shadow-sm">
+                                    <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
                                       {agent.image ? (
                                         <AvatarImage
                                           src={agent.image}
@@ -500,10 +488,10 @@ export const TaskListItem = memo(function TaskListItem({
                     </div>
                   </div>
                 ) : (
-                  /* Not selected → ask to select first */
-                  <div className="flex items-center gap-2 p-3 rounded-xl border border-gray-300 shadow-sm bg-gradient-to-r from-gray-100 to-slate-100">
-                    <User className="h-4 w-4 text-gray-500" />
-                    <span className="text-xs text-gray-700 font-medium">
+                  /* Not selected yet */
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-slate-50">
+                    <User className="h-4 w-4 text-slate-600" />
+                    <span className="text-xs text-slate-700 font-medium">
                       Select to assign
                     </span>
                   </div>
@@ -514,27 +502,11 @@ export const TaskListItem = memo(function TaskListItem({
         </div>
 
         {/* notes */}
-        <div className="mt-4 relative group">
+        <div className="mt-4 space-y-2">
           <label
             htmlFor={`note-${task.id}`}
-            className="text-xs font-semibold text-slate-900 mb-2 flex items-center gap-2"
+            className="text-xs font-semibold text-slate-800"
           >
-            <span className="bg-indigo-100 p-1 rounded-full">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3 text-indigo-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-            </span>
             Task Notes
           </label>
 
@@ -543,10 +515,7 @@ export const TaskListItem = memo(function TaskListItem({
               id={`note-${task.id}`}
               rows={2}
               placeholder="Add your notes here..."
-              className="w-full text-sm p-3 rounded-lg border border-slate-300 bg-white shadow-sm 
-               focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 
-               resize-none transition-all duration-200 group-hover:border-slate-400 
-               placeholder-slate-400 text-slate-800"
+              className="w-full text-sm p-3 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-300 resize-none transition-all duration-150 placeholder-slate-400 text-slate-800"
               value={note}
               onChange={(e) => {
                 if (e.target.value.length <= 500) {
