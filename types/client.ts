@@ -163,6 +163,7 @@ export type Client = {
       siteAssetSettings: any[]
       tasks: any[]
     }[]
+    templateName?: string | null
     // Added missing fields from usage
     email?: string | null
     phone?: string | null

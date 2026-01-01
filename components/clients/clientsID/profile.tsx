@@ -115,6 +115,7 @@ type FormValues = {
   renewalDate?: string;
   dueDate?: string;
   renewalCount?: number;
+  templateName?: string | null;
 
   // AM
   amId?: string | null;
@@ -204,10 +205,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
     return t === "" ? null : t;
   };
 
-  const startEditRow = (
-    id: string,
-    sm: SocialRow
-  ) => {
+  const startEditRow = (id: string, sm: SocialRow) => {
     setEditingRow((p) => ({ ...p, [id]: true }));
     setRowDrafts((p) => ({
       ...p,
@@ -464,9 +462,9 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
 
   const websites: string[] = useMemo(() => {
     const provided = Array.isArray((clientData as any).websites)
-      ? (((clientData as any).websites as string[]).filter(
+      ? ((clientData as any).websites as string[]).filter(
           (u) => typeof u === "string" && u.trim() !== ""
-        ))
+        )
       : [];
     const withCompany = clientData.companywebsite
       ? [
@@ -478,6 +476,13 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
       : provided;
     return withCompany;
   }, [(clientData as any).websites, clientData.companywebsite]);
+
+  const templateName = useMemo(() => {
+    // Use templateName from API response first, then fallback to assignments
+    return (clientData as any).templateName || 
+           clientData.assignments?.[0]?.template?.name || 
+           null;
+  }, [clientData.assignments, (clientData as any).templateName]);
 
   // Task-derived progress (same formula as in Tasks component)
   const normalizeStatus = (raw?: string | null) => {
@@ -658,19 +663,21 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
     }
   };
 
-
   // Extract name_keywords from otherField
   const nameKeywords = useMemo(() => {
     const otherField = (clientData as any).otherField;
     if (!Array.isArray(otherField)) return [];
-    
+
     const nameKeywordsField = otherField.find(
-      (field: any) => field.title === "name_keywords" && field.category === "system"
+      (field: any) =>
+        field.title === "name_keywords" && field.category === "system"
     );
-    
+
     if (!nameKeywordsField || !Array.isArray(nameKeywordsField.data)) return [];
-    
-    return nameKeywordsField.data.filter((keyword: any) => keyword && typeof keyword === 'string');
+
+    return nameKeywordsField.data.filter(
+      (keyword: any) => keyword && typeof keyword === "string"
+    );
   }, [clientData]);
 
   const amDisplay = clientData.accountManager
@@ -681,8 +688,6 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
 
   return (
     <>
-      
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
@@ -987,7 +992,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
                   Template
                 </label>
                 <p className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-1">
-                  {clientData.assignments?.[0]?.template?.name ?? ""}
+                  {templateName || "N/A"}
                 </p>
               </div>
               <div>
@@ -1056,9 +1061,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
               <CardTitle className="flex items-center space-x-2">
                 <Share2 className="h-5 w-5 text-rose-600" />
                 <span>Social Media</span>
-                <Badge variant="secondary">
-                  {socialRows.length}
-                </Badge>
+                <Badge variant="secondary">{socialRows.length}</Badge>
               </CardTitle>
 
               {!isClient && (

@@ -200,9 +200,22 @@ export async function GET(req: Request) {
         where: { id },
         include: {
           accountManager: { select: { id: true, name: true, email: true } },
+          assignments: {
+            orderBy: { assignedAt: "desc" },
+            select: {
+              id: true,
+              assignedAt: true,
+              status: true,
+              template: { select: { id: true, name: true } },
+            },
+          },
         },
       });
       if (!client) return NextResponse.json(null);
+
+      const templateName =
+        client.assignments?.find((a) => a?.template?.name)?.template?.name ??
+        null;
 
       const user = await prisma.user.findFirst({
         where: { clientId: id, role: { name: "client" } },
@@ -215,6 +228,7 @@ export async function GET(req: Request) {
           ? ((client as any).socialMedia as any[])
           : [],
         clientUserId: user?.id ?? null,
+        templateName,
       });
     }
 
@@ -266,6 +280,25 @@ export async function GET(req: Request) {
 
     // ---------- CLIENT IDS ----------
     const clientIds = clients.map((c) => c.id);
+    const templateMap = new Map<string, string>();
+
+    if (clientIds.length) {
+      const assignments = await prisma.assignment.findMany({
+        where: { clientId: { in: clientIds } },
+        orderBy: { assignedAt: "desc" },
+        select: {
+          clientId: true,
+          template: { select: { name: true } },
+        },
+      });
+
+      for (const row of assignments) {
+        const name = row.template?.name?.trim();
+        if (name && !templateMap.has(row.clientId)) {
+          templateMap.set(row.clientId, name);
+        }
+      }
+    }
 
     // ---------- GET CLIENT USER IDS ----------
     const clientUsers = await prisma.user.findMany({
@@ -416,6 +449,7 @@ export async function GET(req: Request) {
       ...c,
       socialMedias: [], // list view doesn't need full socialMedia payload
       clientUserId: clientIdToUserId.get(c.id) ?? null,
+      templateName: templateMap.get(c.id) ?? null,
       taskSummary: summaryMap.get(c.id),
       overallProgress: progressMap.get(c.id)?.overallProgress ?? 0,
       monthProgress: progressMap.get(c.id)?.monthProgress ?? 0,

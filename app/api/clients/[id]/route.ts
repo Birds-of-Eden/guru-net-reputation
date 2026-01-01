@@ -137,6 +137,18 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
         },
       },
     },
+    assignments: {
+      orderBy: { assignedAt: "desc" },
+      include: {
+        template: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+    },
   };
 
   if (!compact) {
@@ -233,10 +245,14 @@ export async function GET(
       ? keywordsBlock.data.filter((k: any) => typeof k === 'string')
       : [];
 
+    // Extract template name from assignments
+    const templateName = (client as any).assignments?.[0]?.template?.name || null;
+
     const response = {
       ...client,
       socialMedias,
       keywords,
+      templateName,
       progress: fresh?.progress ?? client.progress ?? 0,
       taskCounts: fresh?.taskCounts ?? null,
     };
