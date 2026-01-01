@@ -1,15 +1,17 @@
+// components/task-distribution/TaskTabs.tsx
+
 "use client";
 
 import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Users, Globe, Building2, CheckCircle2 } from "lucide-react";
 import {
-  Users,
-  Globe,
-  Building2,
-  CheckCircle2,
-} from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 import { TabContent } from "./TabContent";
@@ -148,23 +150,20 @@ export function TaskTabs({
     () => prepAgents(teamAgents),
     [teamAgents]
   );
-  const allAgentsWithLabels = useMemo(
-    () => prepAgents(allAgents),
-    [allAgents]
-  );
+  const allAgentsWithLabels = useMemo(() => prepAgents(allAgents), [allAgents]);
 
   // -----------------------------
   // SINGLE-TAB MODE (e.g., Graphics Design / Blog Posting / etc.)
   // -----------------------------
   if (singleTabTasks) {
     const cycleGroups = groupTasksByCycle(singleTabTasks);
-    const useCycles = cycleGroups.length > 1 || (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
+    const useCycles =
+      cycleGroups.length > 1 ||
+      (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
 
     const renderTaskRow = (task: Task, isNested = false) => {
       const isSelected = selectedTasks.has(task.id);
-      const assignment = taskAssignments.find(
-        (a) => a.taskId === task.id
-      );
+      const assignment = taskAssignments.find((a) => a.taskId === task.id);
       const firstSelectedTaskId = selectedTasksOrder.find((id) =>
         selectedTasks.has(id)
       );
@@ -306,11 +305,12 @@ export function TaskTabs({
     const allTaskIds = [
       ...safe.social_site,
       ...safe.web2_site,
-      ...safe.other_asset
-    ].map(task => task.id);
-    
-    const allSelected = allTaskIds.length > 0 && allTaskIds.every(id => selectedTasks.has(id));
-    const someSelected = allTaskIds.some(id => selectedTasks.has(id));
+      ...safe.other_asset,
+    ].map((task) => task.id);
+
+    const allSelected =
+      allTaskIds.length > 0 && allTaskIds.every((id) => selectedTasks.has(id));
+    const someSelected = allTaskIds.some((id) => selectedTasks.has(id));
 
     // Minimal tab styles
     const baseTrigger =
@@ -328,7 +328,9 @@ export function TaskTabs({
                   if (el)
                     (el as any).indeterminate = someSelected && !allSelected;
                 }}
-                onCheckedChange={() => onSelectAllTasks(allTaskIds, !allSelected)}
+                onCheckedChange={() =>
+                  onSelectAllTasks(allTaskIds, !allSelected)
+                }
                 className="border-slate-300"
               />
             </div>
@@ -336,12 +338,19 @@ export function TaskTabs({
               <span className="text-sm font-semibold text-slate-900">
                 Select All for All Tabs
               </span>
-              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+              <Badge
+                variant="outline"
+                className="bg-slate-50 text-slate-700 border-slate-200 text-xs"
+              >
                 {allTaskIds.length} total tasks
               </Badge>
               {someSelected && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                  {allTaskIds.filter(id => selectedTasks.has(id)).length} selected
+                <Badge
+                  variant="outline"
+                  className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                >
+                  {allTaskIds.filter((id) => selectedTasks.has(id)).length}{" "}
+                  selected
                 </Badge>
               )}
             </div>
@@ -360,7 +369,10 @@ export function TaskTabs({
                   </span>
                   <span>Social Sites</span>
                 </span>
-                <Badge variant="outline" className="ml-1 bg-white text-slate-900">
+                <Badge
+                  variant="outline"
+                  className="ml-1 bg-white text-slate-900"
+                >
                   {safe.social_site.length}
                 </Badge>
               </TabsTrigger>
@@ -373,7 +385,10 @@ export function TaskTabs({
                   </span>
                   <span>Web2 Sites</span>
                 </span>
-                <Badge variant="outline" className="ml-1 bg-white text-slate-900">
+                <Badge
+                  variant="outline"
+                  className="ml-1 bg-white text-slate-900"
+                >
                   {safe.web2_site.length}
                 </Badge>
               </TabsTrigger>
@@ -386,7 +401,10 @@ export function TaskTabs({
                   </span>
                   <span>Other Assets</span>
                 </span>
-                <Badge variant="outline" className="ml-1 bg-white text-slate-900">
+                <Badge
+                  variant="outline"
+                  className="ml-1 bg-white text-slate-900"
+                >
                   {safe.other_asset.length}
                 </Badge>
               </TabsTrigger>
@@ -399,12 +417,18 @@ export function TaskTabs({
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.social_site);
-                  const useCycles = cycleGroups.length > 1 || (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
-                  
+                  const useCycles =
+                    cycleGroups.length > 1 ||
+                    (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
+
                   const renderTaskRow = (task: Task, isNested = false) => {
                     const isSelected = selectedTasks.has(task.id);
-                    const assignment = taskAssignments.find((a) => a.taskId === task.id);
-                    const firstSelectedTaskId = selectedTasksOrder.find((id) => selectedTasks.has(id));
+                    const assignment = taskAssignments.find(
+                      (a) => a.taskId === task.id
+                    );
+                    const firstSelectedTaskId = selectedTasksOrder.find((id) =>
+                      selectedTasks.has(id)
+                    );
                     const isFirstSelectedTask = firstSelectedTaskId === task.id;
                     const isMultipleSelected = selectedTasks.size > 1;
 
@@ -430,40 +454,95 @@ export function TaskTabs({
                   };
 
                   return useCycles && cycleGroups.length ? (
-                    <Accordion type="multiple" className="divide-y divide-slate-200">
+                    <Accordion
+                      type="multiple"
+                      className="divide-y divide-slate-200"
+                    >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
-                        const allSelected = ids.every((id) => selectedTasks.has(id));
-                        const someSelected = ids.some((id) => selectedTasks.has(id));
-                        const assignedInGroup = group.tasks.filter((t) => taskAssignments.some((a) => a.taskId === t.id)).length;
+                        const allSelected = ids.every((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const someSelected = ids.some((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const assignedInGroup = group.tasks.filter((t) =>
+                          taskAssignments.some((a) => a.taskId === t.id)
+                        ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel = (group.label ?? "").trim() || group.baseName || "Task Cycle";
+                        const headerLabel =
+                          (group.label ?? "").trim() ||
+                          group.baseName ||
+                          "Task Cycle";
 
                         return (
-                          <AccordionItem key={group.label || `cycle-${group.cycle || "na"}`} value={group.label || `cycle-${group.cycle || "na"}`} className="border-b border-slate-200 last:border-0">
+                          <AccordionItem
+                            key={group.label || `cycle-${group.cycle || "na"}`}
+                            value={
+                              group.label || `cycle-${group.cycle || "na"}`
+                            }
+                            className="border-b border-slate-200 last:border-0"
+                          >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-3">
-                                <Checkbox checked={allSelected} ref={(el) => { if (el) (el as any).indeterminate = someSelected && !allSelected; }} onCheckedChange={() => onSelectAllTasks(ids, !allSelected)} className="border-slate-300" />
+                                <Checkbox
+                                  checked={allSelected}
+                                  ref={(el) => {
+                                    if (el)
+                                      (el as any).indeterminate =
+                                        someSelected && !allSelected;
+                                  }}
+                                  onCheckedChange={() =>
+                                    onSelectAllTasks(ids, !allSelected)
+                                  }
+                                  className="border-slate-300"
+                                />
                               </div>
                               <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
                                 <div className="flex items-center gap-3 flex-1 text-left">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">{headerLabel}</span>
-                                      <Badge variant="outline" className="text-xs">{group.tasks.length} task{group.tasks.length !== 1 ? "s" : ""}</Badge>
+                                      <span className="font-semibold text-slate-900">
+                                        {headerLabel}
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {group.tasks.length} task
+                                        {group.tasks.length !== 1 ? "s" : ""}
+                                      </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
-                                      {dueDate ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}` : ""}
+                                      {group.cycle > 0
+                                        ? `Cycle ${group.cycle}`
+                                        : "Cycle —"}
+                                      {dueDate
+                                        ? ` • Due ${format(
+                                            new Date(dueDate),
+                                            "MMM d, yyyy"
+                                          )}`
+                                        : ""}
                                     </div>
                                   </div>
                                   {someSelected && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                                      {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                    >
+                                      {
+                                        ids.filter((id) =>
+                                          selectedTasks.has(id)
+                                        ).length
+                                      }{" "}
+                                      selected
                                     </Badge>
                                   )}
                                   {assignedInGroup > 0 && (
-                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
+                                    >
                                       {assignedInGroup} assigned
                                     </Badge>
                                   )}
@@ -472,7 +551,9 @@ export function TaskTabs({
                             </div>
                             <AccordionContent className="bg-slate-50/60">
                               <div className="p-4 space-y-3">
-                                {group.tasks.map((task) => renderTaskRow(task, true))}
+                                {group.tasks.map((task) =>
+                                  renderTaskRow(task, true)
+                                )}
                               </div>
                             </AccordionContent>
                           </AccordionItem>
@@ -494,12 +575,18 @@ export function TaskTabs({
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.web2_site);
-                  const useCycles = cycleGroups.length > 1 || (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
-                  
+                  const useCycles =
+                    cycleGroups.length > 1 ||
+                    (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
+
                   const renderTaskRow = (task: Task, isNested = false) => {
                     const isSelected = selectedTasks.has(task.id);
-                    const assignment = taskAssignments.find((a) => a.taskId === task.id);
-                    const firstSelectedTaskId = selectedTasksOrder.find((id) => selectedTasks.has(id));
+                    const assignment = taskAssignments.find(
+                      (a) => a.taskId === task.id
+                    );
+                    const firstSelectedTaskId = selectedTasksOrder.find((id) =>
+                      selectedTasks.has(id)
+                    );
                     const isFirstSelectedTask = firstSelectedTaskId === task.id;
                     const isMultipleSelected = selectedTasks.size > 1;
 
@@ -525,40 +612,95 @@ export function TaskTabs({
                   };
 
                   return useCycles && cycleGroups.length ? (
-                    <Accordion type="multiple" className="divide-y divide-slate-200">
+                    <Accordion
+                      type="multiple"
+                      className="divide-y divide-slate-200"
+                    >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
-                        const allSelected = ids.every((id) => selectedTasks.has(id));
-                        const someSelected = ids.some((id) => selectedTasks.has(id));
-                        const assignedInGroup = group.tasks.filter((t) => taskAssignments.some((a) => a.taskId === t.id)).length;
+                        const allSelected = ids.every((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const someSelected = ids.some((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const assignedInGroup = group.tasks.filter((t) =>
+                          taskAssignments.some((a) => a.taskId === t.id)
+                        ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel = (group.label ?? "").trim() || group.baseName || "Task Cycle";
+                        const headerLabel =
+                          (group.label ?? "").trim() ||
+                          group.baseName ||
+                          "Task Cycle";
 
                         return (
-                          <AccordionItem key={group.label || `cycle-${group.cycle || "na"}`} value={group.label || `cycle-${group.cycle || "na"}`} className="border-b border-slate-200 last:border-0">
+                          <AccordionItem
+                            key={group.label || `cycle-${group.cycle || "na"}`}
+                            value={
+                              group.label || `cycle-${group.cycle || "na"}`
+                            }
+                            className="border-b border-slate-200 last:border-0"
+                          >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-3">
-                                <Checkbox checked={allSelected} ref={(el) => { if (el) (el as any).indeterminate = someSelected && !allSelected; }} onCheckedChange={() => onSelectAllTasks(ids, !allSelected)} className="border-slate-300" />
+                                <Checkbox
+                                  checked={allSelected}
+                                  ref={(el) => {
+                                    if (el)
+                                      (el as any).indeterminate =
+                                        someSelected && !allSelected;
+                                  }}
+                                  onCheckedChange={() =>
+                                    onSelectAllTasks(ids, !allSelected)
+                                  }
+                                  className="border-slate-300"
+                                />
                               </div>
                               <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
                                 <div className="flex items-center gap-3 flex-1 text-left">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">{headerLabel}</span>
-                                      <Badge variant="outline" className="text-xs">{group.tasks.length} task{group.tasks.length !== 1 ? "s" : ""}</Badge>
+                                      <span className="font-semibold text-slate-900">
+                                        {headerLabel}
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {group.tasks.length} task
+                                        {group.tasks.length !== 1 ? "s" : ""}
+                                      </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
-                                      {dueDate ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}` : ""}
+                                      {group.cycle > 0
+                                        ? `Cycle ${group.cycle}`
+                                        : "Cycle —"}
+                                      {dueDate
+                                        ? ` • Due ${format(
+                                            new Date(dueDate),
+                                            "MMM d, yyyy"
+                                          )}`
+                                        : ""}
                                     </div>
                                   </div>
                                   {someSelected && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                                      {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                    >
+                                      {
+                                        ids.filter((id) =>
+                                          selectedTasks.has(id)
+                                        ).length
+                                      }{" "}
+                                      selected
                                     </Badge>
                                   )}
                                   {assignedInGroup > 0 && (
-                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
+                                    >
                                       {assignedInGroup} assigned
                                     </Badge>
                                   )}
@@ -567,7 +709,9 @@ export function TaskTabs({
                             </div>
                             <AccordionContent className="bg-slate-50/60">
                               <div className="p-4 space-y-3">
-                                {group.tasks.map((task) => renderTaskRow(task, true))}
+                                {group.tasks.map((task) =>
+                                  renderTaskRow(task, true)
+                                )}
                               </div>
                             </AccordionContent>
                           </AccordionItem>
@@ -589,12 +733,18 @@ export function TaskTabs({
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.other_asset);
-                  const useCycles = cycleGroups.length > 1 || (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
-                  
+                  const useCycles =
+                    cycleGroups.length > 1 ||
+                    (cycleGroups.length === 1 && cycleGroups[0].cycle > 0);
+
                   const renderTaskRow = (task: Task, isNested = false) => {
                     const isSelected = selectedTasks.has(task.id);
-                    const assignment = taskAssignments.find((a) => a.taskId === task.id);
-                    const firstSelectedTaskId = selectedTasksOrder.find((id) => selectedTasks.has(id));
+                    const assignment = taskAssignments.find(
+                      (a) => a.taskId === task.id
+                    );
+                    const firstSelectedTaskId = selectedTasksOrder.find((id) =>
+                      selectedTasks.has(id)
+                    );
                     const isFirstSelectedTask = firstSelectedTaskId === task.id;
                     const isMultipleSelected = selectedTasks.size > 1;
 
@@ -620,40 +770,95 @@ export function TaskTabs({
                   };
 
                   return useCycles && cycleGroups.length ? (
-                    <Accordion type="multiple" className="divide-y divide-slate-200">
+                    <Accordion
+                      type="multiple"
+                      className="divide-y divide-slate-200"
+                    >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
-                        const allSelected = ids.every((id) => selectedTasks.has(id));
-                        const someSelected = ids.some((id) => selectedTasks.has(id));
-                        const assignedInGroup = group.tasks.filter((t) => taskAssignments.some((a) => a.taskId === t.id)).length;
+                        const allSelected = ids.every((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const someSelected = ids.some((id) =>
+                          selectedTasks.has(id)
+                        );
+                        const assignedInGroup = group.tasks.filter((t) =>
+                          taskAssignments.some((a) => a.taskId === t.id)
+                        ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel = (group.label ?? "").trim() || group.baseName || "Task Cycle";
+                        const headerLabel =
+                          (group.label ?? "").trim() ||
+                          group.baseName ||
+                          "Task Cycle";
 
                         return (
-                          <AccordionItem key={group.label || `cycle-${group.cycle || "na"}`} value={group.label || `cycle-${group.cycle || "na"}`} className="border-b border-slate-200 last:border-0">
+                          <AccordionItem
+                            key={group.label || `cycle-${group.cycle || "na"}`}
+                            value={
+                              group.label || `cycle-${group.cycle || "na"}`
+                            }
+                            className="border-b border-slate-200 last:border-0"
+                          >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-3">
-                                <Checkbox checked={allSelected} ref={(el) => { if (el) (el as any).indeterminate = someSelected && !allSelected; }} onCheckedChange={() => onSelectAllTasks(ids, !allSelected)} className="border-slate-300" />
+                                <Checkbox
+                                  checked={allSelected}
+                                  ref={(el) => {
+                                    if (el)
+                                      (el as any).indeterminate =
+                                        someSelected && !allSelected;
+                                  }}
+                                  onCheckedChange={() =>
+                                    onSelectAllTasks(ids, !allSelected)
+                                  }
+                                  className="border-slate-300"
+                                />
                               </div>
                               <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
                                 <div className="flex items-center gap-3 flex-1 text-left">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">{headerLabel}</span>
-                                      <Badge variant="outline" className="text-xs">{group.tasks.length} task{group.tasks.length !== 1 ? "s" : ""}</Badge>
+                                      <span className="font-semibold text-slate-900">
+                                        {headerLabel}
+                                      </span>
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {group.tasks.length} task
+                                        {group.tasks.length !== 1 ? "s" : ""}
+                                      </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
-                                      {dueDate ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}` : ""}
+                                      {group.cycle > 0
+                                        ? `Cycle ${group.cycle}`
+                                        : "Cycle —"}
+                                      {dueDate
+                                        ? ` • Due ${format(
+                                            new Date(dueDate),
+                                            "MMM d, yyyy"
+                                          )}`
+                                        : ""}
                                     </div>
                                   </div>
                                   {someSelected && (
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                                      {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                    >
+                                      {
+                                        ids.filter((id) =>
+                                          selectedTasks.has(id)
+                                        ).length
+                                      }{" "}
+                                      selected
                                     </Badge>
                                   )}
                                   {assignedInGroup > 0 && (
-                                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
+                                    >
                                       {assignedInGroup} assigned
                                     </Badge>
                                   )}
@@ -662,7 +867,9 @@ export function TaskTabs({
                             </div>
                             <AccordionContent className="bg-slate-50/60">
                               <div className="p-4 space-y-3">
-                                {group.tasks.map((task) => renderTaskRow(task, true))}
+                                {group.tasks.map((task) =>
+                                  renderTaskRow(task, true)
+                                )}
                               </div>
                             </AccordionContent>
                           </AccordionItem>

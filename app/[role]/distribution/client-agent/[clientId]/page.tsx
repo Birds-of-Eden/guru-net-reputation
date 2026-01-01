@@ -185,6 +185,22 @@ type AgentWithLoad = Agent & {
   weightedScore?: number;
   displayLabel?: string;
 };
+
+type AgentLoad = {
+  activeCount?: number;
+  weightedScore?: number;
+  byStatus?: Record<string, number>;
+  active?: number;
+  weighted?: number;
+};
+
+type AgentLoadPayload = {
+  agent?: { id?: string | null } | null;
+  load?: AgentLoad | null;
+};
+
+type AgentLoadMap = Record<string, AgentLoad>;
+
 const WEIGHTS = { P: 1, IP: 2, O: 3, R: 2 };
 
 function safeName(a: Partial<Agent>) {
@@ -223,15 +239,57 @@ function makeDisplayLabel(
 // OPTIMIZED: Removed N+1 query problem - was fetching each agent's tasks individually
 // This was causing 10+ sequential API calls per page load, severely impacting performance
 // Now agents are returned without individual load data for instant page loads
-function enrichAgentsBasic(base: Agent[]): AgentWithLoad[] {
-  // Sort by name only (no load data fetching)
-  const enriched: AgentWithLoad[] = base.map((a) => ({
-    ...a,
-    byStatus: { pending: 0, in_progress: 0, overdue: 0, reassigned: 0 },
-    activeCount: 0,
-    weightedScore: 0,
-    displayLabel: `${safeName(a)} — Available`,
-  }));
+function enrichAgentsBasic(base: Agent[], loadMap: AgentLoadMap = {}): AgentWithLoad[] {
+  const enriched: AgentWithLoad[] = base.map((a) => {
+    const load = loadMap[a.id];
+    const byStatus = {
+      pending: load?.byStatus?.pending ?? 0,
+      in_progress: load?.byStatus?.in_progress ?? 0,
+      overdue: load?.byStatus?.overdue ?? 0,
+      reassigned: load?.byStatus?.reassigned ?? 0,
+    };
+    const P = byStatus.pending ?? 0;
+    const IP = byStatus.in_progress ?? 0;
+    const O = byStatus.overdue ?? 0;
+    const R = byStatus.reassigned ?? 0;
+    const fallbackActive = P + IP + O + R;
+    const fallbackWeighted =
+      P * WEIGHTS.P + IP * WEIGHTS.IP + O * WEIGHTS.O + R * WEIGHTS.R;
+    const rawActive =
+      typeof load?.activeCount === "number"
+        ? load.activeCount
+        : typeof load?.active === "number"
+        ? load.active
+        : undefined;
+    const rawWeighted =
+      typeof load?.weightedScore === "number"
+        ? load.weightedScore
+        : typeof load?.weighted === "number"
+        ? load.weighted
+        : undefined;
+    const activeCount =
+      typeof rawActive === "number" && (rawActive > 0 || fallbackActive === 0)
+        ? rawActive
+        : fallbackActive;
+    const weightedScore =
+      typeof rawWeighted === "number" &&
+      (rawWeighted > 0 || fallbackWeighted === 0)
+        ? rawWeighted
+        : fallbackWeighted;
+
+    return {
+      ...a,
+      byStatus,
+      activeCount,
+      weightedScore,
+      displayLabel: makeDisplayLabel(a, activeCount, weightedScore, {
+        P,
+        IP,
+        O,
+        R,
+      }),
+    };
+  });
 
   enriched.sort((x, y) => safeName(x).localeCompare(safeName(y)));
   return enriched;
@@ -374,9 +432,23 @@ const enrichedAgentsFetcher = async (teamId?: string) => {
   const url = teamId
     ? `/api/tasks/agents?teamId=${encodeURIComponent(teamId)}`
     : `/api/tasks/agents`;
-  const baseAgents: Agent[] = await jsonFetcher(url);
-  // ⚡ OPTIMIZED: Use basic enrichment (no individual fetches)
-  return enrichAgentsBasic(baseAgents);
+  const loadUrl = `/api/tasks/agents/load`;
+
+  const [baseAgents, loadPayload] = await Promise.all([
+    jsonFetcher(url),
+    jsonFetcher(loadUrl).catch(() => []),
+  ]);
+
+  const loadMap: AgentLoadMap = {};
+  if (Array.isArray(loadPayload)) {
+    (loadPayload as AgentLoadPayload[]).forEach((row) => {
+      const id = row?.agent?.id ?? undefined;
+      if (!id) return;
+      loadMap[id] = row?.load ?? {};
+    });
+  }
+
+  return enrichAgentsBasic(baseAgents, loadMap);
 };
 
 export default function TaskDistributionForClient() {
