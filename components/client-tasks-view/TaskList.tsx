@@ -267,12 +267,18 @@ export default function TaskList({
       upcoming: [] as Task[],
       reassigned: [] as Task[],
       completed: [] as Task[],
+      qc_approved: [] as Task[],
+      overdue: [] as Task[],
     };
 
     tasks.forEach((task) => {
       // First check if task is completed or QC approved
-      if (task.status === "completed" || task.status === "qc_approved") {
+      if (task.status === "completed") {
         groups.completed.push(task);
+        return;
+      }
+      if (task.status === "qc_approved") {
+        groups.qc_approved.push(task);
         return;
       }
 
@@ -298,7 +304,8 @@ export default function TaskList({
       } else if (dueDate.getTime() > tomorrow.getTime()) {
         groups.upcoming.push(task);
       } else {
-        groups.upcoming.push(task);
+        // Due date is before today, so it's overdue
+        groups.overdue.push(task);
       }
     });
 
@@ -314,7 +321,11 @@ export default function TaskList({
   }, []);
 
   // Use completedTasks prop for completed tab, otherwise fall back to grouped completed tasks
-  const allCompletedTasks = completedTasks || taskGroups.completed;
+  // Combine completedTasks (from props) with qc_approved tasks
+  const allCompletedTasks = [
+    ...(completedTasks || taskGroups.completed),
+    ...taskGroups.qc_approved,
+  ];
 
   // Lightweight polling + tab visibility refresh to keep data fresh without manual reloads.
   useEffect(() => {
@@ -376,10 +387,20 @@ export default function TaskList({
         return reassignedTasks;
       case "completed":
         return completedTabTasks;
+      case "overdue":
+        return taskGroups.overdue;
+      case "qc_approved":
+        return taskGroups.qc_approved;
       default:
         return filteredTasks;
     }
-  }, [activeTab, taskGroups, reassignedTasks, completedTabTasks, filteredTasks]);
+  }, [
+    activeTab,
+    taskGroups,
+    reassignedTasks,
+    completedTabTasks,
+    filteredTasks,
+  ]);
 
   // Step 2: Sort with in_progress tasks first, then apply pinned logic
   const sortedTasks = useMemo(() => {
@@ -509,7 +530,6 @@ export default function TaskList({
                 <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="reassigned">Reassigned</SelectItem>
                 <SelectItem value="qc_approved">QC Approved</SelectItem>
               </SelectContent>
@@ -537,7 +557,7 @@ export default function TaskList({
             onValueChange={handleTabChange}
             className="w-full mb-8"
           >
-            <TabsList className="grid w-full grid-cols-5 h-14 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-6 h-14 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-1">
               <TabsTrigger
                 value="today"
                 className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
@@ -587,6 +607,22 @@ export default function TaskList({
               </TabsTrigger>
 
               <TabsTrigger
+                value="overdue"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:via-red-600 data-[state=active]:to-red-600 data-[state=active]:text-white transition-all duration-300"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Overdue
+                {taskGroups.overdue.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 bg-red-600 text-white"
+                  >
+                    {taskGroups.overdue.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+
+              <TabsTrigger
                 value="reassigned"
                 className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
@@ -627,6 +663,8 @@ export default function TaskList({
                 "upcoming",
                 "reassigned",
                 "completed",
+                "overdue",
+                "qc_approved",
               ] as const
             ).map((tab) => (
               <TabsContent key={tab} value={tab} className="mt-6">
@@ -641,6 +679,7 @@ export default function TaskList({
                     {tab === "upcoming" && "Upcoming Tasks"}
                     {tab === "reassigned" && "Reassigned Tasks"}
                     {tab === "completed" && "Completed Tasks"}
+                    {tab === "qc_approved" && "QC Approved Tasks"}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
                     {tab === "today" && "Tasks due for today"}
@@ -650,6 +689,8 @@ export default function TaskList({
                       "Tasks that have been reassigned and need your attention"}
                     {tab === "completed" &&
                       "Tasks that have been completed or QC approved"}
+                    {tab === "qc_approved" &&
+                      "Tasks that have been QC approved"}
                   </p>
                 </div>
 
@@ -700,7 +741,10 @@ export default function TaskList({
                           size="sm"
                           variant={p === currentPage ? "default" : "outline"}
                           onClick={() =>
-                            setPageByTab((prev) => ({ ...prev, [activeTab]: p }))
+                            setPageByTab((prev) => ({
+                              ...prev,
+                              [activeTab]: p,
+                            }))
                           }
                         >
                           {p}

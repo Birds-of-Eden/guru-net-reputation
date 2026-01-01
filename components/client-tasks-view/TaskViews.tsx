@@ -132,7 +132,7 @@ export default function TaskViews({
   setIsCompletionConfirmOpen,
   disableVirtualization,
 }: {
-  tab: "today" | "tomorrow" | "upcoming" | "reassigned" | "completed";
+  tab: "today" | "tomorrow" | "upcoming" | "reassigned" | "completed" | "overdue" | "qc_approved";
   currentTasks: Task[];
   viewMode: "grid" | "list";
   tasks: Task[];
@@ -219,6 +219,8 @@ export default function TaskViews({
     upcoming: Calendar,
     reassigned: Calendar,
     completed: CheckCircle,
+    overdue: Calendar,
+    qc_approved: CheckCircle,
   }[tab];
 
   const emptyText = {
@@ -227,6 +229,8 @@ export default function TaskViews({
     upcoming: ["No upcoming tasks!", "All your tasks are well organized."],
     reassigned: ["No reassigned tasks!", "Currently you have no tasks marked as reassigned."],
     completed: ["No completed tasks yet!", "Complete some tasks to see them here."],
+    overdue: ["No overdue tasks!", "All your tasks are completed on time."],
+    qc_approved: ["No QC approved tasks!", "No tasks have been QC approved yet."],
   }[tab];
 
   const renderTaskCard = (task: Task) => {
