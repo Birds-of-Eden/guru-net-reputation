@@ -35,6 +35,7 @@ import {
   getInitialsFromName,
   getInitialsFromParts,
 } from "@/utils/avatar";
+import { getLoadStats } from "./load-utils";
 
 interface TaskListItemProps {
   task: Task;
@@ -122,13 +123,7 @@ export const TaskListItem = memo(function TaskListItem({
   };
 
   const LoadChips = (a: any) => {
-    const by = a?.byStatus || {};
-    const P = by.pending ?? 0;
-    const IP = by.in_progress ?? 0;
-    const O = by.overdue ?? 0;
-    const R = by.reassigned ?? 0;
-    const active = a?.activeCount ?? P + IP + O + R;
-    const W = a?.weightedScore ?? P * 1 + IP * 2 + O * 3 + R * 2;
+    const { P, IP, O, R, active, weighted } = getLoadStats(a);
 
     return (
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
@@ -136,7 +131,7 @@ export const TaskListItem = memo(function TaskListItem({
           {active} active
         </Badge>
         <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-          W:{W}
+          W:{weighted}
         </Badge>
         <div className="mx-1 h-3.5 w-px bg-slate-200" />
         <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">

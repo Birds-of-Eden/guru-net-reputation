@@ -37,6 +37,7 @@ import {
   statusColors,
 } from "./task-constants";
 import { nameToColor, getInitialsFromName } from "@/utils/avatar";
+import { getLoadStats } from "./load-utils";
 
 interface TaskCardProps {
   task: Task;
@@ -131,13 +132,7 @@ const TaskCardComponent = function TaskCard({
     "User";
 
   const LoadIndicator = (a: any) => {
-    const by = a?.byStatus || {};
-    const P = by.pending ?? 0;
-    const IP = by.in_progress ?? 0;
-    const O = by.overdue ?? 0;
-    const R = by.reassigned ?? 0;
-    const active = a?.activeCount ?? P + IP + O + R;
-    const W = a?.weightedScore ?? P * 1 + IP * 2 + O * 3 + R * 2;
+    const { P, IP, O, R, active, weighted } = getLoadStats(a);
     return (
       <div className="flex items-center gap-1.5 text-xs">
         <div className="flex items-center gap-1">
@@ -160,7 +155,7 @@ const TaskCardComponent = function TaskCard({
         <span className="font-semibold text-slate-900">{active}</span>
         <span className="text-slate-500">active</span>
         <div className="h-3 w-px bg-slate-300 mx-1" />
-        <span className="font-semibold text-amber-700">W:{W}</span>
+        <span className="font-semibold text-amber-700">W:{weighted}</span>
       </div>
     );
   };

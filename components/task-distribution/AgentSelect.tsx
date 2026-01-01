@@ -1,3 +1,5 @@
+// app/components/task-distribution/AgentSelect.tsx
+
 "use client";
 
 import {
@@ -8,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { getLoadStats } from "./load-utils";
 
 type AgentBase = {
   id: string;
@@ -49,11 +52,12 @@ export function AgentSelect({
 }) {
   const selected = agents.find((a) => a.id === value);
   const selName = selected ? displayName(selected) : "";
+  const selectedStats = selected ? getLoadStats(selected) : null;
   const selText =
     selected?.displayLabel ??
     (selected
-      ? `${selName} — ${selected.activeCount ?? 0} active • W:${
-          selected.weightedScore ?? 0
+      ? `${selName} — ${selectedStats?.active ?? 0} active • W:${
+          selectedStats?.weighted ?? 0
         }`
       : "Choose agent…");
 
@@ -81,18 +85,12 @@ export function AgentSelect({
       <SelectContent className="w-[360px]">
         {agents.map((a) => {
           const name = displayName(a);
-          const ac = a.activeCount ?? 0;
-          const w = a.weightedScore ?? 0;
-          const s = a.byStatus ?? {};
-          const p = s["pending"] ?? 0;
-          const ip = s["in_progress"] ?? 0;
-          const o = s["overdue"] ?? 0;
-          const r = s["reassigned"] ?? 0;
+          const { P, IP, O, R, active, weighted } = getLoadStats(a);
 
           // Radix Select নির্বাচিত টেক্সট পড়তে child text লাগে; screen-reader-only লাইন দিলাম:
           const plain =
             a.displayLabel ??
-            `${name} — ${ac} active (P:${p} | IP:${ip} | O:${o} | R:${r}) • W:${w}`;
+            `${name} — ${active} active (P:${P} | IP:${IP} | O:${O} | R:${R}) • W:${weighted}`;
 
           return (
             <SelectItem key={a.id} value={a.id} className="py-2">
@@ -105,13 +103,13 @@ export function AgentSelect({
                 <div className="flex flex-col">
                   <div className="text-sm font-medium leading-5">{name}</div>
                   <div className="text-[11px] text-muted-foreground">
-                    <span className="mr-2">{ac} active</span>
-                    <span className="mr-2">W:{w}</span>
+                    <span className="mr-2">{active} active</span>
+                    <span className="mr-2">W:{weighted}</span>
                     <span className="inline-flex gap-1 align-middle">
-                      <Badge variant="outline">P:{p}</Badge>
-                      <Badge variant="outline">IP:{ip}</Badge>
-                      <Badge variant="outline">O:{o}</Badge>
-                      <Badge variant="outline">R:{r}</Badge>
+                      <Badge variant="outline">P:{P}</Badge>
+                      <Badge variant="outline">IP:{IP}</Badge>
+                      <Badge variant="outline">O:{O}</Badge>
+                      <Badge variant="outline">R:{R}</Badge>
                     </span>
                   </div>
                 </div>
