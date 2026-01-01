@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -143,6 +143,8 @@ export function TaskTabs({
   onNoteChange,
   onViewModeChange,
 }: TaskTabsProps) {
+  const [activeTab, setActiveTab] = useState("social_site");
+  
   const agentsWithLabels = useMemo(() => prepAgents(agents), [agents]);
   const teamAgentsWithLabels = useMemo(
     () => prepAgents(teamAgents),
@@ -302,15 +304,24 @@ export function TaskTabs({
       other_asset: categorizedTasks?.other_asset ?? [],
     };
 
-    // Calculate all task IDs across all tabs for "Select All for All Tabs"
-    const allTaskIds = [
-      ...safe.social_site,
-      ...safe.web2_site,
-      ...safe.other_asset
-    ].map(task => task.id);
+    // Calculate task IDs for current tab only
+    const getCurrentTabTasks = () => {
+      switch (activeTab) {
+        case "social_site":
+          return safe.social_site;
+        case "web2_site":
+          return safe.web2_site;
+        case "other_asset":
+          return safe.other_asset;
+        default:
+          return safe.social_site;
+      }
+    };
     
-    const allSelected = allTaskIds.length > 0 && allTaskIds.every(id => selectedTasks.has(id));
-    const someSelected = allTaskIds.some(id => selectedTasks.has(id));
+    const currentTabTasks = getCurrentTabTasks();
+    const currentTabTaskIds = currentTabTasks.map(task => task.id);
+    const allCurrentTabSelected = currentTabTaskIds.length > 0 && currentTabTaskIds.every(id => selectedTasks.has(id));
+    const someCurrentTabSelected = currentTabTaskIds.some(id => selectedTasks.has(id));
 
     // Minimal tab styles
     const baseTrigger =
@@ -318,37 +329,38 @@ export function TaskTabs({
 
     return (
       <div className="w-full space-y-3">
-        {/* Master "Select All for All Tabs" control */}
+        {/* Master "Select All for Current Tab" control */}
         <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <Checkbox
-                checked={allSelected}
+                checked={allCurrentTabSelected}
                 ref={(el) => {
                   if (el)
-                    (el as any).indeterminate = someSelected && !allSelected;
+                    (el as any).indeterminate =
+                      someCurrentTabSelected && !allCurrentTabSelected;
                 }}
-                onCheckedChange={() => onSelectAllTasks(allTaskIds, !allSelected)}
+                onCheckedChange={() => onSelectAllTasks(currentTabTaskIds, !allCurrentTabSelected)}
                 className="border-slate-300"
               />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-slate-900">
-                Select All for All Tabs
+                Select All
               </span>
               <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
-                {allTaskIds.length} total tasks
+                {currentTabTaskIds.length} tasks
               </Badge>
-              {someSelected && (
+              {someCurrentTabSelected && (
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                  {allTaskIds.filter(id => selectedTasks.has(id)).length} selected
+                  {currentTabTaskIds.filter(id => selectedTasks.has(id)).length} selected
                 </Badge>
               )}
             </div>
           </div>
         </div>
 
-        <Tabs defaultValue="social_site" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Tabs header */}
           <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
             <TabsList className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-3 bg-transparent p-0">

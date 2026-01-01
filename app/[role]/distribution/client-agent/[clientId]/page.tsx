@@ -1167,6 +1167,26 @@ export default function TaskDistributionForClient() {
                       </Button>
 
                       <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Clear all agent assignments in current category
+                          const clearedCount = tasks.length;
+
+                          // Clear all assignments for this category
+                          setCategoryAssignments([]);
+
+                          toast.success(
+                            `Deselected agents for all ${clearedCount} tasks in ${selectedCategory}`
+                          );
+                        }}
+                        disabled={submitting}
+                        className="bg-red-600 text-white hover:text-white hover:bg-red-700"
+                      >
+                        Deselect All
+                      </Button>
+
+                      <Button
                         onClick={() => {
                           if (!selectedTasks.size) {
                             toast.info("Select tasks to reassign.");

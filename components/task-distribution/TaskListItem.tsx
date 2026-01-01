@@ -274,56 +274,236 @@ export const TaskListItem = memo(function TaskListItem({
                   }`.trim() ||
                   resolvedAgent?.email ||
                   "Assigned";
-                /* Already assigned */
+                /* Already assigned - make clickable to allow replacement */
                 return (
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
-                    <AvatarWithFallback
-                      name={displayName}
-                      image={(resolvedAgent as any)?.image || undefined}
-                      ring="ring-2 ring-emerald-300"
-                      size="h-7 w-7"
-                      textClass="text-xs"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-emerald-800 truncate">
-                        {displayName}
-                      </p>
-                    </div>
-                    <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-                  </div>
+                  <Select
+                    value={assignedAgentId || ""}
+                    onValueChange={handleAssignmentChange}
+                    disabled={shouldDisableDropdown}
+                  >
+                    <SelectTrigger
+                      className={[
+                        "h-10 text-sm w-full rounded-lg transition-all duration-150 shadow-sm cursor-pointer",
+                        shouldDisableDropdown
+                          ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                          : "border-emerald-300 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center gap-2 w-full">
+                        <AvatarWithFallback
+                          name={displayName}
+                          image={(resolvedAgent as any)?.image || undefined}
+                          ring="ring-2 ring-emerald-300"
+                          size="h-6 w-6"
+                          textClass="text-xs"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-emerald-800 truncate">
+                            {displayName}
+                          </p>
+                        </div>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+                      </div>
+                    </SelectTrigger>
+
+                    <SelectContent className="rounded-xl border shadow-lg p-2 w-[min(28rem,90vw)]">
+                      {/* Legend bar */}
+                      <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
+                            P
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-indigo-500" />{" "}
+                            IP
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-rose-500" />{" "}
+                            O
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-orange-500" />{" "}
+                            R
+                          </span>
+                          <span className="ml-auto">Active / W</span>
+                        </div>
+                      </div>
+
+                      {/* Agent list */}
+                      <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                        {filteredAgents.map((agent: any) => {
+                          const display =
+                            agent.name ||
+                            `${agent.firstName ?? ""} ${
+                              agent.lastName ?? ""
+                            }`.trim() ||
+                            agent.email ||
+                            "Agent";
+                          const initials = getInitialsFromParts(
+                            agent.firstName,
+                            agent.lastName,
+                            agent.name || agent.email
+                          );
+                          const bg = nameToColor(display);
+
+                          return (
+                            <SelectItem
+                              key={agent.id}
+                              value={agent.id}
+                              className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
+                            >
+                              <div className="flex items-start gap-2">
+                                <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
+                                  {agent.image ? (
+                                    <AvatarImage
+                                      src={agent.image}
+                                      alt={display}
+                                    />
+                                  ) : null}
+                                  <AvatarFallback
+                                    style={{ backgroundColor: bg }}
+                                    className="text-white text-[10px] font-bold"
+                                  >
+                                    {initials || "A"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-[13px] font-semibold text-slate-900 truncate">
+                                    {display}
+                                  </div>
+                                  <LoadChips {...agent} />
+                                </div>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </div>
+                    </SelectContent>
+                  </Select>
                 );
               })()
             ) : assignment ? (
-              /* Preview chosen agent */
-              <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
-                {(() => {
-                  const ag: any = combinedAgents.find(
-                    (a: any) => a.id === assignment.agentId
-                  );
-                  const display =
-                    ag?.name ||
-                    `${ag?.firstName ?? ""} ${ag?.lastName ?? ""}`.trim() ||
-                    ag?.email ||
-                    "Agent";
-                  return (
-                    <>
-                      <AvatarWithFallback
-                        name={display}
-                        image={ag?.image || undefined}
-                        ring="ring-2 ring-blue-300"
-                        size="h-7 w-7"
-                        textClass="text-xs"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-blue-800 truncate">
-                          {display}
-                        </p>
-                      </div>
-                      <CheckCircle2 className="h-5 w-5 text-blue-700" />
-                    </>
-                  );
-                })()}
-              </div>
+              /* Preview chosen agent - make clickable to allow replacement */
+              <Select
+                value={assignment.agentId || ""}
+                onValueChange={handleAssignmentChange}
+                disabled={shouldDisableDropdown}
+              >
+                <SelectTrigger
+                  className={[
+                    "h-10 text-sm w-full rounded-lg transition-all duration-150 shadow-sm cursor-pointer",
+                    shouldDisableDropdown
+                      ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                      : "border-blue-300 hover:border-blue-400 bg-blue-50 hover:bg-blue-100",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    {(() => {
+                      const ag: any = combinedAgents.find(
+                        (a: any) => a.id === assignment.agentId
+                      );
+                      const display =
+                        ag?.name ||
+                        `${ag?.firstName ?? ""} ${ag?.lastName ?? ""}`.trim() ||
+                        ag?.email ||
+                        "Agent";
+                      return (
+                        <>
+                          <AvatarWithFallback
+                            name={display}
+                            image={ag?.image || undefined}
+                            ring="ring-2 ring-blue-300"
+                            size="h-6 w-6"
+                            textClass="text-xs"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-blue-800 truncate">
+                              {display}
+                            </p>
+                          </div>
+                          <CheckCircle2 className="h-4 w-4 text-blue-700 shrink-0" />
+                        </>
+                      );
+                    })()}
+                  </div>
+                </SelectTrigger>
+
+                <SelectContent className="rounded-xl border shadow-lg p-2 w-[min(28rem,90vw)]">
+                  {/* Legend bar */}
+                  <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
+                        P
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-indigo-500" />{" "}
+                        IP
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-rose-500" />{" "}
+                        O
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="h-2 w-2 rounded-full bg-orange-500" />{" "}
+                        R
+                      </span>
+                      <span className="ml-auto">Active / W</span>
+                    </div>
+                  </div>
+
+                  {/* Agent list */}
+                  <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                    {filteredAgents.map((agent: any) => {
+                      const display =
+                        agent.name ||
+                        `${agent.firstName ?? ""} ${
+                          agent.lastName ?? ""
+                        }`.trim() ||
+                        agent.email ||
+                        "Agent";
+                      const initials = getInitialsFromParts(
+                        agent.firstName,
+                        agent.lastName,
+                        agent.name || agent.email
+                      );
+                      const bg = nameToColor(display);
+
+                      return (
+                        <SelectItem
+                          key={agent.id}
+                          value={agent.id}
+                          className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
+                        >
+                          <div className="flex items-start gap-2">
+                            <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
+                              {agent.image ? (
+                                <AvatarImage
+                                  src={agent.image}
+                                  alt={display}
+                                />
+                              ) : null}
+                              <AvatarFallback
+                                style={{ backgroundColor: bg }}
+                                className="text-white text-[10px] font-bold"
+                              >
+                                {initials || "A"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[13px] font-semibold text-slate-900 truncate">
+                                {display}
+                              </div>
+                              <LoadChips {...agent} />
+                            </div>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </div>
+                </SelectContent>
+              </Select>
             ) : (
               <>
                 {isSelected ? (
