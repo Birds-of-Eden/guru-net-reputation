@@ -837,38 +837,27 @@ export default function TaskDistributionForClient() {
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
       <div className="mx-auto">
         <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden">
-          <CardHeader className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white p-2 md:p-4 rounded-t-2xl border-b border-purple-200/80 backdrop-blur-sm">
-            {/* Premium ambient lighting effects */}
-            <div className="pointer-events-none absolute inset-0">
-              <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-radial from-pink-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse" />
-              <div
-                className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-blue-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"
-                style={{ animationDelay: "1s" }}
-              />
-              <div
-                className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-radial from-purple-400/20 via-transparent to-transparent rounded-full blur-3xl animate-pulse"
-                style={{ animationDelay: "2s" }}
-              />
+          <CardHeader className="relative bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
+            {/* Subtle background accent */}
+            <div className="pointer-events-none absolute inset-0 opacity-40">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/20 rounded-full blur-3xl" />
             </div>
 
             {/* Main content */}
             <div className="relative z-10">
-              {/* Client section with enhanced premium design */}
               {client && (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-white/20 via-white/10 to-white/20 backdrop-blur-md border border-white/30 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/30">
-                  {/* Enhanced avatar with glow effect */}
+                <div className="flex items-start gap-4">
+                  {/* Professional avatar */}
                   <div className="relative shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full blur-lg opacity-60 animate-pulse" />
-                    <Avatar className="h-12 w-12 md:h-14 md:w-14 ring-4 ring-white/50 shadow-xl transition-all duration-300 hover:ring-4 hover:ring-pink-300/50 relative">
+                    <Avatar className="h-16 w-16 ring-2 ring-slate-200 dark:ring-slate-700 shadow-sm">
                       {client.avatar ? (
                         <AvatarImage
                           src={client.avatar}
                           alt={client.name || "Client avatar"}
-                          className="transition-all duration-300 hover:scale-110"
                         />
                       ) : (
                         <AvatarFallback
-                          className="text-white text-sm md:text-base font-bold transition-all duration-300 hover:scale-110 bg-gradient-to-br from-pink-500 to-purple-600"
+                          className="text-white text-lg font-semibold bg-gradient-to-br from-blue-500 to-blue-600"
                           style={{
                             backgroundColor: nameToColor(
                               client.name || client.id
@@ -880,74 +869,68 @@ export default function TaskDistributionForClient() {
                       )}
                     </Avatar>
                     {client.status === "active" && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full ring-2 ring-white shadow-lg animate-pulse">
-                        <div className="w-full h-full rounded-full bg-green-400 animate-ping" />
-                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full ring-2 ring-white dark:ring-slate-800" />
                     )}
                   </div>
 
-                  {/* Enhanced client info with premium typography */}
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <h3 className="text-lg md:text-xl font-bold text-white truncate drop-shadow-sm">
+                  {/* Client information */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 truncate">
                         {client.name || "Unnamed Client"}
                       </h3>
                       {client.status === "active" && (
                         <Star
-                          className="h-5 w-5 text-yellow-300 shrink-0 drop-shadow-sm"
+                          className="h-4 w-4 text-amber-500 shrink-0"
                           fill="currentColor"
                         />
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      {/* Company info with enhanced styling */}
-                      <div className="flex items-center gap-1.5 text-white/90">
-                        <Building2 className="h-4 w-4 text-white/80 shrink-0" />
-                        <span className="text-sm font-medium truncate max-w-[200px] drop-shadow-sm">
-                          {client.company || "No company"}
+                    {/* Company information */}
+                    {client.company && (
+                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-3">
+                        <Building2 className="h-4 w-4 shrink-0" />
+                        <span className="text-sm font-medium truncate">
+                          {client.company}
                         </span>
                       </div>
+                    )}
 
-                      {/* Enhanced status and package badges */}
-                      <div className="flex items-center gap-2">
-                        {client.status && (
+                    {/* Status and package badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {client.status && (
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium border",
+                            client.status === "active"
+                              ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
+                              : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                          )}
+                        >
                           <span
                             className={cn(
-                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold transition-all duration-200 hover:scale-105 shadow-lg backdrop-blur-sm",
+                              "w-1.5 h-1.5 rounded-full mr-1.5",
                               client.status === "active"
-                                ? "bg-gradient-to-r from-green-400/80 to-emerald-500/80 text-white border border-green-300/50 ring-1 ring-green-300/30"
-                                : "bg-gradient-to-r from-slate-400/80 to-slate-500/80 text-white border border-slate-300/50 ring-1 ring-slate-300/30"
+                                ? "bg-green-500"
+                                : "bg-slate-400"
                             )}
-                          >
-                            <span
-                              className={cn(
-                                "w-2 h-2 rounded-full mr-1.5 animate-pulse",
-                                client.status === "active"
-                                  ? "bg-white"
-                                  : "bg-white/70"
-                              )}
-                            />
-                            {client.status.charAt(0).toUpperCase() +
-                              client.status.slice(1)}
-                          </span>
-                        )}
+                          />
+                          {client.status.charAt(0).toUpperCase() +
+                            client.status.slice(1)}
+                        </span>
+                      )}
 
-                        {client.package?.name && (
-                          <span
-                            title={client.package.name}
-                            className="inline-flex items-center rounded-full bg-gradient-to-r from-indigo-400/80 to-purple-500/80 text-white border border-indigo-300/50 px-3 py-1 text-xs font-bold transition-all duration-200 hover:scale-105 hover:from-indigo-500/80 hover:to-purple-600/80 shadow-lg backdrop-blur-sm ring-1 ring-indigo-300/30"
-                          >
-                            <span className="mr-1.5">📦</span>
-                            {client.package.name}
-                          </span>
-                        )}
-                      </div>
+                      {client.package?.name && (
+                        <span className="inline-flex items-center rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 px-2.5 py-1 text-xs font-medium">
+                          <span className="mr-1.5">📦</span>
+                          {client.package.name}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-300/60 to-transparent" />
             </div>
           </CardHeader>
 

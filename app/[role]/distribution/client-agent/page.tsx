@@ -104,23 +104,22 @@ export default function ClientUnifiedDashboard() {
     return res.json();
   };
 
-  const { data, isLoading, error } = useSWR(
-    "/api/tasks/clients",
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 30000,
-      refreshInterval: 60000,
-    }
-  );
+  const { data, isLoading, error } = useSWR("/api/tasks/clients", fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+    refreshInterval: 60000,
+  });
 
   const clients: Client[] = useMemo(() => {
-    return Array.isArray((data as any)?.clients) ? ((data as any).clients as Client[]) : [];
+    return Array.isArray((data as any)?.clients)
+      ? ((data as any).clients as Client[])
+      : [];
   }, [data]);
 
   useEffect(() => {
     if (error) {
-      const msg = error instanceof Error ? error.message : "Failed to load clients";
+      const msg =
+        error instanceof Error ? error.message : "Failed to load clients";
       toast.error(msg);
     }
   }, [error]);
@@ -217,10 +216,9 @@ export default function ClientUnifiedDashboard() {
 
     if (already) {
       return {
-        label: "Show Tasks",
+        label: "View Details",
         icon: <Layers className="h-4 w-4" />,
-        go: () =>
-          router.push(`${distributionBasePath}/tasks?clientId=${client.id}`),
+        go: () => router.push(`${distributionBasePath}/client/${client.id}`),
         klass:
           "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white",
       };
@@ -229,8 +227,7 @@ export default function ClientUnifiedDashboard() {
       return {
         label: "Create Tasks",
         icon: <Target className="h-4 w-4" />,
-        go: () =>
-          router.push(`${distributionBasePath}/client/${client.id}`),
+        go: () => router.push(`${distributionBasePath}/client/${client.id}`),
         klass:
           "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white",
       };
@@ -380,7 +377,10 @@ export default function ClientUnifiedDashboard() {
                 {/* Icon */}
                 <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
 
-                <Select value={packageFilter} onValueChange={handlePackageChange}>
+                <Select
+                  value={packageFilter}
+                  onValueChange={handlePackageChange}
+                >
                   <SelectTrigger
                     className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
                     aria-busy={isFilteringPending}
@@ -485,185 +485,263 @@ export default function ClientUnifiedDashboard() {
               <div className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {visibleClients.map((client) => {
-                  const t = client.taskStats;
-                  const postingCreated = client.postingTasksCreated;
-                  const conditional = conditionalRouteAndLabel(client);
+                    const t = client.taskStats;
+                    const postingCreated = client.postingTasksCreated;
+                    const conditional = conditionalRouteAndLabel(client);
 
-                  return (
-                    <Card
-                      key={client.id}
-                      className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
-                    >
-                      <CardContent className="p-6">
-                        {/* Identity */}
-                        <div className="flex items-start gap-4 mb-4">
-                          <Avatar className="h-16 w-16 ring-4 ring-slate-200 group-hover:ring-indigo-300 transition-all duration-300 shadow-lg">
-                            {client.avatar ? (
-                              <AvatarImage
-                                src={client.avatar || "/placeholder.svg"}
-                                alt={client.name || "Client"}
-                              />
-                            ) : null}
-                            <AvatarFallback
-                              className="text-white font-bold text-lg"
-                              style={{
-                                backgroundColor: nameToColor(
-                                  client.name || client.id
-                                ),
-                              }}
-                            >
-                              {getInitialsFromName(client.name || client.id)}
-                            </AvatarFallback>
-                          </Avatar>
+                    return (
+                      <Card
+                        key={client.id}
+                        className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                      >
+                        <CardContent className="p-6">
+                          {/* Identity */}
+                          <div className="flex items-start gap-4 mb-4">
+                            <Avatar className="h-16 w-16 ring-4 ring-slate-200 group-hover:ring-indigo-300 transition-all duration-300 shadow-lg">
+                              {client.avatar ? (
+                                <AvatarImage
+                                  src={client.avatar || "/placeholder.svg"}
+                                  alt={client.name || "Client"}
+                                />
+                              ) : null}
+                              <AvatarFallback
+                                className="text-white font-bold text-lg"
+                                style={{
+                                  backgroundColor: nameToColor(
+                                    client.name || client.id
+                                  ),
+                                }}
+                              >
+                                {getInitialsFromName(client.name || client.id)}
+                              </AvatarFallback>
+                            </Avatar>
 
-                          <div className="flex-1 min-w-0">
-                            <h3
-                              className="font-bold text-lg text-slate-900 truncate mb-1"
-                              title={client.name || "Unnamed Client"}
-                            >
-                              {client.name || "Unnamed Client"}
-                            </h3>
-                            <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
-                              <Building2 className="h-4 w-4 shrink-0" />
-                              <span className="truncate">
-                                {client.company || "No company"}
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-500 font-mono truncate">
-                              ID: {client.id}
+                            <div className="flex-1 min-w-0">
+                              <h3
+                                className="font-bold text-lg text-slate-900 truncate mb-1"
+                                title={client.name || "Unnamed Client"}
+                              >
+                                {client.name || "Unnamed Client"}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                                <Building2 className="h-4 w-4 shrink-0" />
+                                <span className="truncate">
+                                  {client.company || "No company"}
+                                </span>
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono truncate">
+                                ID: {client.id}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Status & Package */}
-                        <div className="space-y-3 mb-4">
-                          {getStatusBadge(client)}
+                          {/* Status & Package */}
+                          <div className="space-y-3 mb-4">
+                            {getStatusBadge(client)}
 
-                          <div className="flex flex-wrap gap-2">
-                            {client.status && (
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-xs font-medium",
-                                  client.status === "active"
-                                    ? "bg-green-50 text-green-700 border-green-200"
-                                    : client.status === "qc_approved"
-                                    ? "bg-teal-50 text-teal-700 border-teal-200"
-                                    : "bg-slate-50 text-slate-600 border-slate-200"
-                                )}
-                                title={
-                                  client.status === "qc_approved"
-                                    ? "QC Approved"
-                                    : "Client status"
-                                }
-                              >
-                                {client.status === "qc_approved" ? (
-                                  <span className="flex items-center gap-1">
-                                    <span className="font-bold">10/10</span>
-                                    <span>(1-10)</span>
+                            <div className="flex flex-wrap gap-2">
+                              {client.status && (
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-xs font-medium",
+                                    client.status === "active"
+                                      ? "bg-green-50 text-green-700 border-green-200"
+                                      : client.status === "qc_approved"
+                                      ? "bg-teal-50 text-teal-700 border-teal-200"
+                                      : "bg-slate-50 text-slate-600 border-slate-200"
+                                  )}
+                                  title={
+                                    client.status === "qc_approved"
+                                      ? "QC Approved"
+                                      : "Client status"
+                                  }
+                                >
+                                  {client.status === "qc_approved" ? (
+                                    <span className="flex items-center gap-1">
+                                      <span className="font-bold">10/10</span>
+                                      <span>(1-10)</span>
+                                    </span>
+                                  ) : (
+                                    client.status
+                                  )}
+                                </Badge>
+                              )}
+
+                              {client.package?.name && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200"
+                                  title="Client package"
+                                >
+                                  <Package className="h-3 w-3 mr-1" />
+                                  {client.package.name}
+                                </Badge>
+                              )}
+
+                              {typeof client.existingPostingTasksCount ===
+                                "number" && (
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-xs",
+                                    postingCreated
+                                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                                      : "bg-slate-50 text-slate-600 border-slate-200"
+                                  )}
+                                  title="Posting tasks created count"
+                                >
+                                  <ListChecks className="h-3 w-3 mr-1" />
+                                  {client.existingPostingTasksCount} Posting
+                                  Task
+                                  {client.existingPostingTasksCount === 1
+                                    ? ""
+                                    : "s"}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Required Assets */}
+                          {t && (
+                            <div className="mb-4 space-y-3">
+                              <div>
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                  <span className="text-slate-600 font-medium">
+                                    Required Assets
                                   </span>
-                                ) : (
-                                  client.status
-                                )}
-                              </Badge>
-                            )}
+                                  <span className="text-slate-900 font-semibold">
+                                    {t.completedTasks}/{t.totalTasks}
+                                  </span>
+                                </div>
 
-                            {client.package?.name && (
-                              <Badge
-                                variant="secondary"
-                                className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200"
-                                title="Client package"
-                              >
-                                <Package className="h-3 w-3 mr-1" />
-                                {client.package.name}
-                              </Badge>
-                            )}
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  {[
+                                    "social_site",
+                                    "web2_site",
+                                    "other_asset",
+                                  ].map((assetType) => {
+                                    const stats = t.assetTypes[assetType];
+                                    const has = !!stats && stats.total > 0;
+                                    const complete =
+                                      has && stats.completed === stats.total;
 
-                            {typeof client.existingPostingTasksCount ===
-                              "number" && (
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-xs",
-                                  postingCreated
-                                    ? "bg-blue-50 text-blue-700 border-blue-200"
-                                    : "bg-slate-50 text-slate-600 border-slate-200"
-                                )}
-                                title="Posting tasks created count"
-                              >
-                                <ListChecks className="h-3 w-3 mr-1" />
-                                {client.existingPostingTasksCount} Posting Task
-                                {client.existingPostingTasksCount === 1
-                                  ? ""
-                                  : "s"}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                                    return (
+                                      <Badge
+                                        key={assetType}
+                                        variant="outline"
+                                        className={cn(
+                                          "text-xs font-medium",
+                                          !has
+                                            ? "bg-slate-50 text-slate-400 border-slate-200"
+                                            : complete
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                            : "bg-amber-50 text-amber-700 border-amber-200"
+                                        )}
+                                      >
+                                        {getAssetTypeIcon(assetType)}
+                                        <span className="ml-1">
+                                          {fmtAssetType(assetType)}
+                                        </span>
+                                        {has && (
+                                          <span className="ml-1">
+                                            ({stats!.completed}/{stats!.total})
+                                          </span>
+                                        )}
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
 
-                        {/* Required Assets */}
-                        {t && (
-                          <div className="mb-4 space-y-3">
-                            <div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div
+                                    className={cn(
+                                      "h-2 rounded-full transition-all duration-300",
+                                      t.isReadyForTaskCreation
+                                        ? "bg-gradient-to-r from-emerald-500 to-green-500"
+                                        : "bg-gradient-to-r from-amber-500 to-orange-500"
+                                    )}
+                                    style={{
+                                      width: `${
+                                        t.totalTasks > 0
+                                          ? (t.completedTasks / t.totalTasks) *
+                                            100
+                                          : 0
+                                      }%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1 text-right">
+                                  {t.totalTasks > 0
+                                    ? Math.round(
+                                        (t.completedTasks / t.totalTasks) * 100
+                                      )
+                                    : 0}
+                                  % Complete
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Posting Tasks */}
+                          {t?.posting && (
+                            <div className="mt-5 space-y-3">
                               <div className="flex items-center justify-between text-sm mb-2">
                                 <span className="text-slate-600 font-medium">
-                                  Required Assets
+                                  Posting Tasks
                                 </span>
                                 <span className="text-slate-900 font-semibold">
-                                  {t.completedTasks}/{t.totalTasks}
+                                  {t.posting.completedPostingTasks}/
+                                  {t.posting.totalPostingTasks}
                                 </span>
                               </div>
 
                               <div className="flex flex-wrap gap-1 mb-2">
-                                {[
-                                  "social_site",
-                                  "web2_site",
-                                  "other_asset",
-                                ].map((assetType) => {
-                                  const stats = t.assetTypes[assetType];
-                                  const has = !!stats && stats.total > 0;
-                                  const complete =
-                                    has && stats.completed === stats.total;
-
-                                  return (
-                                    <Badge
-                                      key={assetType}
-                                      variant="outline"
-                                      className={cn(
-                                        "text-xs font-medium",
-                                        !has
-                                          ? "bg-slate-50 text-slate-400 border-slate-200"
-                                          : complete
-                                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                          : "bg-amber-50 text-amber-700 border-amber-200"
-                                      )}
-                                    >
-                                      {getAssetTypeIcon(assetType)}
-                                      <span className="ml-1">
-                                        {fmtAssetType(assetType)}
-                                      </span>
-                                      {has && (
-                                        <span className="ml-1">
-                                          ({stats!.completed}/{stats!.total})
-                                        </span>
-                                      )}
-                                    </Badge>
-                                  );
-                                })}
+                                {["Social Activity", "Blog Posting"].map(
+                                  (cat) => {
+                                    const stats = t.posting!.categories[cat];
+                                    const has = !!stats && stats.total > 0;
+                                    const complete =
+                                      has && stats.completed === stats.total;
+                                    return (
+                                      <Badge
+                                        key={cat}
+                                        variant="outline"
+                                        className={cn(
+                                          "text-xs font-medium",
+                                          !has
+                                            ? "bg-slate-50 text-slate-400 border-slate-200"
+                                            : complete
+                                            ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                            : "bg-blue-50 text-blue-700 border-blue-200"
+                                        )}
+                                      >
+                                        {getPostingCategoryIcon(cat)}
+                                        <span className="ml-1">{cat}</span>
+                                        {has && (
+                                          <span className="ml-1">
+                                            ({stats!.completed}/{stats!.total})
+                                          </span>
+                                        )}
+                                      </Badge>
+                                    );
+                                  }
+                                )}
                               </div>
 
                               <div className="w-full bg-slate-200 rounded-full h-2">
                                 <div
                                   className={cn(
                                     "h-2 rounded-full transition-all duration-300",
-                                    t.isReadyForTaskCreation
-                                      ? "bg-gradient-to-r from-emerald-500 to-green-500"
-                                      : "bg-gradient-to-r from-amber-500 to-orange-500"
+                                    t.posting.isAllPostingCompleted
+                                      ? "bg-gradient-to-r from-indigo-500 to-blue-500"
+                                      : "bg-gradient-to-r from-blue-500 to-sky-500"
                                   )}
                                   style={{
                                     width: `${
-                                      t.totalTasks > 0
-                                        ? (t.completedTasks / t.totalTasks) *
+                                      t.posting.totalPostingTasks > 0
+                                        ? (t.posting.completedPostingTasks /
+                                            t.posting.totalPostingTasks) *
                                           100
                                         : 0
                                     }%`,
@@ -671,155 +749,81 @@ export default function ClientUnifiedDashboard() {
                                 />
                               </div>
                               <div className="text-xs text-slate-500 mt-1 text-right">
-                                {t.totalTasks > 0
+                                {t.posting.totalPostingTasks > 0
                                   ? Math.round(
-                                      (t.completedTasks / t.totalTasks) * 100
+                                      (t.posting.completedPostingTasks /
+                                        t.posting.totalPostingTasks) *
+                                        100
                                     )
                                   : 0}
                                 % Complete
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* Posting Tasks */}
-                        {t?.posting && (
-                          <div className="mt-5 space-y-3">
-                            <div className="flex items-center justify-between text-sm mb-2">
-                              <span className="text-slate-600 font-medium">
-                                Posting Tasks
-                              </span>
-                              <span className="text-slate-900 font-semibold">
-                                {t.posting.completedPostingTasks}/
-                                {t.posting.totalPostingTasks}
-                              </span>
-                            </div>
+                          {/* Buttons: 1) Open Distribution, 2) Conditional, 3) View Details */}
+                          <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDistribution(client.id);
+                              }}
+                              className="h-11 flex-1 rounded-xl border-slate-300 hover:border-indigo-300 hover:text-indigo-700"
+                              title="Open classic distribution"
+                            >
+                              <Users className="h-4 w-4 mr-2" />
+                              Open Distribution
+                            </Button>
 
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {["Social Activity", "Blog Posting"].map(
-                                (cat) => {
-                                  const stats = t.posting!.categories[cat];
-                                  const has = !!stats && stats.total > 0;
-                                  const complete =
-                                    has && stats.completed === stats.total;
-                                  return (
-                                    <Badge
-                                      key={cat}
-                                      variant="outline"
-                                      className={cn(
-                                        "text-xs font-medium",
-                                        !has
-                                          ? "bg-slate-50 text-slate-400 border-slate-200"
-                                          : complete
-                                          ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                          : "bg-blue-50 text-blue-700 border-blue-200"
-                                      )}
-                                    >
-                                      {getPostingCategoryIcon(cat)}
-                                      <span className="ml-1">{cat}</span>
-                                      {has && (
-                                        <span className="ml-1">
-                                          ({stats!.completed}/{stats!.total})
-                                        </span>
-                                      )}
-                                    </Badge>
-                                  );
-                                }
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                conditional.go();
+                              }}
+                              className={cn(
+                                "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
+                                conditional.klass
                               )}
-                            </div>
+                              title="Proceed (condition wise)"
+                            >
+                              <div className="flex items-center gap-2">
+                                {conditional.icon}
+                                {conditional.label}
+                                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            </Button>
 
-                            <div className="w-full bg-slate-200 rounded-full h-2">
-                              <div
-                                className={cn(
-                                  "h-2 rounded-full transition-all duration-300",
-                                  t.posting.isAllPostingCompleted
-                                    ? "bg-gradient-to-r from-indigo-500 to-blue-500"
-                                    : "bg-gradient-to-r from-blue-500 to-sky-500"
-                                )}
-                                style={{
-                                  width: `${
-                                    t.posting.totalPostingTasks > 0
-                                      ? (t.posting.completedPostingTasks /
-                                          t.posting.totalPostingTasks) *
-                                        100
-                                      : 0
-                                  }%`,
-                                }}
-                              />
-                            </div>
-                            <div className="text-xs text-slate-500 mt-1 text-right">
-                              {t.posting.totalPostingTasks > 0
-                                ? Math.round(
-                                    (t.posting.completedPostingTasks /
-                                      t.posting.totalPostingTasks) *
-                                      100
-                                  )
-                                : 0}
-                              % Complete
-                            </div>
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(
+                                  `${distributionBasePath}/tasks?clientId=${client.id}`
+                                );
+                              }}
+                              className={cn(
+                                "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
+                                "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                              )}
+                              title="View client details"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4" />
+                                Show Tasks
+                                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            </Button>
                           </div>
-                        )}
-
-                        {/* Buttons: 1) Open Distribution, 2) Conditional, 3) View Details */}
-                        <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openDistribution(client.id);
-                            }}
-                            className="h-11 flex-1 rounded-xl border-slate-300 hover:border-indigo-300 hover:text-indigo-700"
-                            title="Open classic distribution"
-                          >
-                            <Users className="h-4 w-4 mr-2" />
-                            Open Distribution
-                          </Button>
-
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              conditional.go();
-                            }}
-                            className={cn(
-                              "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
-                              conditional.klass
-                            )}
-                            title="Proceed (condition wise)"
-                          >
-                            <div className="flex items-center gap-2">
-                              {conditional.icon}
-                              {conditional.label}
-                              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                          </Button>
-
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`${distributionBasePath}/client/${client.id}`);
-                            }}
-                            className={cn(
-                              "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
-                              "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                            )}
-                            title="View client details"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Building2 className="h-4 w-4" />
-                              View Details
-                              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
+                        </CardContent>
+                      </Card>
+                    );
                   })}
                 </div>
                 {hasMoreClients && (
                   <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-indigo-200/70 bg-white/80 p-4 text-center">
                     <p className="text-sm text-slate-600">
-                      Showing {visibleClients.length} of {filteredClients.length} clients
+                      Showing {visibleClients.length} of{" "}
+                      {filteredClients.length} clients
                     </p>
                     <Button
                       variant="outline"
