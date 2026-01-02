@@ -48,7 +48,7 @@ export default function TaskTimer({
   timerState: TimerState | null;
   pausedTimer: TimerState | null; // 👈 new
   onStartTimer: (taskId: string) => void;
-  onPauseTimer: (taskId: string) => void;
+  onPauseTimer: (taskId: string, pausedAt?: number) => void;
   onRequestComplete: (task: Task) => void;
   formatTimerDisplay: (seconds: number) => string;
 }) {
@@ -114,6 +114,7 @@ export default function TaskTimer({
 
     setIsSubmitting(true);
     try {
+      const pauseTimestamp = new Date().toISOString();
       const response = await fetch(`/api/tasks/${task.id}/pause`, {
         method: "POST",
         headers: {
@@ -123,12 +124,16 @@ export default function TaskTimer({
           reason:
             PAUSE_REASONS.find((r) => r.id === selectedReason)?.label ||
             selectedReason,
-          timestamp: new Date().toISOString(),
+          timestamp: pauseTimestamp,
         }),
       });
 
       if (response.ok) {
-        onPauseTimer(task.id);
+        const parsedPausedAt = new Date(pauseTimestamp).getTime();
+        const pausedAtMs = Number.isFinite(parsedPausedAt)
+          ? parsedPausedAt
+          : Date.now();
+        onPauseTimer(task.id, pausedAtMs);
         setIsPauseModalOpen(false);
         setSelectedReason("");
       } else {

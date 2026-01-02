@@ -95,7 +95,7 @@ export default function TaskList({
   onVisibleCountChange?: (count: number) => void;
   timerState: TimerState | null;
   handleStartTimer: (taskId: string) => void;
-  handlePauseTimer: (taskId: string) => void;
+  handlePauseTimer: (taskId: string, pausedAt?: number) => void;
   isTaskDisabled: (taskId: string) => boolean;
   viewMode: "grid" | "list";
   setViewMode: (v: "grid" | "list") => void;

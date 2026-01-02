@@ -142,7 +142,7 @@ export default function TaskViews({
   timerState: TimerState | null;
   pausedTimer: TimerState | null;
   handleStartTimer: (taskId: string) => void;
-  handlePauseTimer: (taskId: string) => void;
+  handlePauseTimer: (taskId: string, pausedAt?: number) => void;
   onRequestComplete: (task: Task) => void;
 
   isTaskDisabled: (id: string) => boolean;

@@ -97,6 +97,12 @@ export interface Task {
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  pauseReasons?: Array<{
+    reason?: string | null;
+    timestamp?: string | null;
+    durationInSeconds?: number | null;
+    pausedBy?: string | null;
+  }> | null;
 
   // ✅ NEW: reassignment notes from agents endpoint
   reassignNotes?: string | null;
@@ -167,6 +173,8 @@ export interface TimerState {
   isGloballyLocked: boolean;
   lockedByAgent?: string;
   startedAt?: number;
+  pausedAt?: number;
+  ownerId?: string;
 }
 interface GlobalTimerLock {
   isLocked: boolean;
@@ -197,11 +205,17 @@ const PAGE_SIZE = 1000; // load all tasks in one request for full lists
 const RUN_KEY = "runningTaskTimer"; // only the actively running timer
 const PAUSE_KEY = "pausedTaskTimer"; // at most one paused task
 const LOCK_KEY = "globalTimerLock"; // navigation lock
+const TIMER_EVENT_QUEUE_KEY = "taskTimerEventQueue";
+const TIMER_RESUME_REASON = "__RESUME__";
+const TIMER_START_REASON = "__START__";
+const AUTO_PAUSE_REASON = "__AUTO_PAUSE__";
+const AUTO_PAUSE_THRESHOLD_MS = 2 * 60 * 1000;
 
 // Exclude these categories from display
 const EXCLUDED_CATEGORIES = ["Social Communication"];
 
 type StoredTimer = TimerState & { savedAt?: number; agentId?: string };
+type QueuedTimerEvent = { taskId: string; reason: string; timestamp: string };
 
 /* =========================
    Utils
@@ -218,6 +232,102 @@ const formatTimerDisplay = (seconds: number): string => {
   return `${minutes.toString().padStart(2, "0")}:${secs
     .toString()
     .padStart(2, "0")}`;
+};
+
+type TimerEvent = { type: "resume" | "pause"; ts: number };
+
+const parseTimerTimestamp = (value: unknown) => {
+  if (!value) return null;
+  const ts = new Date(String(value)).getTime();
+  return Number.isFinite(ts) ? ts : null;
+};
+
+const buildTimerEvents = (task: Task | null | undefined, fallbackStartMs?: number): TimerEvent[] => {
+  const events: TimerEvent[] = [];
+  if (task?.pauseReasons && Array.isArray(task.pauseReasons)) {
+    for (const entry of task.pauseReasons) {
+      const ts = parseTimerTimestamp(entry?.timestamp);
+      if (ts == null) continue;
+      const reason = typeof entry?.reason === "string" ? entry.reason : "";
+      if (reason === TIMER_RESUME_REASON || reason === TIMER_START_REASON) {
+        events.push({ type: "resume", ts });
+      } else {
+        events.push({ type: "pause", ts });
+      }
+    }
+  }
+
+  if (fallbackStartMs && !events.some((e) => e.type === "resume")) {
+    events.push({ type: "resume", ts: fallbackStartMs });
+  }
+
+  events.sort((a, b) => a.ts - b.ts);
+  return events;
+};
+
+const calculateElapsedSeconds = (
+  task: Task | null | undefined,
+  fallbackStartMs: number | undefined,
+  nowMs: number
+) => {
+  const events = buildTimerEvents(task, fallbackStartMs);
+  let runningFrom: number | null = null;
+  let elapsedMs = 0;
+
+  for (const event of events) {
+    if (event.type === "resume") {
+      if (runningFrom == null) runningFrom = event.ts;
+    } else if (runningFrom != null) {
+      elapsedMs += event.ts - runningFrom;
+      runningFrom = null;
+    }
+  }
+
+  if (runningFrom != null) {
+    elapsedMs += nowMs - runningFrom;
+  }
+
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return 0;
+  return Math.floor(elapsedMs / 1000);
+};
+
+const calculateRemainingSeconds = (
+  task: Task | null | undefined,
+  timer: TimerState,
+  nowMs: number
+) => {
+  const totalSeconds =
+    timer.totalSeconds || (task?.idealDurationMinutes ?? 0) * 60;
+  if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
+    return timer.remainingSeconds;
+  }
+  const hasEvents =
+    Array.isArray(task?.pauseReasons) && task.pauseReasons.length > 0;
+  if (!hasEvents && !timer.startedAt) {
+    return timer.remainingSeconds;
+  }
+  const elapsedSeconds = calculateElapsedSeconds(
+    task,
+    timer.startedAt,
+    nowMs
+  );
+  return totalSeconds - elapsedSeconds;
+};
+
+const getOrCreateSessionId = () => {
+  if (typeof window === "undefined") return "server";
+  try {
+    const existing = window.sessionStorage.getItem("taskTimerSessionId");
+    if (existing) return existing;
+    const generated =
+      typeof window.crypto?.randomUUID === "function"
+        ? window.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    window.sessionStorage.setItem("taskTimerSessionId", generated);
+    return generated;
+  } catch {
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
 };
 
 const getStatusBadge = (status: string) => {
@@ -320,6 +430,9 @@ export function ClientTasksView({
 }: ClientTasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const tasksRef = useRef<Task[]>([]);
+  const pinnedTaskRef = useRef<Task | null>(null);
+  const lastTimerSaveRef = useRef<number>(0);
+  const sessionIdRef = useRef<string>(getOrCreateSessionId());
   const [page, setPage] = useState(1);
   const pageRef = useRef(1);
   const [visibleCount, setVisibleCount] = useState(0);
@@ -360,6 +473,16 @@ export function ClientTasksView({
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [pausedTimer, setPausedTimer] = useState<TimerState | null>(null); // new
+
+  useEffect(() => {
+    pinnedTaskRef.current = pinnedTask;
+  }, [pinnedTask]);
+
+  const getTaskById = useCallback((taskId: string) => {
+    const fromList = tasksRef.current.find((t) => t.id === taskId);
+    if (fromList) return fromList;
+    return pinnedTaskRef.current?.id === taskId ? pinnedTaskRef.current : null;
+  }, []);
 
   const applyStatusDelta = useCallback(
     (prevStatus?: string | null, nextStatus?: string | null) => {
@@ -652,6 +775,8 @@ export function ClientTasksView({
           isGloballyLocked: false,
           lockedByAgent: p.lockedByAgent,
           startedAt: p.startedAt || Date.now(),
+          pausedAt: p.pausedAt ?? p.savedAt ?? Date.now(),
+          ownerId: p.ownerId,
         });
       } else {
         setPausedTimer(null);
@@ -870,6 +995,127 @@ export function ClientTasksView({
     [agentId, tasks, setGlobalTimerLock]
   );
 
+  const enqueueTimerEvent = useCallback((event: QueuedTimerEvent) => {
+    try {
+      const raw = localStorage.getItem(TIMER_EVENT_QUEUE_KEY);
+      const parsed = raw ? (JSON.parse(raw) as QueuedTimerEvent[]) : [];
+      const queue = Array.isArray(parsed) ? parsed : [];
+      queue.push(event);
+      localStorage.setItem(TIMER_EVENT_QUEUE_KEY, JSON.stringify(queue));
+    } catch {}
+  }, []);
+
+  const flushTimerEventQueue = useCallback(async () => {
+    try {
+      const raw = localStorage.getItem(TIMER_EVENT_QUEUE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as QueuedTimerEvent[];
+      if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+      const remaining: QueuedTimerEvent[] = [];
+      for (const event of parsed) {
+        try {
+          const res = await fetch(`/api/tasks/${event.taskId}/pause`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reason: event.reason,
+              timestamp: event.timestamp,
+            }),
+          });
+          if (!res.ok) throw new Error("Failed to persist timer event");
+        } catch {
+          remaining.push(event);
+        }
+      }
+
+      if (remaining.length === 0) {
+        localStorage.removeItem(TIMER_EVENT_QUEUE_KEY);
+      } else {
+        localStorage.setItem(
+          TIMER_EVENT_QUEUE_KEY,
+          JSON.stringify(remaining)
+        );
+      }
+    } catch {}
+  }, []);
+
+  const logTimerEvent = useCallback(
+    async (
+      taskId: string,
+      reason: string,
+      timestampMs?: number,
+      options?: { preferBeacon?: boolean }
+    ) => {
+      const timestamp = new Date(timestampMs ?? Date.now()).toISOString();
+      const payload = { reason, timestamp };
+      try {
+        if (
+          options?.preferBeacon &&
+          typeof navigator !== "undefined" &&
+          typeof navigator.sendBeacon === "function"
+        ) {
+          const blob = new Blob([JSON.stringify(payload)], {
+            type: "application/json",
+          });
+          const ok = navigator.sendBeacon(`/api/tasks/${taskId}/pause`, blob);
+          if (ok) return;
+        }
+
+        const res = await fetch(`/api/tasks/${taskId}/pause`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to log timer event");
+      } catch (error) {
+        enqueueTimerEvent({ taskId, reason, timestamp });
+        console.warn("Failed to log timer event:", reason, error);
+      }
+    },
+    [enqueueTimerEvent]
+  );
+
+  const autoPauseActiveTimer = useCallback(
+    (reason: string, pausedAt?: number, options?: { preferBeacon?: boolean }) => {
+      if (!timerState?.isRunning) return;
+      if (timerState.ownerId && timerState.ownerId !== sessionIdRef.current) {
+        return;
+      }
+
+      const nowMs = pausedAt ?? Date.now();
+      const task = getTaskById(timerState.taskId);
+      const baseTimer: TimerState = {
+        ...timerState,
+        isRunning: false,
+        isGloballyLocked: false,
+        pausedAt: nowMs,
+      };
+      const updatedTimer: TimerState = {
+        ...baseTimer,
+        remainingSeconds: calculateRemainingSeconds(task, baseTimer, nowMs),
+      };
+
+      setTimerState(updatedTimer);
+      setPausedTimer(updatedTimer);
+      saveTimerToStorage(updatedTimer);
+      void logTimerEvent(timerState.taskId, reason, nowMs, options);
+    },
+    [getTaskById, logTimerEvent, saveTimerToStorage, timerState]
+  );
+
+  useEffect(() => {
+    flushTimerEventQueue();
+  }, [flushTimerEventQueue]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      flushTimerEventQueue();
+    };
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [flushTimerEventQueue]);
+
   const loadTimerFromStorage = useCallback(() => {
     try {
       const raw =
@@ -880,13 +1126,59 @@ export function ClientTasksView({
 
       if (raw) {
         const timerData = JSON.parse(raw) as StoredTimer;
+        const savedAt = timerData.savedAt ?? Date.now();
+        const ownedByThisTab =
+          !!timerData.ownerId && timerData.ownerId === sessionIdRef.current;
+        const allowAutoPause = !timerData.ownerId || ownedByThisTab;
 
         let remaining = timerData.remainingSeconds;
         if (timerData.isRunning) {
-          const elapsed = Math.floor(
-            (Date.now() - (timerData.savedAt || Date.now())) / 1000
-          );
+          const elapsed = Math.floor((Date.now() - savedAt) / 1000);
           remaining = Math.max(0, remaining - elapsed);
+        }
+
+        const pausedAt = timerData.isRunning
+          ? undefined
+          : timerData.pausedAt ?? timerData.savedAt ?? Date.now();
+
+        if (
+          timerData.isRunning &&
+          allowAutoPause &&
+          Date.now() - savedAt > AUTO_PAUSE_THRESHOLD_MS
+        ) {
+          const baseTimer: TimerState = {
+            taskId: timerData.taskId,
+            remainingSeconds: timerData.remainingSeconds,
+            isRunning: false,
+            totalSeconds: timerData.totalSeconds,
+            isGloballyLocked: false,
+            lockedByAgent: timerData.lockedByAgent,
+            startedAt: timerData.startedAt || savedAt,
+            pausedAt: savedAt,
+            ownerId: timerData.ownerId,
+          };
+          const task = getTaskById(timerData.taskId);
+          const autoPaused: TimerState = {
+            ...baseTimer,
+            remainingSeconds: calculateRemainingSeconds(
+              task,
+              baseTimer,
+              savedAt
+            ),
+          };
+
+          setTimerState(autoPaused);
+          setPausedTimer(autoPaused);
+          saveTimerToStorage(autoPaused);
+          void logTimerEvent(
+            timerData.taskId,
+            `${AUTO_PAUSE_REASON}_RECOVERY`,
+            savedAt
+          );
+
+          const taskName = task?.name || "Unknown Task";
+          toast.info(`Timer auto-paused for "${taskName}".`);
+          return autoPaused;
         }
 
         const restored: TimerState = {
@@ -897,9 +1189,14 @@ export function ClientTasksView({
           isGloballyLocked: !!timerData.isGloballyLocked,
           lockedByAgent: timerData.lockedByAgent,
           startedAt: timerData.startedAt || Date.now(),
+          pausedAt,
+          ownerId: timerData.ownerId,
         };
 
         setTimerState(restored);
+        if (restored.isRunning && timerData.savedAt) {
+          lastTimerSaveRef.current = timerData.savedAt;
+        }
 
         const lock = lockRaw ? (JSON.parse(lockRaw) as GlobalTimerLock) : null;
         if (lock) {
@@ -920,12 +1217,116 @@ export function ClientTasksView({
       console.error("Failed to load timer:", e);
     }
     return null;
-  }, [setGlobalTimerLock]);
+  }, [getTaskById, logTimerEvent, saveTimerToStorage, setGlobalTimerLock]);
 
   useEffect(() => {
     loadTimerFromStorage();
     loadPausedFromStorage();
   }, [loadPausedFromStorage, loadTimerFromStorage]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (!event.key) return;
+      if (
+        event.key === RUN_KEY ||
+        event.key === PAUSE_KEY ||
+        event.key === LOCK_KEY ||
+        event.key === "taskTimer" ||
+        event.key === "globalTimerLock"
+      ) {
+        loadTimerFromStorage();
+        loadPausedFromStorage();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [loadPausedFromStorage, loadTimerFromStorage]);
+
+  useEffect(() => {
+    const syncFromVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      loadTimerFromStorage();
+      loadPausedFromStorage();
+    };
+
+    window.addEventListener("focus", syncFromVisibility);
+    document.addEventListener("visibilitychange", syncFromVisibility);
+    return () => {
+      window.removeEventListener("focus", syncFromVisibility);
+      document.removeEventListener("visibilitychange", syncFromVisibility);
+    };
+  }, [loadPausedFromStorage, loadTimerFromStorage]);
+
+  useEffect(() => {
+    const handleOffline = () => {
+      autoPauseActiveTimer(`${AUTO_PAUSE_REASON}_OFFLINE`);
+    };
+    window.addEventListener("offline", handleOffline);
+    return () => window.removeEventListener("offline", handleOffline);
+  }, [autoPauseActiveTimer]);
+
+  useEffect(() => {
+    const handlePageHide = (event: PageTransitionEvent) => {
+      if (event.persisted) return;
+      autoPauseActiveTimer(`${AUTO_PAUSE_REASON}_UNLOAD`, Date.now(), {
+        preferBeacon: true,
+      });
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("beforeunload", handlePageHide as any);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("beforeunload", handlePageHide as any);
+    };
+  }, [autoPauseActiveTimer]);
+
+  useEffect(() => {
+    if (!timerState) return;
+    const task = getTaskById(timerState.taskId);
+    if (!task) return;
+    const nowMs = timerState.isRunning
+      ? Date.now()
+      : timerState.pausedAt ?? Date.now();
+    const nextRemaining = calculateRemainingSeconds(task, timerState, nowMs);
+    if (nextRemaining !== timerState.remainingSeconds) {
+      setTimerState((prev) => {
+        if (!prev || prev.taskId !== timerState.taskId) return prev;
+        if (prev.remainingSeconds === nextRemaining) return prev;
+        return { ...prev, remainingSeconds: nextRemaining };
+      });
+    }
+  }, [
+    timerState,
+    timerState?.taskId,
+    timerState?.isRunning,
+    timerState?.pausedAt,
+    tasksFromServer,
+    pinnedTask,
+    getTaskById,
+  ]);
+
+  useEffect(() => {
+    if (!pausedTimer) return;
+    const task = getTaskById(pausedTimer.taskId);
+    if (!task) return;
+    const nowMs = pausedTimer.pausedAt ?? Date.now();
+    const nextRemaining = calculateRemainingSeconds(task, pausedTimer, nowMs);
+    if (nextRemaining !== pausedTimer.remainingSeconds) {
+      setPausedTimer((prev) => {
+        if (!prev || prev.taskId !== pausedTimer.taskId) return prev;
+        if (prev.remainingSeconds === nextRemaining) return prev;
+        return { ...prev, remainingSeconds: nextRemaining };
+      });
+    }
+  }, [
+    pausedTimer,
+    pausedTimer?.taskId,
+    pausedTimer?.pausedAt,
+    tasksFromServer,
+    pinnedTask,
+    getTaskById,
+  ]);
 
   const isTaskDisabled = useCallback((_taskId: string) => false, []);
   const isAnyTimerRunning = globalTimerLock.isLocked;
@@ -966,6 +1367,7 @@ export function ClientTasksView({
               : totalSeconds;
         }
 
+        const resumeAt = Date.now();
         const newTimer: TimerState = {
           taskId,
           remainingSeconds,
@@ -973,11 +1375,19 @@ export function ClientTasksView({
           totalSeconds: totalSeconds > 0 ? totalSeconds : remainingSeconds,
           isGloballyLocked: true,
           lockedByAgent: agentId,
-          startedAt: Date.now(),
+          startedAt: resumeAt,
+          pausedAt: undefined,
+          ownerId: sessionIdRef.current,
         };
 
         setTimerState(newTimer);
         saveTimerToStorage(newTimer);
+        lastTimerSaveRef.current = resumeAt;
+        const eventReason =
+          remainingSeconds !== totalSeconds
+            ? TIMER_RESUME_REASON
+            : TIMER_START_REASON;
+        void logTimerEvent(taskId, eventReason, resumeAt);
 
         toast.success(
           `Timer ${
@@ -996,11 +1406,12 @@ export function ClientTasksView({
       handleUpdateTask,
       agentId,
       setPausedTimer,
+      logTimerEvent,
     ]
   );
 
   const handlePauseTimer = useCallback(
-    (taskId: string) => {
+    (taskId: string, pausedAt?: number) => {
       if (!timerState || timerState.taskId !== taskId) return;
 
       try {
@@ -1017,23 +1428,30 @@ export function ClientTasksView({
       } catch {}
 
       if (timerState?.taskId === taskId) {
-        const updatedTimer = {
+        const nowMs = pausedAt ?? Date.now();
+        const task = getTaskById(taskId);
+        const baseTimer: TimerState = {
           ...timerState,
           isRunning: false,
           isGloballyLocked: false,
+          pausedAt: nowMs,
+        };
+        const updatedTimer = {
+          ...baseTimer,
+          remainingSeconds: calculateRemainingSeconds(task, baseTimer, nowMs),
         };
 
         setTimerState(updatedTimer);
         setPausedTimer(updatedTimer);
         saveTimerToStorage(updatedTimer);
 
-        const task = tasks.find((t) => t.id === taskId);
+        const taskInfo = tasks.find((t) => t.id === taskId);
         toast.info(
-          `Timer paused for "${task?.name}". All tasks are now unlocked.`
+          `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`
         );
       }
     },
-    [timerState, tasks, saveTimerToStorage]
+    [timerState, tasks, saveTimerToStorage, getTaskById]
   );
 
   const handleResetTimer = useCallback(
@@ -1060,6 +1478,8 @@ export function ClientTasksView({
           isRunning: false,
           totalSeconds,
           isGloballyLocked: false,
+          startedAt: undefined,
+          pausedAt: undefined,
         };
 
         setTimerState(updatedTimer);
@@ -1105,6 +1525,7 @@ export function ClientTasksView({
     if (!taskToComplete) return;
 
     let actualDurationMinutes = taskToComplete.actualDurationMinutes;
+    let remainingAtComplete: number | null = null;
     let performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy" =
       "Average";
 
@@ -1112,8 +1533,16 @@ export function ClientTasksView({
       timerState?.taskId === taskToComplete.id &&
       taskToComplete.idealDurationMinutes
     ) {
+      const nowMs = Date.now();
+      const taskForTimer = getTaskById(taskToComplete.id);
+      const effectiveRemaining = calculateRemainingSeconds(
+        taskForTimer,
+        timerState,
+        nowMs
+      );
+      remainingAtComplete = effectiveRemaining;
       const totalTimeUsedSeconds =
-        (timerState.totalSeconds || 0) - (timerState.remainingSeconds || 0);
+        (timerState.totalSeconds || 0) - (effectiveRemaining || 0);
       const mins = Math.ceil(totalTimeUsedSeconds / 60);
       actualDurationMinutes = Math.max(1, mins || 0);
 
@@ -1157,7 +1586,7 @@ export function ClientTasksView({
         timerState?.taskId === taskToComplete.id &&
         taskToComplete.idealDurationMinutes
       ) {
-        if ((timerState?.remainingSeconds ?? 0) <= 0) {
+        if ((remainingAtComplete ?? timerState?.remainingSeconds ?? 0) <= 0) {
           toast.success(
             `Task "${taskToComplete.name}" completed with overtime!`
           );
@@ -1185,6 +1614,7 @@ export function ClientTasksView({
     email,
     password,
     stopTimerNow,
+    getTaskById,
     handleUpdateTask,
     applyLocalTaskPatch,
     saveTimerToStorage,
@@ -1234,8 +1664,15 @@ export function ClientTasksView({
               }
               const task = tasks.find((t) => t.id === taskId);
               if (timerState?.taskId === taskId && task?.idealDurationMinutes) {
+                const nowMs = Date.now();
+                const taskForTimer = getTaskById(taskId);
+                const effectiveRemaining = calculateRemainingSeconds(
+                  taskForTimer,
+                  timerState,
+                  nowMs
+                );
                 const totalTimeUsedSeconds =
-                  timerState.totalSeconds - timerState.remainingSeconds;
+                  timerState.totalSeconds - effectiveRemaining;
                 const actualDurationMinutes = Math.ceil(
                   totalTimeUsedSeconds / 60
                 );
@@ -1301,6 +1738,7 @@ export function ClientTasksView({
       applyLocalTaskPatch,
       tasks,
       timerState,
+      getTaskById,
       saveTimerToStorage,
     ]
   );
@@ -1322,16 +1760,22 @@ export function ClientTasksView({
     let interval: NodeJS.Timeout | null = null;
     if (timerState?.isRunning) {
       interval = setInterval(() => {
+        const nowMs = Date.now();
         setTimerState((prev) => {
           if (!prev || !prev.isRunning) return prev;
-          const newRemainingSeconds = prev.remainingSeconds - 1;
+          const task = getTaskById(prev.taskId);
+          const nextRemaining = calculateRemainingSeconds(task, prev, nowMs);
+          if (nextRemaining === prev.remainingSeconds) {
+            return prev;
+          }
+
           const updatedTimer = {
             ...prev,
-            remainingSeconds: newRemainingSeconds,
+            remainingSeconds: nextRemaining,
           };
 
-          if (newRemainingSeconds === 0) {
-            const task = tasks.find((t) => t.id === prev.taskId);
+          const crossedOverdue = prev.remainingSeconds > 0 && nextRemaining <= 0;
+          if (crossedOverdue) {
             if (task && task.status === "in_progress") {
               handleUpdateTask(prev.taskId, { status: "overdue" })
                 .then(() => {
@@ -1344,7 +1788,10 @@ export function ClientTasksView({
             }
           }
 
-          if (newRemainingSeconds % 5 === 0 || newRemainingSeconds === 0) {
+          const shouldSave =
+            crossedOverdue || nowMs - lastTimerSaveRef.current >= 5000;
+          if (shouldSave) {
+            lastTimerSaveRef.current = nowMs;
             saveTimerToStorage(updatedTimer);
           }
           return updatedTimer;
@@ -1354,7 +1801,12 @@ export function ClientTasksView({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerState?.isRunning, saveTimerToStorage, tasks, handleUpdateTask]);
+  }, [
+    timerState?.isRunning,
+    saveTimerToStorage,
+    handleUpdateTask,
+    getTaskById,
+  ]);
 
   const error = fetchError ? fetchError.message : null;
 

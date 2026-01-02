@@ -47,6 +47,7 @@ const TASK_SELECT = {
   reassignNotes: true,
   qcReview: true,
   qcTotalScore: true,
+  pauseReasons: true,
   clientId: true,
   categoryId: true,
   templateSiteAssetId: true,
