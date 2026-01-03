@@ -1555,6 +1555,79 @@ export function ClientTasksView({
       else performanceRating = "Lazy";
     }
 
+    await completeTaskWithActualDuration(actualDurationMinutes, performanceRating, remainingAtComplete);
+  }, [
+    taskToComplete,
+    timerState,
+    stopTimerNow,
+    getTaskById,
+    handleUpdateTask,
+    applyLocalTaskPatch,
+  ]);
+
+  const handleTaskCompletionWithElapsed = useCallback(async (elapsedMinutes?: number) => {
+    if (!taskToComplete) return;
+
+    let actualDurationMinutes = taskToComplete.actualDurationMinutes;
+    let performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy" =
+      "Average";
+
+    if (elapsedMinutes !== undefined) {
+      // Use elapsed minutes from CompletionDialog
+      actualDurationMinutes = elapsedMinutes;
+      
+      // Calculate performance rating if we have ideal duration
+      if (taskToComplete.idealDurationMinutes) {
+        const ratio = actualDurationMinutes / taskToComplete.idealDurationMinutes;
+        if (ratio <= 1.2) performanceRating = "Excellent";
+        else if (ratio <= 1.5) performanceRating = "Good";
+        else if (ratio <= 2.0) performanceRating = "Average";
+        else if (ratio <= 3.0) performanceRating = "Poor";
+        else performanceRating = "Lazy";
+      }
+    } else if (
+      timerState?.taskId === taskToComplete.id &&
+      taskToComplete.idealDurationMinutes
+    ) {
+      // Original logic: calculate from timer state
+      const nowMs = Date.now();
+      const taskForTimer = getTaskById(taskToComplete.id);
+      const effectiveRemaining = calculateRemainingSeconds(
+        taskForTimer,
+        timerState,
+        nowMs
+      );
+      const remainingAtComplete = effectiveRemaining;
+      const totalTimeUsedSeconds =
+        (timerState.totalSeconds || 0) - (effectiveRemaining || 0);
+      const mins = Math.ceil(totalTimeUsedSeconds / 60);
+      actualDurationMinutes = Math.max(1, mins || 0);
+
+      const ratio =
+        actualDurationMinutes / taskToComplete.idealDurationMinutes;
+      if (ratio <= 1.2) performanceRating = "Excellent";
+      else if (ratio <= 1.5) performanceRating = "Good";
+      else if (ratio <= 2.0) performanceRating = "Average";
+      else if (ratio <= 3.0) performanceRating = "Poor";
+      else performanceRating = "Lazy";
+    }
+
+    await completeTaskWithActualDuration(actualDurationMinutes, performanceRating, null);
+  }, [
+    taskToComplete,
+    timerState,
+    stopTimerNow,
+    getTaskById,
+    handleUpdateTask,
+    applyLocalTaskPatch,
+  ]);
+
+  const completeTaskWithActualDuration = useCallback(async (
+    actualDurationMinutes: number | undefined,
+    performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy",
+    remainingAtComplete: number | null
+  ) => {
+
     const rollback = stopTimerNow(taskToComplete.id);
 
     try {
@@ -1614,7 +1687,6 @@ export function ClientTasksView({
     email,
     password,
     stopTimerNow,
-    getTaskById,
     handleUpdateTask,
     applyLocalTaskPatch,
     saveTimerToStorage,
@@ -2086,7 +2158,7 @@ export function ClientTasksView({
           password={password}
           setPassword={setPassword}
           timerState={timerState}
-          handleTaskCompletion={handleTaskCompletion}
+          handleTaskCompletion={handleTaskCompletionWithElapsed}
           handleCompletionCancel={handleCompletionCancel}
           isBulkCompletionOpen={isBulkCompletionOpen}
           setIsBulkCompletionOpen={setIsBulkCompletionOpen}

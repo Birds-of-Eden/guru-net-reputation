@@ -33,7 +33,7 @@ interface CompletionDialogProps {
   setUsername: (val: string) => void;
   setPassword: (val: string) => void;
   resetModal: () => void;
-  submit: () => void;
+  submit: (elapsedMinutes?: number) => void; // Added elapsedMinutes parameter
   isSimpleTask: (task: any) => boolean;
   timerState?: any; // Timer data from TaskTimer
   pausedTimer?: any; // Paused timer data
@@ -279,10 +279,10 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
             className="ml-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
             onClick={() => {
               // Include time tracking data in submission
-              const timeSpentMinutes = timerInfo
+              const elapsedMinutes = timerInfo
                 ? Math.ceil(timerInfo.elapsedSeconds / 60)
                 : 0;
-              submit();
+              submit(elapsedMinutes);
             }}
           >
             <CheckCircle2 className="h-5 w-5 mr-2" />

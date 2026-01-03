@@ -63,7 +63,7 @@ export default function TaskDialogs({
   password: string;
   setPassword: (v: string) => void;
   timerState: TimerState | null;
-  handleTaskCompletion: () => void;
+  handleTaskCompletion: (elapsedMinutes?: number) => void;
   handleCompletionCancel: () => void;
   formatTimerDisplay: (seconds: number) => string;
   isBulkCompletionOpen: boolean;
@@ -139,9 +139,9 @@ export default function TaskDialogs({
     return false;
   };
 
-  const guardedSubmit = () => {
+  const guardedSubmit = (elapsedMinutes?: number) => {
     if (showShortDurationIfNeeded()) return;
-    handleTaskCompletion();
+    handleTaskCompletion(elapsedMinutes);
   };
 
   const resetAllCompletionModals = () => {
@@ -174,7 +174,7 @@ export default function TaskDialogs({
         }}
         onConfirm={() => {
           setIsShortDurationConfirmOpen(false);
-          handleTaskCompletion();
+          handleTaskCompletion(); // No elapsed minutes available here, use default behavior
         }}
       />
 
