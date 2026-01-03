@@ -632,6 +632,7 @@ export function ClientTasksView({
     data: completedTasksResponse,
     error: completedTasksError,
     isLoading: isLoadingCompletedTasks,
+    mutate: mutateCompletedTasks,
   } = useSWR(
     completedTasksKey,
     async (url: string) => {
@@ -744,9 +745,12 @@ export function ClientTasksView({
   const isInitialLoading = swrLoading && !taskResponse;
   const isRefreshing = isValidating && !isInitialLoading;
   const refreshTasks = useCallback(async () => {
-    // Revalidate existing pages without collapsing back to the first page
-    await mutate();
-  }, [mutate]);
+    // Revalidate both the paged list and the completed list so the tabs stay up to date
+    await Promise.all([
+      mutate(),
+      mutateCompletedTasks ? mutateCompletedTasks() : Promise.resolve(),
+    ]);
+  }, [mutate, mutateCompletedTasks]);
 
   useEffect(() => {
     setPage(1);
@@ -1655,6 +1659,9 @@ export function ClientTasksView({
       setEmail("");
       setPassword("");
 
+      // Refresh tasks to get real-time completion status
+      await refreshTasks();
+
       if (
         timerState?.taskId === taskToComplete.id &&
         taskToComplete.idealDurationMinutes
@@ -1690,6 +1697,7 @@ export function ClientTasksView({
     handleUpdateTask,
     applyLocalTaskPatch,
     saveTimerToStorage,
+    refreshTasks,
   ]);
 
   const handleCompletionCancel = useCallback(() => {
@@ -1787,6 +1795,8 @@ export function ClientTasksView({
               successCount !== 1 ? "s" : ""
             } to ${action === "completed" ? "completed" : action}`
           );
+          // Refresh tasks to get real-time status updates
+          await refreshTasks();
         }
         if (errorCount > 0) {
           toast.error(
@@ -1812,6 +1822,7 @@ export function ClientTasksView({
       timerState,
       getTaskById,
       saveTimerToStorage,
+      refreshTasks,
     ]
   );
 
