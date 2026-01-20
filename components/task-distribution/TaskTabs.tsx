@@ -38,6 +38,7 @@ type CycleGroup = {
   label: string;
   baseName: string;
   tasks: Task[];
+  isManual?: boolean;
 };
 
 interface TaskTabsProps {
@@ -72,15 +73,25 @@ interface TaskTabsProps {
 }
 
 const extractCycleInfo = (taskName: string) => {
-  const match = taskName.match(/^(.+?)\\s+-(\\d+)$/);
+  // Check if this is a Manual task first
+  const isManualTask = taskName.toLowerCase().startsWith('manual');
+  
+  // Handle various patterns: "Task -1", "manual task -1", "SlideShare Task -55", etc.
+  const match = taskName.match(/^(.+?)\s*-\s*(\d+)$/);
   if (match) {
     return {
       baseName: match[1].trim(),
       cycle: parseInt(match[2], 10),
       cycleLabel: `-${match[2]}`,
+      isManual: isManualTask,
     };
   }
-  return { baseName: taskName, cycle: 0, cycleLabel: "" };
+  return { 
+    baseName: taskName, 
+    cycle: 0, 
+    cycleLabel: "",
+    isManual: isManualTask,
+  };
 };
 
 const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
@@ -88,7 +99,10 @@ const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
 
   tasks.forEach((task) => {
     const cycleInfo = extractCycleInfo(task.name);
-    const key = cycleInfo.cycleLabel || "_nocycle";
+    // Create separate keys for Manual and regular tasks, even with same cycle number
+    const key = cycleInfo.isManual 
+      ? `manual_${cycleInfo.cycleLabel || "nocycle"}`
+      : cycleInfo.cycleLabel || "_nocycle";
 
     if (!grouped[key]) {
       grouped[key] = {
@@ -96,6 +110,7 @@ const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
         label: cycleInfo.cycleLabel,
         baseName: cycleInfo.baseName,
         tasks: [],
+        isManual: cycleInfo.isManual,
       };
     }
 
@@ -103,6 +118,11 @@ const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
   });
 
   return Object.values(grouped).sort((a, b) => {
+    // Manual tasks always come first
+    if (a.isManual && !b.isManual) return -1;
+    if (!a.isManual && b.isManual) return 1;
+    
+    // Then sort by cycle number (ascending)
     if (a.cycle === 0) return 1;
     if (b.cycle === 0) return -1;
     return a.cycle - b.cycle;
@@ -206,13 +226,14 @@ export function TaskTabs({
                   taskAssignments.some((a) => a.taskId === t.id)
                 ).length;
                 const dueDate = group.tasks[0]?.dueDate;
-                const headerLabel =
-                  (group.label ?? "").trim() || group.baseName || "Task Cycle";
+                const headerLabel = group.isManual 
+                  ? `Manual ${group.label}` 
+                  : (group.label ?? "").trim() || group.baseName || "Task Cycle";
 
                 return (
                   <AccordionItem
-                    key={group.label || `cycle-${group.cycle || "na"}`}
-                    value={group.label || `cycle-${group.cycle || "na"}`}
+                    key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
+                    value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                     className="border-b border-slate-200 last:border-0"
                   >
                     <div className="flex items-stretch">
@@ -235,7 +256,7 @@ export function TaskTabs({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-slate-900">
-                                {headerLabel}
+                               Task Cycle {headerLabel}
                               </span>
                               <Badge variant="outline" className="text-xs">
                                 {group.tasks.length} task
@@ -472,17 +493,16 @@ export function TaskTabs({
                           taskAssignments.some((a) => a.taskId === t.id)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel =
-                          (group.label ?? "").trim() ||
+                        const headerLabel = group.isManual 
+                          ? `Manual ${group.label}` 
+                          : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
 
                         return (
                           <AccordionItem
-                            key={group.label || `cycle-${group.cycle || "na"}`}
-                            value={
-                              group.label || `cycle-${group.cycle || "na"}`
-                            }
+                            key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
+                            value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
@@ -630,17 +650,16 @@ export function TaskTabs({
                           taskAssignments.some((a) => a.taskId === t.id)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel =
-                          (group.label ?? "").trim() ||
+                        const headerLabel = group.isManual 
+                          ? `Manual ${group.label}` 
+                          : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
 
                         return (
                           <AccordionItem
-                            key={group.label || `cycle-${group.cycle || "na"}`}
-                            value={
-                              group.label || `cycle-${group.cycle || "na"}`
-                            }
+                            key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
+                            value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
@@ -788,17 +807,16 @@ export function TaskTabs({
                           taskAssignments.some((a) => a.taskId === t.id)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
-                        const headerLabel =
-                          (group.label ?? "").trim() ||
+                        const headerLabel = group.isManual 
+                          ? `Manual ${group.label}` 
+                          : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
 
                         return (
                           <AccordionItem
-                            key={group.label || `cycle-${group.cycle || "na"}`}
-                            value={
-                              group.label || `cycle-${group.cycle || "na"}`
-                            }
+                            key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
+                            value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
