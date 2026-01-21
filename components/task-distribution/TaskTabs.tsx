@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Globe, Building2, CheckCircle2 } from "lucide-react";
+import { Users, Globe, Building2, CheckCircle2, Clock, AlertCircle, UserCheck } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -129,6 +129,170 @@ const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
   });
 };
 
+const getTaskStatusBreakdown = (tasks: Task[], taskAssignments: TaskAssignment[]) => {
+  const statusCounts = {
+    assigned: 0,
+    completed: 0,
+    pending: 0,
+    in_progress: 0,
+    qa_approved: 0,
+  };
+
+  tasks.forEach((task) => {
+    const assignedToId = (task as any)?.assignedToId as string | undefined;
+    const isAssigned =
+      taskAssignments.some((a) => a.taskId === task.id) ||
+      Boolean(task.assignedTo) ||
+      Boolean(assignedToId);
+    
+    if (isAssigned) {
+      statusCounts.assigned++;
+    }
+    
+    const normalizedStatus = (task.status ?? "")
+      .toLowerCase()
+      .replace(/[\s_-]/g, "");
+
+    switch (normalizedStatus) {
+      case 'completed':
+        statusCounts.completed++;
+        break;
+      case 'pending':
+        statusCounts.pending++;
+        break;
+      case 'inprogress':
+        statusCounts.in_progress++;
+        break;
+      case 'qaapproved':
+      case 'qcapproved':
+        statusCounts.qa_approved++;
+        break;
+      default:
+        if (!isAssigned) {
+          statusCounts.pending++;
+        }
+        break;
+    }
+  });
+
+  return statusCounts;
+};
+
+const StatusBreakdownBadges = ({
+  statusCounts,
+  totalTasks,
+  className,
+}: {
+  statusCounts: ReturnType<typeof getTaskStatusBreakdown>;
+  totalTasks: number;
+  className?: string;
+}) => {
+  // If all tasks are assigned, show green "All Assigned" badge alongside status breakdown
+  if (statusCounts.assigned === totalTasks && totalTasks > 0) {
+    // Build badges list with All Assigned first, then status breakdown
+    const allBadges = [];
+    allBadges.push(
+      <Badge key="all-assigned" variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs font-semibold">
+        <CheckCircle2 className="w-3 h-3 mr-1" />
+        All Assigned
+      </Badge>
+    );
+    
+    // Add status breakdown badges even when all assigned
+    if (statusCounts.completed > 0) {
+      allBadges.push(
+        <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+          <CheckCircle2 className="w-3 h-3 mr-1" />
+          {statusCounts.completed} Completed
+        </Badge>
+      );
+    }
+    if (statusCounts.in_progress > 0) {
+      allBadges.push(
+        <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+          <Clock className="w-3 h-3 mr-1" />
+          {statusCounts.in_progress} In Progress
+        </Badge>
+      );
+    }
+    if (statusCounts.pending > 0) {
+      allBadges.push(
+        <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          {statusCounts.pending} Pending
+        </Badge>
+      );
+    }
+    if (statusCounts.qa_approved > 0) {
+      allBadges.push(
+        <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+          <CheckCircle2 className="w-3 h-3 mr-1" />
+          {statusCounts.qa_approved} QC Approved
+        </Badge>
+      );
+    }
+    
+    return (
+      <div className={`flex flex-wrap gap-1 mt-2 ${className ?? ""}`.trim()}>
+        {allBadges}
+      </div>
+    );
+  }
+
+  const badges = [];
+  
+  if (statusCounts.assigned > 0) {
+    badges.push(
+      <Badge key="assigned" variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+        <UserCheck className="w-3 h-3 mr-1" />
+        {statusCounts.assigned} Assigned
+      </Badge>
+    );
+  }
+  
+  if (statusCounts.completed > 0) {
+    badges.push(
+      <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+        <CheckCircle2 className="w-3 h-3 mr-1" />
+        {statusCounts.completed} Completed
+      </Badge>
+    );
+  }
+  
+  if (statusCounts.in_progress > 0) {
+    badges.push(
+      <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+        <Clock className="w-3 h-3 mr-1" />
+        {statusCounts.in_progress} In Progress
+      </Badge>
+    );
+  }
+  
+  if (statusCounts.pending > 0) {
+    badges.push(
+      <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+        <AlertCircle className="w-3 h-3 mr-1" />
+        {statusCounts.pending} Pending
+      </Badge>
+    );
+  }
+  
+  if (statusCounts.qa_approved > 0) {
+    badges.push(
+      <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+        <CheckCircle2 className="w-3 h-3 mr-1" />
+        {statusCounts.qa_approved} QC Approved
+      </Badge>
+    );
+  }
+
+  return badges.length > 0 ? (
+    <div className={`flex flex-wrap gap-1 mt-2 ${className ?? ""}`.trim()}>
+      {badges}
+    </div>
+  ) : null;
+};
+
 /**
  * Small helper to normalize & sort agents by load (least → most).
  */
@@ -214,7 +378,7 @@ export function TaskTabs({
     };
 
     return (
-      <div className="w-full space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+      <div className="w-full space-y-4">
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           {useCycles && cycleGroups.length ? (
             <Accordion type="multiple" className="divide-y divide-slate-200">
@@ -222,13 +386,17 @@ export function TaskTabs({
                 const ids = group.tasks.map((t) => t.id);
                 const allSelected = ids.every((id) => selectedTasks.has(id));
                 const someSelected = ids.some((id) => selectedTasks.has(id));
-                const assignedInGroup = group.tasks.filter((t) =>
-                  taskAssignments.some((a) => a.taskId === t.id)
+                const assignedInGroup = group.tasks.filter(
+                  (t) =>
+                    taskAssignments.some((a) => a.taskId === t.id) ||
+                    Boolean(t.assignedTo) ||
+                    Boolean((t as any)?.assignedToId)
                 ).length;
                 const dueDate = group.tasks[0]?.dueDate;
                 const headerLabel = group.isManual 
                   ? `Manual ${group.label}` 
                   : (group.label ?? "").trim() || group.baseName || "Task Cycle";
+                const statusBreakdown = getTaskStatusBreakdown(group.tasks, taskAssignments);
 
                 return (
                   <AccordionItem
@@ -237,7 +405,7 @@ export function TaskTabs({
                     className="border-b border-slate-200 last:border-0"
                   >
                     <div className="flex items-stretch">
-                      <div className="flex items-center px-4 py-3">
+                      <div className="flex items-center px-4 py-4">
                         <Checkbox
                           checked={allSelected}
                           ref={(el) => {
@@ -251,12 +419,12 @@ export function TaskTabs({
                           className="border-slate-300"
                         />
                       </div>
-                      <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
-                        <div className="flex items-center gap-3 flex-1 text-left">
-                          <div className="flex-1 min-w-0">
+                      <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                        <div className="flex w-full items-center gap-4">
+                          <div className="min-w-[240px]">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-slate-900">
-                               Task Cycle {headerLabel}
+                                Task Cycle {headerLabel}
                               </span>
                               <Badge variant="outline" className="text-xs">
                                 {group.tasks.length} task
@@ -264,34 +432,37 @@ export function TaskTabs({
                               </Badge>
                             </div>
                             <div className="text-xs text-slate-500">
-                              {group.cycle > 0
-                                ? `Cycle ${group.cycle}`
-                                : "Cycle —"}
+                              {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                               {dueDate
-                                ? ` • Due ${format(
-                                    new Date(dueDate),
-                                    "MMM d, yyyy"
-                                  )}`
+                                ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
                                 : ""}
                             </div>
                           </div>
-                          {someSelected && (
-                            <Badge
-                              variant="outline"
-                              className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                            >
-                              {ids.filter((id) => selectedTasks.has(id)).length}{" "}
-                              selected
-                            </Badge>
-                          )}
-                          {assignedInGroup > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-                            >
-                              {assignedInGroup} assigned
-                            </Badge>
-                          )}
+
+                          <div className="flex-1 flex justify-center">
+                            <StatusBreakdownBadges
+                              statusCounts={statusBreakdown}
+                              totalTasks={group.tasks.length}
+                              className="mt-0 justify-center"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right">
+                              <div className="text-sm font-semibold text-slate-700">
+                                {assignedInGroup} / {group.tasks.length}
+                              </div>
+                              <div className="text-xs text-slate-500">Assigned</div>
+                            </div>
+                            {someSelected && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                              >
+                                {ids.filter((id) => selectedTasks.has(id)).length} selected
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </AccordionTrigger>
                     </div>
@@ -436,7 +607,7 @@ export function TaskTabs({
 
           {/* Tab panes with cycle-based accordions */}
           <TabsContent value="social_site" className="mt-0">
-            <div className="w-full space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+            <div className="w-full space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.social_site);
@@ -489,8 +660,11 @@ export function TaskTabs({
                         const someSelected = ids.some((id) =>
                           selectedTasks.has(id)
                         );
-                        const assignedInGroup = group.tasks.filter((t) =>
-                          taskAssignments.some((a) => a.taskId === t.id)
+                        const assignedInGroup = group.tasks.filter(
+                          (t) =>
+                            taskAssignments.some((a) => a.taskId === t.id) ||
+                            Boolean(t.assignedTo) ||
+                            Boolean((t as any)?.assignedToId)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
                         const headerLabel = group.isManual 
@@ -498,6 +672,7 @@ export function TaskTabs({
                           : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
+                        const statusBreakdown = getTaskStatusBreakdown(group.tasks, taskAssignments);
 
                         return (
                           <AccordionItem
@@ -506,7 +681,7 @@ export function TaskTabs({
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
-                              <div className="flex items-center px-4 py-3">
+                              <div className="flex items-center px-4 py-4">
                                 <Checkbox
                                   checked={allSelected}
                                   ref={(el) => {
@@ -520,54 +695,50 @@ export function TaskTabs({
                                   className="border-slate-300"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
-                                <div className="flex items-center gap-3 flex-1 text-left">
-                                  <div className="flex-1 min-w-0">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                                <div className="flex w-full items-center gap-4">
+                                  <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
                                       <span className="font-semibold text-slate-900">
                                         {headerLabel}
                                       </span>
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
+                                      <Badge variant="outline" className="text-xs">
                                         {group.tasks.length} task
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0
-                                        ? `Cycle ${group.cycle}`
-                                        : "Cycle —"}
+                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
-                                        ? ` • Due ${format(
-                                            new Date(dueDate),
-                                            "MMM d, yyyy"
-                                          )}`
+                                        ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
                                         : ""}
                                     </div>
                                   </div>
-                                  {someSelected && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                                    >
-                                      {
-                                        ids.filter((id) =>
-                                          selectedTasks.has(id)
-                                        ).length
-                                      }{" "}
-                                      selected
-                                    </Badge>
-                                  )}
-                                  {assignedInGroup > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-                                    >
-                                      {assignedInGroup} assigned
-                                    </Badge>
-                                  )}
+
+                                  <div className="flex-1 flex justify-center">
+                                    <StatusBreakdownBadges
+                                      statusCounts={statusBreakdown}
+                                      totalTasks={group.tasks.length}
+                                      className="mt-0 justify-center"
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <div className="text-right">
+                                      <div className="text-sm font-semibold text-slate-700">
+                                        {assignedInGroup} / {group.tasks.length}
+                                      </div>
+                                      <div className="text-xs text-slate-500">Assigned</div>
+                                    </div>
+                                    {someSelected && (
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                      >
+                                        {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </AccordionTrigger>
                             </div>
@@ -593,7 +764,7 @@ export function TaskTabs({
           </TabsContent>
 
           <TabsContent value="web2_site" className="mt-0">
-            <div className="w-full space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+            <div className="w-full space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.web2_site);
@@ -646,8 +817,11 @@ export function TaskTabs({
                         const someSelected = ids.some((id) =>
                           selectedTasks.has(id)
                         );
-                        const assignedInGroup = group.tasks.filter((t) =>
-                          taskAssignments.some((a) => a.taskId === t.id)
+                        const assignedInGroup = group.tasks.filter(
+                          (t) =>
+                            taskAssignments.some((a) => a.taskId === t.id) ||
+                            Boolean(t.assignedTo) ||
+                            Boolean((t as any)?.assignedToId)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
                         const headerLabel = group.isManual 
@@ -655,6 +829,7 @@ export function TaskTabs({
                           : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
+                        const statusBreakdown = getTaskStatusBreakdown(group.tasks, taskAssignments);
 
                         return (
                           <AccordionItem
@@ -663,7 +838,7 @@ export function TaskTabs({
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
-                              <div className="flex items-center px-4 py-3">
+                              <div className="flex items-center px-4 py-4">
                                 <Checkbox
                                   checked={allSelected}
                                   ref={(el) => {
@@ -677,54 +852,50 @@ export function TaskTabs({
                                   className="border-slate-300"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
-                                <div className="flex items-center gap-3 flex-1 text-left">
-                                  <div className="flex-1 min-w-0">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                                <div className="flex w-full items-center gap-4">
+                                  <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
                                       <span className="font-semibold text-slate-900">
                                         {headerLabel}
                                       </span>
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
+                                      <Badge variant="outline" className="text-xs">
                                         {group.tasks.length} task
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0
-                                        ? `Cycle ${group.cycle}`
-                                        : "Cycle —"}
+                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
-                                        ? ` • Due ${format(
-                                            new Date(dueDate),
-                                            "MMM d, yyyy"
-                                          )}`
+                                        ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
                                         : ""}
                                     </div>
                                   </div>
-                                  {someSelected && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                                    >
-                                      {
-                                        ids.filter((id) =>
-                                          selectedTasks.has(id)
-                                        ).length
-                                      }{" "}
-                                      selected
-                                    </Badge>
-                                  )}
-                                  {assignedInGroup > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-                                    >
-                                      {assignedInGroup} assigned
-                                    </Badge>
-                                  )}
+
+                                  <div className="flex-1 flex justify-center">
+                                    <StatusBreakdownBadges
+                                      statusCounts={statusBreakdown}
+                                      totalTasks={group.tasks.length}
+                                      className="mt-0 justify-center"
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <div className="text-right">
+                                      <div className="text-sm font-semibold text-slate-700">
+                                        {assignedInGroup} / {group.tasks.length}
+                                      </div>
+                                      <div className="text-xs text-slate-500">Assigned</div>
+                                    </div>
+                                    {someSelected && (
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                      >
+                                        {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </AccordionTrigger>
                             </div>
@@ -750,7 +921,7 @@ export function TaskTabs({
           </TabsContent>
 
           <TabsContent value="other_asset" className="mt-0">
-            <div className="w-full space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+            <div className="w-full space-y-4">
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.other_asset);
@@ -803,8 +974,11 @@ export function TaskTabs({
                         const someSelected = ids.some((id) =>
                           selectedTasks.has(id)
                         );
-                        const assignedInGroup = group.tasks.filter((t) =>
-                          taskAssignments.some((a) => a.taskId === t.id)
+                        const assignedInGroup = group.tasks.filter(
+                          (t) =>
+                            taskAssignments.some((a) => a.taskId === t.id) ||
+                            Boolean(t.assignedTo) ||
+                            Boolean((t as any)?.assignedToId)
                         ).length;
                         const dueDate = group.tasks[0]?.dueDate;
                         const headerLabel = group.isManual 
@@ -812,6 +986,7 @@ export function TaskTabs({
                           : (group.label ?? "").trim() ||
                           group.baseName ||
                           "Task Cycle";
+                        const statusBreakdown = getTaskStatusBreakdown(group.tasks, taskAssignments);
 
                         return (
                           <AccordionItem
@@ -820,7 +995,7 @@ export function TaskTabs({
                             className="border-b border-slate-200 last:border-0"
                           >
                             <div className="flex items-stretch">
-                              <div className="flex items-center px-4 py-3">
+                              <div className="flex items-center px-4 py-4">
                                 <Checkbox
                                   checked={allSelected}
                                   ref={(el) => {
@@ -834,54 +1009,50 @@ export function TaskTabs({
                                   className="border-slate-300"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-3 hover:bg-slate-50 hover:no-underline">
-                                <div className="flex items-center gap-3 flex-1 text-left">
-                                  <div className="flex-1 min-w-0">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                                <div className="flex w-full items-center gap-4">
+                                  <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
                                       <span className="font-semibold text-slate-900">
                                         {headerLabel}
                                       </span>
-                                      <Badge
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
+                                      <Badge variant="outline" className="text-xs">
                                         {group.tasks.length} task
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
                                     <div className="text-xs text-slate-500">
-                                      {group.cycle > 0
-                                        ? `Cycle ${group.cycle}`
-                                        : "Cycle —"}
+                                      {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
-                                        ? ` • Due ${format(
-                                            new Date(dueDate),
-                                            "MMM d, yyyy"
-                                          )}`
+                                        ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
                                         : ""}
                                     </div>
                                   </div>
-                                  {someSelected && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
-                                    >
-                                      {
-                                        ids.filter((id) =>
-                                          selectedTasks.has(id)
-                                        ).length
-                                      }{" "}
-                                      selected
-                                    </Badge>
-                                  )}
-                                  {assignedInGroup > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
-                                    >
-                                      {assignedInGroup} assigned
-                                    </Badge>
-                                  )}
+
+                                  <div className="flex-1 flex justify-center">
+                                    <StatusBreakdownBadges
+                                      statusCounts={statusBreakdown}
+                                      totalTasks={group.tasks.length}
+                                      className="mt-0 justify-center"
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <div className="text-right">
+                                      <div className="text-sm font-semibold text-slate-700">
+                                        {assignedInGroup} / {group.tasks.length}
+                                      </div>
+                                      <div className="text-xs text-slate-500">Assigned</div>
+                                    </div>
+                                    {someSelected && (
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                      >
+                                        {ids.filter((id) => selectedTasks.has(id)).length} selected
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               </AccordionTrigger>
                             </div>
