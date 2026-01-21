@@ -58,7 +58,7 @@ interface TaskListItemProps {
     taskId: string,
     agentId: string,
     isMultipleSelected: boolean,
-    isFirstSelectedTask: boolean
+    isFirstSelectedTask: boolean,
   ) => void;
   onNoteChange: (note: string) => void;
   isNested?: boolean;
@@ -106,7 +106,7 @@ export const TaskListItem = memo(function TaskListItem({
   const assignedAgentId: string | null = (task as any)?.assignedToId ?? null;
   const combinedAgents = useMemo(
     () => [...teamAgents, ...allAgents],
-    [teamAgents, allAgents]
+    [teamAgents, allAgents],
   );
 
   const SiteIcon =
@@ -136,7 +136,7 @@ export const TaskListItem = memo(function TaskListItem({
     "Assigned";
 
   const previewAgent = combinedAgents.find(
-    (a: any) => a.id === assignment?.agentId
+    (a: any) => a.id === assignment?.agentId,
   );
   const previewDisplayName =
     previewAgent?.name ||
@@ -149,23 +149,41 @@ export const TaskListItem = memo(function TaskListItem({
 
     return (
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-        <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+        <Badge
+          variant="outline"
+          className="border-slate-200 bg-white text-slate-700"
+        >
           {active} active
         </Badge>
-        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+        <Badge
+          variant="outline"
+          className="border-amber-200 bg-amber-50 text-amber-700"
+        >
           W:{weighted}
         </Badge>
         <div className="mx-1 h-3.5 w-px bg-slate-200" />
-        <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+        <Badge
+          variant="outline"
+          className="border-slate-200 bg-white text-slate-700"
+        >
           P:{P}
         </Badge>
-        <Badge variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-700">
+        <Badge
+          variant="outline"
+          className="border-indigo-200 bg-indigo-50 text-indigo-700"
+        >
           IP:{IP}
         </Badge>
-        <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
+        <Badge
+          variant="outline"
+          className="border-rose-200 bg-rose-50 text-rose-700"
+        >
           O:{O}
         </Badge>
-        <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700">
+        <Badge
+          variant="outline"
+          className="border-orange-200 bg-orange-50 text-orange-700"
+        >
           R:{R}
         </Badge>
       </div>
@@ -231,16 +249,20 @@ export const TaskListItem = memo(function TaskListItem({
               </h3>
               <div className="flex items-center space-x-2">
                 <Badge
-                  className={`text-[11px] font-semibold ${priorityColors[
-                    (priorityKey as keyof typeof priorityColors) ?? "medium"
-                  ] || priorityColors.medium}`}
+                  className={`text-[11px] font-semibold ${
+                    priorityColors[
+                      (priorityKey as keyof typeof priorityColors) ?? "medium"
+                    ] || priorityColors.medium
+                  }`}
                 >
                   {priorityKey.toUpperCase()}
                 </Badge>
                 <Badge
-                  className={`text-[11px] font-semibold ${statusColors[
-                    (statusKey as keyof typeof statusColors) ?? "pending"
-                  ] || statusColors.pending}`}
+                  className={`text-[11px] font-semibold ${
+                    statusColors[
+                      (statusKey as keyof typeof statusColors) ?? "pending"
+                    ] || statusColors.pending
+                  }`}
                 >
                   {statusKey.replace("_", " ").toUpperCase()}
                 </Badge>
@@ -407,8 +429,8 @@ export const TaskListItem = memo(function TaskListItem({
                               shouldDisableDropdown
                                 ? "Controlled by first task..."
                                 : isFirstSelectedTask && isMultipleSelected
-                                ? "Choose agent for multiple tasks..."
-                                : "Choose agent..."
+                                  ? "Choose agent for multiple tasks..."
+                                  : "Choose agent..."
                             }
                           />
                         </SelectTrigger>
@@ -450,7 +472,7 @@ export const TaskListItem = memo(function TaskListItem({
                               const initials = getInitialsFromParts(
                                 agent.firstName,
                                 agent.lastName,
-                                agent.name || agent.email
+                                agent.name || agent.email,
                               );
                               const bg = nameToColor(display);
 

@@ -45,7 +45,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const ClientDashboard = lazy(() =>
   import("@/components/clients/clientsID/client-dashboard").then((m) => ({
     default: m.ClientDashboard,
-  }))
+  })),
 );
 
 const ClientDashboardSkeleton = () => (
@@ -243,7 +243,10 @@ const parseTimerTimestamp = (value: unknown) => {
   return Number.isFinite(ts) ? ts : null;
 };
 
-const buildTimerEvents = (task: Task | null | undefined, fallbackStartMs?: number): TimerEvent[] => {
+const buildTimerEvents = (
+  task: Task | null | undefined,
+  fallbackStartMs?: number,
+): TimerEvent[] => {
   const events: TimerEvent[] = [];
   if (task?.pauseReasons && Array.isArray(task.pauseReasons)) {
     for (const entry of task.pauseReasons) {
@@ -269,7 +272,7 @@ const buildTimerEvents = (task: Task | null | undefined, fallbackStartMs?: numbe
 const calculateElapsedSeconds = (
   task: Task | null | undefined,
   fallbackStartMs: number | undefined,
-  nowMs: number
+  nowMs: number,
 ) => {
   const events = buildTimerEvents(task, fallbackStartMs);
   let runningFrom: number | null = null;
@@ -295,7 +298,7 @@ const calculateElapsedSeconds = (
 const calculateRemainingSeconds = (
   task: Task | null | undefined,
   timer: TimerState,
-  nowMs: number
+  nowMs: number,
 ) => {
   const totalSeconds =
     timer.totalSeconds || (task?.idealDurationMinutes ?? 0) * 60;
@@ -307,11 +310,7 @@ const calculateRemainingSeconds = (
   if (!hasEvents && !timer.startedAt) {
     return timer.remainingSeconds;
   }
-  const elapsedSeconds = calculateElapsedSeconds(
-    task,
-    timer.startedAt,
-    nowMs
-  );
+  const elapsedSeconds = calculateElapsedSeconds(task, timer.startedAt, nowMs);
   return totalSeconds - elapsedSeconds;
 };
 
@@ -551,15 +550,15 @@ export function ClientTasksView({
         return next;
       });
     },
-    []
+    [],
   );
 
   const mergedExcludedCategories = useMemo(
     () =>
       Array.from(
-        new Set([...(excludedCategories ?? []), ...EXCLUDED_CATEGORIES])
+        new Set([...(excludedCategories ?? []), ...EXCLUDED_CATEGORIES]),
       ),
-    [excludedCategories]
+    [excludedCategories],
   );
 
   const buildQueryString = useCallback(
@@ -582,7 +581,7 @@ export function ClientTasksView({
       mergedExcludedCategories,
       priorityFilter,
       statusFilter,
-    ]
+    ],
   );
 
   const buildCompletedTasksQuery = useCallback(() => {
@@ -627,37 +626,35 @@ export function ClientTasksView({
     },
     {
       keepPreviousData: true,
-    }
+    },
   );
 
   const {
     data: completedTasksResponse,
     error: completedTasksError,
     isLoading: isLoadingCompletedTasks,
-  } = useSWR(
-    completedTasksKey,
-    async (url: string) => {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) {
-        const payload = await res.json().catch(() => ({}));
-        const message =
-          payload?.error ||
-          payload?.message ||
-          `Failed to fetch completed tasks (${res.status})`;
-        throw new Error(message);
-      }
-      return res.json();
+    mutate: mutateCompletedTasks,
+  } = useSWR(completedTasksKey, async (url: string) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}));
+      const message =
+        payload?.error ||
+        payload?.message ||
+        `Failed to fetch completed tasks (${res.status})`;
+      throw new Error(message);
     }
-  );
+    return res.json();
+  });
 
   const tasksFromServer = useMemo(
     () => (taskResponse?.tasks as Task[]) ?? [],
-    [taskResponse]
+    [taskResponse],
   );
 
   const completedTasksFromServer = useMemo(
     () => (completedTasksResponse?.tasks as Task[]) ?? [],
-    [completedTasksResponse]
+    [completedTasksResponse],
   );
 
   useEffect(() => {
@@ -700,7 +697,7 @@ export function ClientTasksView({
         if (agentId) params.set("agentId", agentId);
         const res = await fetch(
           `/api/tasks/client/${clientId}?${params.toString()}`,
-          { cache: "no-store" }
+          { cache: "no-store" },
         );
         if (!res.ok) return;
         const payload = await res.json();
@@ -726,7 +723,7 @@ export function ClientTasksView({
 
   const serverCounts = useMemo(
     () => (taskResponse?.counts as any) ?? null,
-    [taskResponse]
+    [taskResponse],
   );
 
   useEffect(() => {
@@ -747,9 +744,12 @@ export function ClientTasksView({
   const isInitialLoading = swrLoading && !taskResponse;
   const isRefreshing = isValidating && !isInitialLoading;
   const refreshTasks = useCallback(async () => {
-    // Revalidate existing pages without collapsing back to the first page
-    await mutate();
-  }, [mutate]);
+    // Revalidate both the paged list and the completed list so the tabs stay up to date
+    await Promise.all([
+      mutate(),
+      mutateCompletedTasks ? mutateCompletedTasks() : Promise.resolve(),
+    ]);
+  }, [mutate, mutateCompletedTasks]);
 
   useEffect(() => {
     setPage(1);
@@ -834,25 +834,25 @@ export function ClientTasksView({
   }, [clientId, normalizeClientData]);
 
   useEffect(() => {
-    if (isClientModalOpen) {
+    if (isClientModalOpen || isCompletionConfirmOpen) {
       fetchClientData();
     }
-  }, [isClientModalOpen, fetchClientData]);
+  }, [isClientModalOpen, isCompletionConfirmOpen, fetchClientData]);
 
   const applyLocalTaskPatch = useCallback(
     (taskId: string, updates: Partial<Task>) => {
       setTasks((prev) => {
         const next = prev.map((t) =>
-          t.id === taskId ? ({ ...t, ...updates } as Task) : t
+          t.id === taskId ? ({ ...t, ...updates } as Task) : t,
         );
         tasksRef.current = next;
         return next;
       });
       setPinnedTask((prev) =>
-        prev && prev.id === taskId ? ({ ...prev, ...updates } as Task) : prev
+        prev && prev.id === taskId ? ({ ...prev, ...updates } as Task) : prev,
       );
     },
-    []
+    [],
   );
 
   // ✅ PATCH merge-guard
@@ -867,7 +867,7 @@ export function ClientTasksView({
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.message || `HTTP error! status: ${response.status}`
+            errorData.message || `HTTP error! status: ${response.status}`,
           );
         }
         const updatedTask = await response.json();
@@ -900,7 +900,8 @@ export function ClientTasksView({
           const merged: any = { ...prev, ...updatedTask };
           if (updatedTask.templateSiteAsset == null)
             merged.templateSiteAsset = prev.templateSiteAsset;
-          if (updatedTask.assignment == null) merged.assignment = prev.assignment;
+          if (updatedTask.assignment == null)
+            merged.assignment = prev.assignment;
           if (updatedTask.category == null) merged.category = prev.category;
           if (updatedTask.completionLink == null)
             merged.completionLink = prev.completionLink;
@@ -923,7 +924,7 @@ export function ClientTasksView({
         throw err;
       }
     },
-    [agentId, applyStatusDelta]
+    [agentId, applyStatusDelta],
   );
 
   const saveTimerToStorage = useCallback(
@@ -995,7 +996,7 @@ export function ClientTasksView({
         console.error("Failed to save timer to storage:", e);
       }
     },
-    [agentId, tasks, setGlobalTimerLock]
+    [agentId, tasks, setGlobalTimerLock],
   );
 
   const enqueueTimerEvent = useCallback((event: QueuedTimerEvent) => {
@@ -1035,10 +1036,7 @@ export function ClientTasksView({
       if (remaining.length === 0) {
         localStorage.removeItem(TIMER_EVENT_QUEUE_KEY);
       } else {
-        localStorage.setItem(
-          TIMER_EVENT_QUEUE_KEY,
-          JSON.stringify(remaining)
-        );
+        localStorage.setItem(TIMER_EVENT_QUEUE_KEY, JSON.stringify(remaining));
       }
     } catch {}
   }, []);
@@ -1048,7 +1046,7 @@ export function ClientTasksView({
       taskId: string,
       reason: string,
       timestampMs?: number,
-      options?: { preferBeacon?: boolean }
+      options?: { preferBeacon?: boolean },
     ) => {
       const timestamp = new Date(timestampMs ?? Date.now()).toISOString();
       const payload = { reason, timestamp };
@@ -1076,11 +1074,15 @@ export function ClientTasksView({
         console.warn("Failed to log timer event:", reason, error);
       }
     },
-    [enqueueTimerEvent]
+    [enqueueTimerEvent],
   );
 
   const autoPauseActiveTimer = useCallback(
-    (reason: string, pausedAt?: number, options?: { preferBeacon?: boolean }) => {
+    (
+      reason: string,
+      pausedAt?: number,
+      options?: { preferBeacon?: boolean },
+    ) => {
       if (!timerState?.isRunning) return;
       if (timerState.ownerId && timerState.ownerId !== sessionIdRef.current) {
         return;
@@ -1104,7 +1106,7 @@ export function ClientTasksView({
       saveTimerToStorage(updatedTimer);
       void logTimerEvent(timerState.taskId, reason, nowMs, options);
     },
-    [getTaskById, logTimerEvent, saveTimerToStorage, timerState]
+    [getTaskById, logTimerEvent, saveTimerToStorage, timerState],
   );
 
   useEffect(() => {
@@ -1142,7 +1144,7 @@ export function ClientTasksView({
 
         const pausedAt = timerData.isRunning
           ? undefined
-          : timerData.pausedAt ?? timerData.savedAt ?? Date.now();
+          : (timerData.pausedAt ?? timerData.savedAt ?? Date.now());
 
         if (
           timerData.isRunning &&
@@ -1166,7 +1168,7 @@ export function ClientTasksView({
             remainingSeconds: calculateRemainingSeconds(
               task,
               baseTimer,
-              savedAt
+              savedAt,
             ),
           };
 
@@ -1176,7 +1178,7 @@ export function ClientTasksView({
           void logTimerEvent(
             timerData.taskId,
             `${AUTO_PAUSE_REASON}_RECOVERY`,
-            savedAt
+            savedAt,
           );
 
           const taskName = task?.name || "Unknown Task";
@@ -1212,7 +1214,7 @@ export function ClientTasksView({
         toast.info(
           restored.isRunning
             ? `Timer restored for "${taskName}".`
-            : `Paused timer data available for "${taskName}".`
+            : `Paused timer data available for "${taskName}".`,
         );
         return restored;
       }
@@ -1290,7 +1292,7 @@ export function ClientTasksView({
     if (!task) return;
     const nowMs = timerState.isRunning
       ? Date.now()
-      : timerState.pausedAt ?? Date.now();
+      : (timerState.pausedAt ?? Date.now());
     const nextRemaining = calculateRemainingSeconds(task, timerState, nowMs);
     if (nextRemaining !== timerState.remainingSeconds) {
       setTimerState((prev) => {
@@ -1395,7 +1397,7 @@ export function ClientTasksView({
         toast.success(
           `Timer ${
             remainingSeconds !== totalSeconds ? "resumed" : "started"
-          } for "${task.name}".`
+          } for "${task.name}".`,
         );
       } catch {
         toast.error("Failed to start timer");
@@ -1410,7 +1412,7 @@ export function ClientTasksView({
       agentId,
       setPausedTimer,
       logTimerEvent,
-    ]
+    ],
   );
 
   const handlePauseTimer = useCallback(
@@ -1423,7 +1425,7 @@ export function ClientTasksView({
           const paused: StoredTimer = JSON.parse(existing);
           if (paused.taskId !== taskId) {
             toast.error(
-              "Another task is already paused. Resume or complete it before pausing this task."
+              "Another task is already paused. Resume or complete it before pausing this task.",
             );
             return;
           }
@@ -1450,11 +1452,11 @@ export function ClientTasksView({
 
         const taskInfo = tasks.find((t) => t.id === taskId);
         toast.info(
-          `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`
+          `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`,
         );
       }
     },
-    [timerState, tasks, saveTimerToStorage, getTaskById]
+    [timerState, tasks, saveTimerToStorage, getTaskById],
   );
 
   const handleResetTimer = useCallback(
@@ -1498,7 +1500,7 @@ export function ClientTasksView({
         toast.info(`Timer reset for "${task?.name}".`);
       }
     },
-    [timerState, tasks, saveTimerToStorage, pausedTimer]
+    [timerState, tasks, saveTimerToStorage, pausedTimer],
   );
 
   const formatDuration = (minutes: number): string => {
@@ -1521,7 +1523,7 @@ export function ClientTasksView({
 
       return snapshot;
     },
-    [timerState, saveTimerToStorage]
+    [timerState, saveTimerToStorage],
   );
 
   const handleTaskCompletion = useCallback(async () => {
@@ -1541,7 +1543,7 @@ export function ClientTasksView({
       const effectiveRemaining = calculateRemainingSeconds(
         taskForTimer,
         timerState,
-        nowMs
+        nowMs,
       );
       remainingAtComplete = effectiveRemaining;
       const totalTimeUsedSeconds =
@@ -1549,8 +1551,7 @@ export function ClientTasksView({
       const mins = Math.ceil(totalTimeUsedSeconds / 60);
       actualDurationMinutes = Math.max(1, mins || 0);
 
-      const ratio =
-        actualDurationMinutes / taskToComplete.idealDurationMinutes;
+      const ratio = actualDurationMinutes / taskToComplete.idealDurationMinutes;
       if (ratio <= 1.2) performanceRating = "Excellent";
       else if (ratio <= 1.5) performanceRating = "Good";
       else if (ratio <= 2.0) performanceRating = "Average";
@@ -1558,70 +1559,165 @@ export function ClientTasksView({
       else performanceRating = "Lazy";
     }
 
-    const rollback = stopTimerNow(taskToComplete.id);
-
-    try {
-      const updates: any = {
-        status: "completed",
-        completedAt: new Date().toISOString(),
-      };
-      if (completionLink?.trim()) updates.completionLink = completionLink.trim();
-      if (username?.trim()) updates.username = username.trim();
-      if (email?.trim()) updates.email = email.trim();
-      if (password?.trim()) updates.password = password;
-      if (typeof actualDurationMinutes === "number") {
-        updates.actualDurationMinutes = actualDurationMinutes;
-        updates.performanceRating = performanceRating;
-      }
-
-      await handleUpdateTask(taskToComplete.id, updates);
-
-      applyLocalTaskPatch(taskToComplete.id, updates);
-
-      setIsCompletionConfirmOpen(false);
-      setTaskToComplete(null);
-      setCompletionLink("");
-      setUsername("");
-      setEmail("");
-      setPassword("");
-
-      if (
-        timerState?.taskId === taskToComplete.id &&
-        taskToComplete.idealDurationMinutes
-      ) {
-        if ((remainingAtComplete ?? timerState?.remainingSeconds ?? 0) <= 0) {
-          toast.success(
-            `Task "${taskToComplete.name}" completed with overtime!`
-          );
-        } else {
-          toast.success(
-            `Task "${taskToComplete.name}" completed ahead of schedule!`
-          );
-        }
-      } else {
-        toast.success(`Task "${taskToComplete.name}" marked as completed!`);
-      }
-    } catch (e) {
-      if (rollback) {
-        setTimerState(rollback);
-        if (rollback.isRunning) saveTimerToStorage(rollback);
-      }
-      console.error("Failed to complete task:", e);
-      toast.error("Failed to complete task. Please try again.");
-    }
+    await completeTaskWithActualDuration(
+      actualDurationMinutes,
+      performanceRating,
+      remainingAtComplete,
+    );
   }, [
     taskToComplete,
     timerState,
-    completionLink,
-    username,
-    email,
-    password,
     stopTimerNow,
     getTaskById,
     handleUpdateTask,
     applyLocalTaskPatch,
-    saveTimerToStorage,
   ]);
+
+  const handleTaskCompletionWithElapsed = useCallback(
+    async (elapsedMinutes?: number) => {
+      if (!taskToComplete) return;
+
+      let actualDurationMinutes = taskToComplete.actualDurationMinutes;
+      let performanceRating:
+        | "Excellent"
+        | "Good"
+        | "Average"
+        | "Poor"
+        | "Lazy" = "Average";
+
+      if (elapsedMinutes !== undefined) {
+        // Use elapsed minutes from CompletionDialog
+        actualDurationMinutes = elapsedMinutes;
+
+        // Calculate performance rating if we have ideal duration
+        if (taskToComplete.idealDurationMinutes) {
+          const ratio =
+            actualDurationMinutes / taskToComplete.idealDurationMinutes;
+          if (ratio <= 1.2) performanceRating = "Excellent";
+          else if (ratio <= 1.5) performanceRating = "Good";
+          else if (ratio <= 2.0) performanceRating = "Average";
+          else if (ratio <= 3.0) performanceRating = "Poor";
+          else performanceRating = "Lazy";
+        }
+      } else if (
+        timerState?.taskId === taskToComplete.id &&
+        taskToComplete.idealDurationMinutes
+      ) {
+        // Original logic: calculate from timer state
+        const nowMs = Date.now();
+        const taskForTimer = getTaskById(taskToComplete.id);
+        const effectiveRemaining = calculateRemainingSeconds(
+          taskForTimer,
+          timerState,
+          nowMs,
+        );
+        const remainingAtComplete = effectiveRemaining;
+        const totalTimeUsedSeconds =
+          (timerState.totalSeconds || 0) - (effectiveRemaining || 0);
+        const mins = Math.ceil(totalTimeUsedSeconds / 60);
+        actualDurationMinutes = Math.max(1, mins || 0);
+
+        const ratio =
+          actualDurationMinutes / taskToComplete.idealDurationMinutes;
+        if (ratio <= 1.2) performanceRating = "Excellent";
+        else if (ratio <= 1.5) performanceRating = "Good";
+        else if (ratio <= 2.0) performanceRating = "Average";
+        else if (ratio <= 3.0) performanceRating = "Poor";
+        else performanceRating = "Lazy";
+      }
+
+      await completeTaskWithActualDuration(
+        actualDurationMinutes,
+        performanceRating,
+        null,
+      );
+    },
+    [
+      taskToComplete,
+      timerState,
+      stopTimerNow,
+      getTaskById,
+      handleUpdateTask,
+      applyLocalTaskPatch,
+    ],
+  );
+
+  const completeTaskWithActualDuration = useCallback(
+    async (
+      actualDurationMinutes: number | undefined,
+      performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy",
+      remainingAtComplete: number | null,
+    ) => {
+      const rollback = stopTimerNow(taskToComplete.id);
+
+      try {
+        const updates: any = {
+          status: "completed",
+          completedAt: new Date().toISOString(),
+        };
+        if (completionLink?.trim())
+          updates.completionLink = completionLink.trim();
+        if (username?.trim()) updates.username = username.trim();
+        if (email?.trim()) updates.email = email.trim();
+        if (password?.trim()) updates.password = password;
+        if (typeof actualDurationMinutes === "number") {
+          updates.actualDurationMinutes = actualDurationMinutes;
+          updates.performanceRating = performanceRating;
+        }
+
+        await handleUpdateTask(taskToComplete.id, updates);
+
+        applyLocalTaskPatch(taskToComplete.id, updates);
+
+        setIsCompletionConfirmOpen(false);
+        setTaskToComplete(null);
+        setCompletionLink("");
+        setUsername("");
+        setEmail("");
+        setPassword("");
+
+        // Refresh tasks to get real-time completion status
+        await refreshTasks();
+
+        if (
+          timerState?.taskId === taskToComplete.id &&
+          taskToComplete.idealDurationMinutes
+        ) {
+          if ((remainingAtComplete ?? timerState?.remainingSeconds ?? 0) <= 0) {
+            toast.success(
+              `Task "${taskToComplete.name}" completed with overtime!`,
+            );
+          } else {
+            toast.success(
+              `Task "${taskToComplete.name}" completed ahead of schedule!`,
+            );
+          }
+        } else {
+          toast.success(`Task "${taskToComplete.name}" marked as completed!`);
+        }
+      } catch (e) {
+        if (rollback) {
+          setTimerState(rollback);
+          if (rollback.isRunning) saveTimerToStorage(rollback);
+        }
+        console.error("Failed to complete task:", e);
+        toast.error("Failed to complete task. Please try again.");
+      }
+    },
+    [
+      taskToComplete,
+      timerState,
+      completionLink,
+      username,
+      email,
+      password,
+      stopTimerNow,
+      handleUpdateTask,
+      applyLocalTaskPatch,
+      saveTimerToStorage,
+      refreshTasks,
+    ],
+  );
 
   const handleCompletionCancel = useCallback(() => {
     setIsCompletionConfirmOpen(false);
@@ -1632,13 +1728,13 @@ export function ClientTasksView({
   const handleUpdateSelectedTasks = useCallback(
     async (
       action: "completed" | "pending" | "reassigned",
-      completionLink?: string
+      completionLink?: string,
     ) => {
       if (action === "completed") {
         const tasksToComplete = selectedTasks
           .map((id) => tasks.find((t) => t.id === id))
           .filter(
-            (t): t is Task => t !== undefined && t.status !== "completed"
+            (t): t is Task => t !== undefined && t.status !== "completed",
           );
 
         if (tasksToComplete.length === 1) {
@@ -1672,12 +1768,12 @@ export function ClientTasksView({
                 const effectiveRemaining = calculateRemainingSeconds(
                   taskForTimer,
                   timerState,
-                  nowMs
+                  nowMs,
                 );
                 const totalTimeUsedSeconds =
                   timerState.totalSeconds - effectiveRemaining;
                 const actualDurationMinutes = Math.ceil(
-                  totalTimeUsedSeconds / 60
+                  totalTimeUsedSeconds / 60,
                 );
 
                 if (actualDurationMinutes > 0) {
@@ -1716,12 +1812,14 @@ export function ClientTasksView({
           toast.success(
             `Successfully updated ${successCount} task${
               successCount !== 1 ? "s" : ""
-            } to ${action === "completed" ? "completed" : action}`
+            } to ${action === "completed" ? "completed" : action}`,
           );
+          // Refresh tasks to get real-time status updates
+          await refreshTasks();
         }
         if (errorCount > 0) {
           toast.error(
-            `Failed to update ${errorCount} task${errorCount !== 1 ? "s" : ""}`
+            `Failed to update ${errorCount} task${errorCount !== 1 ? "s" : ""}`,
           );
         }
         setSelectedTasks([]);
@@ -1743,7 +1841,8 @@ export function ClientTasksView({
       timerState,
       getTaskById,
       saveTimerToStorage,
-    ]
+      refreshTasks,
+    ],
   );
 
   const handleBulkCompletion = useCallback(() => {
@@ -1777,7 +1876,8 @@ export function ClientTasksView({
             remainingSeconds: nextRemaining,
           };
 
-          const crossedOverdue = prev.remainingSeconds > 0 && nextRemaining <= 0;
+          const crossedOverdue =
+            prev.remainingSeconds > 0 && nextRemaining <= 0;
           if (crossedOverdue) {
             if (task && task.status === "in_progress") {
               handleUpdateTask(prev.taskId, { status: "overdue" })
@@ -1853,7 +1953,7 @@ export function ClientTasksView({
   const onBackToClients = () => {
     if (isAnyTimerRunning) {
       toast.error(
-        "Cannot navigate back while a timer is running. Please pause or complete the task first."
+        "Cannot navigate back while a timer is running. Please pause or complete the task first.",
       );
       return;
     }
@@ -1916,9 +2016,7 @@ export function ClientTasksView({
               </div>
             </CardHeader>
             <CardContent className="relative">
-              <div className="text-3xl font-bold text-white">
-                {stats.total}
-              </div>
+              <div className="text-3xl font-bold text-white">{stats.total}</div>
               <p className="text-xs text-blue-100 mt-1">All assigned tasks</p>
             </CardContent>
           </Card>
@@ -2090,7 +2188,7 @@ export function ClientTasksView({
           password={password}
           setPassword={setPassword}
           timerState={timerState}
-          handleTaskCompletion={handleTaskCompletion}
+          handleTaskCompletion={handleTaskCompletionWithElapsed}
           handleCompletionCancel={handleCompletionCancel}
           isBulkCompletionOpen={isBulkCompletionOpen}
           setIsBulkCompletionOpen={setIsBulkCompletionOpen}
@@ -2102,6 +2200,7 @@ export function ClientTasksView({
           formatTimerDisplay={formatTimerDisplay}
           clientId={clientId}
           clientName={clientName}
+          clientEmail={clientData?.email}
           pausedTimer={pausedTimer}
           refreshTasks={refreshTasks}
           stopTimer={stopTimerNow}

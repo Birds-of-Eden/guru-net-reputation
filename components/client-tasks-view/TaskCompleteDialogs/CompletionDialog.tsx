@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ interface CompletionDialogProps {
   setUsername: (val: string) => void;
   setPassword: (val: string) => void;
   resetModal: () => void;
-  submit: () => void;
+  submit: (elapsedMinutes?: number) => void; // Added elapsedMinutes parameter
   isSimpleTask: (task: any) => boolean;
   timerState?: any; // Timer data from TaskTimer
   pausedTimer?: any; // Paused timer data
@@ -115,6 +115,24 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
   };
 
   const timerInfo = calculateTimerInfo();
+
+  // Auto-fill email and username when dialog opens or link changes
+  useEffect(() => {
+    if (open && clientEmail && !email) {
+      setEmail(clientEmail);
+    }
+    // Auto-fill username from link if not already set and link is available
+    if (open && link && !username) {
+      // Extract username from link (part after the last /)
+      const urlParts = link.split("/");
+      const lastPart = urlParts[urlParts.length - 1];
+      // Remove any query parameters or fragments
+      const cleanUsername = lastPart.split("?")[0].split("#")[0];
+      if (cleanUsername) {
+        setUsername(cleanUsername);
+      }
+    }
+  }, [open, clientEmail, email, username, link, setEmail, setUsername]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
@@ -279,10 +297,10 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
             className="ml-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
             onClick={() => {
               // Include time tracking data in submission
-              const timeSpentMinutes = timerInfo
+              const elapsedMinutes = timerInfo
                 ? Math.ceil(timerInfo.elapsedSeconds / 60)
                 : 0;
-              submit();
+              submit(elapsedMinutes);
             }}
           >
             <CheckCircle2 className="h-5 w-5 mr-2" />

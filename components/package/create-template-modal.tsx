@@ -126,7 +126,7 @@ export function CreateTemplateModal({
   const [backlinks, setBacklinks] = useState<SiteAsset[]>([]);
   const [completedCom, setCompletedCom] = useState<SiteAsset[]>([]);
   const [youtubeOptimization, setYoutubeOptimization] = useState<SiteAsset[]>(
-    []
+    [],
   );
   const [monitoring, setMonitoring] = useState<SiteAsset[]>([]);
   const [reviewRemoval, setReviewRemoval] = useState<SiteAsset[]>([]);
@@ -134,7 +134,7 @@ export function CreateTemplateModal({
   const [monthlyReport, setMonthlyReport] = useState<SiteAsset[]>([]);
   // store dynamic custom type lists
   const [customTypes, setCustomTypes] = useState<Record<string, SiteAsset[]>>(
-    {}
+    {},
   );
   // Add this state near your other state declarations
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
@@ -290,42 +290,42 @@ export function CreateTemplateModal({
         setSocialSites(
           pick("social_site").length
             ? pick("social_site")
-            : DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site"))
+            : DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")),
         );
         setWeb2Sites(
           pick("web2_site").length
             ? pick("web2_site")
-            : DEFAULT_WEB2_SITES.map(mapDefaults("web2_site"))
+            : DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")),
         );
         setAdditionalSites(
           pick("additional_site").length
             ? pick("additional_site")
-            : DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site"))
+            : DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site")),
         );
         setGraphicsDesign(
           pick("graphics_design").length
             ? pick("graphics_design")
-            : DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design"))
+            : DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design")),
         );
         setImageOptimization(
           pick("image_optimization").length
             ? pick("image_optimization")
-            : DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization"))
+            : DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization")),
         );
         setContentStudio(
           pick("content_studio").length
             ? pick("content_studio")
-            : DEFAULT_CONTENT_STUDIO.map(mapDefaults("content_studio"))
+            : DEFAULT_CONTENT_STUDIO.map(mapDefaults("content_studio")),
         );
         setContentWriting(
           pick("content_writing").length
             ? pick("content_writing")
-            : DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing"))
+            : DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing")),
         );
         setBacklinks(
           pick("backlinks").length
             ? pick("backlinks")
-            : DEFAULT_BACKLINKS.map(mapDefaults("backlinks"))
+            : DEFAULT_BACKLINKS.map(mapDefaults("backlinks")),
         );
         setCompletedCom(
           pick("completed_com").length
@@ -340,38 +340,40 @@ export function CreateTemplateModal({
                   defaultPostingFrequency: 1,
                   defaultIdealDurationMinutes: 30,
                 },
-              ]
+              ],
         );
         setYoutubeOptimization(
           pick("youtube_video_optimization").length
             ? pick("youtube_video_optimization")
             : DEFAULT_YOUTUBE_VIDEO_OPTIMIZATION.map(
-                mapDefaults("youtube_video_optimization")
-              )
+                mapDefaults("youtube_video_optimization"),
+              ),
         );
         setMonitoring(
           pick("monitoring").length
             ? pick("monitoring")
-            : DEFAULT_MONITORING.map(mapDefaults("monitoring"))
+            : DEFAULT_MONITORING.map(mapDefaults("monitoring")),
         );
         setReviewRemoval(
           pick("review_removal").length
             ? pick("review_removal")
-            : DEFAULT_REVIEW_REMOVAL.map(mapDefaults("review_removal"))
+            : DEFAULT_REVIEW_REMOVAL.map(mapDefaults("review_removal")),
         );
         setSummaryReport(
           pick("summary_report").length
             ? pick("summary_report")
-            : DEFAULT_SUMMARY_REPORT.map(mapDefaults("summary_report"))
+            : DEFAULT_SUMMARY_REPORT.map(mapDefaults("summary_report")),
         );
         setMonthlyReport(
           pick("guest_posting").length
             ? pick("guest_posting")
-            : DEFAULT_guest_posting.map(mapDefaults("guest_posting"))
+            : DEFAULT_guest_posting.map(mapDefaults("guest_posting")),
         );
         // Enable types which have assets in initial data
         const presentTypes = Array.from(
-          new Set((assets as SiteAsset[]).map((a) => a.type as SiteAssetTypeTS))
+          new Set(
+            (assets as SiteAsset[]).map((a) => a.type as SiteAssetTypeTS),
+          ),
         );
         setEnabledTypes(presentTypes.length ? presentTypes : ALL_TYPES);
 
@@ -381,7 +383,7 @@ export function CreateTemplateModal({
           const map: Record<string, SiteAsset[]> = {};
           for (const t of unknownTypes) {
             map[t] = (assets as SiteAsset[]).filter(
-              (a) => a.type === t
+              (a) => a.type === t,
             ) as SiteAsset[];
           }
           setCustomTypes(map);
@@ -403,17 +405,17 @@ export function CreateTemplateModal({
     setSocialSites(DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")));
     setWeb2Sites(DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")));
     setAdditionalSites(
-      DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site"))
+      DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site")),
     );
     setGraphicsDesign(
-      DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design"))
+      DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design")),
     );
     setImageOptimization(
-      DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization"))
+      DEFAULT_IMAGE_OPTIMIZATION.map(mapDefaults("image_optimization")),
     );
     setContentStudio(DEFAULT_CONTENT_STUDIO.map(mapDefaults("content_studio")));
     setContentWriting(
-      DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing"))
+      DEFAULT_CONTENT_WRITING.map(mapDefaults("content_writing")),
     );
     setBacklinks(DEFAULT_BACKLINKS.map(mapDefaults("backlinks")));
     setCompletedCom([
@@ -429,8 +431,8 @@ export function CreateTemplateModal({
     ]);
     setYoutubeOptimization(
       DEFAULT_YOUTUBE_VIDEO_OPTIMIZATION.map(
-        mapDefaults("youtube_video_optimization")
-      )
+        mapDefaults("youtube_video_optimization"),
+      ),
     );
     setMonitoring(DEFAULT_MONITORING.map(mapDefaults("monitoring")));
     setReviewRemoval(DEFAULT_REVIEW_REMOVAL.map(mapDefaults("review_removal")));
@@ -447,7 +449,7 @@ export function CreateTemplateModal({
 
   // Generic helpers to operate on the correct list
   const getListAndSetter = (
-    type: SiteAssetTypeTS
+    type: SiteAssetTypeTS,
   ): [SiteAsset[], React.Dispatch<React.SetStateAction<SiteAsset[]>>] => {
     switch (type) {
       case "social_site":
@@ -481,7 +483,7 @@ export function CreateTemplateModal({
       default: {
         const list = customTypes[type] || [];
         const setter: React.Dispatch<React.SetStateAction<SiteAsset[]>> = (
-          updater
+          updater,
         ) => {
           setCustomTypes((prev) => {
             const current = prev[type] || [];
@@ -520,7 +522,7 @@ export function CreateTemplateModal({
     type: SiteAssetTypeTS,
     index: number,
     field: keyof SiteAsset,
-    value: any
+    value: any,
   ) => {
     const [list, setter] = getListAndSetter(type);
     const updated = [...list];
@@ -596,7 +598,7 @@ export function CreateTemplateModal({
         toast.success(
           isEditMode
             ? "Template updated successfully"
-            : "Template created successfully"
+            : "Template created successfully",
         );
         onCreated();
         onClose();
@@ -618,9 +620,9 @@ export function CreateTemplateModal({
     type: SiteAssetTypeTS,
     title: string,
     icon: React.ReactNode,
-    colorClass: string
+    colorClass: string,
   ) => (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col h-full">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className={`p-2 rounded-md ${colorClass} text-white`}>
@@ -636,168 +638,113 @@ export function CreateTemplateModal({
         <Badge variant="outline" className="bg-gray-100">
           {sites.filter((site) => site.name.trim()).length} Sites
         </Badge>
-        {/* <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setEnabledTypes((prev) => {
-              const next = prev.filter((t) => t !== type);
-              // If current step points to a removed type, cap within new bounds (0..next.length)
-              setCurrentStep((s) => Math.min(s, next.length));
-              return next;
-            });
-            setCustomTypes((prev) => {
-              const { [type]: _, ...rest } = prev;
-              return rest;
-            });
-          }}
-          className="ml-2 bg-red-600 hover:bg-red-700 text-white hover:text-white"
-        >
-          <Trash className="w-4 h-4 mr-1" />
-          Remove Type
-        </Button> */}
       </div>
 
-      <div className="space-y-3">
-        {sites.map((site, index) => (
-          <Card key={index} className="border shadow-sm">
-            <CardContent className="p-4 space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1 space-y-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium text-gray-600">
-                      Site Name *
-                    </Label>
-                    <Input
-                      value={site.name}
-                      onChange={(e) =>
-                        updateSiteAsset(type, index, "name", e.target.value)
-                      }
-                      placeholder="e.g., Facebook, Medium, etc."
-                      className="bg-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium text-gray-600">
-                      URL
-                    </Label>
-                    <Input
-                      value={site.url}
-                      onChange={(e) =>
-                        updateSiteAsset(type, index, "url", e.target.value)
-                      }
-                      placeholder="https://..."
-                      className="bg-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium text-gray-600">
-                      Description
-                    </Label>
-                    <Textarea
-                      value={site.description || ""}
-                      onChange={(e) =>
-                        updateSiteAsset(
-                          type,
-                          index,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Brief description of this site/asset..."
-                      rows={2}
-                      className="bg-white"
-                    />
-                  </div>
-                </div>
+      {/* Compact table-like layout */}
+      <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
+        <div className="grid grid-cols-12 gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700">
+          <div className="col-span-2">Site Name</div>
+          <div className="col-span-3">URL</div>
+          <div className="col-span-2">Description</div>
+          <div className="col-span-1 text-center">Required</div>
+          <div className="col-span-1 text-center">Posts/Month</div>
+          <div className="col-span-1 text-center">Duration (min)</div>
+          <div className="col-span-2"></div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          {sites.map((site, index) => (
+            <div key={index} className="grid grid-cols-12 gap-2 p-2 border-b hover:bg-gray-50 items-center">
+              <div className="col-span-2">
+                <Input
+                  value={site.name}
+                  onChange={(e) =>
+                    updateSiteAsset(type, index, "name", e.target.value)
+                  }
+                  placeholder="Site name"
+                  className="text-sm h-8 bg-white"
+                />
+              </div>
+              <div className="col-span-3">
+                <Input
+                  value={site.url}
+                  onChange={(e) =>
+                    updateSiteAsset(type, index, "url", e.target.value)
+                  }
+                  placeholder="https://..."
+                  className="text-sm h-8 bg-white"
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  value={site.description || ""}
+                  onChange={(e) =>
+                    updateSiteAsset(
+                      type,
+                      index,
+                      "description",
+                      e.target.value,
+                    )
+                  }
+                  placeholder="Brief description..."
+                  className="text-sm h-8 bg-white"
+                />
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <Switch
+                  checked={site.isRequired}
+                  onCheckedChange={(checked) =>
+                    updateSiteAsset(type, index, "isRequired", checked)
+                  }
+                  className="data-[state=checked]:bg-blue-500 scale-75"
+                />
+              </div>
+              <div className="col-span-1">
+                <Input
+                  type="number"
+                  min={1}
+                  value={site.defaultPostingFrequency}
+                  onChange={(e) =>
+                    updateSiteAsset(
+                      type,
+                      index,
+                      "defaultPostingFrequency",
+                      Number.parseInt(e.target.value || "1", 10) || 1,
+                    )
+                  }
+                  className="text-sm h-8 bg-white w-full"
+                />
+              </div>
+              <div className="col-span-1">
+                <Input
+                  type="number"
+                  min={1}
+                  value={site.defaultIdealDurationMinutes}
+                  onChange={(e) =>
+                    updateSiteAsset(
+                      type,
+                      index,
+                      "defaultIdealDurationMinutes",
+                      Number.parseInt(e.target.value || "30", 10) || 30,
+                    )
+                  }
+                  className="text-sm h-8 bg-white w-full"
+                />
+              </div>
+              <div className="col-span-2 flex justify-end">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => removeSiteAsset(type, index)}
-                  className="h-8 w-8 text-gray-400 hover:text-red-500 ml-2"
+                  className="h-6 w-6 text-gray-400 hover:text-red-500"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-2">
-                <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md">
-                  <Switch
-                    checked={site.isRequired}
-                    onCheckedChange={(checked) =>
-                      updateSiteAsset(type, index, "isRequired", checked)
-                    }
-                    className="data-[state=checked]:bg-blue-500"
-                  />
-                  <Label className="text-xs font-medium text-gray-600">
-                    Required
-                  </Label>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Posts per Month
-                  </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={site.defaultPostingFrequency}
-                    onChange={(e) =>
-                      updateSiteAsset(
-                        type,
-                        index,
-                        "defaultPostingFrequency",
-                        Number.parseInt(e.target.value || "1", 10) || 1
-                      )
-                    }
-                    className="bg-white"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Duration (minutes)
-                  </Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={site.defaultIdealDurationMinutes}
-                    onChange={(e) =>
-                      updateSiteAsset(
-                        type,
-                        index,
-                        "defaultIdealDurationMinutes",
-                        Number.parseInt(e.target.value || "30", 10) || 30
-                      )
-                    }
-                    className="bg-white"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex gap-2 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => addSiteAsset(type)}
-          className="flex-1 border-dashed bg-purple-500 hover:bg-purple-600 text-white hover:text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add {title}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={initializeDefaultAssets}
-          className="flex-1 border-dashed bg-red-600 hover:bg-red-700 text-white hover:text-white"
-        >
-          <RotateCw className="w-4 h-4 mr-2" />
-          Reset Defaults
-        </Button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -892,12 +839,13 @@ export function CreateTemplateModal({
       colorClass: "bg-gray-500",
       icon: <FileBarChart className="w-5 h-5" />,
     };
+    
     return renderSiteAssetFields(
       list,
       type,
       cfg.title,
       cfg.icon,
-      cfg.colorClass
+      cfg.colorClass,
     );
   };
 
@@ -912,8 +860,8 @@ export function CreateTemplateModal({
         </DialogHeader>
 
         {/* Stepper */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const Icon = step.icon as any;
               const isActive = index === currentStep;
@@ -927,8 +875,8 @@ export function CreateTemplateModal({
                         isActive
                           ? "bg-blue-500 text-white shadow"
                           : isCompleted
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 text-gray-500"
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 text-gray-500"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -954,47 +902,58 @@ export function CreateTemplateModal({
               );
             })}
           </div>
-
-          {/* Add custom type
-          <div className="flex justify-end items-center gap-2 mb-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-purple-500 hover:bg-purple-600 text-white hover:text-white"
-              onClick={() => {
-                setNewTypeName("");
-                setNewTypeError("");
-                setShowAddTypeModal(true);
-              }}
-            >
-              <Plus className="w-4 h-4 mr-1 " />
-              Add Type
-            </Button>
-          </div> */}
-
-          <Progress
-            value={((currentStep + 1) / steps.length) * 100}
-            className="h-1 bg-gray-200"
-          />
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-1 pb-3">
+        <div className="flex-1 overflow-y-auto px-1">
           {renderStepContent()}
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 0}
-            className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white hover:text-white"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
+        <div className="flex items-center justify-between border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white hover:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            
+            {/* Add and Reset buttons - only show on site asset steps */}
+            {(() => {
+              if (currentStep === 0) return null;
+              const type = steps[currentStep].id as SiteAssetTypeTS;
+              const cfg = TYPE_CONFIG[type] || {
+                title: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+              };
+              return (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => addSiteAsset(type)}
+                    className="border-dashed bg-purple-500 hover:bg-purple-600 text-white hover:text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add {cfg.title}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={initializeDefaultAssets}
+                    className="border-dashed bg-red-600 hover:bg-red-700 text-white hover:text-white"
+                  >
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Reset Defaults
+                  </Button>
+                </>
+              );
+            })()}
+          </div>
 
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
@@ -1097,52 +1056,6 @@ export function CreateTemplateModal({
             >
               Cancel
             </Button>
-            {/* <Button
-              type="button"
-              onClick={() => {
-                const trimmedName = newTypeName.trim();
-                if (!trimmedName) {
-                  setNewTypeError("Type name is required");
-                  return;
-                }
-
-                if (trimmedName.length < 2) {
-                  setNewTypeError("Type name must be at least 2 characters");
-                  return;
-                }
-
-                const key = slugify(trimmedName);
-                if (!key) {
-                  setNewTypeError("Please enter a valid type name");
-                  return;
-                }
-
-                // Check if type already exists
-                if (ALL_TYPES.includes(key as SiteAssetTypeTS) || enabledTypes.includes(key as SiteAssetTypeTS)) {
-                  setNewTypeError(`Type "${trimmedName}" already exists`);
-                  return;
-                }
-
-                // Add the new type
-                setEnabledTypes((prev) => [...prev, key as SiteAssetTypeTS]);
-                setCustomTypes((prev) => ({
-                  ...prev,
-                  [key]: prev[key] || []
-                }));
-
-                // Auto-navigate to the new type if we're on basic info step
-                if (currentStep === 0) {
-                  setCurrentStep(1);
-                }
-
-                setShowAddTypeModal(false);
-                toast.success(`"${trimmedName}" type added successfully`);
-              }}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Type
-            </Button> */}
           </div>
         </DialogContent>
       </Dialog>

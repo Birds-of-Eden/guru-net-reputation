@@ -17,13 +17,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -33,7 +26,6 @@ import {
 import {
   Calendar as CalendarIcon,
   Building2,
-  Repeat,
   CheckCircle2,
   Star,
 } from "lucide-react";
@@ -53,7 +45,7 @@ import { LoadingSpinner } from "@/components/task-distribution/LoadingSpinner";
 const TaskTabs = dynamic(
   () =>
     import("@/components/task-distribution/TaskTabs").then(
-      (mod) => mod.TaskTabs
+      (mod) => mod.TaskTabs,
     ),
   {
     loading: () => (
@@ -62,19 +54,19 @@ const TaskTabs = dynamic(
       </div>
     ),
     ssr: false,
-  }
+  },
 );
 
 // OPTIMIZATION (Next.js dynamic import): load the modal lazily so it doesn't block interactive time.
 const ReassignModal = dynamic(
   () =>
     import("@/components/task-distribution/ReassignModal").then(
-      (mod) => mod.ReassignModal
+      (mod) => mod.ReassignModal,
     ),
   {
     loading: () => null,
     ssr: false,
-  }
+  },
 );
 
 /* =========================
@@ -230,7 +222,7 @@ function makeDisplayLabel(
   a: Partial<Agent>,
   active: number,
   weight: number,
-  s: { P: number; IP: number; O: number; R: number }
+  s: { P: number; IP: number; O: number; R: number },
 ) {
   return `${safeName(a)} — ${active} active (P:${s.P} | IP:${s.IP} | O:${
     s.O
@@ -239,7 +231,10 @@ function makeDisplayLabel(
 // OPTIMIZED: Removed N+1 query problem - was fetching each agent's tasks individually
 // This was causing 10+ sequential API calls per page load, severely impacting performance
 // Now agents are returned without individual load data for instant page loads
-function enrichAgentsBasic(base: Agent[], loadMap: AgentLoadMap = {}): AgentWithLoad[] {
+function enrichAgentsBasic(
+  base: Agent[],
+  loadMap: AgentLoadMap = {},
+): AgentWithLoad[] {
   const enriched: AgentWithLoad[] = base.map((a) => {
     const load = loadMap[a.id];
     const byStatus = {
@@ -259,14 +254,14 @@ function enrichAgentsBasic(base: Agent[], loadMap: AgentLoadMap = {}): AgentWith
       typeof load?.activeCount === "number"
         ? load.activeCount
         : typeof load?.active === "number"
-        ? load.active
-        : undefined;
+          ? load.active
+          : undefined;
     const rawWeighted =
       typeof load?.weightedScore === "number"
         ? load.weightedScore
         : typeof load?.weighted === "number"
-        ? load.weighted
-        : undefined;
+          ? load.weighted
+          : undefined;
     const activeCount =
       typeof rawActive === "number" && (rawActive > 0 || fallbackActive === 0)
         ? rawActive
@@ -365,7 +360,7 @@ function getUICategoryForTask(t: Task): string {
 }
 
 function buildStatsByCategory(
-  list: Task[] = []
+  list: Task[] = [],
 ): Record<string, SimpleCategoryStats> {
   const map: Record<string, SimpleCategoryStats> = {};
   for (const t of list) {
@@ -419,7 +414,7 @@ function bucketAssetCreationTasks(list: Task[] = []): AssetCreationBuckets {
       }
       return acc;
     },
-    { social_site: [], web2_site: [], other_asset: [] }
+    { social_site: [], web2_site: [], other_asset: [] },
   );
 }
 // ✅ SWR fetchers
@@ -465,7 +460,7 @@ export default function TaskDistributionForClient() {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   const {
@@ -479,7 +474,7 @@ export default function TaskDistributionForClient() {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   // ⚡ OPTIMIZED: Removed useState, using useMemo instead for better performance
@@ -500,7 +495,7 @@ export default function TaskDistributionForClient() {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   const {
@@ -514,7 +509,7 @@ export default function TaskDistributionForClient() {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   const currentAgents = agentSource === "team" ? teamAgents : allAgents;
@@ -543,7 +538,7 @@ export default function TaskDistributionForClient() {
   // IMPORTANT: This must be declared BEFORE selectedTaskObjects that uses it
   const tasks = useMemo(() => {
     const list = (allTasks ?? []).filter(
-      (t) => getUICategoryForTask(t) === selectedCategory
+      (t) => getUICategoryForTask(t) === selectedCategory,
     );
 
     const order: Record<string, number> = {
@@ -571,11 +566,11 @@ export default function TaskDistributionForClient() {
   const deferredTasks = useDeferredValue(tasks);
   const visibleTasks = useMemo(
     () => deferredTasks.slice(0, visibleTaskBatches * TASK_BATCH_SIZE),
-    [deferredTasks, visibleTaskBatches]
+    [deferredTasks, visibleTaskBatches],
   );
   const remainingVirtualTasks = Math.max(
     deferredTasks.length - visibleTasks.length,
-    0
+    0,
   );
   const hasMoreTasks = remainingVirtualTasks > 0;
   const nextBatchSize = Math.min(remainingVirtualTasks, TASK_BATCH_SIZE);
@@ -599,14 +594,14 @@ export default function TaskDistributionForClient() {
         taskId: assignment.taskId,
         agentId: assignment.agentId,
       })),
-    [categoryAssignments]
+    [categoryAssignments],
   );
 
   // ✅ NEW: Handle reassign functionality at page level
   const handleReassign = async (
     taskIds: string[],
     newAgentId: string,
-    dueDate?: Date
+    dueDate?: Date,
   ) => {
     // Use the existing PUT endpoint for reassignments
     const response = await fetch("/api/tasks/distribute", {
@@ -672,7 +667,7 @@ export default function TaskDistributionForClient() {
       toast.success(
         `Successfully unassigned ${taskIds.length} task${
           taskIds.length > 1 ? "s" : ""
-        }`
+        }`,
       );
 
       // Refresh the data after unassign
@@ -684,7 +679,7 @@ export default function TaskDistributionForClient() {
       toast.error(
         `Failed to unassign tasks: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
       throw error;
     }
@@ -727,7 +722,7 @@ export default function TaskDistributionForClient() {
       setDuePickerOpen(false);
       void mutateTeamAgents();
     },
-    [mutateTeamAgents, startCategoryTransition]
+    [mutateTeamAgents, startCategoryTransition],
   );
 
   const handleTaskSelection = useCallback(
@@ -738,7 +733,7 @@ export default function TaskDistributionForClient() {
         else {
           newSet.delete(taskId);
           setCategoryAssignments((assignments) =>
-            assignments.filter((assignment) => assignment.taskId !== taskId)
+            assignments.filter((assignment) => assignment.taskId !== taskId),
           );
         }
         return newSet;
@@ -749,10 +744,10 @@ export default function TaskDistributionForClient() {
           ? prev.includes(taskId)
             ? prev
             : [...prev, taskId]
-          : prev.filter((id) => id !== taskId)
+          : prev.filter((id) => id !== taskId),
       );
     },
-    []
+    [],
   );
 
   const handleSelectAllTasks = useCallback(
@@ -764,18 +759,18 @@ export default function TaskDistributionForClient() {
       } else {
         const currentViewTaskIds = new Set(taskIds);
         const preserved = Array.from(selectedTasks).filter(
-          (id) => !currentViewTaskIds.has(id)
+          (id) => !currentViewTaskIds.has(id),
         );
         setSelectedTasks(new Set(preserved));
         setSelectedTasksOrder((prev) =>
-          prev.filter((id) => !currentViewTaskIds.has(id))
+          prev.filter((id) => !currentViewTaskIds.has(id)),
         );
         setCategoryAssignments((assignments) =>
-          assignments.filter((a) => !currentViewTaskIds.has(a.taskId))
+          assignments.filter((a) => !currentViewTaskIds.has(a.taskId)),
         );
       }
     },
-    [selectedTasks]
+    [selectedTasks],
   );
 
   const handleTaskAssignment = useCallback(
@@ -783,7 +778,7 @@ export default function TaskDistributionForClient() {
       taskId: string,
       agentId: string,
       isMultipleSelected: boolean,
-      isFirstSelectedTask: boolean
+      isFirstSelectedTask: boolean,
     ) => {
       const task = tasks.find((t) => t.id === taskId);
       const assetType = (task as any)?.templateSiteAsset?.type as
@@ -821,7 +816,7 @@ export default function TaskDistributionForClient() {
         setSelectedTasksOrder([]);
       }
     },
-    [selectedTasks, tasks]
+    [selectedTasks, tasks],
   );
 
   const handleNoteChange = useCallback((taskId: string, note: string) => {
@@ -902,13 +897,13 @@ export default function TaskDistributionForClient() {
   const stats = buildCategoryStats(tasks);
   const statsByCategory = useMemo(
     () => buildStatsByCategory(allTasks),
-    [allTasks]
+    [allTasks],
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
       <div className="mx-auto">
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden">
+        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden flex flex-col h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)]">
           <CardHeader className="relative bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
             {/* Subtle background accent */}
             <div className="pointer-events-none absolute inset-0 opacity-40">
@@ -932,7 +927,7 @@ export default function TaskDistributionForClient() {
                           className="text-white text-lg font-semibold bg-gradient-to-br from-blue-500 to-blue-600"
                           style={{
                             backgroundColor: nameToColor(
-                              client.name || client.id
+                              client.name || client.id,
                             ),
                           }}
                         >
@@ -977,7 +972,7 @@ export default function TaskDistributionForClient() {
                             "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium border",
                             client.status === "active"
                               ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
-                              : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                              : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
                           )}
                         >
                           <span
@@ -985,7 +980,7 @@ export default function TaskDistributionForClient() {
                               "w-1.5 h-1.5 rounded-full mr-1.5",
                               client.status === "active"
                                 ? "bg-green-500"
-                                : "bg-slate-400"
+                                : "bg-slate-400",
                             )}
                           />
                           {client.status.charAt(0).toUpperCase() +
@@ -1006,11 +1001,11 @@ export default function TaskDistributionForClient() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-2 md:px-4 lg:px-4 space-y-8">
-            <section className="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full">
-              {/* Sidebar category tabs - keep fixed in place */}
-              <aside className="w-full lg:w-72 shrink-0 sticky top-4 self-start">
-                <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col max-h-[calc(100vh-6rem)]">
+          <CardContent className="p-2 md:px-4 lg:px-4 overflow-hidden flex-1 min-h-0 h-full">
+            <section className="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full overflow-hidden min-h-0">
+              {/* Sidebar category tabs - Fixed position */}
+              <aside className="w-full lg:w-72 shrink-0">
+                <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col">
                   <div className="px-4 py-3 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-100 to-indigo-100">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.08em] text-purple-700 font-bold">
@@ -1023,68 +1018,72 @@ export default function TaskDistributionForClient() {
                       </span>
                     )}
                   </div>
-                  <div className="divide-y divide-purple-100 flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
-                    {CATEGORY_LABELS.map((label) => {
-                      const s = statsByCategory[label];
-                      const fully =
-                        !!s && s.total > 0 && s.assigned === s.total;
-                      const teamName = teamNameForCategory(label);
-                      const active = selectedCategory === label;
 
-                      return (
-                        <button
-                          key={label}
-                          onClick={() => handleCategoryChange(label)}
-                          className={cn(
-                            "w-full px-4 py-3 text-left flex items-center justify-between gap-3 transition-all",
-                            active
-                              ? "bg-indigo-50 border-l-4 border-indigo-500 shadow-inner"
-                              : "hover:bg-slate-50"
-                          )}
-                          aria-pressed={active}
-                        >
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-900 truncate">
-                                {label}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500">
-                              {s
-                                ? `${s.assigned}/${s.total} assigned`
-                                : "No tasks yet"}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {fully ? (
-                              <span className="flex items-center text-emerald-600 text-xs font-semibold">
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                All Assigned
-                              </span>
-                            ) : s ? (
-                              <Badge
-                                variant="outline"
-                                className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-0.5"
-                              >
-                                {s.assigned}/{s.total}
-                              </Badge>
-                            ) : (
-                              <span className="text-xs text-slate-400 italic">
-                                —
-                              </span>
+                  {/* Scrollable categories list */}
+                  <div className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
+                    <div className="divide-y divide-purple-100">
+                      {CATEGORY_LABELS.map((label) => {
+                        const s = statsByCategory[label];
+                        const fully =
+                          !!s && s.total > 0 && s.assigned === s.total;
+                        const teamName = teamNameForCategory(label);
+                        const active = selectedCategory === label;
+
+                        return (
+                          <button
+                            key={label}
+                            onClick={() => handleCategoryChange(label)}
+                            className={cn(
+                              "w-full px-4 py-3 text-left flex items-center justify-between gap-3 transition-all",
+                              active
+                                ? "bg-indigo-50 border-l-4 border-indigo-500 shadow-inner"
+                                : "hover:bg-slate-50",
                             )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                            aria-pressed={active}
+                          >
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-900 truncate">
+                                  {label}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500">
+                                {s
+                                  ? `${s.assigned}/${s.total} assigned`
+                                  : "No tasks yet"}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {fully ? (
+                                <span className="flex items-center text-emerald-600 text-xs font-semibold">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  All Assigned
+                                </span>
+                              ) : s ? (
+                                <Badge
+                                  variant="outline"
+                                  className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-0.5"
+                                >
+                                  {s.assigned}/{s.total}
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-slate-400 italic">
+                                  —
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </aside>
 
-              {/* Main content */}
-              <div className="flex-1 space-y-6 flex flex-col h-full">
-                {/* Header actions */}
-                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 flex-shrink-0 backdrop-blur">
+              {/* Main content area */}
+              <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+                {/* Header actions - Fixed position */}
+                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 mb-6 flex-shrink-0 backdrop-blur">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500 font-semibold">
@@ -1100,7 +1099,7 @@ export default function TaskDistributionForClient() {
                             "rounded-full px-3 py-1 text-xs",
                             stats.fullyAssigned
                               ? "bg-green-100 text-green-800 border-green-200"
-                              : "bg-blue-100 text-blue-800 border-blue-200"
+                              : "bg-blue-100 text-blue-800 border-blue-200",
                           )}
                           aria-live="polite"
                         >
@@ -1130,7 +1129,7 @@ export default function TaskDistributionForClient() {
                             variant="outline"
                             className={cn(
                               "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-[180px]",
-                              !categoryDueDate && "text-muted-foreground"
+                              !categoryDueDate && "text-muted-foreground",
                             )}
                             aria-label="Open date picker"
                           >
@@ -1225,7 +1224,7 @@ export default function TaskDistributionForClient() {
                         onClick={async () => {
                           if (!selectedTasks.size) {
                             toast.info(
-                              "Select at least one task to un-assign."
+                              "Select at least one task to un-assign.",
                             );
                             return;
                           }
@@ -1249,7 +1248,7 @@ export default function TaskDistributionForClient() {
                           setCategoryAssignments([]);
 
                           toast.success(
-                            `Deselected agents for all ${clearedCount} tasks in ${selectedCategory}`
+                            `Deselected agents for all ${clearedCount} tasks in ${selectedCategory}`,
                           );
                         }}
                         disabled={submitting}
@@ -1282,7 +1281,7 @@ export default function TaskDistributionForClient() {
                         className={cn(
                           "h-10 md:h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
                           (submitting || categoryAssignments.length === 0) &&
-                            "opacity-60 cursor-not-allowed"
+                            "opacity-60 cursor-not-allowed",
                         )}
                         aria-disabled={
                           submitting || categoryAssignments.length === 0
@@ -1303,15 +1302,12 @@ export default function TaskDistributionForClient() {
                   </div>
                 </div>
 
-                {/* TASKS AREA - with proper scrolling for TabContent */}
-                <div
-                  className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100"
-                  style={{ height: "calc(100vh - 6rem)" }}
-                >
+                {/* Scrollable Tasks Area - Only this section scrolls */}
+                <div className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {tasks.length > 0 ? (
                     <section
                       aria-labelledby="tasks-heading"
-                      className="space-y-8"
+                      className="space-y-8 pb-6"
                     >
                       <h3 id="tasks-heading" className="sr-only">
                         Tasks
