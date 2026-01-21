@@ -38,6 +38,7 @@ export default function TaskDialogs({
   formatTimerDisplay,
   clientId,
   clientName,
+  clientEmail,
   pausedTimer,
   refreshTasks,
   stopTimer,
@@ -48,7 +49,7 @@ export default function TaskDialogs({
   isUpdating: boolean;
   handleUpdateSelectedTasks: (
     action: "completed" | "pending" | "reassigned",
-    completionLink?: string
+    completionLink?: string,
   ) => void;
   isCompletionConfirmOpen: boolean;
   setIsCompletionConfirmOpen: (b: boolean) => void;
@@ -75,6 +76,7 @@ export default function TaskDialogs({
   tasks: Task[];
   clientId: string;
   clientName: string;
+  clientEmail?: string;
   pausedTimer: TimerState | null;
   refreshTasks: () => Promise<void>;
   stopTimer: (taskId: string) => TimerState | undefined;
@@ -96,7 +98,6 @@ export default function TaskDialogs({
     actual: number;
     ideal: number;
   } | null>(null);
-  const [clientEmail, setClientEmail] = useState<string | undefined>(undefined);
   const [lastUsedPassword, setLastUsedPassword] = useState<string | null>(null);
 
   // Function to determine if a task is simple (doesn't need credentials)
