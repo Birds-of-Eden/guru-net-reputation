@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -75,6 +76,7 @@ type DashboardStats = {
 };
 
 export default function TasksPage() {
+  const searchParams = useSearchParams();
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [modalTasks, setModalTasks] = useState<Task[]>([]);
   const [clients, setClients] = useState<ClientStats[]>([]);
@@ -92,6 +94,7 @@ export default function TasksPage() {
   const [selectedClientName, setSelectedClientName] = useState<string>("");
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [clientModalLoading, setClientModalLoading] = useState(false);
+  const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [startDate, setStartDate] = useState(
@@ -167,12 +170,14 @@ export default function TasksPage() {
   }, [startDate, endDate]);
 
   const fetchTasksForClient = useCallback(
-    async (clientId: string) => {
+    async (clientId: string, ignoreDateFilter: boolean = false) => {
       try {
         setClientModalLoading(true);
-        const url = `/api/tasks?${startDate ? `startDate=${startDate}&` : ""}${
-          endDate ? `endDate=${endDate}&` : ""
-        }clientId=${clientId}`;
+        const url = ignoreDateFilter
+          ? `/api/tasks?clientId=${clientId}`
+          : `/api/tasks?${startDate ? `startDate=${startDate}&` : ""}${
+              endDate ? `endDate=${endDate}&` : ""
+            }clientId=${clientId}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch client tasks");
         const data: Task[] = await res.json();
@@ -190,6 +195,27 @@ export default function TasksPage() {
   useEffect(() => {
     fetchAllTasks();
   }, [fetchAllTasks]);
+
+  const clientIdParam = searchParams.get("clientId");
+  const clientNameParam = searchParams.get("clientName") ?? "";
+  const focusTaskIdParam = searchParams.get("taskId");
+
+  useEffect(() => {
+    if (!clientIdParam) return;
+    setSelectedClient(clientIdParam);
+    setSelectedClientName(clientNameParam);
+    setClientModalOpen(true);
+    setFocusTaskId(focusTaskIdParam);
+    void fetchTasksForClient(clientIdParam, Boolean(focusTaskIdParam));
+  }, [clientIdParam, clientNameParam, focusTaskIdParam, fetchTasksForClient]);
+
+  useEffect(() => {
+    if (!clientModalOpen || clientModalLoading || !focusTaskId) return;
+    const node = document.getElementById(`task-${focusTaskId}`);
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [clientModalOpen, clientModalLoading, modalTasks, focusTaskId]);
 
   // ---------- filtering for Clients list
   const filteredClients = useMemo(
@@ -522,7 +548,11 @@ export default function TasksPage() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                   {byStatus[s].map((task) => (
-                                    <TaskMiniCard key={task.id} task={task} />
+                                    <TaskMiniCard
+                                      key={task.id}
+                                      task={task}
+                                      isFocused={focusTaskId === task.id}
+                                    />
                                   ))}
                                 </div>
                               </div>
@@ -656,7 +686,13 @@ function ClientCard({
   );
 }
 
-function TaskMiniCard({ task }: { task: Task }) {
+function TaskMiniCard({
+  task,
+  isFocused,
+}: {
+  task: Task;
+  isFocused?: boolean;
+}) {
   const href =
     task.completionLink && /^https?:\/\//i.test(task.completionLink)
       ? task.completionLink
@@ -699,6 +735,7 @@ function TaskMiniCard({ task }: { task: Task }) {
 
   return (
     <Card
+      id={`task-${task.id}`}
       onClick={handleClick}
       role={clickable ? "button" : undefined}
       aria-label={clickable ? `Open ${task.name}` : undefined}
@@ -708,7 +745,9 @@ function TaskMiniCard({ task }: { task: Task }) {
             ? "cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
             : ""
         } 
-        pl-3 border-l-4 ${statusAccent}`}
+        pl-3 border-l-4 ${statusAccent} ${
+          isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""
+        }`}
     >
       <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between">
         {/* Header text ONLY, in capitals */}

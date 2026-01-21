@@ -181,6 +181,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
     id: string;
     name: string;
   } | null>(null);
+  const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [globalTimerLock, setGlobalTimerLock] = useState<GlobalTimerLock>({
     isLocked: false,
     taskId: null,
@@ -196,9 +197,13 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
   useEffect(() => {
     const clientId = searchParams.get("clientId");
     const clientName = searchParams.get("clientName");
+    const taskId = searchParams.get("taskId");
 
     if (clientId && clientName) {
       setSelectedClient({ id: clientId, name: clientName });
+    }
+    if (taskId) {
+      setFocusTaskId(taskId);
     }
   }, [searchParams]);
 
@@ -413,6 +418,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
           lockedTaskId={globalTimerLock.taskId}
           lockedTaskName={globalTimerLock.taskName}
           excludedCategories={EXCLUDED_CATEGORIES} // ?? add this prop in that component
+          focusTaskId={focusTaskId}
         />
       </Suspense>
     );

@@ -130,6 +130,7 @@ export default function TaskViews({
 
   setTaskToComplete,
   setIsCompletionConfirmOpen,
+  focusTaskId,
   disableVirtualization,
 }: {
   tab: "today" | "tomorrow" | "upcoming" | "reassigned" | "completed" | "overdue" | "qc_approved";
@@ -170,6 +171,7 @@ export default function TaskViews({
 
   setTaskToComplete: (t: Task | null) => void;
   setIsCompletionConfirmOpen: (b: boolean) => void;
+  focusTaskId?: string | null;
   disableVirtualization?: boolean;
 }) {
   const uniqueCurrentTasks = useMemo(() => {
@@ -245,14 +247,16 @@ export default function TaskViews({
       copied?.id === task.id && copied?.type === "password";
     const locked = isLocked(task);
     const isThisTaskDisabled = locked || isTaskDisabled(task.id);
+    const isFocused = focusTaskId === task.id;
 
     const reveal = canReveal(task, timerState);
 
     const card = (
       <div
+        id={`task-${task.id}`}
         className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg ${
           isThisTaskDisabled ? "opacity-70" : ""
-        }`}
+        } ${isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""}`}
       >
             <div className="p-6 w-full">
               <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center w-full">
@@ -655,15 +659,17 @@ export default function TaskViews({
         const passwordCopied = copied?.id === task.id && copied?.type === "password";
         const locked = isLocked(task);
         const isThisTaskDisabled = locked || isTaskDisabled(task.id);
+        const isFocused = focusTaskId === task.id;
         const performanceRating = task.performanceRating;
         const reveal = task.status !== "pending" || isTimerActive;
 
         return (
           <div
             key={task.id}
+            id={`task-${task.id}`}
             className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-3xl border-2 transition-all duration-500 hover:shadow-2xl hover:-translate-y-0.5 border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-xl ${
               isThisTaskDisabled ? "opacity-70" : ""
-            }`}
+            } ${isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""}`}
           >
             <div className="p-6 h-full flex flex-col">
               <div className="flex-1 flex flex-col space-y-6">

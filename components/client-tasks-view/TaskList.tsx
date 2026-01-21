@@ -54,6 +54,7 @@ export default function TaskList({
   tasks,
   filteredTasks,
   pinnedTask,
+  focusTaskId,
   overdueCount,
   searchTerm,
   setSearchTerm,
@@ -82,6 +83,7 @@ export default function TaskList({
   tasks: Task[];
   filteredTasks: Task[];
   pinnedTask?: Task | null;
+  focusTaskId?: string | null;
   selectedTasks?: string[];
   setSelectedTasks: React.Dispatch<React.SetStateAction<string[]>>;
   overdueCount: number;
@@ -312,6 +314,26 @@ export default function TaskList({
     return groups;
   };
 
+  const getTabForTask = (task: Task) => {
+    if (task.status === "completed") return "completed";
+    if (task.status === "qc_approved") return "qc_approved";
+    if (isReassignedLike(task)) return "reassigned";
+    if (!task.dueDate) return "upcoming";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dueDate = new Date(task.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (dueDate.getTime() === today.getTime()) return "today";
+    if (dueDate.getTime() === tomorrow.getTime()) return "tomorrow";
+    if (dueDate.getTime() > tomorrow.getTime()) return "upcoming";
+    return "overdue";
+  };
+
   const taskGroups = groupTasksByDate(filteredTasks);
   const [activeTab, setActiveTab] = useState("today");
   const realtimeRefreshInFlight = useRef(false);
@@ -319,6 +341,17 @@ export default function TaskList({
     setActiveTab(value);
     setPageByTab((p) => ({ ...p, [value]: 1 }));
   }, []);
+
+  useEffect(() => {
+    if (!focusTaskId) return;
+    const focusTask =
+      tasks.find((t) => t.id === focusTaskId) ?? pinnedTask ?? null;
+    if (!focusTask) return;
+    const targetTab = getTabForTask(focusTask);
+    if (targetTab !== activeTab) {
+      handleTabChange(targetTab);
+    }
+  }, [focusTaskId, tasks, pinnedTask, activeTab, handleTabChange]);
 
   // Use completedTasks prop for completed tab, otherwise fall back to grouped completed tasks
   // Combine completedTasks (from props) with qc_approved tasks
@@ -451,6 +484,14 @@ export default function TaskList({
   useEffect(() => {
     onVisibleCountChange?.(sortedTasks.length);
   }, [sortedTasks.length, onVisibleCountChange]);
+
+  useEffect(() => {
+    if (!focusTaskId) return;
+    const node = document.getElementById(`task-${focusTaskId}`);
+    if (node) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [focusTaskId, activeTab, sortedTasks.length]);
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -727,7 +768,8 @@ export default function TaskList({
                   // modal control
                   setTaskToComplete={setTaskToComplete}
                   setIsCompletionConfirmOpen={setIsCompletionConfirmOpen}
-                  disableVirtualization={false}
+                  disableVirtualization={Boolean(focusTaskId)}
+                  focusTaskId={focusTaskId ?? undefined}
                 />
 
                 {/* Pagination UI */}

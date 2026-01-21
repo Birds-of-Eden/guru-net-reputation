@@ -3,6 +3,51 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+const roleBasePath = (role?: string | null) => {
+  switch (role) {
+    case "admin":
+      return "/admin";
+    case "manager":
+      return "/manager";
+    case "agent":
+      return "/agent";
+    case "qc":
+      return "/qc";
+    case "am":
+      return "/am";
+    case "am_ceo":
+      return "/am_ceo";
+    case "data_entry":
+      return "/data_entry";
+    case "client":
+      return "/client";
+    case "user":
+    default:
+      return "/client";
+  }
+};
+
+const buildTargetPath = (
+  role: string | null | undefined,
+  notification: { id: number; taskId?: string | null },
+  task?: { clientId?: string | null; client?: { name?: string | null } | null }
+) => {
+  const basePath = roleBasePath(role);
+  if (notification.taskId && task?.clientId) {
+    const params = new URLSearchParams();
+    params.set("clientId", task.clientId);
+    if (task.client?.name) {
+      params.set("clientName", task.client.name);
+    }
+    params.set("taskId", notification.taskId);
+    const taskPath =
+      role === "agent" ? `${basePath}/agent_tasks` : `${basePath}/tasks`;
+    return `${taskPath}?${params.toString()}`;
+  }
+
+  return `${basePath}/notifications/${notification.id}`;
+};
+
 export async function GET(req: Request) {
   // Get current session user (AM)
   const url = new URL("/api/auth/me", req.url);
@@ -69,6 +114,20 @@ export async function GET(req: Request) {
     take: limit,
     skip,
     ...(cursorId ? { skip: 1, cursor: { id: Number(cursorId) } } : {}),
+    include: {
+      task: {
+        select: {
+          clientId: true,
+          client: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  const notificationsWithTarget = notifications.map((n) => {
+    const targetPath = buildTargetPath(user?.role, n, n.task ?? undefined);
+    const { task: _task, ...rest } = n;
+    return { ...rest, targetPath };
   });
 
   // Calculate pagination info
@@ -77,7 +136,7 @@ export async function GET(req: Request) {
   const hasPrevPage = page > 1;
 
   const response = {
-    notifications,
+    notifications: notificationsWithTarget,
     pagination: {
       currentPage: page,
       totalPages,

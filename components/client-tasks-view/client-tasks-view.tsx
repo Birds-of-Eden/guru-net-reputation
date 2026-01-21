@@ -191,6 +191,7 @@ interface ClientTasksViewProps {
   lockedTaskId?: string | null;
   lockedTaskName?: string | null;
   excludedCategories?: string[];
+  focusTaskId?: string | null;
 }
 interface Agent {
   id: string;
@@ -427,6 +428,7 @@ export function ClientTasksView({
   lockedTaskId,
   lockedTaskName,
   excludedCategories,
+  focusTaskId = null,
 }: ClientTasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const tasksRef = useRef<Task[]>([]);
@@ -676,7 +678,8 @@ export function ClientTasksView({
     }
   }, [taskResponse?.page]);
 
-  const pinnedTaskId = timerState?.taskId ?? pausedTimer?.taskId ?? null;
+  const pinnedTaskId =
+    focusTaskId ?? timerState?.taskId ?? pausedTimer?.taskId ?? null;
 
   useEffect(() => {
     if (!pinnedTaskId) {
@@ -2034,6 +2037,7 @@ export function ClientTasksView({
             tasks={tasks}
             filteredTasks={filteredTasks}
             pinnedTask={pinnedTask}
+            focusTaskId={focusTaskId}
             overdueCount={overdueCount}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}

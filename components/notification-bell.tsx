@@ -98,7 +98,6 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
     refreshCount();
     refreshList();
     if (n.targetPath) router.push(n.targetPath);
-    else if (n.taskId) router.push(`/agent/tasks/${n.taskId}`);
   };
 
   // header right controls
