@@ -466,6 +466,7 @@ export function ClientTasksView({
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [completionNotes, setCompletionNotes] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [isBulkCompletionOpen, setIsBulkCompletionOpen] = useState(false);
   const [bulkCompletionLink, setBulkCompletionLink] = useState("");
@@ -478,6 +479,14 @@ export function ClientTasksView({
   useEffect(() => {
     pinnedTaskRef.current = pinnedTask;
   }, [pinnedTask]);
+
+  useEffect(() => {
+    if (taskToComplete) {
+      setCompletionNotes(taskToComplete.notes ?? "");
+    } else {
+      setCompletionNotes("");
+    }
+  }, [taskToComplete]);
 
   const getTaskById = useCallback((taskId: string) => {
     const fromList = tasksRef.current.find((t) => t.id === taskId);
@@ -889,6 +898,7 @@ export function ClientTasksView({
             if (updatedTask.username == null) merged.username = t.username;
             if (updatedTask.reassignNotes == null)
               merged.reassignNotes = t.reassignNotes; // keep old note if patch doesn't return it
+            if (updatedTask.notes == null) merged.notes = t.notes;
 
             return merged as Task;
           });
@@ -909,6 +919,7 @@ export function ClientTasksView({
           if (updatedTask.username == null) merged.username = prev.username;
           if (updatedTask.reassignNotes == null)
             merged.reassignNotes = prev.reassignNotes;
+          if (updatedTask.notes == null) merged.notes = prev.notes;
           return merged as Task;
         });
         // Optimistic stats update if status changed
@@ -1526,6 +1537,88 @@ export function ClientTasksView({
     [timerState, saveTimerToStorage],
   );
 
+  const completeTaskWithActualDuration = useCallback(
+    async (
+      actualDurationMinutes: number | undefined,
+      performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy",
+      remainingAtComplete: number | null,
+    ) => {
+      const rollback = stopTimerNow(taskToComplete.id);
+
+      try {
+        const updates: any = {
+          status: "completed",
+          completedAt: new Date().toISOString(),
+        };
+        if (completionLink?.trim())
+          updates.completionLink = completionLink.trim();
+        if (username?.trim()) updates.username = username.trim();
+        if (email?.trim()) updates.email = email.trim();
+        if (password?.trim()) updates.password = password;
+        if (completionNotes.trim() || completionNotes === "") {
+          updates.notes = completionNotes.trim() || null;
+        }
+        if (typeof actualDurationMinutes === "number") {
+          updates.actualDurationMinutes = actualDurationMinutes;
+          updates.performanceRating = performanceRating;
+        }
+
+        await handleUpdateTask(taskToComplete.id, updates);
+
+        applyLocalTaskPatch(taskToComplete.id, updates);
+
+        setIsCompletionConfirmOpen(false);
+        setTaskToComplete(null);
+        setCompletionLink("");
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setCompletionNotes("");
+
+        // Refresh tasks to get real-time completion status
+        await refreshTasks();
+
+        if (
+          timerState?.taskId === taskToComplete.id &&
+          taskToComplete.idealDurationMinutes
+        ) {
+          if ((remainingAtComplete ?? timerState?.remainingSeconds ?? 0) <= 0) {
+            toast.success(
+              `Task "${taskToComplete.name}" completed with overtime!`,
+            );
+          } else {
+            toast.success(
+              `Task "${taskToComplete.name}" completed ahead of schedule!`,
+            );
+          }
+        } else {
+          toast.success(`Task "${taskToComplete.name}" marked as completed!`);
+        }
+      } catch (e) {
+        if (rollback) {
+          setTimerState(rollback);
+          if (rollback.isRunning) saveTimerToStorage(rollback);
+        }
+        console.error("Failed to complete task:", e);
+        toast.error("Failed to complete task. Please try again.");
+      }
+    },
+    [
+      taskToComplete,
+      timerState,
+      completionLink,
+      username,
+      email,
+      password,
+      completionNotes,
+      stopTimerNow,
+      handleUpdateTask,
+      applyLocalTaskPatch,
+      saveTimerToStorage,
+      refreshTasks,
+    ],
+  );
+
   const handleTaskCompletion = useCallback(async () => {
     if (!taskToComplete) return;
 
@@ -1567,6 +1660,7 @@ export function ClientTasksView({
   }, [
     taskToComplete,
     timerState,
+    completeTaskWithActualDuration,
     stopTimerNow,
     getTaskById,
     handleUpdateTask,
@@ -1635,6 +1729,7 @@ export function ClientTasksView({
     [
       taskToComplete,
       timerState,
+      completeTaskWithActualDuration,
       stopTimerNow,
       getTaskById,
       handleUpdateTask,
@@ -1642,87 +1737,11 @@ export function ClientTasksView({
     ],
   );
 
-  const completeTaskWithActualDuration = useCallback(
-    async (
-      actualDurationMinutes: number | undefined,
-      performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy",
-      remainingAtComplete: number | null,
-    ) => {
-      const rollback = stopTimerNow(taskToComplete.id);
-
-      try {
-        const updates: any = {
-          status: "completed",
-          completedAt: new Date().toISOString(),
-        };
-        if (completionLink?.trim())
-          updates.completionLink = completionLink.trim();
-        if (username?.trim()) updates.username = username.trim();
-        if (email?.trim()) updates.email = email.trim();
-        if (password?.trim()) updates.password = password;
-        if (typeof actualDurationMinutes === "number") {
-          updates.actualDurationMinutes = actualDurationMinutes;
-          updates.performanceRating = performanceRating;
-        }
-
-        await handleUpdateTask(taskToComplete.id, updates);
-
-        applyLocalTaskPatch(taskToComplete.id, updates);
-
-        setIsCompletionConfirmOpen(false);
-        setTaskToComplete(null);
-        setCompletionLink("");
-        setUsername("");
-        setEmail("");
-        setPassword("");
-
-        // Refresh tasks to get real-time completion status
-        await refreshTasks();
-
-        if (
-          timerState?.taskId === taskToComplete.id &&
-          taskToComplete.idealDurationMinutes
-        ) {
-          if ((remainingAtComplete ?? timerState?.remainingSeconds ?? 0) <= 0) {
-            toast.success(
-              `Task "${taskToComplete.name}" completed with overtime!`,
-            );
-          } else {
-            toast.success(
-              `Task "${taskToComplete.name}" completed ahead of schedule!`,
-            );
-          }
-        } else {
-          toast.success(`Task "${taskToComplete.name}" marked as completed!`);
-        }
-      } catch (e) {
-        if (rollback) {
-          setTimerState(rollback);
-          if (rollback.isRunning) saveTimerToStorage(rollback);
-        }
-        console.error("Failed to complete task:", e);
-        toast.error("Failed to complete task. Please try again.");
-      }
-    },
-    [
-      taskToComplete,
-      timerState,
-      completionLink,
-      username,
-      email,
-      password,
-      stopTimerNow,
-      handleUpdateTask,
-      applyLocalTaskPatch,
-      saveTimerToStorage,
-      refreshTasks,
-    ],
-  );
-
   const handleCompletionCancel = useCallback(() => {
     setIsCompletionConfirmOpen(false);
     setTaskToComplete(null);
     setCompletionLink("");
+    setCompletionNotes("");
   }, []);
 
   const handleUpdateSelectedTasks = useCallback(
@@ -2187,6 +2206,8 @@ export function ClientTasksView({
           setEmail={setEmail}
           password={password}
           setPassword={setPassword}
+          completionNotes={completionNotes}
+          setCompletionNotes={setCompletionNotes}
           timerState={timerState}
           handleTaskCompletion={handleTaskCompletionWithElapsed}
           handleCompletionCancel={handleCompletionCancel}

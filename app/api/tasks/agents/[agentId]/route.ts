@@ -112,6 +112,7 @@ export async function PATCH(
       email,
       password,
       actualDurationMinutes,
+      notes,
     }: {
       taskId: string;
       status: "pending" | "in_progress" | "completed" | "overdue" | "cancelled";
@@ -120,6 +121,7 @@ export async function PATCH(
       email?: string;
       password?: string;
       actualDurationMinutes?: number;
+      notes?: string | null;
     } = body;
 
     if (!taskId || !status) {
@@ -191,8 +193,31 @@ export async function PATCH(
         ...(typeof actualDurationMinutes === "number" && {
           actualDurationMinutes,
         }),
+        ...(typeof notes === "string"
+          ? { notes: notes.trim() || null }
+          : notes === null
+          ? { notes: null }
+          : {}),
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        createdAt: true,
+        completedAt: true,
+        completionLink: true,
+        email: true,
+        username: true,
+        password: true,
+        notes: true,
+        reassignNotes: true,
+        actualDurationMinutes: true,
+        idealDurationMinutes: true,
+        categoryId: true,
+        templateSiteAssetId: true,
+        assignedToId: true,
         assignment: { include: { client: true } },
         templateSiteAsset: { select: { id: true, name: true, type: true } },
         category: { select: { id: true, name: true } },

@@ -13,6 +13,7 @@ import {
   CheckCircle,
   RotateCcw,
   Star,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -30,7 +31,7 @@ import { Client } from "@/types/client";
 const ClientDashboard = lazy(() =>
   import("@/components/clients/clientsID/client-dashboard").then((m) => ({
     default: m.ClientDashboard,
-  }))
+  })),
 );
 
 const ClientDashboardSkeleton = () => (
@@ -64,6 +65,11 @@ interface TaskCardProps {
   approvedMap: Record<string, boolean>;
   onApprove: (task: any) => void;
   onReject: (task: any) => void;
+  setNotePreview: (preview: {
+    open: boolean;
+    note: string;
+    taskName: string;
+  }) => void;
 
   // ⭐ New controlled scores from parent (per-task)
   scores: QCScores;
@@ -225,15 +231,16 @@ export function TaskCard({
   approvedMap,
   onApprove,
   onReject,
+  setNotePreview,
   scores,
   onChangeScores,
 }: TaskCardProps) {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [clientData, setClientData] = useState<Client | null>(null);
-  
+
   const efficiency = getDurationEfficiency(
     task.idealDurationMinutes,
-    task.actualDurationMinutes
+    task.actualDurationMinutes,
   );
   const isApproved = approvedMap[task.id];
   const cardGradient =
@@ -249,7 +256,7 @@ export function TaskCard({
       scores.seo +
       scores.grammar +
       scores.humanization,
-    [scores]
+    [scores],
   );
 
   const setScore = (k: keyof QCScores, v: number) =>
@@ -423,7 +430,10 @@ export function TaskCard({
                         {task.assignment.template.name}
                       </Badge>
                     )}
-                    <Dialog open={isClientModalOpen} onOpenChange={setIsClientModalOpen}>
+                    <Dialog
+                      open={isClientModalOpen}
+                      onOpenChange={setIsClientModalOpen}
+                    >
                       <DialogTrigger asChild>
                         <Button className="relative rounded-xl p-0 bg-transparent hover:bg-transparent overflow-hidden isolate mt-2 h-8">
                           <BackgroundGradient className="rounded-xl">
@@ -530,7 +540,7 @@ export function TaskCard({
                 </div>
               </div>
 
-              <div className="flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div className="flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 {task.completionLink && (
                   <Button
                     onClick={() => window.open(task.completionLink, "_blank")}
@@ -539,6 +549,25 @@ export function TaskCard({
                     <ExternalLink className="h-3 w-3 mr-2" />
                     View Completion
                   </Button>
+                )}
+                {task.notes && (
+                  <div className="mt-3">
+                    <Button
+                      onClick={() =>
+                        setNotePreview({
+                          open: true,
+                          note: task.notes || "",
+                          taskName: task.name || "",
+                        })
+                      }
+                      variant="outline"
+                      size="sm"
+                      className="bg-gradient-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
+                    >
+                      <Eye className="h-4 w-4 text-teal-500 hover:text-teal-600" />
+                      View Notes
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -587,8 +616,8 @@ export function TaskCard({
                         efficiency.status === "Efficient"
                           ? "text-green-600"
                           : efficiency.status === "Acceptable"
-                          ? "text-yellow-600"
-                          : "text-red-600"
+                            ? "text-yellow-600"
+                            : "text-red-600"
                       }`}
                     >
                       {efficiency.status}

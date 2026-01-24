@@ -32,6 +32,8 @@ export default function TaskDialogs({
   setEmail,
   password,
   setPassword,
+  completionNotes,
+  setCompletionNotes,
   timerState,
   handleTaskCompletion,
   handleCompletionCancel,
@@ -63,6 +65,8 @@ export default function TaskDialogs({
   setEmail: (v: string) => void;
   password: string;
   setPassword: (v: string) => void;
+  completionNotes: string;
+  setCompletionNotes: (v: string) => void;
   timerState: TimerState | null;
   handleTaskCompletion: (elapsedMinutes?: number) => void;
   handleCompletionCancel: () => void;
@@ -283,6 +287,8 @@ export default function TaskDialogs({
             setEmail={setEmail}
             setUsername={setUsername}
             setPassword={setPassword}
+            notes={completionNotes}
+            setNotes={setCompletionNotes}
             resetModal={resetAllCompletionModals}
             submit={guardedSubmit}
             isSimpleTask={isSimpleTask}
