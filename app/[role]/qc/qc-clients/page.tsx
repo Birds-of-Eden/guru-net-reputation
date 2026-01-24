@@ -1,11 +1,24 @@
+//app/[role]/qc/qc-clients/page.tsx
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useDeferredValue } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useDeferredValue,
+} from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +78,10 @@ function pct(total: number, part: number) {
 }
 
 function normStatus(s?: string) {
-  return String(s ?? "").toLowerCase().trim().replace(/\s+/g, "_");
+  return String(s ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_");
 }
 
 function statusKey(t: TaskRow) {
@@ -165,34 +181,13 @@ export default function QCClientsPage() {
   }, [tasksSWR.data]);
 
   // ✅ compute client stats dynamically from tasks (UNCHANGED)
- const statsByClient = useMemo<ClientStats[]>(() => {
-  const map = new Map<string, Omit<ClientStats, "progress">>();
+  const statsByClient = useMemo<ClientStats[]>(() => {
+    const map = new Map<string, Omit<ClientStats, "progress">>();
 
-  // seed from /api/clients so they appear even if no tasks
-  for (const c of clients) {
-    map.set(c.id, {
-      client: c,
-      totalTasks: 0,
-      completed: 0,
-      pending: 0,
-      inProgress: 0,
-      reassigned: 0,
-      overdue: 0,
-      qcApproved: 0,
-    });
-  }
-
-  for (const t of tasks) {
-    const cid = t?.client?.id;
-    if (!cid) continue;
-
-    if (!map.has(cid)) {
-      map.set(cid, {
-        client: {
-          id: cid,
-          name: t.client?.name ?? "Unknown Client",
-          company: (t.client as any)?.company,
-        },
+    // seed from /api/clients so they appear even if no tasks
+    for (const c of clients) {
+      map.set(c.id, {
+        client: c,
         totalTasks: 0,
         completed: 0,
         pending: 0,
@@ -203,27 +198,48 @@ export default function QCClientsPage() {
       });
     }
 
-    const s = map.get(cid)!;
-    s.totalTasks += 1;
+    for (const t of tasks) {
+      const cid = t?.client?.id;
+      if (!cid) continue;
 
-    const st = statusKey(t);
+      if (!map.has(cid)) {
+        map.set(cid, {
+          client: {
+            id: cid,
+            name: t.client?.name ?? "Unknown Client",
+            company: (t.client as any)?.company,
+          },
+          totalTasks: 0,
+          completed: 0,
+          pending: 0,
+          inProgress: 0,
+          reassigned: 0,
+          overdue: 0,
+          qcApproved: 0,
+        });
+      }
 
-    if (st === "completed") s.completed += 1;
-    else if (st === "pending") s.pending += 1;
-    else if (st === "in_progress") s.inProgress += 1;
-    else if (st === "reassigned") s.reassigned += 1;
-    else if (st === "qc_approved") s.qcApproved += 1;
+      const s = map.get(cid)!;
+      s.totalTasks += 1;
 
-    if (isOverdue(t)) s.overdue += 1;
-  }
+      const st = statusKey(t);
 
-  // ✅ return new objects with computed progress (no mutation)
-  return Array.from(map.values()).map((s) => ({
-    ...s,
-    // QC page: progress = QC Approved rate
-    progress: pct(s.totalTasks, s.qcApproved),
-  }));
-}, [clients, tasks]);
+      if (st === "completed") s.completed += 1;
+      else if (st === "pending") s.pending += 1;
+      else if (st === "in_progress") s.inProgress += 1;
+      else if (st === "reassigned") s.reassigned += 1;
+      else if (st === "qc_approved") s.qcApproved += 1;
+
+      if (isOverdue(t)) s.overdue += 1;
+    }
+
+    // ✅ return new objects with computed progress (no mutation)
+    return Array.from(map.values()).map((s) => ({
+      ...s,
+      // QC page: progress = QC Approved rate
+      progress: pct(s.totalTasks, s.qcApproved),
+    }));
+  }, [clients, tasks]);
 
   // ✅ KPI dynamic (UNCHANGED)
   const kpis = useMemo(() => {
@@ -265,7 +281,7 @@ export default function QCClientsPage() {
       list = list.filter((s) =>
         `${s.client.name ?? ""} ${s.client.company ?? ""}`
           .toLowerCase()
-          .includes(deferredQuery)
+          .includes(deferredQuery),
       );
     }
 
@@ -304,7 +320,8 @@ export default function QCClientsPage() {
 
     const out = [...list];
     out.sort((a, b) => {
-      if (sortBy === "name_asc") return a.client.name.localeCompare(b.client.name);
+      if (sortBy === "name_asc")
+        return a.client.name.localeCompare(b.client.name);
       if (sortBy === "tasks_desc") return b.totalTasks - a.totalTasks;
       if (sortBy === "progress_desc") return b.progress - a.progress;
       if (sortBy === "qc_desc") return b.qcApproved - a.qcApproved;
@@ -312,7 +329,14 @@ export default function QCClientsPage() {
     });
 
     return out;
-  }, [statsByClient, deferredQuery, statusFilter, progressFilter, qcFilter, sortBy]);
+  }, [
+    statsByClient,
+    deferredQuery,
+    statusFilter,
+    progressFilter,
+    qcFilter,
+    sortBy,
+  ]);
 
   const isLoading = clientsSWR.isLoading || tasksSWR.isLoading;
   const hasError = !!clientsSWR.error || !!tasksSWR.error;
@@ -331,39 +355,60 @@ export default function QCClientsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
       {/* Header (agent-dashboard style) */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent p-3">
-            My Clients
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
-            Manage tasks and track progress for your assigned clients
-          </p>
-        </div>
-
-        <Button
-          onClick={refreshAll}
-          disabled={isLoading}
-          variant="outline"
-          className="bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md rounded-xl"
-        >
-          <RefreshCw className={classNames("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-          Refresh Data
-        </Button>
+      <div className="space-y-2 pl-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          QC Clients
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 text-lg">
+          Client quality control overview
+        </p>
       </div>
 
       {/* Stats Cards (agent-dashboard style) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 mb-8">
-        <StatCard title="Total Clients" value={kpis.totalClients} icon={<Activity className="h-5 w-5" />} />
-        <StatCard title="Total Tasks" value={kpis.totalTasks} subtitle={`${kpis.totalTasks ? Math.round((kpis.completed / kpis.totalTasks) * 100) : 0}% completion rate`} icon={<CheckCircle2 className="h-5 w-5" />} />
-        <StatCard title="In Progress" value={kpis.inProgress} icon={<Play className="h-5 w-5" />} />
-        <StatCard title="Overdue" value={kpis.overdue} icon={<AlertCircle className="h-5 w-5" />} />
-        <StatCard title="Completed" value={kpis.completed} icon={<CheckCheck className="h-5 w-5" />} />
-        <StatCard title="Pending" value={kpis.pending} icon={<Clock className="h-5 w-5" />} />
-        <StatCard title="Reassigned" value={kpis.reassigned} icon={<RotateCcw className="h-5 w-5" />} />
-        <StatCard title="QC Approved" value={kpis.qcApproved} icon={<CheckCircle2 className="h-5 w-5" />} />
+        <StatCard
+          title="Total Clients"
+          value={kpis.totalClients}
+          icon={<Activity className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Total Tasks"
+          value={kpis.totalTasks}
+          subtitle={`${kpis.totalTasks ? Math.round((kpis.completed / kpis.totalTasks) * 100) : 0}% completion rate`}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
+        <StatCard
+          title="In Progress"
+          value={kpis.inProgress}
+          icon={<Play className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Overdue"
+          value={kpis.overdue}
+          icon={<AlertCircle className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Completed"
+          value={kpis.completed}
+          icon={<CheckCheck className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Pending"
+          value={kpis.pending}
+          icon={<Clock className="h-5 w-5" />}
+        />
+        <StatCard
+          title="Reassigned"
+          value={kpis.reassigned}
+          icon={<RotateCcw className="h-5 w-5" />}
+        />
+        <StatCard
+          title="QC Approved"
+          value={kpis.qcApproved}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+        />
       </div>
 
       {/* Management Card (agent-dashboard style) */}
@@ -377,7 +422,7 @@ export default function QCClientsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-                    Client Management
+                    Client Task's QC Review
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400 text-base">
                     Search, filter, and manage your assigned clients
@@ -423,7 +468,10 @@ export default function QCClientsPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+              >
                 <SelectTrigger className="w-full sm:w-[190px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -432,14 +480,21 @@ export default function QCClientsPage() {
                   <SelectItem value="has_tasks">Has Tasks</SelectItem>
                   <SelectItem value="no_tasks">No Tasks</SelectItem>
                   <SelectItem value="has_completed">Has Completed</SelectItem>
-                  <SelectItem value="has_inprogress">Has In Progress</SelectItem>
+                  <SelectItem value="has_inprogress">
+                    Has In Progress
+                  </SelectItem>
                   <SelectItem value="has_pending">Has Pending</SelectItem>
                   <SelectItem value="has_overdue">Has Overdue</SelectItem>
-                  <SelectItem value="has_qc_approved">Has QC Approved</SelectItem>
+                  <SelectItem value="has_qc_approved">
+                    Has QC Approved
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={progressFilter} onValueChange={(v) => setProgressFilter(v as ProgressFilter)}>
+              <Select
+                value={progressFilter}
+                onValueChange={(v) => setProgressFilter(v as ProgressFilter)}
+              >
                 <SelectTrigger className="w-full sm:w-[170px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <SelectValue placeholder="Filter by progress" />
                 </SelectTrigger>
@@ -452,18 +507,10 @@ export default function QCClientsPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={qcFilter} onValueChange={(v) => setQcFilter(v as QCFilter)}>
-                <SelectTrigger className="w-full sm:w-[160px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <SelectValue placeholder="QC filter" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">All QC</SelectItem>
-                  <SelectItem value="needs_qc">Needs QC</SelectItem>
-                  <SelectItem value="qc_done">QC Done</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+              <Select
+                value={sortBy}
+                onValueChange={(v) => setSortBy(v as SortBy)}
+              >
                 <SelectTrigger className="w-full sm:w-[170px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <ArrowUpDown className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Sort" />
@@ -493,7 +540,7 @@ export default function QCClientsPage() {
                     "h-12 w-12 rounded-xl",
                     viewMode === "list"
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                   )}
                   aria-label="List view"
                 >
@@ -508,7 +555,7 @@ export default function QCClientsPage() {
                     "h-12 w-12 rounded-xl",
                     viewMode === "card"
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800",
                   )}
                   aria-label="Card view"
                 >
@@ -533,7 +580,10 @@ export default function QCClientsPage() {
                     Please try refreshing
                   </p>
                 </div>
-                <Button onClick={refreshAll} className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                  onClick={refreshAll}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Retry
                 </Button>
@@ -596,7 +646,9 @@ function StatCard({
           <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight">
             {value}
           </span>
-          {subtitle && <span className="text-xs mt-1 text-gray-500">{subtitle}</span>}
+          {subtitle && (
+            <span className="text-xs mt-1 text-gray-500">{subtitle}</span>
+          )}
         </div>
         <div
           className="
@@ -630,7 +682,11 @@ function EmptyClients({ onReset }: { onReset: () => void }) {
             Try adjusting your filters or clearing the search
           </p>
         </div>
-        <Button onClick={onReset} variant="outline" className="bg-transparent rounded-xl">
+        <Button
+          onClick={onReset}
+          variant="outline"
+          className="bg-transparent rounded-xl"
+        >
           Reset Filters
         </Button>
       </div>
@@ -653,7 +709,9 @@ function ClientCard({ stats }: { stats: ClientStats }) {
           </div>
 
           <div className="min-w-0 flex-1">
-            <CardTitle className="truncate text-xl">{stats.client.name}</CardTitle>
+            <CardTitle className="truncate text-xl">
+              {stats.client.name}
+            </CardTitle>
 
             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
               {stats.client.company && (
@@ -670,7 +728,7 @@ function ClientCard({ stats }: { stats: ClientStats }) {
               "px-2.5 py-1 rounded-full text-xs font-semibold",
               stats.overdue > 0
                 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
             )}
           >
             {stats.overdue > 0 ? "Needs Attention" : "Active"}
@@ -698,11 +756,23 @@ function ClientCard({ stats }: { stats: ClientStats }) {
         {/* Breakdown */}
         <div className="grid grid-cols-3 gap-3">
           <StatusChip label="Total" value={stats.totalTasks} tone="default" />
-          <StatusChip label="Completed" value={stats.completed} tone="success" />
+          <StatusChip
+            label="Completed"
+            value={stats.completed}
+            tone="success"
+          />
           <StatusChip label="QC Approved" value={stats.qcApproved} tone="sky" />
-          <StatusChip label="In Progress" value={stats.inProgress} tone="warn" />
+          <StatusChip
+            label="In Progress"
+            value={stats.inProgress}
+            tone="warn"
+          />
           <StatusChip label="Pending" value={stats.pending} tone="muted" />
-          <StatusChip label="Overdue" value={stats.overdue} tone={stats.overdue > 0 ? "danger" : "neutral"} />
+          <StatusChip
+            label="Overdue"
+            value={stats.overdue}
+            tone={stats.overdue > 0 ? "danger" : "neutral"}
+          />
         </div>
 
         <div className="flex items-center justify-between pt-2">
@@ -804,7 +874,9 @@ function ClientsTable({ rows }: { rows: ClientStats[] }) {
                     disabled={r.totalTasks === 0}
                     className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Link href={`./qc-review?clientId=${encodeURIComponent(r.client.id)}`}>
+                    <Link
+                      href={`./qc-review?clientId=${encodeURIComponent(r.client.id)}`}
+                    >
                       QC Review
                     </Link>
                   </Button>
@@ -839,24 +911,24 @@ function StatusChip({
     tone === "success"
       ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
       : tone === "warn"
-      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-      : tone === "danger"
-      ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-      : tone === "neutral"
-      ? "bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-300"
-      : tone === "muted"
-      ? "bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
-      : tone === "pink"
-      ? "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400"
-      : tone === "sky"
-      ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
-      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+        : tone === "danger"
+          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+          : tone === "neutral"
+            ? "bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-300"
+            : tone === "muted"
+              ? "bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+              : tone === "pink"
+                ? "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400"
+                : tone === "sky"
+                  ? "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
+                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
 
   return (
     <div
       className={classNames(
         "rounded-xl px-3 py-2 text-sm font-medium flex items-center justify-between",
-        toneClass
+        toneClass,
       )}
     >
       <span className="truncate">{label}</span>
@@ -898,7 +970,7 @@ function Pill({
     <span
       className={classNames(
         "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
-        map[tone]
+        map[tone],
       )}
     >
       {label}: {value}

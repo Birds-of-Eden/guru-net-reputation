@@ -36,16 +36,10 @@ import {
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 
-// Lazy load heavy components
-const FilterSection = lazy(() =>
-  import("@/components/qc-review/filter-section").then((m) => ({
-    default: m.FilterSection,
-  }))
-);
 const TaskCard = lazy(() =>
   import("@/components/qc-review/task-card").then((m) => ({
     default: m.TaskCard,
-  }))
+  })),
 );
 
 /* =========================
@@ -64,7 +58,6 @@ const FilterSkeleton = memo(function FilterSkeleton() {
     </div>
   );
 });
- 
 
 const TaskCardSkeleton = memo(function TaskCardSkeleton() {
   return <div className="h-32 bg-slate-200 rounded-xl animate-pulse" />;
@@ -153,16 +146,16 @@ const timerScoreFromRating = (r?: Perf | null) =>
   r === "Excellent"
     ? 70
     : r === "Good"
-    ? 60
-    : r === "Average"
-    ? 50
-    : r === "Lazy"
-    ? 40
-    : 0;
+      ? 60
+      : r === "Average"
+        ? 50
+        : r === "Lazy"
+          ? 40
+          : 0;
 
 function derivePerformanceRating(
   ideal?: number | null,
-  actual?: number | null
+  actual?: number | null,
 ): Perf | undefined {
   if (!ideal || !actual || ideal <= 0) return undefined;
   if (actual <= ideal * 0.9) return "Excellent";
@@ -254,6 +247,7 @@ const VirtualTaskList = memo(function VirtualTaskList({
   qcScoresByTask,
   onChangeScores,
   defaultScores,
+  setNotePreview,
 }: {
   tasks: TaskRow[];
   approvedMap: Record<string, boolean>;
@@ -262,6 +256,7 @@ const VirtualTaskList = memo(function VirtualTaskList({
   qcScoresByTask: Record<string, QCScores>;
   onChangeScores: (taskId: string, scores: QCScores) => void;
   defaultScores: QCScores;
+  setNotePreview: (preview: { open: boolean; note: string; taskName: string }) => void;
 }) {
   if (!tasks.length) return null;
 
@@ -277,6 +272,7 @@ const VirtualTaskList = memo(function VirtualTaskList({
           approvedMap={approvedMap}
           onApprove={onApprove}
           onReject={onReject}
+          setNotePreview={setNotePreview}
           scores={qcScoresByTask[task.id] ?? defaultScores}
           onChangeScores={(next) => onChangeScores(task.id, next)}
         />
@@ -375,6 +371,11 @@ export const QCReview = memo(function QCReview({
     task: TaskRow | null;
     loading: boolean;
   }>({ open: false, task: null, loading: false });
+  const [notePreview, setNotePreview] = useState<{
+    open: boolean;
+    note: string;
+    taskName: string;
+  }>({ open: false, note: "", taskName: "" });
 
   const [qcNotes, setQcNotes] = useState<string>("");
 
@@ -487,7 +488,7 @@ export const QCReview = memo(function QCReview({
       }
 
       toast.success(
-        `Task "${reassignDialog.task.name}" re-assigned successfully.`
+        `Task "${reassignDialog.task.name}" re-assigned successfully.`,
       );
       setReassignDialog({
         open: false,
@@ -514,7 +515,7 @@ export const QCReview = memo(function QCReview({
       approveDialog.task.performanceRating ??
       derivePerformanceRating(
         approveDialog.task.idealDurationMinutes,
-        approveDialog.task.actualDurationMinutes
+        approveDialog.task.actualDurationMinutes,
       );
 
     const finalRating: Perf =
@@ -537,7 +538,7 @@ export const QCReview = memo(function QCReview({
             scores.image +
             scores.seo +
             scores.grammar +
-            scores.humanization
+            scores.humanization,
         ) || 0;
 
       const r = await fetch(`/api/tasks/${approveDialog.task.id}/approve`, {
@@ -596,7 +597,7 @@ export const QCReview = memo(function QCReview({
       }
 
       toast.success(
-        `Task "${approveDialog.task.name}" approved. Rating: ${finalRating}.`
+        `Task "${approveDialog.task.name}" approved. Rating: ${finalRating}.`,
       );
       setApprovedMap((m) => ({ ...m, [approveDialog.task!.id]: true }));
       setQcScoresByTask((m) => {
@@ -614,7 +615,7 @@ export const QCReview = memo(function QCReview({
     }
   };
 
-   const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const cid = searchParams.get("clientId");
@@ -658,29 +659,6 @@ export const QCReview = memo(function QCReview({
           </Button>
         </div>
       </div>
-
-      <Suspense fallback={<FilterSkeleton />}>
-        <FilterSection
-          agentId={agentId}
-          setAgentId={setAgentId}
-          clientId={clientId}
-          setClientId={setClientId}
-          categoryId={categoryId}
-          setCategoryId={setCategoryId}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          q={q}
-          setQ={setQ}
-          agents={agents}
-          clients={clients}
-          categories={categories}
-          filtered={filteredTasks}
-          tasks={qcScopedTasks}
-          clearFilters={clearFilters}
-        />
-      </Suspense>
 
       <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
         <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80">
@@ -726,25 +704,17 @@ export const QCReview = memo(function QCReview({
           ) : filteredTasks.length === 0 ? (
             <div className="text-center py-16">
               <div className="flex flex-col items-center gap-6">
-                <div className="p-4 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl">
-                  <AlertCircle className="h-12 w-12 text-slate-400" />
+                <div className="p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl">
+                  <CheckCircle className="h-12 w-12 text-emerald-500" />
                 </div>
                 <div className="space-y-2 max-w-md">
                   <h3 className="text-xl font-semibold text-slate-900">
-                    No completed tasks found
+                    🎉 All Tasks Reviewed!
                   </h3>
                   <p className="text-slate-600">
-                    Try adjusting your filters or check back later for new
-                    completed tasks
+                    Great job! You've successfully completed QC review for all available tasks. Take a well-deserved break!
                   </p>
                 </div>
-                <Button
-                  onClick={clearFilters}
-                  variant="outline"
-                  className="mt-2 bg-transparent"
-                >
-                  Clear All Filters
-                </Button>
               </div>
             </div>
           ) : (
@@ -765,6 +735,7 @@ export const QCReview = memo(function QCReview({
                 setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
               }
               defaultScores={defaultScores}
+              setNotePreview={setNotePreview}
             />
           )}
         </CardContent>
@@ -818,7 +789,7 @@ export const QCReview = memo(function QCReview({
                           onClick={() =>
                             window.open(
                               approveDialog.task!.completionLink!,
-                              "_blank"
+                              "_blank",
                             )
                           }
                           variant="outline"
@@ -827,6 +798,26 @@ export const QCReview = memo(function QCReview({
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Completion
+                        </Button>
+                      </div>
+                    )}
+
+                    {approveDialog.task.notes && (
+                      <div className="mt-3">
+                        <Button
+                          onClick={() =>
+                            setNotePreview({
+                              open: true,
+                              note: approveDialog.task?.notes || "",
+                              taskName: approveDialog.task?.name || "",
+                            })
+                          }
+                          variant="outline"
+                          size="sm"
+                          className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200 flex items-center gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Notes
                         </Button>
                       </div>
                     )}
@@ -870,6 +861,40 @@ export const QCReview = memo(function QCReview({
                 <CheckCircle className="h-4 w-4 mr-2" />
               )}
               Approve Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Note Preview Dialog */}
+      <Dialog
+        open={notePreview.open}
+        onOpenChange={(open) => setNotePreview((p) => ({ ...p, open }))}
+      >
+        <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
+          <DialogHeader className="pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
+                <Eye className="h-5 w-5 text-white" />
+              </div>
+              <DialogTitle className="text-lg font-semibold text-slate-900">
+                Task Notes
+              </DialogTitle>
+            </div>
+            <p className="text-sm text-slate-600 pt-1">
+              {notePreview.taskName || "Note"}
+            </p>
+          </DialogHeader>
+          <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+            {notePreview.note || "No notes provided."}
+          </div>
+          <DialogFooter className="gap-2 pt-2 border-t border-slate-100">
+            <Button
+              variant="outline"
+              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300"
+              onClick={() => setNotePreview((p) => ({ ...p, open: false }))}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

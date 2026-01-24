@@ -125,9 +125,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
-      <DialogContent className="max-w-[50vw] mx-auto rounded-2xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-6 px-6 py-6">
+        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-4 px-6 py-6 flex-shrink-0">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-white flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
@@ -155,7 +155,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         </div>
 
         {/* Body */}
-        <div className="px-6 pb-6 space-y-5">
+        <div className="px-6 pb-6 space-y-5 flex-1 overflow-y-auto">
           {/* Timer Display */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
             <div className="flex items-center justify-between">
@@ -275,7 +275,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3">
+        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 flex-shrink-0">
           <Button
             variant="outline"
             onClick={resetModal}
