@@ -357,7 +357,7 @@ function buildNav(role: Role): NavItem[] {
     // QC review
     {
       title: "QC Review",
-      url: p(r, "/qc/qc-review"),
+      url: p(r, "/qc/qc-clients"),
       permission: "view_qc_review",
     },
 

@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState, lazy, Suspense, memo } from "react";
 import useSWR from "swr";
+import { useSearchParams } from "next/navigation";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +64,7 @@ const FilterSkeleton = memo(function FilterSkeleton() {
     </div>
   );
 });
+ 
 
 const TaskCardSkeleton = memo(function TaskCardSkeleton() {
   return <div className="h-32 bg-slate-200 rounded-xl animate-pulse" />;
@@ -611,6 +613,14 @@ export const QCReview = memo(function QCReview({
       setApproveDialog((p) => ({ ...p, loading: false }));
     }
   };
+
+   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const cid = searchParams.get("clientId");
+    if (cid) setClientId(cid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   return (
     <div className="mx-auto w-full p-6 space-y-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 min-h-screen">
