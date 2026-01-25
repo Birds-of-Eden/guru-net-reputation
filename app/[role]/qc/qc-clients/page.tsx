@@ -184,20 +184,6 @@ export default function QCClientsPage() {
   const statsByClient = useMemo<ClientStats[]>(() => {
     const map = new Map<string, Omit<ClientStats, "progress">>();
 
-    // seed from /api/clients so they appear even if no tasks
-    for (const c of clients) {
-      map.set(c.id, {
-        client: c,
-        totalTasks: 0,
-        completed: 0,
-        pending: 0,
-        inProgress: 0,
-        reassigned: 0,
-        overdue: 0,
-        qcApproved: 0,
-      });
-    }
-
     for (const t of tasks) {
       const cid = t?.client?.id;
       if (!cid) continue;
