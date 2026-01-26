@@ -59,7 +59,7 @@ import { useUserSession } from "@/lib/hooks/use-user-session";
 import ImpersonateButton from "@/components/users/ImpersonateButton";
 
 import UserFormDialog from "./UserFormDialog";
-import type { UserInterface, UserStats, Role, UserStatus } from "@/types/user";
+import type { UserInterface, Role, UserStatus } from "@/types/user";
 import { hasPermissionClient } from "@/lib/permissions-client";
 
 export default function UsersPage() {
@@ -73,17 +73,31 @@ export default function UsersPage() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState(""); // ✅ query uses this
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
-  // Debounce search input
+  // ✅ Debounce: user টাইপ করা থামলেই search apply হবে
   useEffect(() => {
+    const value = searchTerm.trim();
+
+    // empty হলে সাথে সাথে clear করে দাও
+    if (!value) {
+      setAppliedSearch("");
+      setPageIndex(0);
+      return;
+    }
+
+    // ✅ Optional: 1 char এ search না হোক
+    const MIN_CHARS = 2; // চাইলে 3 করো
+    if (value.length < MIN_CHARS) return;
+
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPageIndex(0); // Reset to first page on search
-    }, 300);
+      setAppliedSearch(value);
+      setPageIndex(0);
+    }, 900); // ✅ debounce time (ms) — চাইলে 1200 করো
+
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
@@ -128,12 +142,17 @@ export default function UsersPage() {
       limit: pageSize.toString(),
       offset: (pageIndex * pageSize).toString(),
     });
-    if (debouncedSearch) params.append("q", debouncedSearch);
-    if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
-    if (categoryFilter && categoryFilter !== "all") params.append("category", categoryFilter);
+
+    if (appliedSearch) params.append("q", appliedSearch); // ✅ debounced value
+
+    if (statusFilter && statusFilter !== "all")
+      params.append("status", statusFilter);
+    if (categoryFilter && categoryFilter !== "all")
+      params.append("category", categoryFilter);
     if (roleFilter && roleFilter !== "all") params.append("role", roleFilter);
+
     return `/api/users?${params.toString()}`;
-  }, [pageIndex, pageSize, debouncedSearch, statusFilter, categoryFilter, roleFilter]);
+  }, [pageIndex, pageSize, appliedSearch, statusFilter, categoryFilter, roleFilter]);
 
   // ⚡ OPTIMIZED: Fetch users with SWR
   const {
@@ -150,15 +169,12 @@ export default function UsersPage() {
   const totalUsers = usersData?.total || 0;
 
   // ⚡ OPTIMIZED: Fetch stats with SWR (parallel)
-  const { data: statsData, isLoading: statsLoading, mutate: mutateStats } = useSWR(
-    "/api/users/stats",
-    jsonFetcher,
-    {
+  const { data: statsData, isLoading: statsLoading, mutate: mutateStats } =
+    useSWR("/api/users/stats", jsonFetcher, {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
-  );
+    });
 
   const stats = useMemo(() => {
     if (statsData?.success && statsData?.data?.overview) {
@@ -177,11 +193,10 @@ export default function UsersPage() {
   }, [statsData, users]);
 
   // ⚡ OPTIMIZED: Fetch roles with SWR (parallel)
-  const { data: rolesData } = useSWR(
-    "/api/roles",
-    jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
-  );
+  const { data: rolesData } = useSWR("/api/roles", jsonFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
 
   const roles = useMemo(() => {
     if (rolesData?.success && rolesData?.data) {
@@ -191,11 +206,10 @@ export default function UsersPage() {
   }, [rolesData]);
 
   // ⚡ OPTIMIZED: Fetch categories with SWR (parallel)
-  const { data: categoriesData } = useSWR(
-    "/api/users?limit=1000",
-    jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
-  );
+  const { data: categoriesData } = useSWR("/api/users?limit=1000", jsonFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
 
   const allCategories = useMemo(() => {
     if (categoriesData?.users) {
@@ -229,49 +243,51 @@ export default function UsersPage() {
     );
   }, []);
 
-  const formatDate = useCallback((dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }), []);
+  const formatDate = useCallback(
+    (dateString: string) =>
+      new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+    []
+  );
 
   const nextPage = useCallback(() => {
     if ((pageIndex + 1) * pageSize < totalUsers) {
       setPageIndex(pageIndex + 1);
     }
   }, [pageIndex, pageSize, totalUsers]);
-  
+
   const prevPage = useCallback(() => {
     if (pageIndex > 0) setPageIndex(pageIndex - 1);
   }, [pageIndex]);
 
   // ⚡ OPTIMIZED: Use SWR mutate for refresh
   const handleRefresh = useCallback(() => {
-    toast.promise(
-      Promise.all([mutateUsers(), mutateStats()]),
-      {
-        loading: "Refreshing data...",
-        success: "Data refreshed successfully",
-        error: "Failed to refresh data",
-      }
-    );
+    toast.promise(Promise.all([mutateUsers(), mutateStats()]), {
+      loading: "Refreshing data...",
+      success: "Data refreshed successfully",
+      error: "Failed to refresh data",
+    });
   }, [mutateUsers, mutateStats]);
 
   // No client-side filtering needed - backend handles it all!
-  // Just ensure users is an array
   const displayUsers = useMemo(() => {
     return Array.isArray(users) ? users : [];
   }, [users]);
 
-  const openDeleteConfirmation = useCallback((userId: string) => {
-    if (!canDeleteUser) {
-      toast.error("You don't have permission to delete users.");
-      return;
-    }
-    setUserToDelete(userId);
-    setOpenDeleteDialog(true);
-  }, [canDeleteUser]);
+  const openDeleteConfirmation = useCallback(
+    (userId: string) => {
+      if (!canDeleteUser) {
+        toast.error("You don't have permission to delete users.");
+        return;
+      }
+      setUserToDelete(userId);
+      setOpenDeleteDialog(true);
+    },
+    [canDeleteUser]
+  );
 
   const handleDeleteUser = useCallback(async () => {
     if (!userToDelete) return;
@@ -288,13 +304,11 @@ export default function UsersPage() {
         { method: "DELETE" }
       );
       const result = await response.json();
-      if (!response.ok)
-        throw new Error(result.error || "Failed to delete user");
+      if (!response.ok) throw new Error(result.error || "Failed to delete user");
 
       toast.success("User deleted successfully");
       setOpenDeleteDialog(false);
       setUserToDelete(null);
-      // ⚡ OPTIMIZED: Use SWR mutate
       await mutateUsers();
       await mutateStats();
     } catch (error: any) {
@@ -340,7 +354,6 @@ export default function UsersPage() {
             onOpenChange={setOpenCreateDialog}
             mode="create"
             onSuccess={async () => {
-              // ⚡ OPTIMIZED: Use SWR mutate
               await mutateUsers();
               await mutateStats();
             }}
@@ -353,7 +366,6 @@ export default function UsersPage() {
             mode="edit"
             initialUser={editUser || undefined}
             onSuccess={async () => {
-              // ⚡ OPTIMIZED: Use SWR mutate
               await mutateUsers();
               await mutateStats();
             }}
@@ -383,6 +395,7 @@ export default function UsersPage() {
             <p className="text-xs text-blue-100 mt-1">All registered users</p>
           </CardContent>
         </Card>
+
         <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-100">
@@ -402,6 +415,7 @@ export default function UsersPage() {
             )}
           </CardContent>
         </Card>
+
         <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -420,6 +434,7 @@ export default function UsersPage() {
             <p className="text-xs text-amber-100 mt-1">Currently not active</p>
           </CardContent>
         </Card>
+
         <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white border-0 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -444,7 +459,6 @@ export default function UsersPage() {
       <Card>
         <CardContent>
           {loading && !usersData ? (
-            // Skeleton for filters during initial load
             <div className="flex flex-col gap-4 md:flex-row md:items-center py-4">
               <div className="flex-1">
                 <Skeleton className="h-10 w-full" />
@@ -466,10 +480,23 @@ export default function UsersPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
+                  {/* ✅ optional: user কে hint দেখাতে চাইলে */}
+                  {searchTerm.trim().length > 0 && searchTerm.trim().length < 2 && (
+                    <div className="text-xs text-muted-foreground mt-2">
+                      Type at least 2 characters to search
+                    </div>
+                  )}
                 </div>
               </div>
+
               <div className="flex gap-2">
-                <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setPageIndex(0); }}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(val) => {
+                    setStatusFilter(val);
+                    setPageIndex(0);
+                  }}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -480,7 +507,14 @@ export default function UsersPage() {
                     <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={categoryFilter} onValueChange={(val) => { setCategoryFilter(val); setPageIndex(0); }}>
+
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(val) => {
+                    setCategoryFilter(val);
+                    setPageIndex(0);
+                  }}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Team" />
                   </SelectTrigger>
@@ -499,7 +533,14 @@ export default function UsersPage() {
                     )}
                   </SelectContent>
                 </Select>
-                <Select value={roleFilter} onValueChange={(val) => { setRoleFilter(val); setPageIndex(0); }}>
+
+                <Select
+                  value={roleFilter}
+                  onValueChange={(val) => {
+                    setRoleFilter(val);
+                    setPageIndex(0);
+                  }}
+                >
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
@@ -543,9 +584,9 @@ export default function UsersPage() {
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {loading ? (
-              // Skeleton rows for table during loading
               Array.from({ length: pageSize }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
                   <TableCell className="p-3">
@@ -653,7 +694,6 @@ export default function UsersPage() {
         {/* Pagination */}
         <div className="flex items-center justify-between space-x-2 px-3 border-t pt-5">
           {loading ? (
-            // Skeleton for pagination
             <>
               <Skeleton className="h-4 w-48" />
               <div className="flex items-center space-x-2">
@@ -801,20 +841,17 @@ export default function UsersPage() {
                       {selectedUser.address && (
                         <div className="flex items-start gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                          <span className="text-sm">
-                            {selectedUser.address}
-                          </span>
+                          <span className="text-sm">{selectedUser.address}</span>
                         </div>
                       )}
                       {selectedUser.role?.name !== "Client" &&
                         selectedUser.category && (
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline">
-                              {selectedUser.category}
-                            </Badge>
+                            <Badge variant="outline">{selectedUser.category}</Badge>
                           </div>
                         )}
                     </div>
+
                     <div className="mt-1 space-y-2">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -822,9 +859,7 @@ export default function UsersPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                          Last updated {formatDate(selectedUser.updatedAt)}
-                        </span>
+                        <span>Last updated {formatDate(selectedUser.updatedAt)}</span>
                       </div>
                     </div>
                   </div>
