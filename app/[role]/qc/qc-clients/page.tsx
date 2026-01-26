@@ -56,7 +56,7 @@ import {
 
 type ClientLite = { id: string; name: string; company?: string };
 
-// ✅ must match your task row minimal fields used here
+
 type TaskRow = {
   id: string;
   status: string;
@@ -88,13 +88,12 @@ function statusKey(t: TaskRow) {
   return normStatus(t.status);
 }
 
-// ✅ ONLY status-based (API source of truth)
+
 function isCompleted(t: TaskRow) {
   return statusKey(t) === "completed";
 }
 
 function isQCApproved(t: TaskRow) {
-  // ✅ backend must send exactly this when QC approves
   return statusKey(t) === "qc_approved";
 }
 
@@ -103,7 +102,7 @@ function isOverdue(t: TaskRow) {
 
   const st = statusKey(t);
 
-  // ✅ overdue মানে dueDate পার হয়ে গেছে + এখনো done না
+  
   if (st === "completed") return false;
   if (st === "qc_approved") return false;
   if (st === "cancelled") return false;
@@ -145,7 +144,7 @@ export default function QCClientsPage() {
   const { user } = useUserSession();
   const qcId = (user as any)?.id ?? null;
 
-  // Filters (UNCHANGED)
+  
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -153,16 +152,16 @@ export default function QCClientsPage() {
   const [qcFilter, setQcFilter] = useState<QCFilter>("all");
   const [sortBy, setSortBy] = useState<SortBy>("name_asc");
 
-  // UI only
+  
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
-  // ✅ clients (UNCHANGED)
+  
   const clientsSWR = useSWR("/api/clients", fetcher);
   const clients: ClientLite[] = Array.isArray(clientsSWR.data?.clients)
     ? clientsSWR.data.clients
     : [];
 
-  // ✅ tasks (fully dynamic) (UNCHANGED)
+ 
   const tasksUrl = useMemo(() => {
     const params = new URLSearchParams();
     params.set("limit", "5000"); // adjust if needed
@@ -172,7 +171,7 @@ export default function QCClientsPage() {
 
   const tasksSWR = useSWR(tasksUrl, fetcher);
 
-  // tasks response shape: array OR {tasks: []} (UNCHANGED)
+
   const tasks: TaskRow[] = useMemo(() => {
     const raw = tasksSWR.data;
     if (Array.isArray(raw)) return raw as TaskRow[];
@@ -180,7 +179,7 @@ export default function QCClientsPage() {
     return [];
   }, [tasksSWR.data]);
 
-  // ✅ compute client stats dynamically from tasks (UNCHANGED)
+ 
   const statsByClient = useMemo<ClientStats[]>(() => {
     const map = new Map<string, Omit<ClientStats, "progress">>();
 
@@ -219,15 +218,15 @@ export default function QCClientsPage() {
       if (isOverdue(t)) s.overdue += 1;
     }
 
-    // ✅ return new objects with computed progress (no mutation)
+    
     return Array.from(map.values()).map((s) => ({
       ...s,
-      // QC page: progress = QC Approved rate
+     
       progress: pct(s.totalTasks, s.qcApproved),
     }));
   }, [clients, tasks]);
 
-  // ✅ KPI dynamic (UNCHANGED)
+  
   const kpis = useMemo(() => {
     let totalTasks = 0;
     let completed = 0;
@@ -259,7 +258,7 @@ export default function QCClientsPage() {
     };
   }, [statsByClient]);
 
-  // ✅ filter + sort dynamic (UNCHANGED logic, only uses deferredQuery now)
+  
   const filtered = useMemo(() => {
     let list = statsByClient;
 
