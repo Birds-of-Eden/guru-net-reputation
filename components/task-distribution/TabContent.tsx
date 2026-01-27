@@ -41,6 +41,11 @@ interface TabContentProps {
   ) => void;
   onNoteChange: (taskId: string, note: string) => void;
   onViewModeChange: (mode: "list" | "grid") => void;
+  onPriorityChange: (
+    taskId: string,
+    priority: "low" | "medium" | "high" | "urgent"
+  ) => void;
+  priorityUpdating: Record<string, boolean>;
 
   titleOverride?: string;
 }
@@ -85,6 +90,8 @@ export function TabContent({
   onTaskAssignment,
   onNoteChange,
   onViewModeChange,
+  onPriorityChange,
+  priorityUpdating,
   titleOverride,
 }: TabContentProps) {
   // normalize/label sort for each list
@@ -260,6 +267,8 @@ export function TabContent({
                 onTaskAssignment={onTaskAssignment}
                 note={taskNotes[task.id] || ""}
                 onNoteChange={(note) => onNoteChange(task.id, note)}
+                onPriorityChange={onPriorityChange}
+                priorityUpdating={priorityUpdating[task.id]}
               />
             ) : (
               <TaskListItem
@@ -279,6 +288,8 @@ export function TabContent({
                 onTaskSelection={onTaskSelection}
                 onTaskAssignment={onTaskAssignment}
                 onNoteChange={(note) => onNoteChange(task.id, note)}
+                onPriorityChange={onPriorityChange}
+                priorityUpdating={priorityUpdating[task.id]}
               />
             );
           })}

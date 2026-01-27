@@ -46,7 +46,8 @@ type Task = {
     | "completed"
     | "overdue"
     | "cancelled"
-    | "qc_approved";
+    | "qc_approved"
+    | "reassigned";
   dueDate: string | null;
   createdAt: string;
   assignedTo?: { id: string; name?: string | null };
@@ -234,6 +235,7 @@ export default function TasksPage() {
     "pending",
     "overdue",
     "cancelled",
+    "reassigned",
   ];
 
   const prettyStatus = (s: Task["status"]) =>
@@ -517,6 +519,7 @@ export default function TasksPage() {
                         pending: [],
                         overdue: [],
                         cancelled: [],
+                        reassigned: [],
                       };
                       for (const t of list) byStatus[t.status].push(t);
 

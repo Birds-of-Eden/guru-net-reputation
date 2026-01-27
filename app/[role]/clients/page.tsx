@@ -21,6 +21,100 @@ import type { Client } from "@/types/client";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 import { useClients } from "@/lib/hooks/use-clients";
 
+// Client Data Section Component
+function ClientDataSection({ 
+  clients, 
+  loading, 
+  viewMode, 
+  handleViewClientDetails,
+  pagination,
+  page,
+  prevPage,
+  nextPage
+}: {
+  clients: Client[];
+  loading: boolean;
+  viewMode: "grid" | "list";
+  handleViewClientDetails: (client: Client) => void;
+  pagination: any;
+  page: number;
+  prevPage: () => void;
+  nextPage: () => void;
+}) {
+  if (loading) {
+    return (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[...Array(6)].map((_, i) => (
+          <ClientCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+        <ClientStatusSummary clients={clients} />
+      </div>
+
+      {clients.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
+          <p className="text-lg font-medium mb-2">
+            No clients found matching your criteria.
+          </p>
+        </div>
+      ) : (
+        <Suspense
+          fallback={
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <ClientCardSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          {viewMode === "grid" ? (
+            <ClientGrid
+              clients={clients}
+              onViewDetails={handleViewClientDetails}
+            />
+          ) : (
+            <ClientList
+              clients={clients}
+              onViewDetails={handleViewClientDetails}
+            />
+          )}
+        </Suspense>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex justify-center gap-4 mt-10">
+          <button
+            onClick={prevPage}
+            disabled={page === 1}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="px-4 py-2 font-medium">
+            Page {page} / {pagination.totalPages}
+          </span>
+
+          <button
+            onClick={nextPage}
+            disabled={page === pagination.totalPages}
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ClientsPage() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
@@ -99,30 +193,9 @@ export default function ClientsPage() {
     }, new Map<string, { id: string; label: string }>())
   ).map(([, v]) => v);
 
-  if (loading) {
-    return (
-      <div className="py-8 px-4 md:px-6">
-        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
-          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4"></div>
-          <div className="flex gap-4 mb-4">
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <ClientCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="py-8 px-4 md:px-6">
-      {/* Header */}
+      {/* Header - No refresh */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
         <ClientOverviewHeader
           searchQuery={search}
@@ -139,65 +212,19 @@ export default function ClientsPage() {
           setViewMode={setViewMode}
           onAddNewClient={handleAddNewClient}
         />
-
-        <ClientStatusSummary clients={clients} />
       </div>
 
-      {/* Client List / Grid */}
-      {clients.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
-          <p className="text-lg font-medium mb-2">
-            No clients found matching your criteria.
-          </p>
-        </div>
-      ) : (
-        <Suspense
-          fallback={
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <ClientCardSkeleton key={i} />
-              ))}
-            </div>
-          }
-        >
-          {viewMode === "grid" ? (
-            <ClientGrid
-              clients={clients}
-              onViewDetails={handleViewClientDetails}
-            />
-          ) : (
-            <ClientList
-              clients={clients}
-              onViewDetails={handleViewClientDetails}
-            />
-          )}
-        </Suspense>
-      )}
-
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-4 mt-10">
-          <button
-            onClick={prevPage}
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-
-          <span className="px-4 py-2 font-medium">
-            Page {page} / {pagination.totalPages}
-          </span>
-
-          <button
-            onClick={nextPage}
-            disabled={page === pagination.totalPages}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      {/* Client Data Section - Refresh only this part */}
+      <ClientDataSection 
+        clients={clients}
+        loading={loading}
+        viewMode={viewMode}
+        handleViewClientDetails={handleViewClientDetails}
+        pagination={pagination}
+        page={page}
+        prevPage={prevPage}
+        nextPage={nextPage}
+      />
     </div>
   );
 }

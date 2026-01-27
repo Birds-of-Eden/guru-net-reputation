@@ -2,19 +2,14 @@
 
 import {
   useState,
-  useCallback,
   useEffect,
   useMemo,
   lazy,
   Suspense,
 } from "react";
 import { useRouter } from "next/navigation";
-
 import { ClientStatusSummary } from "@/components/clients/client-status-summary";
 import { ClientCardSkeleton } from "@/components/clients/client-card-skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-
 import type { Client } from "@/types/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { useClients } from "@/lib/hooks/use-clients";
@@ -142,23 +137,134 @@ export default function AmCeoClientsPage() {
     return Array.from(groups.values());
   }, [filteredClients]);
 
-  // LOADING UI
-  if (sessionLoading || loading) {
-    return (
-      <div className="py-8 px-4 md:px-6">
-        <Skeleton className="h-10 w-64 mb-4" />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <ClientCardSkeleton key={i} />
+  // Client Data Section Component
+  function ClientDataSection({ 
+    clients,
+    loading,
+    viewMode,
+    handleViewClientDetails,
+    groupedClients,
+    canImpersonateAm,
+    currentUserId,
+    pagination,
+    page,
+    prevPage,
+    nextPage
+  }: {
+    clients: Client[];
+    loading: boolean;
+    viewMode: "grid" | "list";
+    handleViewClientDetails: (client: Client) => void;
+    groupedClients: AmGroup[];
+    canImpersonateAm: boolean;
+    currentUserId: string;
+    pagination: any;
+    page: number;
+    prevPage: () => void;
+    nextPage: () => void;
+  }) {
+    if (loading) {
+      return (
+        <div className="space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+              {/* AM Header Skeleton */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="flex-1">
+                  <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="text-right space-y-1">
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-6 w-16 rounded-full bg-gray-200 animate-pulse"></div>
+                </div>
+              </div>
+              
+              {/* Client Cards Grid Skeleton */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, j) => (
+                  <ClientCardSkeleton key={j} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-      </div>
+      );
+    }
+
+    return (
+      <>
+        {/* GROUPED VIEW */}
+        <Suspense 
+          fallback={
+            <div className="space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  {/* AM Header Skeleton */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
+                      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-6 w-16 rounded-full bg-gray-200 animate-pulse"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Client Cards Grid Skeleton */}
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(3)].map((_, j) => (
+                      <ClientCardSkeleton key={j} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          }
+        >
+          <AmGroupedClientView
+            groupedClients={groupedClients}
+            onViewDetails={handleViewClientDetails}
+            viewMode={viewMode}
+            canImpersonateAm={canImpersonateAm}
+            currentUserId={currentUserId}
+          />
+        </Suspense>
+
+        {/* PAGINATION */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-6 flex justify-center gap-4">
+            <button
+              onClick={prevPage}
+              disabled={page === 1}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            <span className="px-4 py-2 font-medium">
+              Page {page} / {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={nextPage}
+              disabled={page === pagination.totalPages}
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </>
     );
   }
 
   return (
     <div className="py-8 px-4 md:px-6">
-      {/* Header */}
+      {/* Header - No refresh */}
       <div className="bg-white p-6 rounded-xl shadow-lg border mb-8">
         <AmCeoClientOverviewHeader
           searchQuery={search}
@@ -182,69 +288,20 @@ export default function AmCeoClientsPage() {
         <ClientStatusSummary clients={clients} />
       </div>
 
-      {/* GROUPED VIEW */}
-      <Suspense 
-        fallback={
-          <div className="space-y-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                {/* AM Header Skeleton */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-14 w-14 rounded-full bg-gray-200 animate-pulse"></div>
-                  <div className="flex-1">
-                    <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
-                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-6 w-16 rounded-full bg-gray-200 animate-pulse"></div>
-                  </div>
-                </div>
-                
-                {/* Client Cards Grid Skeleton */}
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {[...Array(3)].map((_, j) => (
-                    <ClientCardSkeleton key={j} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        }
-      >
-        <AmGroupedClientView
-          groupedClients={groupedClients}
-          onViewDetails={handleViewClientDetails}
-          viewMode={viewMode}
-          canImpersonateAm={isAMCeo}
-          currentUserId={currentUserId}
-        />
-      </Suspense>
-
-      {/* PAGINATION */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            onClick={prevPage}
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-
-          <span className="px-4 py-2 font-medium">
-            Page {page} / {pagination.totalPages}
-          </span>
-
-          <button
-            onClick={nextPage}
-            disabled={page === pagination.totalPages}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      {/* Client Data Section - Refresh only this part */}
+      <ClientDataSection 
+        clients={clients}
+        loading={loading}
+        viewMode={viewMode}
+        handleViewClientDetails={handleViewClientDetails}
+        groupedClients={groupedClients}
+        canImpersonateAm={isAMCeo}
+        currentUserId={currentUserId}
+        pagination={pagination}
+        page={page}
+        prevPage={prevPage}
+        nextPage={nextPage}
+      />
     </div>
   );
 }

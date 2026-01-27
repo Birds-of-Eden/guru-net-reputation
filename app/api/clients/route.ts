@@ -189,6 +189,8 @@ export async function GET(req: Request) {
     const id = searchParams.get("id");
     const packageId = searchParams.get("packageId") || undefined;
     const amId = searchParams.get("amId") || undefined;
+    const status = searchParams.get("status") || undefined;
+    const search = searchParams.get("search") || undefined;
 
     const page = Number(searchParams.get("page") || "1");
     const pageSize = Number(searchParams.get("pageSize") || "30");
@@ -233,13 +235,27 @@ export async function GET(req: Request) {
     }
 
     // ---------- TOTAL COUNT ----------
+    const whereClause: any = { packageId, amId };
+    
+    if (status && status !== "all") {
+      whereClause.status = status;
+    }
+    
+    if (search && search.trim()) {
+      whereClause.OR = [
+        { name: { contains: search.trim(), mode: "insensitive" } },
+        { company: { contains: search.trim(), mode: "insensitive" } },
+        { email: { contains: search.trim(), mode: "insensitive" } },
+      ];
+    }
+
     const totalCount = await prisma.client.count({
-      where: { packageId, amId },
+      where: whereClause,
     });
 
     // ---------- FETCH CLIENT LIST ----------
     const clients = await prisma.client.findMany({
-      where: { packageId, amId },
+      where: whereClause,
       select: {
         id: true,
         name: true,

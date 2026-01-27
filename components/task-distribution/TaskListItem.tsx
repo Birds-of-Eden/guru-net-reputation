@@ -25,6 +25,7 @@ import {
 import { Agent, Task, TaskAssignment } from "./distribution-types";
 import {
   priorityColors,
+  PRIORITY_OPTIONS,
   siteTypeColors,
   siteTypeIcons,
   statusColors,
@@ -61,6 +62,11 @@ interface TaskListItemProps {
     isFirstSelectedTask: boolean,
   ) => void;
   onNoteChange: (note: string) => void;
+  onPriorityChange: (
+    taskId: string,
+    priority: (typeof PRIORITY_OPTIONS)[number],
+  ) => void;
+  priorityUpdating?: boolean;
   isNested?: boolean;
 }
 
@@ -77,6 +83,8 @@ export const TaskListItem = memo(function TaskListItem({
   onTaskSelection,
   onTaskAssignment,
   onNoteChange,
+  onPriorityChange,
+  priorityUpdating,
   isNested,
 }: TaskListItemProps) {
   // Per-row source selector
@@ -102,6 +110,8 @@ export const TaskListItem = memo(function TaskListItem({
   const priorityKey = String(priorityValue).toLowerCase();
   const statusValue = (task as any)?.status ?? "pending";
   const statusKey = String(statusValue).toLowerCase();
+  const isPriorityLocked =
+    statusKey === "completed" || statusKey === "qc_approved";
   const assignedAgent: Agent | null = (task as any)?.assignedTo ?? null;
   const assignedAgentId: string | null = (task as any)?.assignedToId ?? null;
   const combinedAgents = useMemo(
@@ -117,6 +127,8 @@ export const TaskListItem = memo(function TaskListItem({
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
   const isLinkedToFirst = shouldDisableDropdown;
+  const shouldDisablePriority =
+    isPriorityLocked || shouldDisableDropdown || priorityUpdating;
 
   const handleAssignmentChange = (agentId: string) => {
     onTaskAssignment(task.id, agentId, isMultipleSelected, isFirstSelectedTask);
@@ -257,6 +269,42 @@ export const TaskListItem = memo(function TaskListItem({
                 >
                   {priorityKey.toUpperCase()}
                 </Badge>
+                <Select
+                  value={priorityKey}
+                  onValueChange={(value) =>
+                    onPriorityChange(
+                      task.id,
+                      value as (typeof PRIORITY_OPTIONS)[number],
+                    )
+                  }
+                  disabled={shouldDisablePriority}
+                >
+                  <SelectTrigger
+                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm"
+                    title={
+                      isPriorityLocked
+                        ? "Priority locked for completed/QC approved tasks"
+                        : shouldDisableDropdown
+                        ? "Controlled by the first selected task"
+                        : undefined
+                    }
+                  >
+                    <SelectValue
+                      placeholder={priorityUpdating ? "Updating..." : "Priority"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option}
+                        value={option}
+                        className="text-[11px]"
+                      >
+                        {option.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Badge
                   className={`text-[11px] font-semibold ${
                     statusColors[

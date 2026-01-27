@@ -8,6 +8,8 @@ export const priorityColors = {
   urgent: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
+export const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
+
 export const statusColors = {
   pending: "bg-slate-50 text-slate-700 border-slate-200",
   in_progress: "bg-blue-50 text-blue-700 border-blue-200",

@@ -70,6 +70,11 @@ interface TaskTabsProps {
   ) => void;
   onNoteChange: (taskId: string, note: string) => void;
   onViewModeChange: (mode: "list" | "grid") => void;
+  onPriorityChange: (
+    taskId: string,
+    priority: "low" | "medium" | "high" | "urgent"
+  ) => void;
+  priorityUpdating: Record<string, boolean>;
 }
 
 const extractCycleInfo = (taskName: string) => {
@@ -328,6 +333,8 @@ export function TaskTabs({
   onTaskAssignment,
   onNoteChange,
   onViewModeChange,
+  onPriorityChange,
+  priorityUpdating,
 }: TaskTabsProps) {
   const [activeTab, setActiveTab] = useState("social_site");
   
@@ -372,6 +379,8 @@ export function TaskTabs({
           onTaskSelection={onTaskSelection}
           onTaskAssignment={onTaskAssignment}
           onNoteChange={(note) => onNoteChange(task.id, note)}
+          onPriorityChange={onPriorityChange}
+          priorityUpdating={priorityUpdating[task.id]}
           isNested={isNested}
         />
       );
@@ -642,6 +651,8 @@ export function TaskTabs({
                         onTaskSelection={onTaskSelection}
                         onTaskAssignment={onTaskAssignment}
                         onNoteChange={(note) => onNoteChange(task.id, note)}
+                        onPriorityChange={onPriorityChange}
+                        priorityUpdating={priorityUpdating[task.id]}
                         isNested={isNested}
                       />
                     );
@@ -799,6 +810,8 @@ export function TaskTabs({
                         onTaskSelection={onTaskSelection}
                         onTaskAssignment={onTaskAssignment}
                         onNoteChange={(note) => onNoteChange(task.id, note)}
+                        onPriorityChange={onPriorityChange}
+                        priorityUpdating={priorityUpdating[task.id]}
                         isNested={isNested}
                       />
                     );
@@ -956,6 +969,8 @@ export function TaskTabs({
                         onTaskSelection={onTaskSelection}
                         onTaskAssignment={onTaskAssignment}
                         onNoteChange={(note) => onNoteChange(task.id, note)}
+                        onPriorityChange={onPriorityChange}
+                        priorityUpdating={priorityUpdating[task.id]}
                         isNested={isNested}
                       />
                     );

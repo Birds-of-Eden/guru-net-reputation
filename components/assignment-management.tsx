@@ -97,6 +97,8 @@ const priorityColors = {
     "bg-gradient-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
 };
 
+const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
+
 const statusColors = {
   pending:
     "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
@@ -141,6 +143,7 @@ export default function TaskDistribution() {
   const [selectedClient, setSelectedClient] = useState<any>(null);
 
   const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
+  const [priorityUpdating, setPriorityUpdating] = useState<Record<string, boolean>>({});
   
 
 
@@ -346,6 +349,40 @@ export default function TaskDistribution() {
     setTaskNotes((prev) => ({ ...prev, [taskId]: note }));
   }, [taskNotes]);
 
+  const handlePriorityChange = async (taskId: string, priority: (typeof PRIORITY_OPTIONS)[number]) => {
+    setPriorityUpdating((prev) => ({ ...prev, [taskId]: true }));
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ priority }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update task priority");
+      }
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId ? { ...task, priority } : task
+        )
+      );
+
+      toast.success("Priority updated", {
+        description: `Task priority set to ${priority.toUpperCase()}`,
+      });
+    } catch (error) {
+      console.error("Error updating priority:", error);
+      toast.error("Priority update failed", {
+        description: "Please try again.",
+      });
+    } finally {
+      setPriorityUpdating((prev) => ({ ...prev, [taskId]: false }));
+    }
+  };
+
 
   const TaskCard = ({ task, siteType }: { task: Task; siteType: string }) => {
     const isSelected = selectedTasks.has(task.id);
@@ -415,7 +452,7 @@ export default function TaskDistribution() {
         }`}
       >
         <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
               <Checkbox
                 checked={isSelected}
@@ -452,6 +489,33 @@ export default function TaskDistribution() {
               >
                 {task.status.replace("_", " ").toUpperCase()}
               </Badge>
+              <Select
+                value={task.priority}
+                onValueChange={(value) =>
+                  handlePriorityChange(
+                    task.id,
+                    value as (typeof PRIORITY_OPTIONS)[number]
+                  )
+                }
+                disabled={!!priorityUpdating[task.id]}
+              >
+                <SelectTrigger className="h-9 w-32 text-xs border-dashed border-blue-300 hover:border-blue-500 bg-white shadow-sm">
+                  <SelectValue
+                    placeholder={
+                      priorityUpdating[task.id]
+                        ? "Updating..."
+                        : "Set priority"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option} className="text-xs">
+                      {option.toUpperCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           {task.templateSiteAsset?.description && (
@@ -761,6 +825,37 @@ export default function TaskDistribution() {
                   >
                     {task.status.replace("_", " ").toUpperCase()}
                   </Badge>
+                  <Select
+                    value={task.priority}
+                    onValueChange={(value) =>
+                      handlePriorityChange(
+                        task.id,
+                        value as (typeof PRIORITY_OPTIONS)[number]
+                      )
+                    }
+                    disabled={!!priorityUpdating[task.id]}
+                  >
+                    <SelectTrigger className="h-8 w-28 text-[11px] border-dashed border-blue-300 hover:border-blue-500 bg-white shadow-sm">
+                      <SelectValue
+                        placeholder={
+                          priorityUpdating[task.id]
+                            ? "Updating..."
+                            : "Priority"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIORITY_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option}
+                          value={option}
+                          className="text-[11px]"
+                        >
+                          {option.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

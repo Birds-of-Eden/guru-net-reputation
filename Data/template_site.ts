@@ -1,102 +1,348 @@
 //Data/template_site
 
 export const DEFAULT_SOCIAL_SITES = [
-  { name: "Behance", url: "https://www.behance.net/", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "Behance",
+    url: "https://www.behance.net/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "YouTube", url: "https://www.youtube.com", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "YouTube",
+    url: "https://www.youtube.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "Crunchbase", url: "https://www.crunchbase.com/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Crunchbase",
+    url: "https://www.crunchbase.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "MuckRack", url: "https://muckrack.com/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "MuckRack",
+    url: "https://muckrack.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "Issuu", url: "https://issuu.com/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Issuu",
+    url: "https://issuu.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "About.me", url: "https://about.me/", isRequired: true, defaultIdealDurationMinutes: 17 },
+  {
+    name: "About.me",
+    url: "https://about.me/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 17,
+  },
 
-  { name: "Flipboard", url: "https://flipboard.com/", isRequired: true, defaultIdealDurationMinutes: 15 },
+  {
+    name: "Flipboard",
+    url: "https://flipboard.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 15,
+  },
 
-  { name: "Linktree", url: "https://linktr.ee/", isRequired: true, defaultIdealDurationMinutes: 16 },
+  {
+    name: "Linktree",
+    url: "https://linktr.ee/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 16,
+  },
 
-  { name: "HubPages", url: "https://hubpages.com", isRequired: true, defaultIdealDurationMinutes: 22 },
+  {
+    name: "HubPages",
+    url: "https://hubpages.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 22,
+  },
 
-  { name: "Quora Profile", url: "https://www.quora.com/profile", isRequired: true, defaultIdealDurationMinutes: 25 },
+  {
+    name: "Quora Profile",
+    url: "https://www.quora.com/profile",
+    isRequired: true,
+    defaultIdealDurationMinutes: 25,
+  },
 
-  { name: "Cake.me", url: "https://www.cake.me/", isRequired: true, defaultIdealDurationMinutes: 25 },
+  {
+    name: "Cake.me",
+    url: "https://www.cake.me/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 25,
+  },
 
-  { name: "Scoop.it", url: "https://www.scoop.it/u/", isRequired: true, defaultIdealDurationMinutes: 13 },
+  {
+    name: "Scoop.it",
+    url: "https://www.scoop.it/u/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 13,
+  },
 
-  { name: "Gravatar", url: "https://gravatar.com/", isRequired: true, defaultIdealDurationMinutes: 17 },
+  {
+    name: "Gravatar",
+    url: "https://gravatar.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 17,
+  },
 
-  { name: "Giphy Channel", url: "https://giphy.com/channel", isRequired: true, defaultIdealDurationMinutes: 16 },
+  {
+    name: "Giphy Channel",
+    url: "https://giphy.com/channel",
+    isRequired: true,
+    defaultIdealDurationMinutes: 16,
+  },
 
-  { name: "Completed.com", url: "https://completed.com/", isRequired: true, defaultIdealDurationMinutes: 16 },
+  {
+    name: "Completed.com",
+    url: "https://completed.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 16,
+  },
 
-  { name: "JustPaste.it", url: "https://justpaste.it", isRequired: true, defaultIdealDurationMinutes: 13 },
+  {
+    name: "JustPaste.it",
+    url: "https://justpaste.it",
+    isRequired: true,
+    defaultIdealDurationMinutes: 13,
+  },
 
-  { name: "SlideShare", url: "https://www.slideshare.net", isRequired: true, defaultIdealDurationMinutes: 25 },
+  {
+    name: "SlideShare",
+    url: "https://www.slideshare.net",
+    isRequired: true,
+    defaultIdealDurationMinutes: 25,
+  },
 
-  { name: "Slides.com", url: "https://slides.com", isRequired: true, defaultIdealDurationMinutes: 14 },
+  {
+    name: "Slides.com",
+    url: "https://slides.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 14,
+  },
 
-  { name: "Pinterest", url: "https://www.pinterest.com/", isRequired: true, defaultIdealDurationMinutes: 25 },
+  {
+    name: "Pinterest",
+    url: "https://www.pinterest.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 25,
+  },
 
-  { name: "500px", url: "https://500px.com/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "500px",
+    url: "https://500px.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "SpeakerDeck", url: "https://speakerdeck.com", isRequired: true, defaultIdealDurationMinutes: 16 },
+  {
+    name: "SpeakerDeck",
+    url: "https://speakerdeck.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 16,
+  },
 
-  { name: "Bluesky", url: "https://bsky.app/profile", isRequired: true, defaultIdealDurationMinutes: 12 },
+  {
+    name: "Bluesky",
+    url: "https://bsky.app/profile",
+    isRequired: true,
+    defaultIdealDurationMinutes: 12,
+  },
 
-  { name: "Substack", url: "https://substack.com", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Substack",
+    url: "https://substack.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "SpeakerHub", url: "https://speakerhub.com", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "SpeakerHub",
+    url: "https://speakerhub.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "VelvetJobs", url: "https://www.velvetjobs.com", isRequired: true, defaultIdealDurationMinutes: 16 },
+  {
+    name: "VelvetJobs",
+    url: "https://www.velvetjobs.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 16,
+  },
 
-  { name: "Webflow", url: "https://webflow.io/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Webflow",
+    url: "https://webflow.io/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "Reddit", url: "https://reddit.com", isRequired: true, defaultIdealDurationMinutes: 15 },
+  {
+    name: "Reddit",
+    url: "https://reddit.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 15,
+  },
 
-  { name: "F6S", url: "https://www.f6s.com/", isRequired: true, defaultIdealDurationMinutes: 18 },
+  {
+    name: "F6S",
+    url: "https://www.f6s.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 18,
+  },
 
-  { name: "Sessionize", url: "https://sessionize.com/", isRequired: true, defaultIdealDurationMinutes: 14 },
+  {
+    name: "Sessionize",
+    url: "https://sessionize.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 14,
+  },
 
-  { name: "Wattpad", url: "https://www.wattpad.com", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Wattpad",
+    url: "https://www.wattpad.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "DoYouBuzz", url: "https://www.doyoubuzz.com/us", isRequired: true, defaultIdealDurationMinutes: 18 },
+  {
+    name: "DoYouBuzz",
+    url: "https://www.doyoubuzz.com/us",
+    isRequired: true,
+    defaultIdealDurationMinutes: 18,
+  },
 
-  { name: "Infogram", url: "https://infogram.com/", isRequired: true, defaultIdealDurationMinutes: 18 },
+  {
+    name: "Infogram",
+    url: "https://infogram.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 18,
+  },
 
-  { name: "Creator Spring", url: "https://www.creator-spring.com/", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Creator Spring",
+    url: "https://www.creator-spring.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "BlogLovin", url: "https://www.bloglovin.com", isRequired: true, defaultIdealDurationMinutes: 14 },
+  {
+    name: "BlogLovin",
+    url: "https://www.bloglovin.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 14,
+  },
 ];
 
 export const DEFAULT_WEB2_SITES = [
-  { name: "EMD", url: "https://emd.com/", isRequired: true, defaultIdealDurationMinutes: 130 },
-  { name: "Medium", url: "https://medium.com/", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "EMD",
+    url: "https://emd.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 130,
+  },
+  {
+    name: "EMD2",
+    url: "https://emd.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 130,
+  },
+  {
+    name: "EMD3",
+    url: "https://emd.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 130,
+  },
+  {
+    name: "Medium",
+    url: "https://medium.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "Strikingly", url: "https://www.strikingly.com/", isRequired: true, defaultIdealDurationMinutes: 40 },
+  {
+    name: "Strikingly",
+    url: "https://www.strikingly.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 40,
+  },
 
-  { name: "Tumblr", url: "https://www.tumblr.com/", isRequired: true, defaultIdealDurationMinutes: 25 },
+  {
+    name: "Tumblr",
+    url: "https://www.tumblr.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 25,
+  },
 
-  { name: "WordPress", url: "https://wordpress.com/", isRequired: true, defaultIdealDurationMinutes: 40 },
+  {
+    name: "WordPress",
+    url: "https://wordpress.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 40,
+  },
 
-  { name: "Blogger", url: "https://www.blogger.com/", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "Blogger",
+    url: "https://www.blogger.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "Jimdo", url: "https://jimdo.com", isRequired: true, defaultIdealDurationMinutes: 35 },
+  {
+    name: "Jimdo",
+    url: "https://jimdo.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 35,
+  },
 
-  { name: "Site123.me", url: "https://site123.me", isRequired: true, defaultIdealDurationMinutes: 40 },
+  {
+    name: "Site123.me",
+    url: "https://site123.me",
+    isRequired: true,
+    defaultIdealDurationMinutes: 40,
+  },
 
-  { name: "Weebly", url: "https://weebly.com", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "Weebly",
+    url: "https://weebly.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "Google Sites", url: "https://sites.google.com/new", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "Google Sites",
+    url: "https://sites.google.com/new",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "JotForm", url: "http://form.jotform.me/", isRequired: true, defaultIdealDurationMinutes: 30 },
+  {
+    name: "JotForm",
+    url: "http://form.jotform.me/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 
-  { name: "Vocal Media (Authors)", url: "https://vocal.media/authors", isRequired: true, defaultIdealDurationMinutes: 20 },
+  {
+    name: "Vocal Media (Authors)",
+    url: "https://vocal.media/authors",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+  },
 
-  { name: "Wix", url: "https://wix.com", isRequired: true, defaultIdealDurationMinutes: 40 },
+  {
+    name: "Wix",
+    url: "https://wix.com",
+    isRequired: true,
+    defaultIdealDurationMinutes: 40,
+  },
 ];
-
 
 export const DEFAULT_ADDITIONAL_SITES = [
   {
@@ -176,6 +422,15 @@ export const DEFAULT_GRAPHICS_DESIGN = [
   },
 ];
 
+export const DEFAULT_BIOGRAPHY_OPTIMIZATION = [
+  {
+    name: "Biography Optimization",
+    url: "https://docs.google.com/document/u/0/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 60,
+  },
+];
+
 export const DEFAULT_IMAGE_OPTIMIZATION = [
   {
     name: "Image Optimization",
@@ -204,8 +459,12 @@ export const DEFAULT_CONTENT_WRITING = [
 ];
 
 export const DEFAULT_BACKLINKS = [
-  { name: "Backlinks", url: "https://docs.google.com/spreadsheets/d/1AFZIMvAre3g9WhcUZ8rXm1ZpUiBXcKMiylFNs34DF88/edit?gid=102132737#gid=102132737", isRequired: true, defaultIdealDurationMinutes: 30 },
-
+  {
+    name: "Backlinks",
+    url: "https://docs.google.com/spreadsheets/d/1AFZIMvAre3g9WhcUZ8rXm1ZpUiBXcKMiylFNs34DF88/edit?gid=102132737#gid=102132737",
+    isRequired: true,
+    defaultIdealDurationMinutes: 30,
+  },
 ];
 
 export const DEFAULT_YOUTUBE_VIDEO_OPTIMIZATION = [
@@ -213,7 +472,7 @@ export const DEFAULT_YOUTUBE_VIDEO_OPTIMIZATION = [
     name: "YouTube Video Optimization",
     url: "https://www.youtube.com/",
     isRequired: true,
-    defaultIdealDurationMinutes: 60
+    defaultIdealDurationMinutes: 60,
   },
 ];
 
@@ -222,13 +481,28 @@ export const DEFAULT_MONITORING = [
 ];
 
 export const DEFAULT_REVIEW_REMOVAL = [
-  { name: "Review Removal", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 6 },
+  {
+    name: "Review Removal",
+    url: "https://www.google.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 6,
+  },
 ];
 
 export const DEFAULT_SUMMARY_REPORT = [
-  { name: "Summary Report", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 40 },
+  {
+    name: "Summary Report",
+    url: "https://www.google.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 40,
+  },
 ];
 
 export const DEFAULT_guest_posting = [
-  { name: "Guest Posting", url: "https://www.google.com/", isRequired: true, defaultIdealDurationMinutes: 15 },
+  {
+    name: "Guest Posting",
+    url: "https://www.google.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 15,
+  },
 ];

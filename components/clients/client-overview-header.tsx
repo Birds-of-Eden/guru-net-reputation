@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Search, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -59,6 +59,21 @@ export function ClientOverviewHeader({
   onAddNewClient,
 }: ClientOverviewHeaderProps) {
   const isAM = (currentUserRole ?? "").toLowerCase() === "am"
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery)
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearchQuery)
+    }, 300) // 300ms delay
+
+    return () => clearTimeout(timer)
+  }, [localSearchQuery, setSearchQuery])
+
+  // Update local search when external search changes
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery)
+  }, [searchQuery])
 
   // If session user is AM, force the AM filter to their own id and keep it hidden
   useEffect(() => {
@@ -80,8 +95,8 @@ export function ClientOverviewHeader({
           <Input
             placeholder="Search clients..."
             className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localSearchQuery}
+            onChange={(e) => setLocalSearchQuery(e.target.value)}
           />
         </div>
 

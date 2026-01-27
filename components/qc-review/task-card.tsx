@@ -564,7 +564,7 @@ export function TaskCard({
                       size="sm"
                       className="bg-gradient-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
                     >
-                      <Eye className="h-4 w-4 text-teal-500 hover:text-teal-600" />
+                      <Eye className="h-4 w-4 text-white" />
                       View Notes
                     </Button>
                   </div>

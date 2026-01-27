@@ -32,6 +32,7 @@ import {
 import { Agent, Task, TaskAssignment } from "./distribution-types";
 import {
   priorityColors,
+  PRIORITY_OPTIONS,
   siteTypeColors,
   siteTypeIcons,
   statusColors,
@@ -63,6 +64,11 @@ interface TaskCardProps {
     isFirstSelectedTask: boolean
   ) => void;
   onNoteChange: (note: string) => void;
+  onPriorityChange: (
+    taskId: string,
+    priority: (typeof PRIORITY_OPTIONS)[number]
+  ) => void;
+  priorityUpdating?: boolean;
 }
 
 const TaskCardComponent = function TaskCard({
@@ -78,6 +84,8 @@ const TaskCardComponent = function TaskCard({
   onTaskSelection,
   onTaskAssignment,
   onNoteChange,
+  onPriorityChange,
+  priorityUpdating,
 }: TaskCardProps) {
   // Per-card “Choose Agent List”
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
@@ -120,6 +128,8 @@ const TaskCardComponent = function TaskCard({
   const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
+  const shouldDisablePriority =
+    isPriorityLocked || shouldDisableDropdown || priorityUpdating;
 
   const handleAssignmentChange = (agentId: string) => {
     onTaskAssignment(task.id, agentId, isMultipleSelected, isFirstSelectedTask);
@@ -130,6 +140,12 @@ const TaskCardComponent = function TaskCard({
     `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() ||
     u?.email ||
     "User";
+
+  const priorityValue = (task as any)?.priority ?? "medium";
+  const priorityKey = String(priorityValue).toLowerCase();
+  const statusKey = String((task as any)?.status ?? "pending").toLowerCase();
+  const isPriorityLocked =
+    statusKey === "completed" || statusKey === "qc_approved";
 
   const LoadIndicator = (a: any) => {
     const { P, IP, O, R, active, weighted } = getLoadStats(a);
@@ -248,12 +264,50 @@ const TaskCardComponent = function TaskCard({
                     variant="outline"
                     className={`text-xs font-medium px-1.5 py-0 h-5 ${
                       priorityColors[
-                        task.priority as keyof typeof priorityColors
+                        (priorityKey as keyof typeof priorityColors) ?? "medium"
                       ]
                     }`}
                   >
-                    {task.priority.toUpperCase()}
+                    {priorityKey.toUpperCase()}
                   </Badge>
+                  <Select
+                    value={priorityKey}
+                    onValueChange={(value) =>
+                      onPriorityChange(
+                        task.id,
+                        value as (typeof PRIORITY_OPTIONS)[number]
+                      )
+                    }
+                  disabled={shouldDisablePriority}
+                >
+                  <SelectTrigger
+                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm"
+                    title={
+                      isPriorityLocked
+                        ? "Priority locked for completed/QC approved tasks"
+                        : shouldDisableDropdown
+                        ? "Controlled by the first selected task"
+                        : undefined
+                    }
+                  >
+                      <SelectValue
+                        placeholder={
+                          priorityUpdating ? "Updating..." : "Priority"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIORITY_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option}
+                          value={option}
+                          className="text-[11px]"
+                        >
+                          {option.toUpperCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Badge
                     variant="outline"
                     className={`text-xs font-medium px-1.5 py-0 h-5 ${

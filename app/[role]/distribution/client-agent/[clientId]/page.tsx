@@ -520,6 +520,9 @@ export default function TaskDistributionForClient() {
     CategoryAssignment[]
   >([]);
   const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
+  const [priorityUpdating, setPriorityUpdating] = useState<
+    Record<string, boolean>
+  >({});
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -822,6 +825,86 @@ export default function TaskDistributionForClient() {
   const handleNoteChange = useCallback((taskId: string, note: string) => {
     setTaskNotes((prev) => ({ ...prev, [taskId]: note }));
   }, []);
+
+  const handlePriorityChange = useCallback(
+    async (taskId: string, priority: "low" | "medium" | "high" | "urgent") => {
+      const isMultipleSelected = selectedTasks.size > 1;
+      const firstSelectedTaskId = selectedTasksOrder.find((id) =>
+        selectedTasks.has(id)
+      );
+      const targetIds =
+        isMultipleSelected && firstSelectedTaskId === taskId
+          ? Array.from(selectedTasks)
+          : [taskId];
+
+      const updatableIds = targetIds.filter((id) => {
+        const t = tasks.find((x) => x.id === id);
+        const statusKey = String((t as any)?.status ?? "").toLowerCase();
+        return statusKey !== "completed" && statusKey !== "qc_approved";
+      });
+      const lockedCount = targetIds.length - updatableIds.length;
+
+      if (updatableIds.length === 0) {
+        toast.info("Priority locked", {
+          description:
+            "Completed or QC approved tasks cannot change priority.",
+        });
+        return;
+      }
+
+      setPriorityUpdating((prev) => ({
+        ...prev,
+        ...Object.fromEntries(updatableIds.map((id) => [id, true] as const)),
+      }));
+
+      try {
+        await Promise.all(
+          updatableIds.map((id) =>
+            fetch(`/api/tasks/${id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ priority }),
+            }).then((res) => {
+              if (!res.ok) throw new Error(`Failed to update priority for ${id}`);
+            })
+          )
+        );
+
+        mutateTasks(
+          (prev) =>
+            prev?.map((t) =>
+              updatableIds.includes(t.id) ? ({ ...t, priority } as Task) : t
+            ) ?? prev,
+          false
+        );
+
+        toast.success("Priority updated", {
+          description: `Set ${priority.toUpperCase()} for ${updatableIds.length} task${
+            updatableIds.length > 1 ? "s" : ""
+          }${lockedCount ? ` (${lockedCount} locked)` : ""}`,
+        });
+      } catch (error) {
+        console.error("[priority] update failed", error);
+        toast.error("Failed to update priority", {
+          description: "Please try again.",
+        });
+      } finally {
+        setPriorityUpdating((prev) => {
+          const copy = { ...prev };
+          updatableIds.forEach((id) => delete copy[id]);
+          return copy;
+        });
+
+        if (isMultipleSelected && firstSelectedTaskId === taskId) {
+          setSelectedTasks(new Set());
+          setSelectedTasksOrder([]);
+        }
+      }
+    },
+    [mutateTasks, selectedTasks, selectedTasksOrder, tasks]
+  );
 
   const submitTaskDistribution = async () => {
     if (categoryAssignments.length === 0) {
@@ -1339,6 +1422,8 @@ export default function TaskDistributionForClient() {
                               onTaskAssignment={handleTaskAssignment}
                               onNoteChange={handleNoteChange}
                               onViewModeChange={setViewMode}
+                              onPriorityChange={handlePriorityChange}
+                              priorityUpdating={priorityUpdating}
                             />
                           ) : (
                             // Single-tab view for posting/new/other categories
@@ -1359,6 +1444,8 @@ export default function TaskDistributionForClient() {
                               onTaskAssignment={handleTaskAssignment}
                               onNoteChange={handleNoteChange}
                               onViewModeChange={setViewMode}
+                              onPriorityChange={handlePriorityChange}
+                              priorityUpdating={priorityUpdating}
                             />
                           )}
                         </>
