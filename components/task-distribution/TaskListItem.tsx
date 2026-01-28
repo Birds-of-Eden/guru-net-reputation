@@ -21,6 +21,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Building2 as DefaultIcon,
+  Search,
 } from "lucide-react";
 import { Agent, Task, TaskAssignment } from "./distribution-types";
 import {
@@ -91,6 +92,9 @@ export const TaskListItem = memo(function TaskListItem({
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
   const baseList = agentSource === "team" ? teamAgents : allAgents;
 
+  // ✅ NEW: search state for agent dropdown
+  const [agentSearch, setAgentSearch] = useState("");
+
   const filteredAgents = useMemo(() => {
     const categoryMap: Record<string, string> = {
       social_site: "social",
@@ -106,6 +110,22 @@ export const TaskListItem = memo(function TaskListItem({
     });
   }, [baseList, siteType]);
 
+  // ✅ NEW: apply search on top of filteredAgents
+  const filteredAgentsWithSearch = useMemo(() => {
+    const q = agentSearch.trim().toLowerCase();
+    if (!q) return filteredAgents;
+
+    return filteredAgents.filter((agent: any) => {
+      const display =
+        agent?.name ||
+        `${agent?.firstName ?? ""} ${agent?.lastName ?? ""}`.trim() ||
+        agent?.email ||
+        "";
+      const haystack = `${display} ${agent?.email ?? ""}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [filteredAgents, agentSearch]);
+
   const priorityValue = (task as any)?.priority ?? "medium";
   const priorityKey = String(priorityValue).toLowerCase();
   const statusValue = (task as any)?.status ?? "pending";
@@ -114,6 +134,7 @@ export const TaskListItem = memo(function TaskListItem({
     statusKey === "completed" || statusKey === "qc_approved";
   const assignedAgent: Agent | null = (task as any)?.assignedTo ?? null;
   const assignedAgentId: string | null = (task as any)?.assignedToId ?? null;
+
   const combinedAgents = useMemo(
     () => [...teamAgents, ...allAgents],
     [teamAgents, allAgents],
@@ -124,6 +145,7 @@ export const TaskListItem = memo(function TaskListItem({
   const siteTone =
     siteTypeColors[siteType as keyof typeof siteTypeColors] ??
     "bg-slate-50 text-slate-700 border-slate-200";
+
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
   const isLinkedToFirst = shouldDisableDropdown;
@@ -139,6 +161,7 @@ export const TaskListItem = memo(function TaskListItem({
     assignedAgent ||
     combinedAgents.find((a: any) => a.id === assignedAgentId) ||
     null;
+
   const assignedDisplayName =
     resolvedAgent?.name ||
     `${(resolvedAgent as any)?.firstName ?? ""} ${
@@ -150,6 +173,7 @@ export const TaskListItem = memo(function TaskListItem({
   const previewAgent = combinedAgents.find(
     (a: any) => a.id === assignment?.agentId,
   );
+
   const previewDisplayName =
     previewAgent?.name ||
     `${previewAgent?.firstName ?? ""} ${previewAgent?.lastName ?? ""}`.trim() ||
@@ -354,14 +378,7 @@ export const TaskListItem = memo(function TaskListItem({
                   assignedAgent ||
                   combinedAgents.find((a: any) => a.id === assignedAgentId) ||
                   null;
-                const displayName =
-                  resolvedAgent?.name ||
-                  `${(resolvedAgent as any)?.firstName ?? ""} ${
-                    (resolvedAgent as any)?.lastName ?? ""
-                  }`.trim() ||
-                  resolvedAgent?.email ||
-                  "Assigned";
-                /* Already assigned - static display */
+
                 return (
                   <div className="flex items-center gap-2 p-3 rounded-lg border border-emerald-300 bg-emerald-50">
                     <AvatarWithFallback
@@ -381,7 +398,6 @@ export const TaskListItem = memo(function TaskListItem({
                 );
               })()
             ) : assignment ? (
-              /* Preview chosen agent - static display */
               <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-300 bg-blue-50">
                 <AvatarWithFallback
                   name={previewDisplayName}
@@ -463,6 +479,10 @@ export const TaskListItem = memo(function TaskListItem({
                         value=""
                         onValueChange={handleAssignmentChange}
                         disabled={shouldDisableDropdown}
+                        onOpenChange={(open) => {
+                          // optional nicety: clear when closing
+                          if (!open) setAgentSearch("");
+                        }}
                       >
                         <SelectTrigger
                           className={[
@@ -483,78 +503,132 @@ export const TaskListItem = memo(function TaskListItem({
                           />
                         </SelectTrigger>
 
-                        <SelectContent className="rounded-xl border shadow-lg p-2 w-[min(28rem,90vw)]">
-                          {/* Legend bar */}
-                          <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <span className="inline-flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
-                                P
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-indigo-500" />{" "}
-                                IP
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-rose-500" />{" "}
-                                O
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <span className="h-2 w-2 rounded-full bg-orange-500" />{" "}
-                                R
-                              </span>
-                              <span className="ml-auto">Active / W</span>
+                        <SelectContent
+                          className="rounded-xl border shadow-lg p-2 w-[min(28rem,90vw)]"
+                          // ✅ prevent focus jump causing typing issues
+                          onCloseAutoFocus={(e) => e.preventDefault()}
+                        >
+                          {/* ✅ Sticky header: legend + search stays fixed while list scrolls */}
+                          <div className="sticky top-0 z-10 bg-white pt-1">
+                            {/* Legend bar */}
+                            <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
+                                  P
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="h-2 w-2 rounded-full bg-indigo-500" />{" "}
+                                  IP
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="h-2 w-2 rounded-full bg-rose-500" />{" "}
+                                  O
+                                </span>
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="h-2 w-2 rounded-full bg-orange-500" />{" "}
+                                  R
+                                </span>
+                                <span className="ml-auto">Active / W</span>
+                              </div>
+                            </div>
+
+                            {/* Search box */}
+                            <div className="px-2 pb-2">
+                              <div
+                                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5"
+                                // ✅ stop propagation so Radix Select doesn't steal typing
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Search className="h-4 w-4 text-slate-500" />
+                                <input
+                                  value={agentSearch}
+                                  onChange={(e) =>
+                                    setAgentSearch(e.target.value)
+                                  }
+                                  placeholder="Search agent by name or email..."
+                                  className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+                                  autoComplete="off"
+                                  autoCorrect="off"
+                                  spellCheck={false}
+                                  // ✅ kill Radix "typeahead" that causes stuck input
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                  onKeyUp={(e) => e.stopPropagation()}
+                                />
+                                {agentSearch ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAgentSearch("")}
+                                    className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                  >
+                                    Clear
+                                  </button>
+                                ) : null}
+                              </div>
+
+                              <div className="mt-1 text-[11px] text-slate-500 px-1">
+                                Showing {filteredAgentsWithSearch.length} of{" "}
+                                {filteredAgents.length}
+                              </div>
                             </div>
                           </div>
 
-                          {/* Agent list */}
+                          {/* Agent list (scrolls) */}
                           <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-                            {filteredAgents.map((agent: any) => {
-                              const display =
-                                agent.name ||
-                                `${agent.firstName ?? ""} ${
-                                  agent.lastName ?? ""
-                                }`.trim() ||
-                                agent.email ||
-                                "Agent";
-                              const initials = getInitialsFromParts(
-                                agent.firstName,
-                                agent.lastName,
-                                agent.name || agent.email,
-                              );
-                              const bg = nameToColor(display);
+                            {filteredAgentsWithSearch.length ? (
+                              filteredAgentsWithSearch.map((agent: any) => {
+                                const display =
+                                  agent.name ||
+                                  `${agent.firstName ?? ""} ${
+                                    agent.lastName ?? ""
+                                  }`.trim() ||
+                                  agent.email ||
+                                  "Agent";
+                                const initials = getInitialsFromParts(
+                                  agent.firstName,
+                                  agent.lastName,
+                                  agent.name || agent.email,
+                                );
+                                const bg = nameToColor(display);
 
-                              return (
-                                <SelectItem
-                                  key={agent.id}
-                                  value={agent.id}
-                                  className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
-                                >
-                                  <div className="flex items-start gap-2">
-                                    <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
-                                      {agent.image ? (
-                                        <AvatarImage
-                                          src={agent.image}
-                                          alt={display}
-                                        />
-                                      ) : null}
-                                      <AvatarFallback
-                                        style={{ backgroundColor: bg }}
-                                        className="text-white text-[10px] font-bold"
-                                      >
-                                        {initials || "A"}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-[13px] font-semibold text-slate-900 truncate">
-                                        {display}
+                                return (
+                                  <SelectItem
+                                    key={agent.id}
+                                    value={agent.id}
+                                    className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
+                                        {agent.image ? (
+                                          <AvatarImage
+                                            src={agent.image}
+                                            alt={display}
+                                          />
+                                        ) : null}
+                                        <AvatarFallback
+                                          style={{ backgroundColor: bg }}
+                                          className="text-white text-[10px] font-bold"
+                                        >
+                                          {initials || "A"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-[13px] font-semibold text-slate-900 truncate">
+                                          {display}
+                                        </div>
+                                        <LoadChips {...agent} />
                                       </div>
-                                      <LoadChips {...agent} />
                                     </div>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
+                                  </SelectItem>
+                                );
+                              })
+                            ) : (
+                              <div className="px-3 py-6 text-center text-sm text-slate-500">
+                                No agents found.
+                              </div>
+                            )}
                           </div>
                         </SelectContent>
                       </Select>
