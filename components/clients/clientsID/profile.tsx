@@ -33,6 +33,7 @@ import {
   Plus,
   UserCircle2,
   Shield,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Client } from "@/types/client";
@@ -84,6 +85,7 @@ type SocialRow = {
 interface ProfileProps {
   clientData: ClientWithSocial;
   currentUserRole?: string;
+  onRefreshClient?: () => void | Promise<void>;
 }
 
 type FormValues = {
@@ -147,7 +149,7 @@ function asSocialArray(json: unknown): SocialRow[] {
   }
 }
 
-export function Profile({ clientData, currentUserRole }: ProfileProps) {
+export function Profile({ clientData, currentUserRole, onRefreshClient }: ProfileProps) {
   // --- client main password reveal
   const [showClientPassword, setShowClientPassword] = useState(false);
   const toggleClientPasswordVisibility = () => {
@@ -185,6 +187,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
   const [editingRow, setEditingRow] = useState<Record<string, boolean>>({});
   const [rowDrafts, setRowDrafts] = useState<Record<string, SocialDraft>>({});
   const [rowSaving, setRowSaving] = useState<Record<string, boolean>>({});
+  const [rowDeleting, setRowDeleting] = useState<Record<string, boolean>>({});
 
   // --- add-row state
   const [addingRow, setAddingRow] = useState(false);
@@ -198,6 +201,14 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
     notes: "",
   });
   const [addSaving, setAddSaving] = useState(false);
+
+  const triggerRefresh = async () => {
+    if (onRefreshClient) {
+      await Promise.resolve(onRefreshClient());
+    } else {
+      router.refresh();
+    }
+  };
 
   const nullIfEmpty = (v?: string | null) => {
     if (v === undefined || v === null) return undefined; // leave untouched
@@ -275,11 +286,35 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
         const { [id]: _omit, ...rest } = p;
         return rest;
       });
-      router.refresh();
+      await triggerRefresh();
     } catch (e: any) {
       toast.error(e?.message || "Failed to update social media");
     } finally {
       setRowSaving((p) => ({ ...p, [id]: false }));
+    }
+  }
+
+  async function deleteRow(id: string) {
+    try {
+      setRowDeleting((p) => ({ ...p, [id]: true }));
+      const remaining = socialRows.filter((r) => r.id !== id);
+
+      const res = await fetch(`/api/clients/${clientData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ socialMedia: remaining }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.message || "Failed to delete social media");
+      }
+
+      toast.success("Social media removed");
+      await triggerRefresh();
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to delete social media");
+    } finally {
+      setRowDeleting((p) => ({ ...p, [id]: false }));
     }
   }
 
@@ -320,7 +355,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
         password: "",
         notes: "",
       });
-      router.refresh();
+      await triggerRefresh();
     } catch (e: any) {
       toast.error(e?.message || "Failed to add social profile");
     } finally {
@@ -654,7 +689,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
       }
       toast.success("Client updated");
       setOpen(false);
-      router.refresh();
+      await triggerRefresh();
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Failed to update client");
@@ -1430,15 +1465,32 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
                                 <td className="px-4 py-3">
                                   <div className="flex items-center justify-end gap-2">
                                     {!isEditing ? (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => startEditRow(id, sm)}
-                                        className="h-8 px-2"
-                                        title="Edit row"
-                                      >
-                                        <Pencil className="h-4 w-4" />
-                                      </Button>
+                                      <>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => startEditRow(id, sm)}
+                                          className="h-8 px-2"
+                                          title="Edit row"
+                                          disabled={rowDeleting[id]}
+                                        >
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => deleteRow(id)}
+                                          className="h-8 px-2 text-red-600 hover:text-red-700"
+                                          title="Delete row"
+                                          disabled={rowDeleting[id]}
+                                        >
+                                          {rowDeleting[id] ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <Trash2 className="h-4 w-4" />
+                                          )}
+                                        </Button>
+                                      </>
                                     ) : (
                                       <>
                                         <Button
@@ -1447,7 +1499,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
                                           onClick={() => cancelEditRow(id)}
                                           className="h-8 px-2"
                                           title="Cancel"
-                                          disabled={rowSaving[id]}
+                                          disabled={rowSaving[id] || rowDeleting[id]}
                                         >
                                           <X className="h-4 w-4" />
                                         </Button>
@@ -1456,7 +1508,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
                                           onClick={() => saveRow(id)}
                                           className="h-8 px-2"
                                           title="Save"
-                                          disabled={rowSaving[id]}
+                                          disabled={rowSaving[id] || rowDeleting[id]}
                                         >
                                           {rowSaving[id] ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1485,7 +1537,7 @@ export function Profile({ clientData, currentUserRole }: ProfileProps) {
         onOpenChange={setOpen}
         clientData={clientData}
         currentUserRole={currentUserRole}
-        onSaved={() => router.refresh()}
+        onSaved={triggerRefresh}
       />
     </>
   );

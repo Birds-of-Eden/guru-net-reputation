@@ -28,18 +28,13 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
   User,
   Mail,
-  Phone,
-  Lock,
   Globe,
   Building,
   MapPin,
   BookOpen,
   Image,
-  Package,
-  Clock,
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +52,7 @@ type ClientWithSocial = Client & {
 export type FormValues = {
   name: string;
   birthdate?: string;
+  renewalDate?: string;
   company?: string;
   designation?: string;
   location?: string;
@@ -75,10 +71,11 @@ export type FormValues = {
   biography?: string;
   imageDrivelink?: string;
   avatar?: string;
+  socialMedia?: string;
+  articleTopics?: string;
 
   progress?: number;
   status?: string;
-  packageId?: string;
   startDate?: string;
   dueDate?: string;
 
@@ -90,7 +87,6 @@ export type FormValues = {
 };
 
 type AMUser = { id: string; name: string | null; email: string | null };
-type PackageOption = { id: string; name: string };
 
 export interface ClientEditModalProps {
   open: boolean;
@@ -130,16 +126,14 @@ export default function ClientEditModal({
     .toString()
     .toLowerCase();
   const isAgent = roleName === "agent";
-
-  // loading & options
-  const [packages, setPackages] = useState<PackageOption[]>([]);
-  const [packagesLoading, setPackagesLoading] = useState(false);
+  const isAdmin = roleName.includes("admin");
 
   const [ams, setAms] = useState<AMUser[]>([]);
   const [amsLoading, setAmsLoading] = useState(false);
   const [amsError, setAmsError] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
+  const currentAmId = clientData.amId ?? null;
 
   const { register, handleSubmit, reset, setValue, watch } =
     useForm<FormValues>({
@@ -150,6 +144,7 @@ export default function ClientEditModal({
         designation: clientData.designation ?? "",
         location: clientData.location ?? "",
         gender: (clientData as any).gender ?? "",
+        renewalDate: toDateInput((clientData as any).renewalDate as any),
         email: clientData.email ?? "",
         phone: clientData.phone ?? "",
         password: clientData.password ?? "",
@@ -166,10 +161,9 @@ export default function ClientEditModal({
         avatar: (clientData as any).avatar ?? "",
         progress: clientData.progress ?? 0,
         status: (clientData.status as string) ?? "inactive",
-        packageId: (clientData.packageId as string) ?? "",
         startDate: toDateInput(clientData.startDate as any),
         dueDate: toDateInput(clientData.dueDate as any),
-        amId: clientData.amId ?? null,
+        amId: currentAmId,
       },
     });
 
@@ -187,6 +181,7 @@ export default function ClientEditModal({
       designation: clientData.designation ?? "",
       location: clientData.location ?? "",
       gender: (clientData as any).gender ?? "",
+      renewalDate: toDateInput((clientData as any).renewalDate as any),
       email: clientData.email ?? "",
       phone: clientData.phone ?? "",
       password: clientData.password ?? "",
@@ -203,12 +198,9 @@ export default function ClientEditModal({
       avatar: (clientData as any).avatar ?? "",
       progress: clientData.progress ?? 0,
       status: (clientData.status as string) ?? "inactive",
-      packageId: (clientData.packageId as string) ?? "",
-      startDate: toDateInput(clientData.startDate as any),
-      dueDate: toDateInput(clientData.dueDate as any),
-      amId: clientData.amId ?? null,
+      amId: currentAmId,
     });
-  }, [open]);
+  }, [open, currentAmId]);
 
   // ---- otherField (arbitrary JSON key/value pairs) ----
   // ---- otherField (category + title + data[]) ----
@@ -340,33 +332,7 @@ export default function ClientEditModal({
   const removeKeyword = (idx: number) => 
     setKeywords(prev => prev.filter((_, i) => i !== idx));
 
-  const fetchPackages = async () => {
-    try {
-      setPackagesLoading(true);
-      const res = await fetch("/api/packages", { cache: "no-store" });
-      if (!res.ok) throw new Error(`Failed to load packages: ${res.status}`);
-      const data = await res.json().catch(() => []);
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.packages)
-        ? data.packages
-        : [];
-      const options: PackageOption[] = list
-        .map((p: any) => ({
-          id: String(p.id ?? ""),
-          name: String(p.name ?? "Unnamed"),
-        }))
-        .filter((p: PackageOption) => p.id);
-      setPackages(options);
-    } catch (e) {
-      console.error(e);
-      setPackages([]);
-    } finally {
-      setPackagesLoading(false);
-    }
-  };
-
-  const fetchAMs = async () => {
+  const fetchAMs = async (): Promise<AMUser[]> => {
     try {
       setAmsLoading(true);
       setAmsError(null);
@@ -383,23 +349,31 @@ export default function ClientEditModal({
           email: u.email ?? null,
         }));
       setAms(list);
+      return list;
     } catch (e) {
       console.error(e);
       setAms([]);
       setAmsError("Failed to load AMs");
+      return [];
     } finally {
       setAmsLoading(false);
     }
   };
 
-  // Load packages & AMs when the modal opens (non-agents only, per your original logic)
+  // Load AM list when modal opens for admins, and ensure current AM is preserved
   useEffect(() => {
-    if (open && !isAgent) {
-      fetchPackages();
-      fetchAMs();
-    }
-     
-  }, [open, isAgent]);
+    if (!open || !isAdmin) return;
+    fetchAMs().then((list) => {
+      if (currentAmId && !list.some((a) => a.id === currentAmId)) {
+        setAms((prev) => [
+          ...prev,
+          { id: currentAmId, name: "Current AM", email: null },
+        ]);
+      }
+      // ensure select shows current value
+      setValue("amId", currentAmId);
+    });
+  }, [open, isAdmin, currentAmId]);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -426,7 +400,8 @@ export default function ClientEditModal({
           phone,
           password,
           recoveryEmail,
-          imageDrivelink,
+          socialMedia,
+          articleTopics,
           ...rest
         } = values;
         const cleanedPairs = otherPairs
@@ -452,19 +427,49 @@ export default function ClientEditModal({
         const cleanedWebsites = (webArray ?? [])
           .map((w) => (w || "").trim())
           .filter((w) => w !== "");
+
+        // Parse articleTopics (JSON or comma-separated)
+        let parsedArticleTopics: any = undefined;
+        if (articleTopics && articleTopics.trim()) {
+          try {
+            parsedArticleTopics = JSON.parse(articleTopics);
+          } catch {
+            parsedArticleTopics = articleTopics
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean);
+          }
+        }
+
+        // Parse socialMedia JSON (array/object)
+        let parsedSocialMedia: any = undefined;
+        if (socialMedia && socialMedia.trim()) {
+          try {
+            parsedSocialMedia = JSON.parse(socialMedia);
+          } catch (e) {
+            toast.error("Social media must be valid JSON");
+            throw e;
+          }
+        }
+
         payload = {
           ...rest,
+          email: values.email || undefined,
+          phone: values.phone || undefined,
+          password: values.password || undefined,
+          recoveryEmail: values.recoveryEmail || undefined,
+          imageDrivelink: values.imageDrivelink?.trim() || null,
           websites: cleanedWebsites,
           progress:
             values.progress === undefined || values.progress === null
               ? undefined
               : Number(values.progress),
           birthdate: values.birthdate || undefined,
-          startDate: values.startDate || undefined,
-          dueDate: values.dueDate || undefined,
           amId: values.amId && values.amId.trim() !== "" ? values.amId : null,
           // attach arbitrary JSON
           otherField: finalOtherField,
+          articleTopics: parsedArticleTopics,
+          socialMedia: parsedSocialMedia,
         };
       }
 
@@ -480,7 +485,9 @@ export default function ClientEditModal({
 
       toast.success("Client updated");
       onOpenChange(false);
-      onSaved?.();
+      if (onSaved) {
+        await Promise.resolve(onSaved());
+      }
       router.refresh();
     } catch (e: any) {
       console.error(e);
@@ -828,38 +835,44 @@ export default function ClientEditModal({
                   </h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <Label
-                        htmlFor="amId"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Assign AM
-                      </Label>
-                      <Select
-                        disabled={amsLoading || roleName !== "admin"}
-                        onValueChange={(value) => setValue("amId", value)}
-                        value={watch("amId") || undefined}
-                      >
-                        <SelectTrigger className="border-slate-300 focus:border-amber-500">
-                          <SelectValue
-                            placeholder={
-                              amsLoading ? "Loading AMs..." : "— None —"
+                      {isAdmin ? (
+                        <>
+                          <Label
+                            htmlFor="amId"
+                            className="text-sm font-medium text-slate-700 mb-2 block"
+                          >
+                            Assign AM
+                          </Label>
+                          <Select
+                            disabled={amsLoading}
+                            onValueChange={(value) =>
+                              setValue("amId", value === "none" ? null : value)
                             }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ams.map((u) => (
-                            <SelectItem key={u.id} value={u.id}>
-                              {u.name} ({u.email})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {amsError && (
-                        <p className="text-sm text-red-600 mt-1">{amsError}</p>
-                      )}
-                      {roleName !== "admin" && (
+                            value={(watch("amId") ?? currentAmId ?? "none") as any}
+                          >
+                            <SelectTrigger className="border-slate-300 focus-border-amber-500">
+                              <SelectValue
+                                placeholder={
+                                  amsLoading ? "Loading AMs..." : "— None —"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="none">No AM (Unassigned)</SelectItem>
+                              {ams.map((u) => (
+                                <SelectItem key={u.id} value={u.id}>
+                                  {u.name || u.email || u.id}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {amsError && (
+                            <p className="text-sm text-red-600 mt-1">{amsError}</p>
+                          )}
+                        </>
+                      ) : (
                         <p className="text-sm text-slate-500 mt-1">
-                          Only administrators can modify the Account Manager
+                          Only administrators can view or modify the Account Manager
                         </p>
                       )}
                     </div>
@@ -984,75 +997,6 @@ export default function ClientEditModal({
                 </CardContent>
               </Card>
 
-              {/* Package & Dates */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Package className="h-5 w-5 text-cyan-600" />
-                    Package & Dates
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="packageId"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Package
-                      </Label>
-                      <Select
-                        disabled={packagesLoading}
-                        onValueChange={(value) => setValue("packageId", value)}
-                        value={watch("packageId") || undefined}
-                      >
-                        <SelectTrigger className="border-slate-300 focus:border-cyan-500">
-                          <SelectValue
-                            placeholder={
-                              packagesLoading
-                                ? "Loading packages..."
-                                : "Select a package"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {packages.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="startDate"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Start Date
-                      </Label>
-                      <Input
-                        id="startDate"
-                        type="date"
-                        className="border-slate-300 focus:border-cyan-500"
-                        {...register("startDate")}
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="dueDate"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
-                      >
-                        Due Date
-                      </Label>
-                      <Input
-                        id="dueDate"
-                        type="date"
-                        className="border-slate-300 focus:border-cyan-500"
-                        {...register("dueDate")}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Other (Category + Title + Data[]) */}
               <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">

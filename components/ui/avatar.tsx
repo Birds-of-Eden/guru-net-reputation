@@ -62,7 +62,18 @@ function AvatarFallback({
     : getInitialsFromName(label);
   const content = children ?? computedInitials ?? "";
   const colorKey = label || (typeof content === "string" ? content : "user");
-  const backgroundColor = nameToColor(String(colorKey));
+  
+  // Check if custom gradient classes are provided
+  const hasGradientClass = className?.includes('bg-gradient');
+  
+  // Use useEffect to prevent hydration mismatch only if no gradient class
+  const [backgroundColor, setBackgroundColor] = React.useState<string>("#6366f1");
+  
+  React.useEffect(() => {
+    if (!hasGradientClass) {
+      setBackgroundColor(nameToColor(String(colorKey)));
+    }
+  }, [colorKey, hasGradientClass]);
 
   return (
     <AvatarPrimitive.Fallback
@@ -72,7 +83,10 @@ function AvatarFallback({
         "flex size-full items-center justify-center rounded-full font-semibold text-white",
         className
       )}
-      style={{ backgroundColor, ...style }}
+      style={{ 
+        backgroundColor: hasGradientClass ? undefined : backgroundColor, 
+        ...style 
+      }}
       {...props}
     >
       {content}

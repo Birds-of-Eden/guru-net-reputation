@@ -271,6 +271,7 @@ export async function GET(req: Request) {
         email: true,
         phone: true,
         biography: true,
+        imageDrivelink: true,
         location: true,
         companyaddress: true,
         accountManager: { select: { id: true, name: true, email: true } },

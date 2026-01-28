@@ -1,7 +1,7 @@
 // components/clients/clientsID/client-dashboard.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,18 +15,15 @@ import ExportClientTxtButton from "@/components/ExportClientTxtButton";
 import { RenewPostingTasksButton } from "./renewbutton";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const Profile = dynamic(
-  () => import("./profile").then((mod) => mod.Profile),
-  {
-    loading: () => <Skeleton className="h-32 w-full" />,
-  }
-);
+const Profile = dynamic(() => import("./profile").then((mod) => mod.Profile), {
+  loading: () => <Skeleton className="h-32 w-full" />,
+});
 
 const OtherInformation = dynamic(
   () => import("./otherInformation").then((mod) => mod.OtherInformation),
   {
     loading: () => <Skeleton className="h-32 w-full" />,
-  }
+  },
 );
 
 const Bio = dynamic(() => import("./bio").then((mod) => mod.Bio), {
@@ -35,22 +32,22 @@ const Bio = dynamic(() => import("./bio").then((mod) => mod.Bio), {
 
 const DriveImage = dynamic(
   () => import("./drive-image").then((mod) => mod.DriveImage),
-  { loading: () => <Skeleton className="h-32 w-full" /> }
+  { loading: () => <Skeleton className="h-32 w-full" /> },
 );
 
 const ArticleTopics = dynamic(
   () => import("./articleTopics").then((mod) => mod.ArticleTopics),
-  { loading: () => <Skeleton className="h-32 w-full" /> }
+  { loading: () => <Skeleton className="h-32 w-full" /> },
 );
 
 const SocialProfile = dynamic(
   () => import("./social-profile").then((mod) => mod.SocialProfile),
-  { loading: () => <Skeleton className="h-32 w-full" /> }
+  { loading: () => <Skeleton className="h-32 w-full" /> },
 );
 
 const TemplateManagement = dynamic(
   () => import("./template-management").then((mod) => mod.TemplateManagement),
-  { loading: () => <Skeleton className="h-32 w-full" /> }
+  { loading: () => <Skeleton className="h-32 w-full" /> },
 );
 
 const Tasks = dynamic(() => import("./task").then((mod) => mod.Tasks), {
@@ -59,12 +56,15 @@ const Tasks = dynamic(() => import("./task").then((mod) => mod.Tasks), {
 
 interface ClientDashboardProps {
   clientData: Client;
+  refreshClient?: () => Promise<any> | void;
 }
 
-export function ClientDashboard({ clientData }: ClientDashboardProps) {
+export function ClientDashboard({ clientData, refreshClient }: ClientDashboardProps) {
+  const [client, setClient] = useState<Client>(clientData);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
-    () => new Set(["profile"])
+    () => new Set(["profile"]),
   );
   const [editOpen, setEditOpen] = useState(false);
   const { user } = useUserSession();
@@ -73,15 +73,20 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   const isAgent = String(roleName).toLowerCase() === "agent";
   const isAdmin = String(roleName).toLowerCase().includes("admin");
 
+  // Keep local state in sync when parent passes refreshed clientData
+  useEffect(() => {
+    if (clientData) setClient(clientData);
+  }, [clientData]);
+
   // Basic derived fields (lightweight)
   const packageMonths =
-    Number((clientData as any)?.package?.totalMonths) &&
-    Number((clientData as any)?.package?.totalMonths) > 0
-      ? Math.floor(Number((clientData as any)?.package?.totalMonths))
+    Number((client as any)?.package?.totalMonths) &&
+    Number((client as any)?.package?.totalMonths) > 0
+      ? Math.floor(Number((client as any)?.package?.totalMonths))
       : 1;
 
   const isDueOver = (() => {
-    const due = clientData.dueDate ? new Date(clientData.dueDate) : null;
+    const due = client.dueDate ? new Date(client.dueDate) : null;
     if (!due || isNaN(due.getTime())) return false;
     const now = new Date();
     return due.getTime() < now.getTime();
@@ -96,8 +101,8 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   };
 
   const getDaysRemaining = () => {
-    if (!clientData.dueDate) return 0;
-    const dueDate = new Date(clientData.dueDate);
+    if (!client.dueDate) return 0;
+    const dueDate = new Date(client.dueDate);
     const today = new Date();
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -105,9 +110,9 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   };
 
   const getTotalDays = () => {
-    if (!clientData.startDate || !clientData.dueDate) return 0;
-    const startDate = new Date(clientData.startDate);
-    const dueDate = new Date(clientData.dueDate);
+    if (!client.startDate || !client.dueDate) return 0;
+    const startDate = new Date(client.startDate);
+    const dueDate = new Date(client.dueDate);
     const diffTime = dueDate.getTime() - startDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -154,8 +159,8 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   };
 
   // Explicit mapping: start = DB startDate, end = dueDate
-  const startDisplay = formatDateStrict(clientData.startDate);
-  const dueDisplay = formatDateStrict(clientData.dueDate);
+  const startDisplay = formatDateStrict(client.startDate);
+  const dueDisplay = formatDateStrict(client.dueDate);
 
   // Derived progress from tasks with normalized statuses (overall)
   const normalizeStatus = (raw?: string | null) => {
@@ -194,11 +199,10 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
     return s || "pending";
   };
 
-  const totalTasks = clientData.tasks?.length || 0;
+  const totalTasks = client.tasks?.length || 0;
   const completedTasks =
-    clientData.tasks?.filter(
-      (t: any) => normalizeStatus(t?.status) === "completed"
-    ).length || 0;
+    client.tasks?.filter((t: any) => normalizeStatus(t?.status) === "completed")
+      .length || 0;
 
   const derivedProgress = totalTasks
     ? Math.round((completedTasks / totalTasks) * 100)
@@ -233,7 +237,7 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   };
 
   // Monthly filtered tasks
-  const tasksThisMonth = (clientData.tasks ?? []).filter(inThisMonth);
+  const tasksThisMonth = (client.tasks ?? []).filter(inThisMonth);
   const totalThisMonth = tasksThisMonth.length;
 
   // helper to keep raw (non-normalized) for approved detection
@@ -279,13 +283,38 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
   // This month progress = (completed + approved) / totalThisMonth
   const derivedProgressThisMonth = totalThisMonth
     ? Math.round(
-        ((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100
+        ((completedThisMonth + approvedThisMonth) / totalThisMonth) * 100,
       )
     : 0;
 
   // Clamp values for display
   const displayOverall = Math.min(100, Math.max(0, derivedProgress));
   const displayThisMonth = Math.min(100, Math.max(0, derivedProgressThisMonth));
+
+  const reloadClient = async () => {
+    try {
+      setRefreshing(true);
+      const res = await fetch(`/api/clients/${client.id}?view=distribution`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setClient((data as any)?.client ?? (data as any));
+      }
+    } catch (e) {
+      console.error("Failed to reload client", e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const triggerRefresh = async () => {
+    if (refreshClient) {
+      await Promise.resolve(refreshClient());
+    } else {
+      await reloadClient();
+    }
+  };
 
   const totalAssets = totalTasks;
 
@@ -308,34 +337,34 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16 ring-4 ring-blue-100 dark:ring-blue-900">
                 <AvatarImage
-                  src={clientData.avatar || undefined}
-                  alt={clientData.name}
+                  src={client.avatar || undefined}
+                  alt={client.name}
                 />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
-                  {getInitials(clientData.name)}
+                  {getInitials(client.name)}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {clientData.name}
+                  {client.name}
                 </h1>
 
                 {/* Company / Location / Status */}
                 <div className="flex items-center space-x-4 mt-1">
                   <div className="flex items-center text-slate-600 dark:text-slate-400">
                     <Building className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{clientData.company ?? ""}</span>
+                    <span className="text-sm">{client.company ?? ""}</span>
                   </div>
                   <div className="flex items-center text-slate-600 dark:text-slate-400">
                     <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{clientData.location ?? ""}</span>
+                    <span className="text-sm">{client.location ?? ""}</span>
                   </div>
                   <Badge
                     variant={
-                      clientData.status === "active" ? "default" : "secondary"
+                      client.status === "active" ? "default" : "secondary"
                     }
                   >
-                    {clientData.status ?? "inactive"}
+                    {client.status ?? "inactive"}
                   </Badge>
                 </div>
 
@@ -482,13 +511,13 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
             )}
             {isAgent && (
               <div>
-                <ExportClientTxtButton clientData={clientData} />
+                <ExportClientTxtButton clientData={client} />
               </div>
             )}
             {isAdmin && isDueOver && (
               <div>
                 <RenewPostingTasksButton
-                  clientId={clientData.id}
+                  clientId={client.id}
                   templateId={undefined}
                   packageMonths={packageMonths}
                 />
@@ -498,56 +527,60 @@ export function ClientDashboard({ clientData }: ClientDashboardProps) {
 
           {mountedTabs.has("profile") && (
             <TabsContent value="profile">
-              <Profile clientData={clientData} />
+              <Profile clientData={client} onRefreshClient={triggerRefresh} />
             </TabsContent>
           )}
 
           {mountedTabs.has("other-information") && (
             <TabsContent value="other-information">
-              <OtherInformation clientData={clientData} />
+              <OtherInformation clientData={client} />
             </TabsContent>
           )}
 
           {mountedTabs.has("bio") && (
             <TabsContent value="bio">
-              <Bio clientData={clientData} />
+              <Bio clientData={client} />
             </TabsContent>
           )}
 
           {mountedTabs.has("drive-image") && (
             <TabsContent value="drive-image">
-              <DriveImage clientData={clientData} />
+              <DriveImage clientData={client} />
             </TabsContent>
           )}
 
           {mountedTabs.has("article-topics") && (
             <TabsContent value="article-topics">
-              <ArticleTopics clientData={clientData} />
+              <ArticleTopics
+                clientData={client}
+                onRefreshClient={triggerRefresh}
+              />
             </TabsContent>
           )}
 
           {mountedTabs.has("social-profile") && (
             <TabsContent value="social-profile">
-              <SocialProfile clientData={clientData} />
+              <SocialProfile clientData={client} />
             </TabsContent>
           )}
 
           {mountedTabs.has("template") && (
             <TabsContent value="template">
-              <TemplateManagement clientData={clientData} />
+              <TemplateManagement clientData={client} />
             </TabsContent>
           )}
 
           {mountedTabs.has("tasks") && (
             <TabsContent value="tasks">
-              <Tasks clientData={clientData} />
+              <Tasks clientData={client} />
             </TabsContent>
           )}
         </Tabs>
         <ClientEditModal
           open={editOpen}
           onOpenChange={setEditOpen}
-          clientData={clientData as any}
+          clientData={client as any}
+          onSaved={triggerRefresh}
         />
       </div>
     </div>

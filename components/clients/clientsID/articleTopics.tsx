@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   List as ListIcon,
   FileText,
@@ -50,6 +51,7 @@ interface ArticleTopicsProps {
     id: string;
     articleTopics?: ArticleTopic[] | ArticleCategory[];
   };
+  onRefreshClient?: () => void | Promise<void>;
 }
 
 const getStatusBadgeClass = (status: string) => {
@@ -73,7 +75,10 @@ const isNewStructure = (data: any): data is ArticleCategory[] => {
   return Array.isArray(data) && data.length > 0 && 'category' in data[0] && 'titles' in data[0];
 };
 
-export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
+export const ArticleTopics = ({
+  clientData,
+  onRefreshClient,
+}: ArticleTopicsProps) => {
   // Detect which structure is being used and initialize states accordingly
   const dataIsNewStructure = isNewStructure(clientData.articleTopics);
   
@@ -111,6 +116,15 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
   const [editingTitleIdx, setEditingTitleIdx] = useState<number | null>(null);
   
   const { user } = useAuth();
+  const router = useRouter();
+
+  const triggerRefresh = async () => {
+    if (onRefreshClient) {
+      await Promise.resolve(onRefreshClient());
+    } else {
+      router.refresh();
+    }
+  };
   
   // Check if using new structure
   const hasNewStructure = categories.length > 0;
@@ -211,6 +225,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
         usedCount: 0,
         usedDate: null,
       });
+      await triggerRefresh();
       setIsAdding(false);
     } catch (err) {
       console.error(err);
@@ -268,6 +283,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       }
       
       toast.success("Category added successfully!");
+      await triggerRefresh();
       setNewTopicCategory({ category: "", titles: [] });
       setIsAddingCategory(false);
     } catch (err) {
@@ -290,6 +306,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
       
       if (!res.ok) throw new Error(`Failed to save`);
       toast.success("Category deleted!");
+      await triggerRefresh();
     } catch (err) {
       console.error(err);
       setCategories(categories);
@@ -366,6 +383,7 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
         setCategories(data.articleTopics as ArticleCategory[]);
       }
       toast.success("Saved successfully");
+      await triggerRefresh();
     } catch (e) {
       console.error(e);
       toast.error("Save failed");
@@ -975,9 +993,10 @@ export const ArticleTopics = ({ clientData }: ArticleTopicsProps) => {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ articleCategories: updatedCategories }),
                     })
-                      .then(res => {
+                      .then(async res => {
                         if (!res.ok) throw new Error("Failed to save");
                         toast.success("Category added successfully!");
+                        await triggerRefresh();
                         setIsAdding(false);
                         setNewTopicCategory({ category: "", titles: [] });
                       })

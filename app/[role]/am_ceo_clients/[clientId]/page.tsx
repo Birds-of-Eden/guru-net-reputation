@@ -53,9 +53,10 @@ export default function AMCEOClientPage({
   const { clientId } = use(params);
   
   // ✅ Use optimized hook with aggressive caching
-  const { clientData, isLoading, error } = useClientDashboard({
+  const { clientData, isLoading, error, refresh } = useClientDashboard({
     clientId,
     enableCache: true,
+    realtime: false,
   });
 
   // ✅ Show skeleton loader during initial load
@@ -105,7 +106,7 @@ export default function AMCEOClientPage({
 
   return (
     <div className="min-h-screen">
-      <ClientDashboard clientData={clientData} />
+      <ClientDashboard clientData={clientData} refreshClient={refresh} />
     </div>
   );
 }

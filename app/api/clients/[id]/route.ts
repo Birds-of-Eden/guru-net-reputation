@@ -320,8 +320,26 @@ export async function PUT(
 
     // amId server-side validation (role must be 'am') — allow null to clear
     const amIdValue =
-      typeof amId === "string" && amId.trim().length > 0 ? amId : null;
+      typeof amId === "string" && amId.trim().length > 0 ? amId.trim() : null;
     await assertIsAMOrNull(amIdValue);
+
+    const cleanString = (v: any) =>
+      typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
+    const cleanNullable = (v: any) =>
+      typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+
+    const packageIdValue =
+      typeof packageId === "string"
+        ? packageId.trim().length > 0
+          ? packageId.trim()
+          : null
+        : undefined; // undefined => do not touch existing package
+    const statusValue = cleanString(status);
+
+    const websiteArray =
+      Array.isArray(websites) && websites.every((w) => typeof w === "string")
+        ? (websites as string[])
+        : [];
 
     // আপডেট (progress বাদ)
     const updated = await prisma.client.update({
@@ -329,30 +347,31 @@ export async function PUT(
       data: {
         name,
         birthdate: birthdate ? new Date(birthdate) : undefined,
-        gender,
-        company,
-        designation,
-        location,
+        gender: cleanString(gender),
+        company: cleanString(company),
+        designation: cleanString(designation),
+        location: cleanString(location),
 
         // নতুন ফিল্ডগুলো সংরক্ষণ
-        email,
-        phone,
+        email: cleanString(email),
+        phone: cleanString(phone),
         // Persist articleTopics JSON if provided (supports both old and new structure)
         articleTopics: articleCategories
           ? JSON.parse(JSON.stringify(articleCategories))
           : articleTopics
           ? JSON.parse(JSON.stringify(articleTopics))
           : undefined,
-        password,
-        recoveryEmail,
-        websites,
-        companywebsite,
-        companyaddress,
+        password: cleanString(password),
+        recoveryEmail: cleanString(recoveryEmail),
+        websites: websiteArray,
+        companywebsite: cleanString(companywebsite),
+        companyaddress: cleanString(companyaddress),
         biography,
-        imageDrivelink,
-        avatar,
-        status,
-        packageId,
+        imageDrivelink: cleanString(imageDrivelink),
+        avatar: cleanString(avatar),
+        status: statusValue,
+        // only update packageId if provided; undefined leaves current value
+        packageId: packageIdValue,
         startDate: startDate ? new Date(startDate) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
 
