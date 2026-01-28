@@ -72,7 +72,12 @@ const getStatusFromCount = (count: number): string => {
   return `Used ${count}`;
 };
 const isNewStructure = (data: any): data is ArticleCategory[] => {
-  return Array.isArray(data) && data.length > 0 && 'category' in data[0] && 'titles' in data[0];
+  return (
+    Array.isArray(data) &&
+    data.length > 0 &&
+    "category" in data[0] &&
+    "titles" in data[0]
+  );
 };
 
 export const ArticleTopics = ({
@@ -81,21 +86,19 @@ export const ArticleTopics = ({
 }: ArticleTopicsProps) => {
   // Detect which structure is being used and initialize states accordingly
   const dataIsNewStructure = isNewStructure(clientData.articleTopics);
-  
+
   // State for old structure (backward compatibility)
   const [topics, setTopics] = useState<ArticleTopic[]>(
-    !dataIsNewStructure && Array.isArray(clientData.articleTopics) 
-      ? clientData.articleTopics as ArticleTopic[]
-      : []
+    !dataIsNewStructure && Array.isArray(clientData.articleTopics)
+      ? (clientData.articleTopics as ArticleTopic[])
+      : [],
   );
-  
+
   // State for new structure
   const [categories, setCategories] = useState<ArticleCategory[]>(
-    dataIsNewStructure 
-      ? clientData.articleTopics as ArticleCategory[]
-      : []
+    dataIsNewStructure ? (clientData.articleTopics as ArticleCategory[]) : [],
   );
-  
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedTopic, setEditedTopic] = useState<ArticleTopic | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -106,15 +109,17 @@ export const ArticleTopics = ({
     usedCount: 0,
     usedDate: null,
   });
-  
+
   const [newTopicCategory, setNewTopicCategory] = useState<ArticleCategory>({
     category: "",
     titles: [],
   });
-  
-  const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(null);
+
+  const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(
+    null,
+  );
   const [editingTitleIdx, setEditingTitleIdx] = useState<number | null>(null);
-  
+
   const { user } = useAuth();
   const router = useRouter();
 
@@ -125,7 +130,7 @@ export const ArticleTopics = ({
       router.refresh();
     }
   };
-  
+
   // Check if using new structure
   const hasNewStructure = categories.length > 0;
 
@@ -138,12 +143,16 @@ export const ArticleTopics = ({
 
   // Function to handle changes in the form inputs for inline editing
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setEditedTopic((prevTopic) => {
       if (!prevTopic) return null;
-      const updated = { ...prevTopic, [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value };
+      const updated = {
+        ...prevTopic,
+        [name]:
+          name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
+      };
       if (name === "usedCount") {
         updated.status = getStatusFromCount(updated.usedCount);
       }
@@ -237,13 +246,16 @@ export const ArticleTopics = ({
 
   // Function to handle changes in the form inputs for adding
   const handleNewTopicInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     setNewTopic((prevTopic) => {
       const updated = {
         ...prevTopic,
-        [name]: name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
+        [name]:
+          name === "usedCount" ? (value === "" ? 0 : Number(value)) : value,
       };
       if (name === "usedCount") {
         updated.status = getStatusFromCount(updated.usedCount);
@@ -251,37 +263,37 @@ export const ArticleTopics = ({
       return updated;
     });
   };
-  
+
   // --- NEW HANDLERS FOR ARTICLE CATEGORIES ---
-  
+
   const handleAddCategory = async () => {
     if (!newTopicCategory.category.trim()) {
       toast.error("Category name is required");
       return;
     }
-    
+
     if (newTopicCategory.titles.length === 0) {
       toast.error("At least one title is required");
       return;
     }
-    
+
     const updatedCategories = [...categories, newTopicCategory];
     setCategories(updatedCategories);
-    
+
     try {
       const res = await fetch(`/api/clients/${clientData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ articleCategories: updatedCategories }),
       });
-      
+
       if (!res.ok) throw new Error(`Failed to save: ${res.status}`);
-      
+
       const data = await res.json();
       if (Array.isArray(data.articleTopics)) {
         setCategories(data.articleTopics as ArticleCategory[]);
       }
-      
+
       toast.success("Category added successfully!");
       await triggerRefresh();
       setNewTopicCategory({ category: "", titles: [] });
@@ -292,18 +304,18 @@ export const ArticleTopics = ({
       toast.error("Failed to add category");
     }
   };
-  
+
   const handleDeleteCategory = async (categoryIdx: number) => {
     const updatedCategories = categories.filter((_, i) => i !== categoryIdx);
     setCategories(updatedCategories);
-    
+
     try {
       const res = await fetch(`/api/clients/${clientData.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ articleTopics: updatedCategories }),
       });
-      
+
       if (!res.ok) throw new Error(`Failed to save`);
       toast.success("Category deleted!");
       await triggerRefresh();
@@ -313,64 +325,85 @@ export const ArticleTopics = ({
       toast.error("Failed to delete category");
     }
   };
-  
+
   const handleAddTitleToNewCategory = () => {
-    setNewTopicCategory(prev => ({
+    setNewTopicCategory((prev) => ({
       ...prev,
-      titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" as const }]
+      titles: [
+        ...prev.titles,
+        { title: "", draftLink: "", draftStatus: "Pending" as const },
+      ],
     }));
   };
 
   // === Inline Edit for Existing Categories (mirror onboarding behavior) ===
   const handleUpdateCategoryName = (catIdx: number, value: string) => {
-    setCategories(prev => prev.map((c, i) => (i === catIdx ? { ...c, category: value } : c)));
+    setCategories((prev) =>
+      prev.map((c, i) => (i === catIdx ? { ...c, category: value } : c)),
+    );
   };
 
   const handleAddTitleToCategory = (catIdx: number) => {
-    setCategories(prev => prev.map((c, i) => (
-      i === catIdx
-        ? { ...c, titles: [...c.titles, { title: "", draftLink: "", draftStatus: "Pending" as const }] }
-        : c
-    )));
+    setCategories((prev) =>
+      prev.map((c, i) =>
+        i === catIdx
+          ? {
+              ...c,
+              titles: [
+                ...c.titles,
+                { title: "", draftLink: "", draftStatus: "Pending" as const },
+              ],
+            }
+          : c,
+      ),
+    );
   };
 
   const handleRemoveTitleFromCategory = (catIdx: number, titleIdx: number) => {
-    setCategories(prev => prev.map((c, i) => (
-      i === catIdx ? { ...c, titles: c.titles.filter((_, ti) => ti !== titleIdx) } : c
-    )));
+    setCategories((prev) =>
+      prev.map((c, i) =>
+        i === catIdx
+          ? { ...c, titles: c.titles.filter((_, ti) => ti !== titleIdx) }
+          : c,
+      ),
+    );
   };
 
   const handleUpdateTitleInCategory = (
     catIdx: number,
     titleIdx: number,
     field: "title" | "draftLink" | "draftStatus",
-    value: string
+    value: string,
   ) => {
-    setCategories(prev => prev.map((c, i) => (
-      i === catIdx
-        ? {
-            ...c,
-            titles: c.titles.map((t, ti) => (ti === titleIdx ? { ...t, [field]: value } : t)),
-          }
-        : c
-    )));
+    setCategories((prev) =>
+      prev.map((c, i) =>
+        i === catIdx
+          ? {
+              ...c,
+              titles: c.titles.map((t, ti) =>
+                ti === titleIdx ? { ...t, [field]: value } : t,
+              ),
+            }
+          : c,
+      ),
+    );
   };
 
   const saveCategories = async () => {
     try {
       // Normalize before save: trim strings, drop empty titles
       const normalized = categories
-        .map(cat => ({
+        .map((cat) => ({
           category: (cat.category || "").trim(),
           titles: cat.titles
-            .map(t => ({
+            .map((t) => ({
               title: (t.title || "").trim(),
               draftLink: (t.draftLink || "").trim(),
               draftStatus: t.draftStatus,
             }))
-            .filter(t => t.title.length > 0),
+            .filter((t) => t.title.length > 0),
         }))
-        .filter(cat => cat.category.length > 0);
+        .filter((cat) => cat.category.length > 0);
 
       const res = await fetch(`/api/clients/${clientData.id}`, {
         method: "PUT",
@@ -395,7 +428,9 @@ export const ArticleTopics = ({
       <CardHeader className="bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
         <CardTitle className="flex items-center space-x-2">
           <BookOpen className="h-5 w-5 text-orange-600" />
-          <span>{hasNewStructure ? 'Article Categories from CQ' : 'Article Topics'}</span>
+          <span>
+            {hasNewStructure ? "Article Categories from CQ" : "Article Topics"}
+          </span>
           {hasNewStructure && categories.length > 0 && (
             <Badge variant="secondary" className="ml-2">
               {categories.length}
@@ -408,12 +443,14 @@ export const ArticleTopics = ({
           )}
           <button
             type="button"
-            onClick={() => hasNewStructure ? setIsAddingCategory(true) : setIsAdding(true)}
+            onClick={() =>
+              hasNewStructure ? setIsAddingCategory(true) : setIsAdding(true)
+            }
             className="ml-auto inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
             title={hasNewStructure ? "Add Topic From CQ" : "Add Topic"}
           >
             <Plus size={16} />
-            {hasNewStructure ? 'Add Topic From CQ' : 'Add Topic'}
+            {hasNewStructure ? "Add Topic From CQ" : "Add Topic"}
           </button>
         </CardTitle>
       </CardHeader>
@@ -423,18 +460,27 @@ export const ArticleTopics = ({
           categories.length > 0 ? (
             <div className="space-y-6">
               {categories.map((category, catIdx) => (
-                <div key={catIdx} className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5">
+                <div
+                  key={catIdx}
+                  className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5"
+                >
                   <div className="flex items-start gap-3 mb-4">
                     <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-orange-600" /> Category Name
+                      <FileText className="w-5 h-5 text-orange-600" /> Category
+                      Name
                     </Label>
                     <Input
                       className="flex-1 border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-3 py-2"
                       value={category.category}
-                      onChange={(e) => handleUpdateCategoryName(catIdx, e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateCategoryName(catIdx, e.target.value)
+                      }
                       placeholder="e.g. Technology"
                     />
-                    {hasPermissionClient(user?.permissions, "delete_article_topic") && (
+                    {hasPermissionClient(
+                      user?.permissions,
+                      "delete_article_topic",
+                    ) && (
                       <button
                         onClick={() => handleDeleteCategory(catIdx)}
                         className="ml-auto text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
@@ -447,14 +493,26 @@ export const ArticleTopics = ({
 
                   <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200">
                     {category.titles.map((title, titleIdx) => (
-                      <div key={titleIdx} className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-200 dark:border-orange-700">
+                      <div
+                        key={titleIdx}
+                        className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-orange-200 dark:border-orange-700"
+                      >
                         <div className="grid md:grid-cols-3 gap-3 items-end">
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">Title</Label>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Title
+                            </Label>
                             <Input
                               className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
                               value={title.title}
-                              onChange={(e) => handleUpdateTitleInCategory(catIdx, titleIdx, "title", e.target.value)}
+                              onChange={(e) =>
+                                handleUpdateTitleInCategory(
+                                  catIdx,
+                                  titleIdx,
+                                  "title",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="Article title..."
                             />
                           </div>
@@ -465,36 +523,67 @@ export const ArticleTopics = ({
                             <Input
                               className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
                               value={title.draftLink}
-                              onChange={(e) => handleUpdateTitleInCategory(catIdx, titleIdx, "draftLink", e.target.value)}
+                              onChange={(e) =>
+                                handleUpdateTitleInCategory(
+                                  catIdx,
+                                  titleIdx,
+                                  "draftLink",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="https://..."
                             />
                           </div>
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">Draft Status</Label>
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                              Draft Status
+                            </Label>
                             <Select
                               value={title.draftStatus}
-                              onValueChange={(value) => handleUpdateTitleInCategory(catIdx, titleIdx, "draftStatus", value)}
+                              onValueChange={(value) =>
+                                handleUpdateTitleInCategory(
+                                  catIdx,
+                                  titleIdx,
+                                  "draftStatus",
+                                  value,
+                                )
+                              }
                             >
                               <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm">
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Approved">Approved</SelectItem>
+                                <SelectItem value="Approved">
+                                  Approved
+                                </SelectItem>
                                 <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Revision">Revision</SelectItem>
+                                <SelectItem value="Revision">
+                                  Revision
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
                         <div className="flex justify-end mt-3">
-                          <Button variant="outline" size="icon" onClick={() => handleRemoveTitleFromCategory(catIdx, titleIdx)} className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              handleRemoveTitleFromCategory(catIdx, titleIdx)
+                            }
+                            className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     ))}
 
-                    <Button onClick={() => handleAddTitleToCategory(catIdx)} variant="outline" className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg">
+                    <Button
+                      onClick={() => handleAddTitleToCategory(catIdx)}
+                      variant="outline"
+                      className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg"
+                    >
                       <Plus className="h-4 w-4 mr-2" /> Add Title
                     </Button>
                   </div>
@@ -502,7 +591,10 @@ export const ArticleTopics = ({
               ))}
 
               <div className="flex justify-end">
-                <Button onClick={saveCategories} className="mt-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white">
+                <Button
+                  onClick={saveCategories}
+                  className="mt-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                >
                   <Save className="h-4 w-4 mr-2" /> Save Changes
                 </Button>
               </div>
@@ -520,9 +612,8 @@ export const ArticleTopics = ({
               </button>
             </div>
           )
-        ) : (
-          // Old Structure: Article Topics (Backward Compatibility)
-          topics.length > 0 ? (
+        ) : // Old Structure: Article Topics (Backward Compatibility)
+        topics.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full table-auto border-collapse">
               <thead className="text-left text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -577,7 +668,7 @@ export const ArticleTopics = ({
                       ) : (
                         <Badge
                           className={`font-bold ${getStatusBadgeClass(
-                            topic.status
+                            topic.status,
                           )}`}
                         >
                           {topic.status}
@@ -594,7 +685,7 @@ export const ArticleTopics = ({
                           className="w-20 rounded-md border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm p-1"
                         />
                       ) : (
-                        topic.usedCount ?? "N/A"
+                        (topic.usedCount ?? "N/A")
                       )}
                     </td>
                     <td className="p-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">
@@ -647,7 +738,7 @@ export const ArticleTopics = ({
                           </button>
                           {hasPermissionClient(
                             user?.permissions,
-                            "delete_article_topic"
+                            "delete_article_topic",
                           ) && (
                             <button
                               onClick={() => handleDelete(index)}
@@ -677,10 +768,9 @@ export const ArticleTopics = ({
               Add First Topic
             </button>
           </div>
-        )
-      )}
+        )}
       </CardContent>
-      
+
       {/* Add New Category Modal */}
       {isAddingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
@@ -699,93 +789,124 @@ export const ArticleTopics = ({
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium">Category Name</Label>
                 <Input
                   value={newTopicCategory.category}
-                  onChange={(e) => setNewTopicCategory(prev => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) =>
+                    setNewTopicCategory((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
                   placeholder="e.g. Technology, Business..."
                   className="mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label className="text-sm font-medium mb-2 block">Titles</Label>
                 <div className="space-y-3">
-                  {newTopicCategory.titles.map((title: { title: string; draftLink: string; draftStatus: "Approved" | "Pending" | "Revision" }, idx: number) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <span className="text-sm font-semibold">Title {idx + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewTopicCategory((prev: ArticleCategory) => ({
-                              ...prev,
-                              titles: prev.titles.filter((_, i) => i !== idx)
-                            }));
-                          }}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                  {newTopicCategory.titles.map(
+                    (
+                      title: {
+                        title: string;
+                        draftLink: string;
+                        draftStatus: "Approved" | "Pending" | "Revision";
+                      },
+                      idx: number,
+                    ) => (
+                      <div
+                        key={idx}
+                        className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3"
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className="text-sm font-semibold">
+                            Title {idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewTopicCategory((prev: ArticleCategory) => ({
+                                ...prev,
+                                titles: prev.titles.filter((_, i) => i !== idx),
+                              }));
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">Title</Label>
+                          <Input
+                            value={title.title}
+                            onChange={(e) =>
+                              setNewTopicCategory((prev: ArticleCategory) => ({
+                                ...prev,
+                                titles: prev.titles.map((t, i) =>
+                                  i === idx
+                                    ? { ...t, title: e.target.value }
+                                    : t,
+                                ),
+                              }))
+                            }
+                            placeholder="Article title..."
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">Draft Link</Label>
+                          <Input
+                            value={title.draftLink}
+                            onChange={(e) =>
+                              setNewTopicCategory((prev: ArticleCategory) => ({
+                                ...prev,
+                                titles: prev.titles.map((t, i) =>
+                                  i === idx
+                                    ? { ...t, draftLink: e.target.value }
+                                    : t,
+                                ),
+                              }))
+                            }
+                            placeholder="https://..."
+                            className="mt-1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-xs">Draft Status</Label>
+                          <Select
+                            value={title.draftStatus}
+                            onValueChange={(
+                              value: "Approved" | "Pending" | "Revision",
+                            ) =>
+                              setNewTopicCategory((prev: ArticleCategory) => ({
+                                ...prev,
+                                titles: prev.titles.map((t, i) =>
+                                  i === idx ? { ...t, draftStatus: value } : t,
+                                ),
+                              }))
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Approved">Approved</SelectItem>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Revision">Revision</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      
-                      <div>
-                        <Label className="text-xs">Title</Label>
-                        <Input
-                          value={title.title}
-                          onChange={(e) => setNewTopicCategory((prev: ArticleCategory) => ({
-                            ...prev,
-                            titles: prev.titles.map((t, i) =>
-                              i === idx ? { ...t, title: e.target.value } : t
-                            )
-                          }))}
-                          placeholder="Article title..."
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-xs">Draft Link</Label>
-                        <Input
-                          value={title.draftLink}
-                          onChange={(e) => setNewTopicCategory((prev: ArticleCategory) => ({
-                            ...prev,
-                            titles: prev.titles.map((t, i) =>
-                              i === idx ? { ...t, draftLink: e.target.value } : t
-                            )
-                          }))}
-                          placeholder="https://..."
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label className="text-xs">Draft Status</Label>
-                        <Select
-                          value={title.draftStatus}
-                          onValueChange={(value: "Approved" | "Pending" | "Revision") => setNewTopicCategory((prev: ArticleCategory) => ({
-                            ...prev,
-                            titles: prev.titles.map((t, i) =>
-                              i === idx ? { ...t, draftStatus: value } : t
-                            )
-                          }))}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Approved">Approved</SelectItem>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Revision">Revision</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  ))}
-                  
+                    ),
+                  )}
+
                   <button
                     type="button"
                     onClick={handleAddTitleToNewCategory}
@@ -796,7 +917,7 @@ export const ArticleTopics = ({
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
@@ -820,7 +941,7 @@ export const ArticleTopics = ({
           </div>
         </div>
       )}
-      
+
       {/* Add New Topic Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
@@ -832,7 +953,12 @@ export const ArticleTopics = ({
               <button
                 onClick={() => {
                   setIsAdding(false);
-                  setNewTopic({ topicname: "", status: "Not yet Used", usedCount: 0, usedDate: null });
+                  setNewTopic({
+                    topicname: "",
+                    status: "Not yet Used",
+                    usedCount: 0,
+                    usedDate: null,
+                  });
                 }}
                 className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
               >
@@ -845,7 +971,12 @@ export const ArticleTopics = ({
                 <Label className="text-sm font-medium">Category Name</Label>
                 <Input
                   value={newTopicCategory.category}
-                  onChange={(e) => setNewTopicCategory(prev => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) =>
+                    setNewTopicCategory((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
                   placeholder="e.g. Technology, Business..."
                   className="mt-1"
                 />
@@ -855,15 +986,20 @@ export const ArticleTopics = ({
                 <Label className="text-sm font-medium mb-2 block">Titles</Label>
                 <div className="space-y-3">
                   {newTopicCategory.titles.map((title, idx) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3">
+                    <div
+                      key={idx}
+                      className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3"
+                    >
                       <div className="flex justify-between items-start">
-                        <span className="text-sm font-semibold">Title {idx + 1}</span>
+                        <span className="text-sm font-semibold">
+                          Title {idx + 1}
+                        </span>
                         <button
                           type="button"
                           onClick={() => {
-                            setNewTopicCategory(prev => ({
+                            setNewTopicCategory((prev) => ({
                               ...prev,
-                              titles: prev.titles.filter((_, i) => i !== idx)
+                              titles: prev.titles.filter((_, i) => i !== idx),
                             }));
                           }}
                           className="text-red-500 hover:text-red-700"
@@ -877,11 +1013,11 @@ export const ArticleTopics = ({
                         <Input
                           value={title.title}
                           onChange={(e) => {
-                            setNewTopicCategory(prev => ({
+                            setNewTopicCategory((prev) => ({
                               ...prev,
                               titles: prev.titles.map((t, i) =>
-                                i === idx ? { ...t, title: e.target.value } : t
-                              )
+                                i === idx ? { ...t, title: e.target.value } : t,
+                              ),
                             }));
                           }}
                           placeholder="Article title..."
@@ -894,11 +1030,13 @@ export const ArticleTopics = ({
                         <Input
                           value={title.draftLink}
                           onChange={(e) => {
-                            setNewTopicCategory(prev => ({
+                            setNewTopicCategory((prev) => ({
                               ...prev,
                               titles: prev.titles.map((t, i) =>
-                                i === idx ? { ...t, draftLink: e.target.value } : t
-                              )
+                                i === idx
+                                  ? { ...t, draftLink: e.target.value }
+                                  : t,
+                              ),
                             }));
                           }}
                           placeholder="https://..."
@@ -910,12 +1048,14 @@ export const ArticleTopics = ({
                         <Label className="text-xs">Draft Status</Label>
                         <Select
                           value={title.draftStatus}
-                          onValueChange={(value: "Approved" | "Pending" | "Revision") => {
-                            setNewTopicCategory(prev => ({
+                          onValueChange={(
+                            value: "Approved" | "Pending" | "Revision",
+                          ) => {
+                            setNewTopicCategory((prev) => ({
                               ...prev,
                               titles: prev.titles.map((t, i) =>
-                                i === idx ? { ...t, draftStatus: value } : t
-                              )
+                                i === idx ? { ...t, draftStatus: value } : t,
+                              ),
                             }));
                           }}
                         >
@@ -935,9 +1075,12 @@ export const ArticleTopics = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setNewTopicCategory(prev => ({
+                      setNewTopicCategory((prev) => ({
                         ...prev,
-                        titles: [...prev.titles, { title: "", draftLink: "", draftStatus: "Pending" }]
+                        titles: [
+                          ...prev.titles,
+                          { title: "", draftLink: "", draftStatus: "Pending" },
+                        ],
                       }));
                     }}
                     className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
@@ -978,11 +1121,13 @@ export const ArticleTopics = ({
 
                     const newCategoryData = {
                       category: categoryName,
-                      titles: titles.filter((t) => t.title.trim()).map((t) => ({
-                        title: t.title.trim(),
-                        draftLink: t.draftLink.trim(),
-                        draftStatus: t.draftStatus,
-                      })),
+                      titles: titles
+                        .filter((t) => t.title.trim())
+                        .map((t) => ({
+                          title: t.title.trim(),
+                          draftLink: t.draftLink.trim(),
+                          draftStatus: t.draftStatus,
+                        })),
                     };
 
                     const updatedCategories = [...categories, newCategoryData];
@@ -991,16 +1136,18 @@ export const ArticleTopics = ({
                     fetch(`/api/clients/${clientData.id}`, {
                       method: "PUT",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ articleCategories: updatedCategories }),
+                      body: JSON.stringify({
+                        articleCategories: updatedCategories,
+                      }),
                     })
-                      .then(async res => {
+                      .then(async (res) => {
                         if (!res.ok) throw new Error("Failed to save");
                         toast.success("Category added successfully!");
                         await triggerRefresh();
                         setIsAdding(false);
                         setNewTopicCategory({ category: "", titles: [] });
                       })
-                      .catch(err => {
+                      .catch((err) => {
                         console.error(err);
                         setCategories(categories);
                         toast.error("Failed to add category");

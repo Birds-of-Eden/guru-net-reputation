@@ -59,7 +59,10 @@ interface ClientDashboardProps {
   refreshClient?: () => Promise<any> | void;
 }
 
-export function ClientDashboard({ clientData, refreshClient }: ClientDashboardProps) {
+export function ClientDashboard({
+  clientData,
+  refreshClient,
+}: ClientDashboardProps) {
   const [client, setClient] = useState<Client>(clientData);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");

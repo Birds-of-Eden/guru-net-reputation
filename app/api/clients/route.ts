@@ -116,7 +116,7 @@ const normalizeArticleCategories = (input: unknown): ArticleCategory[] => {
 
               const draftLink = String(t?.draftLink ?? "").trim();
               const draftStatus = ["Approved", "Pending", "Revision"].includes(
-                t?.draftStatus
+                t?.draftStatus,
               )
                 ? t.draftStatus
                 : "Pending";
@@ -236,11 +236,11 @@ export async function GET(req: Request) {
 
     // ---------- TOTAL COUNT ----------
     const whereClause: any = { packageId, amId };
-    
+
     if (status && status !== "all") {
       whereClause.status = status;
     }
-    
+
     if (search && search.trim()) {
       whereClause.OR = [
         { name: { contains: search.trim(), mode: "insensitive" } },
@@ -276,7 +276,7 @@ export async function GET(req: Request) {
         companyaddress: true,
         accountManager: { select: { id: true, name: true, email: true } },
         package: { select: { id: true, name: true } },
-        teamMembers: {select: {agentId: true}},
+        teamMembers: { select: { agentId: true } },
       },
       skip,
       take: pageSize,
@@ -379,7 +379,12 @@ export async function GET(req: Request) {
       if (!map) continue;
 
       const s = row.status.toLowerCase();
-      if (s === 'pending' || s === 'in_progress' || s === 'completed' || s === 'overdue') {
+      if (
+        s === "pending" ||
+        s === "in_progress" ||
+        s === "completed" ||
+        s === "overdue"
+      ) {
         (map as any)[s] = row.count;
         (map as any).total += row.count;
       }
@@ -390,16 +395,19 @@ export async function GET(req: Request) {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const progressRaw = clientIds.length === 0
-      ? []
-      : await prisma.$queryRawUnsafe<{
-          clientId: string;
-          total: number;
-          completed: number;
-          totalThisMonth: number;
-          completedThisMonth: number;
-          approvedThisMonth: number;
-        }[]>(`
+    const progressRaw =
+      clientIds.length === 0
+        ? []
+        : await prisma.$queryRawUnsafe<
+            {
+              clientId: string;
+              total: number;
+              completed: number;
+              totalThisMonth: number;
+              completedThisMonth: number;
+              approvedThisMonth: number;
+            }[]
+          >(`
           SELECT
             "clientId",
             COUNT(*) FILTER (WHERE status IS NOT NULL) AS total,
@@ -452,7 +460,11 @@ export async function GET(req: Request) {
 
       const monthProgress =
         totalThisMonthNum > 0
-          ? Math.round(((completedThisMonthNum + approvedThisMonthNum) / totalThisMonthNum) * 100)
+          ? Math.round(
+              ((completedThisMonthNum + approvedThisMonthNum) /
+                totalThisMonthNum) *
+                100,
+            )
           : 0;
 
       progressMap.set(clientId, {
@@ -486,13 +498,13 @@ export async function GET(req: Request) {
         headers: {
           "Cache-Control": "public, s-maxage=20, stale-while-revalidate=40",
         },
-      }
+      },
     );
   } catch (error: any) {
     console.error("GET /api/clients ERROR:", error);
     return NextResponse.json(
       { error: error.message ?? "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -536,7 +548,7 @@ export async function POST(req: NextRequest) {
     console.log("POST /api/clients - Received articleTopics:", articleTopics);
     console.log(
       "POST /api/clients - Received articleCategories:",
-      articleCategories
+      articleCategories,
     );
 
     if (amId) {
@@ -547,7 +559,7 @@ export async function POST(req: NextRequest) {
       if (!am || am.role?.name !== "am") {
         return NextResponse.json(
           { error: "amId is not an Account Manager" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -556,7 +568,7 @@ export async function POST(req: NextRequest) {
     if (!trimmedName) {
       return NextResponse.json(
         { error: "Client name is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -565,7 +577,7 @@ export async function POST(req: NextRequest) {
       if (!pkg) {
         return NextResponse.json(
           { error: "Invalid packageId" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -577,7 +589,7 @@ export async function POST(req: NextRequest) {
     if (progressNumber !== undefined && Number.isNaN(progressNumber)) {
       return NextResponse.json(
         { error: "progress must be a number" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -608,10 +620,12 @@ export async function POST(req: NextRequest) {
           startDate: parseDate(startDate) as any,
           dueDate: parseDate(dueDate) as any,
           otherField: [
-            ...(Array.isArray(otherField) ? otherField.filter((f: any) => f?.title !== 'name_keywords') : []),
+            ...(Array.isArray(otherField)
+              ? otherField.filter((f: any) => f?.title !== "name_keywords")
+              : []),
             {
-              category: 'system',
-              title: 'name_keywords',
+              category: "system",
+              title: "name_keywords",
               data: Array.isArray(keywords) ? keywords : [],
             },
           ],
@@ -633,12 +647,12 @@ export async function POST(req: NextRequest) {
           articleTopics: articleCategories
             ? normalizeArticleCategories(articleCategories)
             : articleTopics &&
-              Array.isArray(articleTopics) &&
-              articleTopics.length > 0
-            ? articleTopics[0] && "category" in articleTopics[0]
-              ? normalizeArticleCategories(articleTopics)
-              : normalizeArticleTopics(articleTopics)
-            : undefined,
+                Array.isArray(articleTopics) &&
+                articleTopics.length > 0
+              ? articleTopics[0] && "category" in articleTopics[0]
+                ? normalizeArticleCategories(articleTopics)
+                : normalizeArticleTopics(articleTopics)
+              : undefined,
           amId: amId || undefined,
         } as any,
         include: {
@@ -649,25 +663,25 @@ export async function POST(req: NextRequest) {
       console.log("POST /api/clients - Client created with ID:", client.id);
       console.log(
         "POST /api/clients - Saved articleTopics:",
-        (client as any).articleTopics
+        (client as any).articleTopics,
       );
     } catch (err: any) {
       console.error(
         "POST /api/clients prisma create error:",
         err?.code,
         err?.message,
-        err?.meta
+        err?.meta,
       );
       if (err?.code === "P2003") {
         return NextResponse.json(
           { error: "Foreign key constraint failed" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       if (err?.code === "P2002") {
         return NextResponse.json(
           { error: "Unique constraint violation" },
-          { status: 409 }
+          { status: 409 },
         );
       }
       throw err;
@@ -675,7 +689,7 @@ export async function POST(req: NextRequest) {
 
     if (client.id && Array.isArray(keywords) && keywords.length > 0) {
       const clientUser = await prisma.user.findFirst({
-        where: { clientId: client.id, role: { name: 'client' } },
+        where: { clientId: client.id, role: { name: "client" } },
         select: { id: true, user_field_06: true },
       });
 
@@ -726,9 +740,7 @@ export async function POST(req: NextRequest) {
         try {
           await prisma.activityLog.create({
             data: {
-              id: `log_${Date.now()}_${Math.random()
-                .toString(36)
-                .slice(2, 9)}`,
+              id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
               entityType: "client",
               entityId: String(client.id),
               action: "onboarded",
@@ -773,7 +785,7 @@ export async function POST(req: NextRequest) {
     console.error("POST /api/clients error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -851,10 +863,12 @@ export async function PUT(req: NextRequest) {
         startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
         otherField: [
-          ...(Array.isArray(otherField) ? otherField.filter((f: any) => f?.title !== 'name_keywords') : []),
+          ...(Array.isArray(otherField)
+            ? otherField.filter((f: any) => f?.title !== "name_keywords")
+            : []),
           {
-            category: 'system',
-            title: 'name_keywords',
+            category: "system",
+            title: "name_keywords",
             data: Array.isArray(keywords) ? keywords : [],
           },
         ],
@@ -875,14 +889,15 @@ export async function PUT(req: NextRequest) {
           articleCategories !== undefined
             ? normalizeArticleCategories(articleCategories)
             : articleTopics !== undefined
-            ? Array.isArray(articleTopics) &&
-              articleTopics.length > 0 &&
-              (articleTopics as any)[0] &&
-              "category" in (articleTopics as any)[0]
-              ? normalizeArticleCategories(articleTopics)
-              : normalizeArticleTopics(articleTopics)
-            : undefined,
-        amId: amId ?? null,
+              ? Array.isArray(articleTopics) &&
+                articleTopics.length > 0 &&
+                (articleTopics as any)[0] &&
+                "category" in (articleTopics as any)[0]
+                ? normalizeArticleCategories(articleTopics)
+                : normalizeArticleTopics(articleTopics)
+              : undefined,
+        // Preserve existing AM when amId is omitted from the payload
+        amId: amId === undefined ? undefined : (amId ?? null),
       },
       include: {
         accountManager: { select: { id: true, name: true, email: true } },
@@ -891,7 +906,7 @@ export async function PUT(req: NextRequest) {
 
     if (updated.id && Array.isArray(keywords)) {
       const clientUser = await prisma.user.findFirst({
-        where: { clientId: updated.id, role: { name: 'client' } },
+        where: { clientId: updated.id, role: { name: "client" } },
         select: { id: true, user_field_06: true },
       });
 
@@ -917,20 +932,20 @@ export async function PUT(req: NextRequest) {
       if (error.message.includes("Record to update not found")) {
         return NextResponse.json(
           { error: "Client not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       if (error.message.includes("Unique constraint")) {
         return NextResponse.json(
           { error: "Email already exists" },
-          { status: 409 }
+          { status: 409 },
         );
       }
     }
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -962,7 +977,7 @@ export async function DELETE(req: NextRequest) {
     if (!existingClient) {
       return NextResponse.json(
         { error: "Client not found or already deleted" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -986,7 +1001,7 @@ export async function DELETE(req: NextRequest) {
           : [];
 
       const allTaskIds = Array.from(
-        new Set([...directTasks, ...assignmentTasks].map((t) => t.id))
+        new Set([...directTasks, ...assignmentTasks].map((t) => t.id)),
       );
 
       if (allTaskIds.length) {
@@ -1023,20 +1038,20 @@ export async function DELETE(req: NextRequest) {
       if (error.message.includes("Record to delete does not exist")) {
         return NextResponse.json(
           { error: "Client not found or already deleted" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       if (error.message.includes("Foreign key constraint")) {
         return NextResponse.json(
           { error: "Cannot delete client with existing dependencies" },
-          { status: 409 }
+          { status: 409 },
         );
       }
     }
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

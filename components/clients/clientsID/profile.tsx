@@ -149,14 +149,18 @@ function asSocialArray(json: unknown): SocialRow[] {
   }
 }
 
-export function Profile({ clientData, currentUserRole, onRefreshClient }: ProfileProps) {
+export function Profile({
+  clientData,
+  currentUserRole,
+  onRefreshClient,
+}: ProfileProps) {
   // --- client main password reveal
   const [showClientPassword, setShowClientPassword] = useState(false);
   const toggleClientPasswordVisibility = () => {
     setShowClientPassword((prev) => !prev);
   };
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
   const togglePasswordVisibility = (key: string) => {
     setShowPasswords((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -171,7 +175,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
 
   // Accept either API shape: prefer array socialMedias, else JSON socialMedia
   const socialRows = asSocialArray(
-    (clientData as any).socialMedias ?? (clientData as any).socialMedia
+    (clientData as any).socialMedias ?? (clientData as any).socialMedia,
   );
   const hasSocial = socialRows.length > 0;
 
@@ -267,7 +271,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
               password: nullIfEmpty(draft.password ?? r.password) ?? null,
               notes: nullIfEmpty(draft.notes ?? r.notes) ?? null,
             }
-          : r
+          : r,
       );
 
       const res = await fetch(`/api/clients/${clientData.id}`, {
@@ -277,7 +281,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
       });
       if (!res.ok)
         throw new Error(
-          (await res.json().catch(() => ({})))?.message || "Failed"
+          (await res.json().catch(() => ({})))?.message || "Failed",
         );
 
       toast.success("Social media updated");
@@ -341,7 +345,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
       });
       if (!res.ok)
         throw new Error(
-          (await res.json().catch(() => ({})))?.message || "Failed"
+          (await res.json().catch(() => ({})))?.message || "Failed",
         );
 
       toast.success("Social profile added");
@@ -402,8 +406,8 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
       const list = Array.isArray(data)
         ? data
         : Array.isArray(data?.packages)
-        ? data.packages
-        : [];
+          ? data.packages
+          : [];
       const options: PackageOption[] = list
         .map((p: any) => ({
           id: String(p.id ?? ""),
@@ -459,7 +463,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
     if (Number.isNaN(d.getTime())) return "";
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(d.getDate()).padStart(2, "0")}`;
   };
 
@@ -498,7 +502,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
   const websites: string[] = useMemo(() => {
     const provided = Array.isArray((clientData as any).websites)
       ? ((clientData as any).websites as string[]).filter(
-          (u) => typeof u === "string" && u.trim() !== ""
+          (u) => typeof u === "string" && u.trim() !== "",
         )
       : [];
     const withCompany = clientData.companywebsite
@@ -514,9 +518,11 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
 
   const templateName = useMemo(() => {
     // Use templateName from API response first, then fallback to assignments
-    return (clientData as any).templateName || 
-           clientData.assignments?.[0]?.template?.name || 
-           null;
+    return (
+      (clientData as any).templateName ||
+      clientData.assignments?.[0]?.template?.name ||
+      null
+    );
   }, [clientData.assignments, (clientData as any).templateName]);
 
   // Task-derived progress (same formula as in Tasks component)
@@ -559,19 +565,19 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
   const totalTasks = clientData.tasks?.length || 0;
   const completedTasks =
     clientData.tasks?.filter(
-      (t: any) => normalizeStatus(t?.status) === "completed"
+      (t: any) => normalizeStatus(t?.status) === "completed",
     ).length || 0;
   const inProgressTasks =
     clientData.tasks?.filter(
-      (t: any) => normalizeStatus(t?.status) === "in_progress"
+      (t: any) => normalizeStatus(t?.status) === "in_progress",
     ).length || 0;
   const pendingTasks =
     clientData.tasks?.filter(
-      (t: any) => normalizeStatus(t?.status) === "pending"
+      (t: any) => normalizeStatus(t?.status) === "pending",
     ).length || 0;
   const overdueTasks =
     clientData.tasks?.filter(
-      (t: any) => normalizeStatus(t?.status) === "overdue"
+      (t: any) => normalizeStatus(t?.status) === "overdue",
     ).length || 0;
   const derivedProgress = totalTasks
     ? Math.round((completedTasks / totalTasks) * 100)
@@ -705,13 +711,13 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
 
     const nameKeywordsField = otherField.find(
       (field: any) =>
-        field.title === "name_keywords" && field.category === "system"
+        field.title === "name_keywords" && field.category === "system",
     );
 
     if (!nameKeywordsField || !Array.isArray(nameKeywordsField.data)) return [];
 
     return nameKeywordsField.data.filter(
-      (keyword: any) => keyword && typeof keyword === "string"
+      (keyword: any) => keyword && typeof keyword === "string",
     );
   }, [clientData]);
 
@@ -1305,7 +1311,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
                                       changeDraft(
                                         id,
                                         "platform",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="Platform (e.g., Facebook)"
@@ -1353,7 +1359,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
                                       changeDraft(
                                         id,
                                         "username",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="@username"
@@ -1435,7 +1441,7 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
                                       changeDraft(
                                         id,
                                         "password",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="(optional)"
@@ -1499,7 +1505,9 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
                                           onClick={() => cancelEditRow(id)}
                                           className="h-8 px-2"
                                           title="Cancel"
-                                          disabled={rowSaving[id] || rowDeleting[id]}
+                                          disabled={
+                                            rowSaving[id] || rowDeleting[id]
+                                          }
                                         >
                                           <X className="h-4 w-4" />
                                         </Button>
@@ -1508,7 +1516,9 @@ export function Profile({ clientData, currentUserRole, onRefreshClient }: Profil
                                           onClick={() => saveRow(id)}
                                           className="h-8 px-2"
                                           title="Save"
-                                          disabled={rowSaving[id] || rowDeleting[id]}
+                                          disabled={
+                                            rowSaving[id] || rowDeleting[id]
+                                          }
                                         >
                                           {rowSaving[id] ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />

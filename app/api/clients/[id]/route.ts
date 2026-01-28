@@ -72,7 +72,7 @@ async function recalcAndStoreClientProgress(clientId: string) {
   });
   if (result.count === 0) {
     console.warn(
-      `recalcAndStoreClientProgress: No client found to update for id=${clientId}`
+      `recalcAndStoreClientProgress: No client found to update for id=${clientId}`,
     );
   }
   return { progress, taskCounts };
@@ -165,7 +165,7 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
         taskCompletionJson: true,
         notes: true,
         reassignNotes: true,
-         actualDurationMinutes: true,
+        actualDurationMinutes: true,
         idealDurationMinutes: true,
         categoryId: true,
         templateSiteAssetId: true,
@@ -210,7 +210,7 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
 // --- GET ---
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   const { searchParams } = new URL(req.url);
@@ -231,7 +231,7 @@ export async function GET(
     if (!client)
       return NextResponse.json(
         { message: "Client not found" },
-        { status: 404 }
+        { status: 404 },
       );
 
     const socialMedias = Array.isArray((client as any).socialMedia)
@@ -240,16 +240,17 @@ export async function GET(
 
     const keywordsBlock = Array.isArray((client as any).otherField)
       ? (client as any).otherField.find(
-          (f: any) => f?.category === 'system' && f?.title === 'name_keywords'
+          (f: any) => f?.category === "system" && f?.title === "name_keywords",
         )
       : null;
 
     const keywords = Array.isArray(keywordsBlock?.data)
-      ? keywordsBlock.data.filter((k: any) => typeof k === 'string')
+      ? keywordsBlock.data.filter((k: any) => typeof k === "string")
       : [];
 
     // Extract template name from assignments
-    const templateName = (client as any).assignments?.[0]?.template?.name || null;
+    const templateName =
+      (client as any).assignments?.[0]?.template?.name || null;
 
     const response = {
       ...client,
@@ -272,14 +273,14 @@ export async function GET(
     console.error(`Error fetching client ${id}:`, error);
     return NextResponse.json(
       { message: "Failed to fetch client" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 // --- PUT ---
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
@@ -318,10 +319,27 @@ export async function PUT(
       socialMedia,
     } = body;
 
+    const hasWebsites = Object.prototype.hasOwnProperty.call(body, "websites");
+    const hasAmId = Object.prototype.hasOwnProperty.call(body, "amId");
+    const hasPackageId = Object.prototype.hasOwnProperty.call(body, "packageId");
+    const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
+    const hasStartDate = Object.prototype.hasOwnProperty.call(body, "startDate");
+    const hasDueDate = Object.prototype.hasOwnProperty.call(body, "dueDate");
+    const hasArticleTopics = Object.prototype.hasOwnProperty.call(body, "articleTopics");
+    const hasArticleCategories = Object.prototype.hasOwnProperty.call(body, "articleCategories");
+    const hasSocialMedia = Object.prototype.hasOwnProperty.call(body, "socialMedia");
+    const hasOtherField = Object.prototype.hasOwnProperty.call(body, "otherField");
+
     // amId server-side validation (role must be 'am') — allow null to clear
     const amIdValue =
-      typeof amId === "string" && amId.trim().length > 0 ? amId.trim() : null;
-    await assertIsAMOrNull(amIdValue);
+      !hasAmId
+        ? undefined
+        : typeof amId === "string" && amId.trim().length > 0
+          ? amId.trim()
+          : null;
+    if (hasAmId) {
+      await assertIsAMOrNull(amIdValue);
+    }
 
     const cleanString = (v: any) =>
       typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
@@ -336,10 +354,11 @@ export async function PUT(
         : undefined; // undefined => do not touch existing package
     const statusValue = cleanString(status);
 
-    const websiteArray =
-      Array.isArray(websites) && websites.every((w) => typeof w === "string")
+    const websiteArray = hasWebsites
+      ? Array.isArray(websites) && websites.every((w) => typeof w === "string")
         ? (websites as string[])
-        : [];
+        : []
+      : undefined;
 
     // আপডেট (progress বাদ)
     const updated = await prisma.client.update({
@@ -356,34 +375,37 @@ export async function PUT(
         email: cleanString(email),
         phone: cleanString(phone),
         // Persist articleTopics JSON if provided (supports both old and new structure)
-        articleTopics: articleCategories
-          ? JSON.parse(JSON.stringify(articleCategories))
-          : articleTopics
-          ? JSON.parse(JSON.stringify(articleTopics))
-          : undefined,
+        articleTopics:
+          hasArticleCategories || hasArticleTopics
+            ? articleCategories
+              ? JSON.parse(JSON.stringify(articleCategories))
+              : JSON.parse(JSON.stringify(articleTopics))
+            : undefined,
         password: cleanString(password),
         recoveryEmail: cleanString(recoveryEmail),
-        websites: websiteArray,
+        websites: hasWebsites ? websiteArray : undefined,
         companywebsite: cleanString(companywebsite),
         companyaddress: cleanString(companyaddress),
         biography,
         imageDrivelink: cleanString(imageDrivelink),
         avatar: cleanString(avatar),
-        status: statusValue,
+        status: hasStatus ? statusValue : undefined,
         // only update packageId if provided; undefined leaves current value
-        packageId: packageIdValue,
-        startDate: startDate ? new Date(startDate) : undefined,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
+        packageId: hasPackageId ? packageIdValue : undefined,
+        startDate: hasStartDate ? (startDate ? new Date(startDate) : null) : undefined,
+        dueDate: hasDueDate ? (dueDate ? new Date(dueDate) : null) : undefined,
 
         // AM রিলেশন আপডেট
-        amId: amIdValue, // null হলে unlink হবে
+        amId: hasAmId ? amIdValue : undefined, // null হলে unlink হবে
 
         // Persist arbitrary JSON if provided
-        otherField: otherField ?? undefined,
+        otherField: hasOtherField ? otherField ?? undefined : undefined,
         socialMedia:
-          coerceSocialMedia(socialMedia) === undefined
-            ? undefined
-            : JSON.parse(JSON.stringify(coerceSocialMedia(socialMedia))),
+          hasSocialMedia
+            ? coerceSocialMedia(socialMedia) === undefined
+              ? undefined
+              : JSON.parse(JSON.stringify(coerceSocialMedia(socialMedia)))
+            : undefined,
       } as any,
       include: {
         package: true,
@@ -451,7 +473,7 @@ export async function PUT(
                 taskCompletionJson: true,
                 notes: true,
                 reassignNotes: true,
-                 actualDurationMinutes: true,
+                actualDurationMinutes: true,
                 idealDurationMinutes: true,
                 categoryId: true,
                 templateSiteAssetId: true,
@@ -510,7 +532,7 @@ function normalizeForDedupe(s: string) {
   return stripTaskSuffix(
     String(s)
       .replace(/\s*-\s*\d+$/i, "")
-      .trim()
+      .trim(),
   )
     .toLowerCase()
     .replace(/\s+/g, " ")
@@ -565,12 +587,12 @@ async function ensureCategoryByName(name: string) {
 // ---------- POST ----------
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: clientId } = await params;
 
   try {
-    const body = await req.json().catch(() => ({} as any));
+    const body = await req.json().catch(() => ({}) as any);
     const action = body?.action;
 
     if (action !== "upgrade") {
@@ -579,7 +601,7 @@ export async function POST(
           message:
             "Unsupported action. Use { action: 'upgrade', newPackageId, templateId?, createAssignments?, migrateCompleted?, createPostingTasks? }",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -596,7 +618,7 @@ export async function POST(
     if (!newPackageId) {
       return NextResponse.json(
         { message: "newPackageId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -608,7 +630,7 @@ export async function POST(
     if (!clientRow)
       return NextResponse.json(
         { message: "Client not found" },
-        { status: 404 }
+        { status: 404 },
       );
     const oldPackageId = clientRow.packageId ?? null;
 
@@ -619,7 +641,7 @@ export async function POST(
     if (!pkg)
       return NextResponse.json(
         { message: "Package not found" },
-        { status: 404 }
+        { status: 404 },
       );
 
     // 1) update client → new package; optionally create assignments for all templates
@@ -720,12 +742,12 @@ export async function POST(
             const nameSkip = new Set(
               existingNames
                 .map((t) => normalizeForDedupe(t.name || ""))
-                .filter(Boolean)
+                .filter(Boolean),
             );
             const clientWideNameSkip = new Set(
               existingClientTasks
                 .map((t) => normalizeForDedupe(t.name || ""))
-                .filter(Boolean)
+                .filter(Boolean),
             );
 
             const doneStatuses: TaskStatus[] = [
@@ -771,7 +793,10 @@ export async function POST(
 
                 // If this normalized name already exists anywhere for the client,
                 // skip creating a duplicate in the new package.
-                if (nameSkip.has(normalizedName) || clientWideNameSkip.has(normalizedName)) {
+                if (
+                  nameSkip.has(normalizedName) ||
+                  clientWideNameSkip.has(normalizedName)
+                ) {
                   continue;
                 }
                 nameSkip.add(normalizedName);
@@ -820,8 +845,8 @@ export async function POST(
                   const slice = payloads.slice(i, i + chunk);
                   await prisma.$transaction(
                     slice.map((data) =>
-                      prisma.task.create({ data, select: { id: true } })
-                    )
+                      prisma.task.create({ data, select: { id: true } }),
+                    ),
                   );
                 }
               }
@@ -847,7 +872,11 @@ export async function POST(
                 select: { id: true, name: true, type: true },
               })
             : Promise.resolve(
-                [] as { id: number; name: string | null; type: string | null }[]
+                [] as {
+                  id: number;
+                  name: string | null;
+                  type: string | null;
+                }[],
               ),
           prisma.templateSiteAsset.findMany({
             where: {
@@ -957,7 +986,7 @@ export async function POST(
               existingInClient
                 .map((t) => t.templateSiteAsset?.id)
                 .filter((n): n is number => typeof n === "number")
-                .filter((id) => (toCheckIds as number[]).includes(id))
+                .filter((id) => (toCheckIds as number[]).includes(id)),
             );
 
             const needSeeds: number[] = [];
@@ -980,7 +1009,10 @@ export async function POST(
               const assetBaseKey = `asset_${assetId}::${finalBase}`;
 
               let isDup: boolean;
-              if (rawType === "web2_site" && WEB2_FIXED_PLATFORMS.has(rawNameNorm)) {
+              if (
+                rawType === "web2_site" &&
+                WEB2_FIXED_PLATFORMS.has(rawNameNorm)
+              ) {
                 // For Medium/Tumblr/WordPress, only dedupe within this run/assignment.
                 isDup = seededAssetIds.has(assetId);
               } else {
@@ -1042,7 +1074,7 @@ export async function POST(
                     },
                     select: { id: true },
                   });
-                })
+                }),
               );
             }
           }
@@ -1068,7 +1100,7 @@ export async function POST(
                 includeAssetIds,
                 // TIP: ensure that API also sets dueDate=now and uses template default duration  // <-- NOTE
               }),
-            }
+            },
           );
           const j = await resp.json().catch(() => ({}));
           if (!resp.ok) {
@@ -1173,7 +1205,7 @@ export async function POST(
             taskCompletionJson: true,
             notes: true,
             reassignNotes: true,
-             actualDurationMinutes: true,
+            actualDurationMinutes: true,
             idealDurationMinutes: true,
             categoryId: true,
             templateSiteAssetId: true,
@@ -1217,7 +1249,7 @@ export async function POST(
                 taskCompletionJson: true,
                 notes: true,
                 reassignNotes: true,
-                 actualDurationMinutes: true,
+                actualDurationMinutes: true,
                 idealDurationMinutes: true,
                 categoryId: true,
                 templateSiteAssetId: true,
@@ -1246,7 +1278,7 @@ export async function POST(
     console.error(`[Client Upgrade] clientId=${clientId} failed:`, error);
     return NextResponse.json(
       { message: "Failed to upgrade client" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
