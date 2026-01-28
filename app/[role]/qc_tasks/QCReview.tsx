@@ -27,7 +27,6 @@ import {
   RefreshCw,
   Eye,
   RotateCcw,
-  AlertCircle,
   CheckCircle,
   ExternalLink,
   TrendingUp,
@@ -371,6 +370,7 @@ export const QCReview = memo(function QCReview({
     task: TaskRow | null;
     loading: boolean;
   }>({ open: false, task: null, loading: false });
+
   const [notePreview, setNotePreview] = useState<{
     open: boolean;
     note: string;
@@ -396,9 +396,6 @@ export const QCReview = memo(function QCReview({
   // QC-only client-side safety net (if backend not yet filtered)
   const qcScopedTasks = useMemo(() => {
     if (!qcSupervisorId) return tasks;
-
-    // If backend already enforces qcSupervisorId, this loop is cheap/no-op.
-    // If backend doesn't, you can later add assignedTo.qcId in /api/tasks select.
     return tasks;
   }, [tasks, qcSupervisorId]);
 
@@ -432,6 +429,32 @@ export const QCReview = memo(function QCReview({
     setStartDate("");
     setEndDate("");
     setQ("");
+  };
+
+  // ✅ NEW: Bulk open completion links (from currently filtered tasks)
+  const bulkCompletionLinks = useMemo(() => {
+    // unique, non-empty, trimmed
+    const set = new Set<string>();
+    for (const t of filteredTasks) {
+      const link = (t.completionLink ?? "").trim();
+      if (link) set.add(link);
+    }
+    return Array.from(set);
+  }, [filteredTasks]);
+
+  const handleBulkOpenCompletionLinks = () => {
+    if (!bulkCompletionLinks.length) {
+      toast.info("No completion links found in the current list.");
+      return;
+    }
+
+    // open each link in a new tab/window
+    // Note: some browsers may block many popups; this still opens as many as allowed.
+    let opened = 0;
+    bulkCompletionLinks.forEach((url) => {
+      const w = window.open(url, "_blank", "noopener,noreferrer");
+      if (w) opened++;
+    });
   };
 
   const handleReassignTask = async () => {
@@ -642,22 +665,38 @@ export const QCReview = memo(function QCReview({
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => refetchTasks()}
-            disabled={loading}
-            variant="outline"
-            size="default"
-            className="bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            Refresh Data
-          </Button>
-        </div>
+         {/* ✅ Header actions */}
+<div className="flex gap-3">
+  <Button
+    onClick={handleBulkOpenCompletionLinks}
+    disabled={loading || bulkCompletionLinks.length === 0}
+    title={
+      bulkCompletionLinks.length
+        ? `Open ${bulkCompletionLinks.length} completion link(s)`
+        : "No completion links available"
+    }
+    className={[
+      "rounded-xl px-4",
+      "bg-[#00BC89] text-white border border-transparent",
+      "hover:bg-[#00A97A] active:bg-[#00966D]",
+      "transition-all duration-200 shadow-sm hover:shadow-md",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00BC89]/30",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm",
+    ].join(" ")}
+  >
+    <ExternalLink className="h-4 w-4 mr-2 text-white" />
+    <span className="font-semibold">Open Bulk All Completion Links</span>
+
+    {bulkCompletionLinks.length ? (
+      <span className="ml-2 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white">
+        {bulkCompletionLinks.length}
+      </span>
+    ) : null}
+  </Button>
+</div>
+
+
+
       </div>
 
       <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
@@ -676,6 +715,7 @@ export const QCReview = memo(function QCReview({
                 </CardDescription>
               </div>
             </div>
+ 
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <Award className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-blue-700">
@@ -712,7 +752,8 @@ export const QCReview = memo(function QCReview({
                     🎉 All Tasks Reviewed!
                   </h3>
                   <p className="text-slate-600">
-                    Great job! You've successfully completed QC review for all available tasks. Take a well-deserved break!
+                    Great job! You've successfully completed QC review for all
+                    available tasks. Take a well-deserved break!
                   </p>
                 </div>
               </div>
@@ -721,7 +762,11 @@ export const QCReview = memo(function QCReview({
             <VirtualTaskList
               tasks={filteredTasks}
               approvedMap={approvedMap}
-              onApprove={handleApprove}
+              onApprove={(t) => {
+                // NOTE: keep existing behavior
+                setApproveDialog({ open: true, task: t, loading: false });
+                setQcNotes("");
+              }}
               onReject={(t) =>
                 setReassignDialog({
                   open: true,
