@@ -643,7 +643,6 @@ export const QCReview = memo(function QCReview({
   useEffect(() => {
     const cid = searchParams.get("clientId");
     if (cid) setClientId(cid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   return (

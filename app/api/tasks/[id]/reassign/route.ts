@@ -60,6 +60,8 @@ export async function PUT(
         completedAt: null,
         performanceRating: PerformanceRating.Poor, // ✅ সবসময় Poor
         updatedAt: new Date(),
+        pauseReasons: [], // ✅ IMPORTANT: clear timer event history on reassign
+
       };
 
       // Only reset completionLink for non-social and non-blog tasks

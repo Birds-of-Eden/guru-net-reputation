@@ -266,6 +266,20 @@ const buildTimerEvents = (
   }
 
   events.sort((a, b) => a.ts - b.ts);
+
+  // ✅ FAILSAFE: if last event is resume and it's absurdly old, treat as not running
+  const last = events[events.length - 1];
+  if (last?.type === "resume") {
+    const ageMs = Date.now() - last.ts;
+    const MAX_OPEN_RUN_MS = 12 * 60 * 60 * 1000; // 12h
+    if (ageMs > MAX_OPEN_RUN_MS) {
+      // drop the last resume so it doesn't count huge elapsed
+      events.pop();
+    }
+  }
+
+  return events;
+
   return events;
 };
 
@@ -779,6 +793,18 @@ export function ClientTasksView({
           savedAt?: number;
           agentId?: string;
         };
+        const startedAt = Number.isFinite(p.startedAt)
+          ? p.startedAt
+          : Number.isFinite(p.savedAt)
+            ? p.savedAt
+            : undefined;
+
+        const pausedAt = Number.isFinite(p.pausedAt)
+          ? p.pausedAt
+          : Number.isFinite(p.savedAt)
+            ? p.savedAt
+            : Date.now();
+
         setPausedTimer({
           taskId: p.taskId,
           remainingSeconds: Math.max(0, p.remainingSeconds ?? 0),
@@ -786,8 +812,8 @@ export function ClientTasksView({
           totalSeconds: p.totalSeconds,
           isGloballyLocked: false,
           lockedByAgent: p.lockedByAgent,
-          startedAt: p.startedAt || Date.now(),
-          pausedAt: p.pausedAt ?? p.savedAt ?? Date.now(),
+          startedAt,
+          pausedAt,
           ownerId: p.ownerId,
         });
       } else {
@@ -1360,6 +1386,10 @@ export function ClientTasksView({
 
       try {
         await handleUpdateTask(taskId, { status: "in_progress" });
+        // ✅ If task was reassigned/completed earlier, ignore old pauseReasons history locally
+        if (task.status === "reassigned" || task.status === "completed") {
+          applyLocalTaskPatch(taskId, { pauseReasons: [] });
+        }
 
         const totalSeconds = (task.idealDurationMinutes ?? 0) * 60;
 
@@ -1528,6 +1558,13 @@ export function ClientTasksView({
       const snapshot = timerState;
       setTimerState(null);
       saveTimerToStorage(null);
+      try {
+        localStorage.removeItem(PAUSE_KEY);
+      } catch {}
+      try {
+        localStorage.removeItem(RUN_KEY);
+      } catch {}
+
       try {
         localStorage.removeItem("pausedTaskTimer");
       } catch {}
