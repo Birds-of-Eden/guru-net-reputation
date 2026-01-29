@@ -458,113 +458,99 @@ export default function UsersPage() {
       {/* Filters */}
       <Card>
         <CardContent>
-          {loading && !usersData ? (
-            <div className="flex flex-col gap-4 md:flex-row md:items-center py-4">
-              <div className="flex-1">
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="flex gap-2">
-                <Skeleton className="h-10 w-[140px]" />
-                <Skeleton className="h-10 w-[140px]" />
-                <Skeleton className="h-10 w-[140px]" />
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users by name, email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                {/* optional: hint when search text is too short */}
+                {searchTerm.trim().length > 0 && searchTerm.trim().length < 2 && (
+                  <div className="text-xs text-muted-foreground mt-2">
+                    Type at least 2 characters to search
+                  </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search users by name, email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                  {/* ✅ optional: user কে hint দেখাতে চাইলে */}
-                  {searchTerm.trim().length > 0 && searchTerm.trim().length < 2 && (
-                    <div className="text-xs text-muted-foreground mt-2">
-                      Type at least 2 characters to search
-                    </div>
+
+            <div className="flex gap-2">
+              <Select
+                value={statusFilter}
+                onValueChange={(val) => {
+                  setStatusFilter(val);
+                  setPageIndex(0);
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={categoryFilter}
+                onValueChange={(val) => {
+                  setCategoryFilter(val);
+                  setPageIndex(0);
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Teams</SelectItem>
+                  {allCategories && allCategories.length > 0 ? (
+                    allCategories.map((category) => (
+                      <SelectItem key={category} value={category!}>
+                        {category}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem disabled value="none">
+                      No Teams
+                    </SelectItem>
                   )}
-                </div>
-              </div>
+                </SelectContent>
+              </Select>
 
-              <div className="flex gap-2">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(val) => {
-                    setStatusFilter(val);
-                    setPageIndex(0);
-                  }}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={categoryFilter}
-                  onValueChange={(val) => {
-                    setCategoryFilter(val);
-                    setPageIndex(0);
-                  }}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Team" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Teams</SelectItem>
-                    {allCategories && allCategories.length > 0 ? (
-                      allCategories.map((category) => (
-                        <SelectItem key={category} value={category!}>
-                          {category}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem disabled value="none">
-                        No Teams
+              <Select
+                value={roleFilter}
+                onValueChange={(val) => {
+                  setRoleFilter(val);
+                  setPageIndex(0);
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {roles && roles.length > 0 ? (
+                    roles.map((role: Role) => (
+                      <SelectItem key={role.id} value={role.name}>
+                        {role.name}
                       </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={roleFilter}
-                  onValueChange={(val) => {
-                    setRoleFilter(val);
-                    setPageIndex(0);
-                  }}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    {roles && roles.length > 0 ? (
-                      roles.map((role: Role) => (
-                        <SelectItem key={role.id} value={role.name}>
-                          {role.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem disabled value="none">
-                        No Roles
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                    ))
+                  ) : (
+                    <SelectItem disabled value="none">
+                      No Roles
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
-
       {/* Users Table */}
       <div className="bg-white py-6 rounded-xl border shadow">
         <Table>
