@@ -699,14 +699,18 @@ export function CreateTemplateModal({
               <div className="col-span-1">
                 <Input
                   type="number"
-                  min={1}
+                  min={0}
                   value={site.defaultPostingFrequency}
                   onChange={(e) =>
                     updateSiteAsset(
                       type,
                       index,
                       "defaultPostingFrequency",
-                      Number.parseInt(e.target.value || "1", 10) || 1,
+                      e.target.value === ""
+                        ? 0
+                        : Number.isNaN(Number.parseInt(e.target.value, 10))
+                          ? 0
+                          : Number.parseInt(e.target.value, 10),
                     )
                   }
                   className="text-sm h-8 bg-white w-full"

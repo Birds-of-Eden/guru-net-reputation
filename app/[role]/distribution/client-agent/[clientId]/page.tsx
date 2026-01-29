@@ -341,18 +341,19 @@ function buildCategoryStats(list: Task[] = []): CategoryStats {
 
 type SimpleCategoryStats = { total: number; assigned: number };
 
-// ✅ NEW: decide which UI category a task belongs to
+// NEW: decide which UI category a task belongs to
 function getUICategoryForTask(t: Task): string {
   const catName = (t as any)?.category?.name as string | undefined;
-  if (catName && (POSTING_CATEGORIES as readonly string[]).includes(catName)) {
-    return catName;
-  }
-
   const enumType = (t as any)?.templateSiteAsset?.type as string | undefined;
 
   // Asset Creation (from enum) only when not already classified as posting
   if (["social_site", "web2_site", "other_asset"].includes(enumType ?? "")) {
     return "Asset Creation";
+  }
+
+  // If API has a category name, prefer it (covers Summary Report/Guest Posting/etc)
+  if (catName && String(catName).trim()) {
+    return String(catName).trim();
   }
 
   // Fallback to existing enum->label map
@@ -417,7 +418,7 @@ function bucketAssetCreationTasks(list: Task[] = []): AssetCreationBuckets {
     { social_site: [], web2_site: [], other_asset: [] },
   );
 }
-// ✅ SWR fetchers
+// SWR fetchers
 const jsonFetcher = async (url: string) => {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch");
@@ -477,9 +478,7 @@ export default function TaskDistributionForClient() {
     },
   );
 
-  // ⚡ OPTIMIZED: Removed useState, using useMemo instead for better performance
-
-  // ✅ Agent lists + source toggle via SWR
+  // Agent lists + source toggle via SWR
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
   const [selectedCategory, setSelectedCategory] =
     useState<string>("Graphics Design");
@@ -534,10 +533,10 @@ export default function TaskDistributionForClient() {
   const [categoryDueDate, setCategoryDueDate] = useState<Date>();
   const [duePickerOpen, setDuePickerOpen] = useState(false);
 
-  // ✅ NEW: Reassign modal state at page level
+  // NEW: Reassign modal state at page level
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
 
-  // ⚡ OPTIMIZED: Use useMemo instead of useEffect + setState to prevent unnecessary re-renders
+  // OPTIMIZED: Use useMemo instead of useEffect + setState to prevent unnecessary re-renders
   // IMPORTANT: This must be declared BEFORE selectedTaskObjects that uses it
   const tasks = useMemo(() => {
     const list = (allTasks ?? []).filter(
@@ -585,7 +584,7 @@ export default function TaskDistributionForClient() {
     setVisibleTaskBatches((prev) => prev + 1);
   }, []);
 
-  // ✅ NEW: Get selected tasks as Task objects for modal
+  // NEW: Get selected tasks as Task objects for modal
   const selectedTaskObjects = useMemo(() => {
     return tasks.filter((task) => selectedTasks.has(task.id));
   }, [tasks, selectedTasks]);
@@ -623,7 +622,7 @@ export default function TaskDistributionForClient() {
     [categoryAssignments],
   );
 
-  // ✅ NEW: Handle reassign functionality at page level
+  // NEW: Handle reassign functionality at page level
   const handleReassign = async (
     taskIds: string[],
     newAgentId: string,
@@ -973,7 +972,7 @@ export default function TaskDistributionForClient() {
           duration: 5000,
         });
 
-        // ✅ Revalidate tasks and both agent lists via SWR
+        // Revalidate tasks and both agent lists via SWR
         await Promise.all([
           mutateTasks(),
           mutateTeamAgents(),
@@ -1005,6 +1004,14 @@ export default function TaskDistributionForClient() {
     () => buildStatsByCategory(allTasks),
     [allTasks],
   );
+
+  const categoryLabels = useMemo(() => {
+    const base = CATEGORY_LABELS.slice();
+    const extras = Object.keys(statsByCategory)
+      .filter((k) => !base.includes(k))
+      .sort((a, b) => a.localeCompare(b));
+    return [...base, ...extras];
+  }, [statsByCategory]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
@@ -1095,7 +1102,7 @@ export default function TaskDistributionForClient() {
                       )}
 
                       {client.package?.name && (
-                        <span className="inline-flex items-center rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 px-2.5 py-1 text-xs font-medium">
+                        <span className="inline-flex items-center rounded-md bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800 px-2.5 py-0.5">
                           <span className="mr-1.5">📦</span>
                           {client.package.name}
                         </span>
@@ -1128,7 +1135,7 @@ export default function TaskDistributionForClient() {
                   {/* Scrollable categories list */}
                   <div className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
                     <div className="divide-y divide-purple-100">
-                      {CATEGORY_LABELS.map((label) => {
+                      {categoryLabels.map((label) => {
                         const s = statsByCategory[label];
                         const fully =
                           !!s && s.total > 0 && s.assigned === s.total;

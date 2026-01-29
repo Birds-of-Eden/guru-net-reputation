@@ -516,8 +516,9 @@ export async function POST(req: NextRequest) {
       }
 
       const freqPerMonthRaw =
-        src.templateSiteAsset?.defaultPostingFrequency ?? 1;
-      const freqPerMonth = Math.max(1, Number(freqPerMonthRaw) || 1);
+        src.templateSiteAsset?.defaultPostingFrequency ?? 0;
+      const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
+      if (freqPerMonth === 0) continue;
 
       // Calculate total months remaining (from today to dueDate)
       const remainingMonths = monthsBetweenInclusive(todayMidnight, dueDate);

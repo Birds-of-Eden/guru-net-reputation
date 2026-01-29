@@ -14,13 +14,57 @@ const ALLOWED_ASSET_TYPES = [
   "social_site",
   "web2_site",
   "other_asset",
+  "graphics_design",
+  "image_optimization",
+  "content_studio",
+  "content_writing",
+  "backlinks",
+  "completed_com",
+  "youtube_video_optimization",
+  "monitoring",
+  "review_removal",
+  "summary_report",
+  "guest_posting",
+] as const;
+const PREREQ_ASSET_TYPES = [
+  "social_site",
+  "web2_site",
+  "other_asset",
 ] as const;
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
+const CAT_GRAPHICS_DESIGN = "Graphics Design";
+const CAT_IMAGE_OPTIMIZATION = "Image Optimization";
+const CAT_CONTENT_STUDIO = "Content Studio";
+const CAT_CONTENT_WRITING = "Content Writing";
+const CAT_BACKLINKS = "Backlinks";
+const CAT_COMPLETED_COM = "Completed.com";
+const CAT_YOUTUBE_VIDEO_OPTIMIZATION = "YouTube Video Optimization";
+const CAT_MONITORING = "Monitoring";
+const CAT_REVIEW_REMOVAL = "Review Removal";
+const CAT_SUMMARY_REPORT = "Summary Report";
+const CAT_GUEST_POSTING = "Guest Posting";
 
 // 👉 NEW
 const CAT_SOCIAL_COMMUNICATION = "Social Communication";
 const WEB2_FIXED_PLATFORMS = ["medium", "tumblr", "wordpress"] as const;
+
+const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
+  social_site: CAT_SOCIAL_ACTIVITY,
+  web2_site: CAT_BLOG_POSTING,
+  other_asset: CAT_SOCIAL_ACTIVITY,
+  graphics_design: CAT_GRAPHICS_DESIGN,
+  image_optimization: CAT_IMAGE_OPTIMIZATION,
+  content_studio: CAT_CONTENT_STUDIO,
+  content_writing: CAT_CONTENT_WRITING,
+  backlinks: CAT_BACKLINKS,
+  completed_com: CAT_COMPLETED_COM,
+  youtube_video_optimization: CAT_YOUTUBE_VIDEO_OPTIMIZATION,
+  monitoring: CAT_MONITORING,
+  review_removal: CAT_REVIEW_REMOVAL,
+  summary_report: CAT_SUMMARY_REPORT,
+  guest_posting: CAT_GUEST_POSTING,
+};
 
 // --- NEW: Web2 fixed platform metadata (label + default URL)
 const PLATFORM_META: Record<
@@ -58,8 +102,7 @@ function normalizeTaskPriority(v: unknown): TaskPriority {
 
 function resolveCategoryFromType(assetType?: string): string {
   if (!assetType) return CAT_SOCIAL_ACTIVITY;
-  if (assetType === "web2_site") return CAT_BLOG_POSTING;
-  return CAT_SOCIAL_ACTIVITY; // social_site + other_asset
+  return CATEGORY_BY_ASSET_TYPE[assetType] ?? CAT_SOCIAL_ACTIVITY;
 }
 
 function baseNameOf(name: string): string {
@@ -94,12 +137,12 @@ function getFrequency(opts: {
   defaultFreq?: number | null | undefined;
 }): number {
   const fromRequired = Number(opts.required);
-  if (Number.isFinite(fromRequired) && fromRequired! > 0)
+  if (Number.isFinite(fromRequired) && fromRequired! >= 0)
     return Math.floor(fromRequired);
   const fromDefault = Number(opts.defaultFreq);
-  if (Number.isFinite(fromDefault) && fromDefault! > 0)
+  if (Number.isFinite(fromDefault) && fromDefault! >= 0)
     return Math.floor(fromDefault);
-  return 1;
+  return 0;
 }
 
 function countByStatus(tasks: { status: TaskStatus }[]) {
@@ -309,9 +352,13 @@ export async function GET(req: NextRequest) {
     });
 
     const countsByStatus = countByStatus(sourceTasks as any);
+    const prereqTasks = sourceTasks.filter((t) => {
+      const type = t.templateSiteAsset?.type ?? "";
+      return (PREREQ_ASSET_TYPES as readonly string[]).includes(type);
+    });
     const allApproved =
-      sourceTasks.length > 0 &&
-      sourceTasks.every((t) => t.status === "qc_approved");
+      prereqTasks.length > 0 &&
+      prereqTasks.every((t) => t.status === "qc_approved");
 
     const assetIds = Array.from(
       new Set(
@@ -392,11 +439,10 @@ export async function GET(req: NextRequest) {
     const tasksWithSC = [...tasks, ...scFromAssets, ...scFromWeb2Fixed];
 
     // ----- Accurate preview: account for existing tasks + missing web2 creds -----
-    const dedupeCategories = [
-      CAT_SOCIAL_ACTIVITY,
-      CAT_BLOG_POSTING,
-      CAT_SOCIAL_COMMUNICATION,
-    ];
+    const postingCategories = Array.from(
+      new Set(Object.values(CATEGORY_BY_ASSET_TYPE))
+    );
+    const dedupeCategories = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
     const existingCopies = await prisma.task.findMany({
       where: {
         assignmentId: assignment.id,
@@ -407,7 +453,7 @@ export async function GET(req: NextRequest) {
     const skipNameSet = new Set(existingCopies.map((t) => t.name));
     const maxCycleMap = buildMaxCycleMap(
       existingCopies,
-      new Set([CAT_SOCIAL_ACTIVITY, CAT_BLOG_POSTING])
+      new Set(postingCategories)
     );
 
     let totalWillCreate = 0;
@@ -416,7 +462,8 @@ export async function GET(req: NextRequest) {
     for (const task of tasks) {
       const key = `${task.categoryName}::${task.baseName}`;
       const start = (maxCycleMap.get(key) ?? 0) + 1;
-      const totalCopies = Math.max(1, task.frequency);
+      const totalCopies = task.frequency;
+      if (totalCopies <= 0) continue;
       for (let i = start; i <= totalCopies; i++) {
         const name = `${task.baseName} -${i}`;
         if (!skipNameSet.has(name)) {
@@ -580,7 +627,11 @@ export async function POST(req: NextRequest) {
     }
 
     // QC gate
-    const notApproved = sourceTasks.filter((t) => t.status !== "qc_approved");
+    const notApproved = sourceTasks.filter((t) => {
+      const type = t.templateSiteAsset?.type ?? "";
+      if (!(PREREQ_ASSET_TYPES as readonly string[]).includes(type)) return false;
+      return t.status !== "qc_approved";
+    });
     if (notApproved.length) {
       return NextResponse.json(
         {
@@ -639,17 +690,16 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // Ensure 3 categories (includes Social Communication)
-    const [socialCat, blogCat, scCat] = await Promise.all([
-      ensureCategory(CAT_SOCIAL_ACTIVITY),
-      ensureCategory(CAT_BLOG_POSTING),
-      ensureCategory(CAT_SOCIAL_COMMUNICATION), // constant exists in your file
-    ]);
-    const categoryIdByName = new Map<string, string>([
-      [socialCat.name, socialCat.id],
-      [blogCat.name, blogCat.id],
-      [scCat.name, scCat.id],
-    ]);
+    const postingCategories = Array.from(
+      new Set(Object.values(CATEGORY_BY_ASSET_TYPE))
+    );
+    const categoryNames = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
+    const ensured = await Promise.all(
+      categoryNames.map((name) => ensureCategory(name))
+    );
+    const categoryIdByName = new Map<string, string>(
+      ensured.map((c) => [c.name, c.id])
+    );
 
     // Expand copies: (per-asset frequency) × (package months)
     type PostingSource = {
@@ -675,19 +725,16 @@ export async function POST(req: NextRequest) {
       const catName = resolveCategoryFromType(assetType);
       const base = baseNameOf(src.name);
 
-      // total copies = freq * months
-      const totalCopies = Math.max(1, freq * months);
+      // total copies = freq * months (0 means skip)
+      const totalCopies = freq * months;
+      if (totalCopies <= 0) continue;
       postingSources.push({ src, base, catName, totalCopies });
 
       // NEW: কেবল Social Activity-এর জন্য last cycle dueDate ক্যাশ করো
     }
 
     // De-dup by name within target cats (3 categories)
-    const dedupeCategories = [
-      CAT_SOCIAL_ACTIVITY,
-      CAT_BLOG_POSTING,
-      CAT_SOCIAL_COMMUNICATION,
-    ];
+    const dedupeCategories = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
     const existingCopies = await prisma.task.findMany({
       where: {
         assignmentId: assignment.id,
@@ -703,7 +750,7 @@ export async function POST(req: NextRequest) {
     const skipNameSet = new Set(existingNameSet);
     const maxCycleMap = buildMaxCycleMap(
       existingCopies,
-      new Set([CAT_SOCIAL_ACTIVITY, CAT_BLOG_POSTING])
+      new Set(postingCategories)
     );
 
     // NEW: compute last social due date using the highest cycle (existing + new)
@@ -750,7 +797,8 @@ export async function POST(req: NextRequest) {
       const catId = categoryIdByName.get(item.catName)!;
       const key = `${item.catName}::${item.base}`;
       const start = (maxCycleMap.get(key) ?? 0) + 1;
-      const totalCopies = Math.max(1, item.totalCopies);
+      const totalCopies = item.totalCopies;
+      if (totalCopies <= 0) continue;
 
       for (let cycle = start; cycle <= totalCopies; cycle++) {
         const name = `${item.base} -${cycle}`;

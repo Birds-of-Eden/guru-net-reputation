@@ -73,8 +73,8 @@ export async function PUT(
         description: asset.description?.trim() || null,
         isRequired: Boolean(asset.isRequired),
         defaultPostingFrequency: Math.max(
-          1,
-          parseInt(asset.defaultPostingFrequency) || 1
+          0,
+          Number.parseInt(String(asset.defaultPostingFrequency), 10) || 0
         ),
         defaultIdealDurationMinutes: Math.max(
           1,

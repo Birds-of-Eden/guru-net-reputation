@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       url: asset.url?.trim() || null,
       description: asset.description?.trim() || null,
       isRequired: Boolean(asset.isRequired),
-      defaultPostingFrequency: clampInt(asset.defaultPostingFrequency, 3, 1),
+      defaultPostingFrequency: clampInt(asset.defaultPostingFrequency, 3, 0),
       defaultIdealDurationMinutes: clampInt(asset.defaultIdealDurationMinutes, 30, 1),
     }));
 

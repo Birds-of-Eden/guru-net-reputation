@@ -151,7 +151,7 @@ export function TemplateViewModal({
     const configs = {
       social_site: { icon: Share2, color: "blue", label: "Social Media" },
       web2_site: { icon: Globe, color: "green", label: "Web 2.0" },
-      other_asset: { icon: FileText, color: "purple", label: "Assets" },
+      other_asset: { icon: FileText, color: "purple", label: "Additional Assets" },
       graphics_design: { icon: Palette, color: "pink", label: "Design" },
       image_optimization: { icon: Palette, color: "pink", label: "Image Optimization" },
       content_studio: { icon: Edit3, color: "indigo", label: "Content Studio" },

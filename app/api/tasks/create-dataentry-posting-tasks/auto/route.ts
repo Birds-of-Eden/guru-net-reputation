@@ -418,8 +418,9 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const freqPerMonthRaw = src.templateSiteAsset?.defaultPostingFrequency ?? 1;
-      const freqPerMonth = Math.max(1, Number(freqPerMonthRaw) || 1);
+      const freqPerMonthRaw = src.templateSiteAsset?.defaultPostingFrequency ?? 0;
+      const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
+      if (freqPerMonth === 0) continue;
 
       // মোট লাগবে: inclusive month count × freqPerMonth
       const totalMonths = monthsBetweenInclusive(startDate, dueDate);
