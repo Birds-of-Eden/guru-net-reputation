@@ -590,6 +590,29 @@ export default function TaskDistributionForClient() {
     return tasks.filter((task) => selectedTasks.has(task.id));
   }, [tasks, selectedTasks]);
 
+  const { canUnassignSelected, canReassignSelected } = useMemo(() => {
+    if (selectedTaskObjects.length === 0) {
+      return { canUnassignSelected: false, canReassignSelected: false };
+    }
+
+    let canUnassign = true;
+    let canReassign = true;
+
+    for (const task of selectedTaskObjects) {
+      const statusKey = String((task as any)?.status ?? "").toLowerCase();
+      const hasAssignee = Boolean((task as any)?.assignedToId);
+
+      if (!(statusKey === "pending" && hasAssignee)) {
+        canUnassign = false;
+      }
+      if (!(statusKey === "completed" || statusKey === "qc_approved")) {
+        canReassign = false;
+      }
+    }
+
+    return { canUnassignSelected: canUnassign, canReassignSelected: canReassign };
+  }, [selectedTaskObjects]);
+
   // OPTIMIZATION (memoized payload): keep TaskTabs props stable to avoid unnecessary re-renders.
   const memoizedTaskAssignments = useMemo(
     () =>
@@ -1314,7 +1337,7 @@ export default function TaskDistributionForClient() {
                           const selectedTaskIds = Array.from(selectedTasks);
                           await handleUnassign(selectedTaskIds);
                         }}
-                        disabled={submitting}
+                        disabled={submitting || !canUnassignSelected}
                         className="bg-purple-800 text-white hover:text-white hover:bg-purple-700"
                       >
                         Un-Assign
@@ -1334,7 +1357,7 @@ export default function TaskDistributionForClient() {
                             `Deselected agents for all ${clearedCount} tasks in ${selectedCategory}`,
                           );
                         }}
-                        disabled={submitting}
+                        disabled={submitting || categoryAssignments.length === 0}
                         className="bg-red-600 text-white hover:text-white hover:bg-red-700"
                       >
                         Deselect All
@@ -1350,7 +1373,7 @@ export default function TaskDistributionForClient() {
                         }}
                         variant="secondary"
                         size="sm"
-                        disabled={submitting}
+                        disabled={submitting || !canReassignSelected}
                         className="bg-orange-700 hover:bg-orange-800 text-white hover:text-white"
                       >
                         Reassign ({selectedTasks.size})
