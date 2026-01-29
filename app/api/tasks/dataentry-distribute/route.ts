@@ -28,6 +28,34 @@ export async function POST(request: Request) {
       );
     }
 
+    const agentIds = Array.from(new Set(assignments.map((a) => a.agentId)));
+    const [client, agents] = await Promise.all([
+      prisma.client.findUnique({
+        where: { id: clientId },
+        select: { name: true },
+      }),
+      prisma.user.findMany({
+        where: { id: { in: agentIds } },
+        select: { id: true, name: true, firstName: true, lastName: true, email: true },
+      }),
+    ]);
+    const clientName = client?.name || "Client";
+    const agentNameById = new Map(
+      agents.map((a) => [
+        a.id,
+        a.name ||
+          `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() ||
+          a.email ||
+          "Agent",
+      ])
+    );
+    const formatDueDate = (dueDate?: string) => {
+      if (!dueDate) return null;
+      const d = new Date(dueDate);
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toLocaleDateString();
+    };
+
     // Run everything atomically
     const result = await prisma.$transaction(async (tx) => {
       // 1) Update each task (agent/status/notes/dueDate)
@@ -108,18 +136,21 @@ export async function POST(request: Request) {
 
     // 4) Notifications (mention due date if present)
     const notificationPromises = assignments.map(
-      ({ taskId, agentId, dueDate }) =>
-        prisma.notification.create({
+      ({ taskId, agentId, dueDate }) => {
+        const assigneeName = agentNameById.get(agentId) || "Agent";
+        const dueLabel = formatDueDate(dueDate);
+        return prisma.notification.create({
           data: {
             userId: agentId,
             taskId,
             type: NotificationType.general,
-            message: `You have been assigned a new task${
-              dueDate ? ` (due ${new Date(dueDate).toLocaleDateString()})` : ""
+            message: `${assigneeName} has been assigned a new task for ${clientName}${
+              dueLabel ? ` (due ${dueLabel})` : ""
             }.`,
             createdAt: new Date(),
           },
-        })
+        });
+      }
     );
     await Promise.all(notificationPromises);
 
@@ -183,6 +214,32 @@ export async function PUT(request: Request) {
         where: { role: { name: { in: ["admin", "manager"] } } },
         select: { id: true },
       });
+      const [client, toUser] = await Promise.all([
+        clientId
+          ? prisma.client.findUnique({
+              where: { id: clientId },
+              select: { name: true },
+            })
+          : Promise.resolve(null),
+        toAgentId
+          ? prisma.user.findUnique({
+              where: { id: toAgentId },
+              select: {
+                id: true,
+                name: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            })
+          : Promise.resolve(null),
+      ]);
+      const clientName = client?.name || "Client";
+      const assigneeName =
+        toUser?.name ||
+        `${toUser?.firstName ?? ""} ${toUser?.lastName ?? ""}`.trim() ||
+        toUser?.email ||
+        "Agent";
 
       await prisma.$transaction(async (tx) => {
         // update task
@@ -265,7 +322,7 @@ export async function PUT(request: Request) {
             userId: toAgentId,
             taskId,
             type: NotificationType.general,
-            message: "A task has been reassigned to you.",
+            message: `${assigneeName} has been reassigned a task for ${clientName}.`,
             createdAt: new Date(),
           },
         }),

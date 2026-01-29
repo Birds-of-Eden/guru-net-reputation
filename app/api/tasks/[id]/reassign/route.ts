@@ -148,6 +148,32 @@ export async function PUT(
       where: { role: { name: { in: ["admin", "manager"] } } },
       select: { id: true },
     });
+    const [client, toUser] = await Promise.all([
+      task.clientId
+        ? prisma.client.findUnique({
+            where: { id: task.clientId },
+            select: { name: true },
+          })
+        : Promise.resolve(null),
+      toId
+        ? prisma.user.findUnique({
+            where: { id: toId },
+            select: {
+              id: true,
+              name: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+    const clientName = client?.name || "Client";
+    const assigneeName =
+      toUser?.name ||
+      `${toUser?.firstName ?? ""} ${toUser?.lastName ?? ""}`.trim() ||
+      toUser?.email ||
+      "Agent";
 
     const notifs: Promise<any>[] = [
       prisma.notification.create({
@@ -155,7 +181,7 @@ export async function PUT(
           userId: toId,
           taskId,
           type: "general",
-          message: "A task has been reassigned to you.",
+          message: `${assigneeName} has been reassigned a task for ${clientName}.`,
           createdAt: new Date(),
         },
       }),

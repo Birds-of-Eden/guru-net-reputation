@@ -82,6 +82,20 @@ export async function POST(req: Request) {
     }
 
     const agentIds = agents.map((a) => a.id);
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { name: true },
+    });
+    const clientName = client?.name || "Client";
+    const agentNameById = new Map(
+      agents.map((a) => [
+        a.id,
+        a.name ||
+          `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() ||
+          a.email ||
+          "Agent",
+      ])
+    );
 
     // current active tasks for load
     const activeTasks = await prisma.task.findMany({
@@ -231,7 +245,7 @@ export async function POST(req: Request) {
           userId: p.agentId,
           taskId: p.taskId,
           type: "general",
-          message: `You have been assigned a new task (smart distribution).`,
+          message: `${agentNameById.get(p.agentId) || "Agent"} has been assigned a new task for ${clientName} (smart distribution).`,
           createdAt: new Date(),
         })),
       });
