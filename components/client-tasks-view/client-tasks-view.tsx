@@ -175,6 +175,7 @@ export interface TimerState {
   startedAt?: number;
   pausedAt?: number;
   ownerId?: string;
+  baseSpentSeconds?: number; // task.actualDurationMinutes থেকে আসবে (carry progress)
 }
 interface GlobalTimerLock {
   isLocked: boolean;
@@ -316,16 +317,25 @@ const calculateRemainingSeconds = (
 ) => {
   const totalSeconds =
     timer.totalSeconds || (task?.idealDurationMinutes ?? 0) * 60;
+
   if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) {
     return timer.remainingSeconds;
   }
-  const hasEvents =
-    Array.isArray(task?.pauseReasons) && task.pauseReasons.length > 0;
-  if (!hasEvents && !timer.startedAt) {
-    return timer.remainingSeconds;
-  }
-  const elapsedSeconds = calculateElapsedSeconds(task, timer.startedAt, nowMs);
-  return totalSeconds - elapsedSeconds;
+
+  // ✅ carry progress: DB থেকে actualDurationMinutes
+  const baseSpent =
+    typeof timer.baseSpentSeconds === "number"
+      ? timer.baseSpentSeconds
+      : (task?.actualDurationMinutes ?? 0) * 60;
+
+  // ✅ only current run session elapsed (no historical timestamps)
+  const sessionElapsed =
+    timer.isRunning && timer.startedAt
+      ? Math.floor((nowMs - timer.startedAt) / 1000)
+      : 0;
+
+  const spent = Math.max(0, baseSpent + sessionElapsed);
+  return totalSeconds - spent;
 };
 
 const getOrCreateSessionId = () => {
@@ -1386,34 +1396,26 @@ export function ClientTasksView({
 
       try {
         await handleUpdateTask(taskId, { status: "in_progress" });
+
         // ✅ If task was reassigned/completed earlier, ignore old pauseReasons history locally
+        // (এটা UI clean রাখতে পারে, কিন্তু timer logic এ লাগবে না)
         if (task.status === "reassigned" || task.status === "completed") {
           applyLocalTaskPatch(taskId, { pauseReasons: [] });
         }
 
         const totalSeconds = (task.idealDurationMinutes ?? 0) * 60;
 
-        let remainingSeconds: number | undefined;
-        try {
-          const pausedRaw = localStorage.getItem(PAUSE_KEY);
-          if (pausedRaw) {
-            const paused: StoredTimer = JSON.parse(pausedRaw);
-            if (paused.taskId === taskId) {
-              remainingSeconds = Math.max(0, paused.remainingSeconds);
-              localStorage.removeItem(PAUSE_KEY);
-              setPausedTimer(null);
-            }
-          }
-        } catch {}
+        // ✅ Carry progress only from DB stored actualDurationMinutes (NO DATE)
+        const baseSpentSeconds = Math.max(
+          0,
+          (task.actualDurationMinutes ?? 0) * 60,
+        );
 
-        if (remainingSeconds == null) {
-          remainingSeconds =
-            timerState?.taskId === taskId
-              ? timerState.remainingSeconds
-              : totalSeconds;
-        }
+        // ✅ Remaining = total - spent (NO DATE)
+        const remainingSeconds = Math.max(0, totalSeconds - baseSpentSeconds);
 
         const resumeAt = Date.now();
+
         const newTimer: TimerState = {
           taskId,
           remainingSeconds,
@@ -1421,6 +1423,9 @@ export function ClientTasksView({
           totalSeconds: totalSeconds > 0 ? totalSeconds : remainingSeconds,
           isGloballyLocked: true,
           lockedByAgent: agentId,
+
+          // ✅ important
+          baseSpentSeconds,
           startedAt: resumeAt,
           pausedAt: undefined,
           ownerId: sessionIdRef.current,
@@ -1429,17 +1434,11 @@ export function ClientTasksView({
         setTimerState(newTimer);
         saveTimerToStorage(newTimer);
         lastTimerSaveRef.current = resumeAt;
-        const eventReason =
-          remainingSeconds !== totalSeconds
-            ? TIMER_RESUME_REASON
-            : TIMER_START_REASON;
-        void logTimerEvent(taskId, eventReason, resumeAt);
 
-        toast.success(
-          `Timer ${
-            remainingSeconds !== totalSeconds ? "resumed" : "started"
-          } for "${task.name}".`,
-        );
+        // optional log (ok)
+        void logTimerEvent(taskId, TIMER_START_REASON, resumeAt);
+
+        toast.success(`Timer started for "${task.name}".`);
       } catch {
         toast.error("Failed to start timer");
       }
@@ -1451,8 +1450,8 @@ export function ClientTasksView({
       saveTimerToStorage,
       handleUpdateTask,
       agentId,
-      setPausedTimer,
       logTimerEvent,
+      applyLocalTaskPatch,
     ],
   );
 
@@ -1473,31 +1472,43 @@ export function ClientTasksView({
         }
       } catch {}
 
-      if (timerState?.taskId === taskId) {
-        const nowMs = pausedAt ?? Date.now();
-        const task = getTaskById(taskId);
-        const baseTimer: TimerState = {
-          ...timerState,
-          isRunning: false,
-          isGloballyLocked: false,
-          pausedAt: nowMs,
-        };
-        const updatedTimer = {
-          ...baseTimer,
-          remainingSeconds: calculateRemainingSeconds(task, baseTimer, nowMs),
-        };
+      const nowMs = pausedAt ?? Date.now();
 
-        setTimerState(updatedTimer);
-        setPausedTimer(updatedTimer);
-        saveTimerToStorage(updatedTimer);
+      // ✅ Accumulate spent time WITHOUT DATE HISTORY
+      const prevBase = timerState.baseSpentSeconds ?? 0;
+      const sessionElapsed = timerState.startedAt
+        ? Math.floor((nowMs - timerState.startedAt) / 1000)
+        : 0;
 
-        const taskInfo = tasks.find((t) => t.id === taskId);
-        toast.info(
-          `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`,
-        );
-      }
+      const nextBaseSpentSeconds = Math.max(0, prevBase + sessionElapsed);
+
+      const nextRemainingSeconds = Math.max(
+        0,
+        (timerState.totalSeconds ?? 0) - nextBaseSpentSeconds,
+      );
+
+      const updatedTimer: TimerState = {
+        ...timerState,
+        isRunning: false,
+        isGloballyLocked: false,
+        pausedAt: nowMs,
+
+        // ✅ important
+        baseSpentSeconds: nextBaseSpentSeconds,
+        startedAt: undefined, // ✅ clear current session start
+        remainingSeconds: nextRemainingSeconds,
+      };
+
+      setTimerState(updatedTimer);
+      setPausedTimer(updatedTimer);
+      saveTimerToStorage(updatedTimer);
+
+      const taskInfo = tasks.find((t) => t.id === taskId);
+      toast.info(
+        `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`,
+      );
     },
-    [timerState, tasks, saveTimerToStorage, getTaskById],
+    [timerState, tasks, saveTimerToStorage],
   );
 
   const handleResetTimer = useCallback(
