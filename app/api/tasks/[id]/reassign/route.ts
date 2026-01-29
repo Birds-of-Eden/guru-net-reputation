@@ -55,8 +55,6 @@ export async function PUT(
         assignedToId: toId,
         status: "reassigned",
         reassignNotes: reassignNotes ?? "",
-        // resets:
-        actualDurationMinutes: null,
         completedAt: null,
         performanceRating: PerformanceRating.Poor, // ✅ সবসময় Poor
         updatedAt: new Date(),
