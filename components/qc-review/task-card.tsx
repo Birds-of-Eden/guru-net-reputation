@@ -70,6 +70,8 @@ interface TaskCardProps {
     note: string;
     taskName: string;
   }) => void;
+  onOpenCompletionLink?: (task: any) => void;
+  completionViewed?: boolean;
 
   // ⭐ New controlled scores from parent (per-task)
   scores: QCScores;
@@ -234,6 +236,8 @@ export function TaskCard({
   setNotePreview,
   scores,
   onChangeScores,
+  onOpenCompletionLink,
+  completionViewed = false,
 }: TaskCardProps) {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [clientData, setClientData] = useState<Client | null>(null);
@@ -243,6 +247,7 @@ export function TaskCard({
     task.actualDurationMinutes,
   );
   const isApproved = approvedMap[task.id];
+  const canReview = !task.completionLink || completionViewed;
   const cardGradient =
     performanceGradients[
       task.performanceRating as keyof typeof performanceGradients
@@ -543,7 +548,17 @@ export function TaskCard({
               <div className="flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 {task.completionLink && (
                   <Button
-                    onClick={() => window.open(task.completionLink, "_blank")}
+                    onClick={() => {
+                      if (onOpenCompletionLink) {
+                        onOpenCompletionLink(task);
+                        return;
+                      }
+                      window.open(
+                        task.completionLink,
+                        "_blank",
+                        "noopener,noreferrer",
+                      );
+                    }}
                     className="bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
                   >
                     <ExternalLink className="h-3 w-3 mr-2" />
@@ -653,7 +668,7 @@ export function TaskCard({
               <div className="flex gap-2">
                 <Button
                   onClick={() => onApprove(task)}
-                  disabled={isApproved}
+                  disabled={isApproved || !canReview}
                   size="sm"
                   className={`flex-1 font-bold text-xs py-2 ${
                     isApproved
@@ -669,6 +684,7 @@ export function TaskCard({
                   onClick={() => onReject(task)}
                   variant="outline"
                   size="sm"
+                  disabled={!canReview}
                   className="flex-1 border border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 font-bold text-xs py-2 shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   <RotateCcw className="h-3 w-3 mr-1" />

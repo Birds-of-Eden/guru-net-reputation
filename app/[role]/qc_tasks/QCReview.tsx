@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState, lazy, Suspense, memo } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense, memo, useRef } from "react";
 import useSWR from "swr";
 import { useSearchParams } from "next/navigation";
 import { useDebounce } from "@/lib/hooks/use-debounce";
@@ -243,6 +243,8 @@ const VirtualTaskList = memo(function VirtualTaskList({
   approvedMap,
   onApprove,
   onReject,
+  onOpenCompletionLink,
+  completionViewedMap,
   qcScoresByTask,
   onChangeScores,
   defaultScores,
@@ -252,6 +254,8 @@ const VirtualTaskList = memo(function VirtualTaskList({
   approvedMap: Record<string, boolean>;
   onApprove: (task: TaskRow) => void;
   onReject: (task: TaskRow) => void;
+  onOpenCompletionLink: (task: TaskRow) => void;
+  completionViewedMap: Record<string, boolean>;
   qcScoresByTask: Record<string, QCScores>;
   onChangeScores: (taskId: string, scores: QCScores) => void;
   defaultScores: QCScores;
@@ -274,6 +278,8 @@ const VirtualTaskList = memo(function VirtualTaskList({
           setNotePreview={setNotePreview}
           scores={qcScoresByTask[task.id] ?? defaultScores}
           onChangeScores={(next) => onChangeScores(task.id, next)}
+          onOpenCompletionLink={onOpenCompletionLink}
+          completionViewed={completionViewedMap[task.id]}
         />
       </Suspense>
     </div>
@@ -314,6 +320,12 @@ export const QCReview = memo(function QCReview({
   const rawRoleName =
     (user as any)?.role?.name ?? (user as any)?.roleName ?? "";
   const roleName = String(rawRoleName).toLowerCase?.() || "";
+  const userId = (user as any)?.id ? String((user as any).id) : null;
+  const completionGlobalKey = "qc_completion_viewed:global";
+  const completionStorageKey = useMemo(
+    () => `qc_completion_viewed:${userId ?? "anon"}`,
+    [userId],
+  );
 
   // More robust QC detection: seeded roles use id/name = "qc"
   const isQC =
@@ -364,6 +376,10 @@ export const QCReview = memo(function QCReview({
   >({});
 
   const [approvedMap, setApprovedMap] = useState<Record<string, boolean>>({});
+  const [completionViewedMap, setCompletionViewedMap] = useState<
+    Record<string, boolean>
+  >({});
+  const hasLoadedCompletionCache = useRef(false);
 
   const [approveDialog, setApproveDialog] = useState<{
     open: boolean;
@@ -392,6 +408,61 @@ export const QCReview = memo(function QCReview({
       toast.error("Failed to load tasks data.");
     }
   }, [tasksError]);
+
+  useEffect(() => {
+    try {
+      const rawUser = window.localStorage.getItem(completionStorageKey);
+      const rawGlobal = window.localStorage.getItem(completionGlobalKey);
+
+      const userParsed =
+        rawUser && rawUser !== "undefined" ? (JSON.parse(rawUser) as unknown) : null;
+      const globalParsed =
+        rawGlobal && rawGlobal !== "undefined"
+          ? (JSON.parse(rawGlobal) as unknown)
+          : null;
+
+      const userMap =
+        userParsed && typeof userParsed === "object"
+          ? (userParsed as Record<string, boolean>)
+          : {};
+      const globalMap =
+        globalParsed && typeof globalParsed === "object"
+          ? (globalParsed as Record<string, boolean>)
+          : {};
+
+      const merged = { ...globalMap, ...userMap };
+      if (Object.keys(merged).length) {
+        setCompletionViewedMap((prev) => ({ ...prev, ...merged }));
+      }
+
+      if (Object.keys(merged).length && userId) {
+        window.localStorage.setItem(
+          completionStorageKey,
+          JSON.stringify(merged),
+        );
+      }
+      hasLoadedCompletionCache.current = true;
+    } catch (err) {
+      console.warn("Failed to read completion view cache:", err);
+      hasLoadedCompletionCache.current = true;
+    }
+  }, [completionStorageKey, completionGlobalKey, userId]);
+
+  useEffect(() => {
+    if (!hasLoadedCompletionCache.current) return;
+    try {
+      window.localStorage.setItem(
+        completionGlobalKey,
+        JSON.stringify(completionViewedMap),
+      );
+      window.localStorage.setItem(
+        completionStorageKey,
+        JSON.stringify(completionViewedMap),
+      );
+    } catch (err) {
+      console.warn("Failed to persist completion view cache:", err);
+    }
+  }, [completionViewedMap, completionStorageKey]);
 
   // QC-only client-side safety net (if backend not yet filtered)
   const qcScopedTasks = useMemo(() => {
@@ -442,6 +513,37 @@ export const QCReview = memo(function QCReview({
     return Array.from(set);
   }, [filteredTasks]);
 
+  const markCompletionViewed = (taskId: string) => {
+    setCompletionViewedMap((m) => ({ ...m, [taskId]: true }));
+  };
+
+  const markCompletionViewedForTasks = (rows: TaskRow[]) => {
+    setCompletionViewedMap((m) => {
+      const next = { ...m };
+      rows.forEach((t) => {
+        if (t.completionLink) next[t.id] = true;
+      });
+      return next;
+    });
+  };
+
+  const canReviewTask = (task: TaskRow) =>
+    !task.completionLink || completionViewedMap[task.id];
+
+  const requireCompletionView = (task: TaskRow) => {
+    if (canReviewTask(task)) return true;
+    toast.info(
+      "Please click View Completion or Open Bulk All Completion Links before approving or reassigning.",
+    );
+    return false;
+  };
+
+  const openCompletionLink = (task: TaskRow) => {
+    if (!task.completionLink) return;
+    markCompletionViewed(task.id);
+    window.open(task.completionLink, "_blank", "noopener,noreferrer");
+  };
+
   const handleBulkOpenCompletionLinks = () => {
     if (!bulkCompletionLinks.length) {
       toast.info("No completion links found in the current list.");
@@ -450,11 +552,10 @@ export const QCReview = memo(function QCReview({
 
     // open each link in a new tab/window
     // Note: some browsers may block many popups; this still opens as many as allowed.
-    let opened = 0;
     bulkCompletionLinks.forEach((url) => {
-      const w = window.open(url, "_blank", "noopener,noreferrer");
-      if (w) opened++;
+      window.open(url, "_blank", "noopener,noreferrer");
     });
+    markCompletionViewedForTasks(filteredTasks);
   };
 
   const handleReassignTask = async () => {
@@ -462,6 +563,7 @@ export const QCReview = memo(function QCReview({
       toast.error("No task selected to reassign.");
       return;
     }
+    if (!requireCompletionView(reassignDialog.task)) return;
 
     setReassignDialog((p) => ({ ...p, loading: true }));
     try {
@@ -527,12 +629,14 @@ export const QCReview = memo(function QCReview({
   };
 
   const handleApprove = (task: TaskRow) => {
+    if (!requireCompletionView(task)) return;
     setApproveDialog({ open: true, task, loading: false });
     setQcNotes("");
   };
 
   const handleApproveTask = async () => {
     if (!approveDialog.task) return;
+    if (!requireCompletionView(approveDialog.task)) return;
 
     const sysRating =
       approveDialog.task.performanceRating ??
@@ -762,25 +866,24 @@ export const QCReview = memo(function QCReview({
             <VirtualTaskList
               tasks={filteredTasks}
               approvedMap={approvedMap}
-              onApprove={(t) => {
-                // NOTE: keep existing behavior
-                setApproveDialog({ open: true, task: t, loading: false });
-                setQcNotes("");
-              }}
-              onReject={(t) =>
+              onApprove={handleApprove}
+              onReject={(t) => {
+                if (!requireCompletionView(t)) return;
                 setReassignDialog({
                   open: true,
                   task: t,
                   reassignNotes: "",
                   loading: false,
-                })
-              }
+                });
+              }}
               qcScoresByTask={qcScoresByTask}
               onChangeScores={(taskId, scores) =>
                 setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
               }
               defaultScores={defaultScores}
               setNotePreview={setNotePreview}
+              onOpenCompletionLink={openCompletionLink}
+              completionViewedMap={completionViewedMap}
             />
           )}
         </CardContent>
@@ -831,12 +934,7 @@ export const QCReview = memo(function QCReview({
                     {approveDialog.task.completionLink && (
                       <div className="mt-2">
                         <Button
-                          onClick={() =>
-                            window.open(
-                              approveDialog.task!.completionLink!,
-                              "_blank",
-                            )
-                          }
+                          onClick={() => openCompletionLink(approveDialog.task!)}
                           variant="outline"
                           size="sm"
                           className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200"
@@ -897,7 +995,13 @@ export const QCReview = memo(function QCReview({
             </Button>
             <Button
               onClick={handleApproveTask}
-              disabled={approveDialog.loading || !approveDialog.task}
+              disabled={
+                approveDialog.loading ||
+                !approveDialog.task ||
+                (approveDialog.task
+                  ? !canReviewTask(approveDialog.task)
+                  : false)
+              }
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {approveDialog.loading ? (
@@ -1011,7 +1115,13 @@ export const QCReview = memo(function QCReview({
             </Button>
             <Button
               onClick={handleReassignTask}
-              disabled={reassignDialog.loading || !reassignDialog.task}
+              disabled={
+                reassignDialog.loading ||
+                !reassignDialog.task ||
+                (reassignDialog.task
+                  ? !canReviewTask(reassignDialog.task)
+                  : false)
+              }
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {reassignDialog.loading ? (
