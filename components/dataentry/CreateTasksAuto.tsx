@@ -10,12 +10,14 @@ interface CreateTasksButtonProps {
   clientId: string;
   disabled?: boolean;
   onTaskCreationComplete?: () => void;
+  onAlreadyExists?: () => void;
 }
 
 export default function CreateTasksButton({ 
   clientId, 
   disabled = false,
-  onTaskCreationComplete 
+  onTaskCreationComplete,
+  onAlreadyExists,
 }: CreateTasksButtonProps) {
   const [isCreating, setIsCreating] = useState(false);
   const { user, status } = useAuth();
@@ -83,6 +85,13 @@ export default function CreateTasksButton({
       if (!createdCount) {
         // If nothing new was created, still show a friendly message
         toast.info(data?.message || "No new posting tasks to create (already exists)");
+        const msg = String(data?.message || "");
+        if (/already exist/i.test(msg) || /no new posting tasks/i.test(msg)) {
+          try {
+            localStorage.setItem(`postingTasksDone:${clientId}`, "1");
+          } catch {}
+          onAlreadyExists?.();
+        }
       }
 
       // Only hide (reload) if tasks were actually created successfully

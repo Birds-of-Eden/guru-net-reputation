@@ -245,14 +245,19 @@ const useTasksData = (clientId: string, userId?: string) => {
     isLoading,
     mutate,
   } = useSWR(
-    shouldFetch ? `/api/tasks/client/${clientId}` : null,
+    shouldFetch
+      ? `/api/tasks/client/${clientId}?agentId=${encodeURIComponent(
+          userId as string
+        )}&pageSize=100`
+      : null,
     async (url: string) => {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) throw new Error("Failed to fetch tasks");
       const data = await response.json();
-      // Keep logic identical: filter by assignedTo === userId
-      return (data as any[]).filter(
-        (t) => t?.assignedTo?.id && userId && t.assignedTo.id === userId
+      const tasks = Array.isArray(data?.tasks) ? data.tasks : [];
+      // Keep client-side guard in case server returns extra tasks
+      return tasks.filter(
+        (t: any) => t?.assignedTo?.id && userId && t.assignedTo.id === userId
       );
     },
     {
@@ -639,6 +644,7 @@ export default function DataEntryCompleteTasksPanel({
   const [lastUsedAgent, setLastUsedAgent] = useState<string | null>(null);
   const [agentSearchTerm, setAgentSearchTerm] = useState("");
   const [createTasksChoiceOpen, setCreateTasksChoiceOpen] = useState(false);
+  const [autoPostingDisabled, setAutoPostingDisabled] = useState(false);
   const [createNextChoiceOpen, setCreateNextChoiceOpen] = useState(false);
 
   // Content Writing Modal state
@@ -923,7 +929,26 @@ export default function DataEntryCompleteTasksPanel({
     }
 
     try {
-      const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
+      const assignedToId = selected?.assignedTo?.id || null;
+      const targetAgentId = doneBy;
+      if (targetAgentId && assignedToId !== targetAgentId) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: selected.id,
+            newAgentId: targetAgentId,
+            reassignNotes: "Reassigned to actual performer by data_entry",
+          }),
+        });
+        const jReassign = await rReassign.json();
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error || "Failed to reassign task to selected agent"
+          );
+      }
+
+      const r1 = await fetch(`/api/tasks/agents/${doneBy}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -940,6 +965,13 @@ export default function DataEntryCompleteTasksPanel({
       if (!r1.ok)
         throw new Error(j1?.message || j1?.error || "Failed to complete task");
 
+      const doneByAgent =
+        agents?.find((a) => a.id === doneBy) ||
+        agents?.find((a) => a.email === doneBy) ||
+        null;
+      const doneByName =
+        doneByAgent?.name || doneByAgent?.email || doneBy || "Agent";
+
       const r2 = await fetch(`/api/tasks/${selected.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -948,40 +980,16 @@ export default function DataEntryCompleteTasksPanel({
           completedAt: completedAt.toISOString(),
           actualDurationMinutes: selected.idealDurationMinutes ?? undefined,
           dataEntryReport: {
-            completedByUserId: user.id,
+            completedByUserId: doneBy,
             completedByName:
-              (user as any)?.name || (user as any)?.email || user.id,
+              doneByName,
             completedBy: new Date().toISOString(),
-            status: "Completed by " + (user as any)?.name,
+            status: "Completed by " + doneByName,
           },
         }),
       });
       const j2 = await r2.json();
       if (!r2.ok) throw new Error(j2?.error || "Failed to set completed date");
-
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId,
-          assignments: [
-            {
-              taskId: selected.id,
-              agentId: doneBy,
-              note: "Reassigned to actual performer by data_entry",
-              dueDate: selected.dueDate,
-            },
-          ],
-        } as any;
-        const rDist = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        const jDist = await rDist.json();
-        if (!rDist.ok)
-          throw new Error(
-            jDist?.error || "Failed to reassign task to selected agent"
-          );
-      }
 
       const r3 = await fetch(`/api/tasks/${selected.id}/approve`, {
         method: "PUT",
@@ -1158,6 +1166,15 @@ export default function DataEntryCompleteTasksPanel({
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      const key = `postingTasksDone:${clientId}`;
+      if (clientId && localStorage.getItem(key) === "1") {
+        setAutoPostingDisabled(true);
+      }
+    } catch {}
+  }, [clientId]);
+
   return (
     <div className="space-y-6">
       {/* Statistics Grid */}
@@ -1298,6 +1315,8 @@ export default function DataEntryCompleteTasksPanel({
                       <CreateTasksAuto
                         clientId={clientId}
                         onTaskCreationComplete={handleTaskCreationComplete}
+                        disabled={autoPostingDisabled}
+                        onAlreadyExists={() => setAutoPostingDisabled(true)}
                       />
                     </div>
                     <div className="rounded-lg border p-4">

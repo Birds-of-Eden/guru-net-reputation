@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, RefreshCcw } from "lucide-react";
@@ -19,6 +19,16 @@ export default function CreateNextTask({
   assigneeId,
 }: CreateNextTaskProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    try {
+      const key = `nextTasksDone:${clientId}`;
+      if (clientId && localStorage.getItem(key) === "1") {
+        setIsHidden(true);
+      }
+    } catch {}
+  }, [clientId]);
 
   const createNext = async () => {
     if (!clientId) return;
@@ -49,6 +59,17 @@ export default function CreateNextTask({
         } catch {}
       } else {
         toast.info(json?.message || "No remaining tasks to create.");
+        const msg = String(json?.message || "");
+        if (
+          /no remaining occurrences/i.test(msg) ||
+          /all remaining tasks already exist/i.test(msg) ||
+          /no remaining tasks/i.test(msg)
+        ) {
+          try {
+            localStorage.setItem(`nextTasksDone:${clientId}`, "1");
+          } catch {}
+          setIsHidden(true);
+        }
       }
 
       onCreated?.();
@@ -60,6 +81,8 @@ export default function CreateNextTask({
       setIsLoading(false);
     }
   };
+
+  if (isHidden) return null;
 
   return (
     <Button

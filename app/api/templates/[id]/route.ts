@@ -2,7 +2,6 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { logActivity } from "@/lib/logActivity";
 import { diffChanges } from "@/utils/audit"; // না থাকলে নিচের লোকাল fallback ব্যবহার করো
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";

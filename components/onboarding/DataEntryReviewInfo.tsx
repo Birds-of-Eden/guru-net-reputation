@@ -54,21 +54,23 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
   const { data: pkgData } = useSWR(
     formData.packageId ? `/api/packages/${formData.packageId}` : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
   // Parallel fetch #2: Template
   const { data: tplData } = useSWR(
-    formData.templateId ? `/api/packages/templates/${formData.templateId}` : null,
+    formData.templateId
+      ? `/api/packages/templates/${formData.templateId}`
+      : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
   // Parallel fetch #3: AM users
   const { data: amsData } = useSWR(
     "/api/users?role=am&limit=100",
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000 }
+    { revalidateOnFocus: false, dedupingInterval: 30000 },
   );
 
   // ⚡ OPTIMIZED: Memoize fetched data
@@ -128,15 +130,16 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         { label: "Account Manager", value: fetchedData.amName, icon: User },
         {
           label: "Name Keywords",
-          value: formData.keywords && formData.keywords.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {formData.keywords.map((keyword: string, index: number) => (
-                <Badge key={index} variant="secondary">
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          ) : null,
+          value:
+            formData.keywords && formData.keywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {formData.keywords.map((keyword: string, index: number) => (
+                  <Badge key={index} variant="secondary">
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
+            ) : null,
           icon: User,
         },
       ].filter((item) => item.value),
@@ -257,8 +260,8 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                               title.draftStatus === "Approved"
                                 ? "bg-green-100 text-green-800 border-green-200"
                                 : title.draftStatus === "Revision"
-                                ? "bg-amber-100 text-amber-800 border-amber-200"
-                                : "bg-blue-100 text-blue-800 border-blue-200"
+                                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                                  : "bg-blue-100 text-blue-800 border-blue-200"
                             }
                           >
                             {title.draftStatus}
@@ -306,7 +309,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
     // Filter sections: keep if has items OR has custom render
     return reviewSections.filter(
-      (s) => (s.items && s.items.length > 0) || s.render
+      (s) => (s.items && s.items.length > 0) || s.render,
     );
   }, [formData, fetchedData]);
 
@@ -357,7 +360,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       // Debug: Log article data being sent
       console.log(
         "Submitting client with articleTopics:",
-        clientData.articleTopics
+        clientData.articleTopics,
       );
       console.log("formData.articleCategories:", formData.articleCategories);
       console.log("formData.articleTopics:", formData.articleTopics);
@@ -400,7 +403,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
             toast.success(
               `Template "${
                 fetchedData.templateName || formData.templateId
-              }" assigned successfully!`
+              }" assigned successfully!`,
             );
 
             try {
@@ -409,7 +412,12 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                 createdAssignment?.tasks ||
                 createdAssignment?.data?.tasks ||
                 [];
-              if (Array.isArray(createdTasks) && createdTasks.length > 0) {
+              const unassignedTasks = Array.isArray(createdTasks)
+                ? createdTasks.filter(
+                    (t) => !t?.assignedToId && !t?.assignedTo?.id,
+                  )
+                : [];
+              if (user?.id && unassignedTasks.length > 0) {
                 // Set due date to the package start date
                 const startDateRaw = (formData as any)?.startDate;
                 const packageStartISO = startDateRaw
@@ -422,7 +430,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
                 const distributeBody = {
                   clientId: createdClientId,
-                  assignments: createdTasks.map((t: any) => ({
+                  assignments: unassignedTasks.map((t: any) => ({
                     taskId: t.id,
                     agentId: user?.id,
                     note: "Auto-assigned to creator after onboarding",
@@ -438,27 +446,31 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
                 if (distRes.ok) {
                   toast.success(
-                    `Tasks assigned to ${user?.name} successfully.`
+                    `Tasks assigned to ${user?.name} successfully.`,
                   );
                 } else {
                   const j = await distRes.json().catch(() => ({}));
                   console.error("Distribute failed", j);
                   toast.warning(
-                    "Template assigned but auto-assignment to your user failed."
+                    "Template assigned but auto-assignment to your user failed.",
                   );
                 }
+              } else if (!user?.id) {
+                toast.warning(
+                  "Template assigned but auto-assignment skipped (missing session user).",
+                );
               }
             } catch (e) {
               console.error("Auto-assign to data_entry failed", e);
             }
           } else {
             toast.warning(
-              "Client created but template assignment failed. You can assign it manually later."
+              "Client created but template assignment failed. You can assign it manually later.",
             );
           }
         } catch {
           toast.warning(
-            "Client created but template assignment failed. You can assign it manually later."
+            "Client created but template assignment failed. You can assign it manually later.",
           );
         }
       }
@@ -642,7 +654,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                           {link.url.replace(/^https?:\/\//, "")}
                         </a>
                       </div>
-                    )
+                    ),
                 )}
               </div>
             </ReviewSectionCard>

@@ -165,11 +165,6 @@ export default function CreateTasksManualButton({
         toast.warning("Tasks created, but auto-assignment failed");
       }
 
-      // Set localStorage flag to hide button after creation
-      try {
-        localStorage.setItem(`tasksCreated:${clientId}`, "1");
-      } catch {}
-
       if (onTaskCreationComplete) onTaskCreationComplete();
       setOpen(false);
       window.location.reload();
@@ -180,25 +175,6 @@ export default function CreateTasksManualButton({
       setIsCreating(false);
     }
   };
-
-  // Check localStorage to hide button if tasks already created
-  const [tasksAlreadyCreated, setTasksAlreadyCreated] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== "undefined" && clientId) {
-        const v = localStorage.getItem(`tasksCreated:${clientId}`);
-        setTasksAlreadyCreated(!!v);
-      }
-    } catch {
-      setTasksAlreadyCreated(false);
-    }
-  }, [clientId]);
-
-  // Don't render if tasks already created
-  if (tasksAlreadyCreated) {
-    return null;
-  }
 
   return (
     <>
@@ -235,7 +211,7 @@ export default function CreateTasksManualButton({
               <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
                 <Target className="w-5 h-5 text-white" />
               </div>
-              Task Generator Estiak
+              Task Generator
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Select asset types and specify how many cycles to create. Each cycle

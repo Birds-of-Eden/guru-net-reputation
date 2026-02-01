@@ -1,19 +1,17 @@
 // @ts-nocheck
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Plus,
-  Trash2,
-  Save,
-  UserRound,
-  Search,
   Calendar,
+  CheckCircle2,
   Clock,
-  Package,
-  X,
-  ListOrdered,
   Link as LinkIcon,
+  ListOrdered,
+  Package,
+  Search,
+  UserRound,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -36,7 +34,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import index from "swr";
 
 interface BacklinkingModalProps {
   open: boolean;
@@ -70,8 +67,8 @@ export default function BacklinkingModal({
   const [month, setMonth] = useState("");
   const [quantity, setQuantity] = useState("");
   const [dripPeriod, setDripPeriod] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedAt, setCompletedAt] = useState<Date | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toLocalMiddayISOString = (d: Date) => {
     const local = new Date(d);
@@ -110,11 +107,15 @@ export default function BacklinkingModal({
     setMonth("");
     setQuantity("");
     setDripPeriod("");
+    setCompletedAt(null);
     onOpenChange(false);
   };
 
   const submitBacklinking = async () => {
-    if (!task || !user?.id) return;
+    if (!task || !user?.id) {
+      toast.error("Missing task or user");
+      return;
+    }
     if (!orderDate) {
       toast.error("Please select an order date");
       return;
@@ -138,8 +139,26 @@ export default function BacklinkingModal({
 
     setIsSubmitting(true);
     try {
-      // 1) Mark task as completed without setting completionLink (should remain null)
-      const completionResponse = await fetch(`/api/tasks/agents/${user.id}`, {
+      const assignedToId = (task as any)?.assignedTo?.id || null;
+      if (doneBy && assignedToId !== doneBy) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            newAgentId: doneBy,
+            reassignNotes: "Reassigned to actual performer (backlinking)",
+          }),
+        });
+        const jReassign = await rReassign.json().catch(() => ({}));
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error || "Failed to reassign to selected agent"
+          );
+      }
+
+      // 1) Mark task as completed by selected agent
+      const completionResponse = await fetch(`/api/tasks/agents/${doneBy}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -151,6 +170,13 @@ export default function BacklinkingModal({
       if (!completionResponse.ok)
         throw new Error("Failed to submit backlinking data");
 
+      const doneByAgent =
+        agents.find((a) => a.id === doneBy) ||
+        agents.find((a) => a.email === doneBy) ||
+        null;
+      const doneByName =
+        doneByAgent?.name || doneByAgent?.email || doneBy || "Agent";
+
       // 2) Update task details with backlinking data (saved in Task.backLinking)
       const updateResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
@@ -160,7 +186,7 @@ export default function BacklinkingModal({
           completedAt: completedAt
             ? toLocalMiddayISOString(completedAt)
             : toLocalMiddayISOString(new Date()),
-          actualDurationMinutes: task?.idealDurationMinutes ?? undefined, 
+          actualDurationMinutes: task?.idealDurationMinutes ?? undefined,
           taskCompletionJson: {
             anchorText: anchorText.trim(),
             backlinkingLinks: links.trim(),
@@ -171,39 +197,17 @@ export default function BacklinkingModal({
             doneByAgentId: doneBy || undefined,
           },
           dataEntryReport: {
-            completedByUserId: user.id,
-            completedByName:
-              (user as any)?.name || (user as any)?.email || user.id,
+            completedByUserId: doneBy,
+            completedByName: doneByName,
             completedBy: new Date().toISOString(),
-            status: "Backlinking submitted",
+            status: "Backlinking submitted by " + doneByName,
             doneByAgentId: doneBy || undefined,
           },
         }),
       });
       if (!updateResponse.ok) throw new Error("Failed to update task");
 
-      // 3) Assign actual performer if provided
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId,
-          assignments: [
-            {
-              taskId: task.id,
-              agentId: doneBy,
-              note: "Reassigned to actual performer (backlinking)",
-              dueDate: task.dueDate,
-            },
-          ],
-        };
-        const distRes = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        if (!distRes.ok) throw new Error("Failed to reassign agent");
-      }
-
-      // 4) Approve the task
+      // 3) Approve the task
       const approveRes = await fetch(`/api/tasks/${task.id}/approve`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -239,18 +243,54 @@ export default function BacklinkingModal({
                 <div className="text-sm font-semibold uppercase tracking-wider text-white/80 mb-1">
                   Submit Backlinking
                 </div>
-                <div className="text-white font-black text-xl truncate">
-                  {task?.name}
+                <div className="flex items-center justify-between">
+                  <div className="text-white font-black text-xl truncate flex-1">
+                    {task?.name}
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
+                    <Clock className="h-4 w-4 text-white/80" />
+                    <span className="text-white font-mono font-bold text-sm">
+                      00:00
+                    </span>
+                  </div>
                 </div>
               </div>
             </DialogTitle>
             <DialogDescription className="text-white/90 text-sm pt-2 pl-16 font-medium">
-              Add backlink URLs and provide order details. This task will be auto-approved upon submission.
+              Add backlink URLs and provide order details. This task will be
+              auto-approved upon submission.
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="px-6 pb-6 space-y-6">
+          {/* Timer Display */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500 p-2 rounded-xl">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide">
+                    Time Tracking
+                  </h3>
+                  <p className="text-xs text-blue-600 font-medium">
+                    Time spent on this completion
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-mono font-black text-blue-700">
+                  00:00
+                </div>
+                <div className="text-xs text-blue-600 font-medium">
+                  0 minutes
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Anchor Text Section */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
@@ -260,10 +300,10 @@ export default function BacklinkingModal({
               Anchor Text
             </label>
             <textarea
-              placeholder="Enter anchor text used for these backlinks"
+              placeholder="Paste anchor text (plain text). Use commas or new lines; we'll save it as text."
               value={anchorText}
               onChange={(e) => setAnchorText(e.target.value)}
-              className="rounded-2xl h-12 border-2 border-emerald-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 text-base font-medium px-4"
+              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all"
               rows={8}
             />
           </div>
@@ -320,20 +360,15 @@ export default function BacklinkingModal({
               {/* Month Selection */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                  Month Selection *
+                  Month *
                 </label>
-                <Select value={month} onValueChange={setMonth}>
-                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium">
-                    <SelectValue placeholder="Select month..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["M1", "M2", "M3", "M4"].map((m) => (
-                      <SelectItem key={m} value={m}>
-                        {m}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="text"
+                  placeholder="e.g. M1, M2, M3, M4"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-base font-medium px-5"
+                />
               </div>
 
               {/* Quantity */}
@@ -341,18 +376,13 @@ export default function BacklinkingModal({
                 <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
                   Quantity *
                 </label>
-                <Select value={quantity} onValueChange={setQuantity}>
-                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium">
-                    <SelectValue placeholder="Select quantity..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["200", "500", "1000"].map((q) => (
-                      <SelectItem key={q} value={q}>
-                        {q}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="text"
+                  placeholder="e.g. 200, 500, 1000"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-base font-medium px-5"
+                />
               </div>
 
               {/* Drip Period */}
@@ -464,7 +494,7 @@ export default function BacklinkingModal({
           <Button
             variant="outline"
             onClick={closeModal}
-            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
+            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
             disabled={isSubmitting}
           >
             <X className="h-5 w-5 mr-2" />
@@ -473,10 +503,10 @@ export default function BacklinkingModal({
           <Button
             onClick={submitBacklinking}
             disabled={isSubmitting || !doneBy || !completedAt}
-            className="ml-2 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
+            className="ml-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
           >
-            <Save className="h-5 w-5 mr-2" />
-            {isSubmitting ? "Submitting..." : "Submit Backlinking"}
+            <CheckCircle2 className="h-5 w-5 mr-2" />
+            {isSubmitting ? "Submitting..." : "Submit Completion (00:00)"}
           </Button>
         </DialogFooter>
       </DialogContent>

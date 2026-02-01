@@ -9,7 +9,7 @@ import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
-import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
 
 // ---------- Constants ----------
 const PREREQ_ASSET_TYPES = [
@@ -88,7 +88,7 @@ function normalizeTaskPriority(v: unknown): TaskPriority {
 
 function resolveCategoryFromType(
   assetType: string | undefined,
-  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  assetTypeMap: Map<string, AssetTypeRecord>,
   fallbackMap: Record<string, string>
 ): string {
   return resolveCategoryFromMap(

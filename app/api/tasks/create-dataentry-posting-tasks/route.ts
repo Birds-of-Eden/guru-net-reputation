@@ -291,7 +291,15 @@ export async function POST(req: NextRequest) {
         where: {
           assignmentId: assignment.id,
           status: "qc_approved",
-          templateSiteAsset: { is: { type: { in: requestedTypes } } },
+          templateSiteAsset: {
+            is: {
+              type: { in: requestedTypes },
+              OR: [
+                { defaultPostingFrequency: null },
+                { defaultPostingFrequency: { gt: 0 } },
+              ],
+            },
+          },
         },
         select: {
           id: true,
@@ -303,7 +311,9 @@ export async function POST(req: NextRequest) {
           password: true,
           username: true,
           notes: true,
-          templateSiteAsset: { select: { type: true, name: true } },
+          templateSiteAsset: {
+            select: { type: true, name: true, defaultPostingFrequency: true },
+          },
         },
       });
 
@@ -478,7 +488,14 @@ export async function POST(req: NextRequest) {
         where: {
           assignmentId: assignment.id,
           status: "qc_approved",
-          templateSiteAsset: { isNot: null },
+          templateSiteAsset: {
+            is: {
+              OR: [
+                { defaultPostingFrequency: null },
+                { defaultPostingFrequency: { gt: 0 } },
+              ],
+            },
+          },
         },
         select: {
           id: true,
@@ -490,7 +507,9 @@ export async function POST(req: NextRequest) {
           password: true,
           username: true,
           notes: true,
-          templateSiteAsset: { select: { type: true, name: true } },
+          templateSiteAsset: {
+            select: { type: true, name: true, defaultPostingFrequency: true },
+          },
         },
       });
 
@@ -681,9 +700,21 @@ export async function GET(req: NextRequest) {
       where: {
         assignmentId: assignment.id,
         status: "qc_approved",
-        templateSiteAsset: { isNot: null },
+        templateSiteAsset: {
+          is: {
+            OR: [
+              { defaultPostingFrequency: null },
+              { defaultPostingFrequency: { gt: 0 } },
+            ],
+          },
+        },
       },
-      select: { id: true, templateSiteAsset: { select: { type: true } } },
+      select: {
+        id: true,
+        templateSiteAsset: {
+          select: { type: true, defaultPostingFrequency: true },
+        },
+      },
     });
 
     const byType: Record<string, number> = {};

@@ -7,7 +7,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
-import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import {
+  fetchAssetTypeMap,
+  resolveCategoryFromMap,
+  type AssetTypeRecord,
+} from "@/lib/asset-types.server";
 
 // ================== CONSTANTS ==================
 type AssetTypeSlug = string;
@@ -77,7 +81,7 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
 
 function resolveCategoryFromType(
   assetType: string | null | undefined,
-  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  assetTypeMap: Map<string, AssetTypeRecord>,
   fallbackMap: Record<string, string>
 ): string {
   return resolveCategoryFromMap(
