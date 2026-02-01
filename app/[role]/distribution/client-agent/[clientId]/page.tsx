@@ -142,22 +142,6 @@ const TEAM_NAME_BY_ID: Record<string, string> = {
   "qc-team": "QC Team",
 };
 
-// ✅ Dropdown options (Asset Creation, then new posting categories)
-const CATEGORY_LABELS = [
-  "Graphics Design",
-  "Asset Creation",
-  "Image Optimization",
-  ...POSTING_CATEGORIES,
-  "Content Studio",
-  "Content Writing",
-  "Backlinks",
-  "Completed Communication",
-  "YouTube Video Optimization",
-  "Monitoring",
-  "Review Removal",
-  "Summary Report",
-  "Guest Posting",
-];
 
 // OPTIMIZATION (virtual batching): cap initial DOM work to manageable slices.
 const TASK_BATCH_SIZE = 40;
@@ -480,8 +464,8 @@ export default function TaskDistributionForClient() {
 
   // Agent lists + source toggle via SWR
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("Graphics Design");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
 
   const {
     data: teamAgents = [],
@@ -496,6 +480,18 @@ export default function TaskDistributionForClient() {
       refreshInterval: 60000,
     },
   );
+type TaskCategoryApiRow = {
+  id: string;
+  name: string;
+  tasks?: any[];
+};
+
+const { data: dbCategories = [], isLoading: categoriesLoading } = useSWR<
+  TaskCategoryApiRow[]
+>(clientId ? "/api/task-categories" : null, jsonFetcher, {
+  revalidateOnFocus: false,
+  dedupingInterval: 60000,
+});
 
   const {
     data: allAgents = [],
@@ -1005,13 +1001,41 @@ export default function TaskDistributionForClient() {
     [allTasks],
   );
 
-  const categoryLabels = useMemo(() => {
-    const base = CATEGORY_LABELS.slice();
-    const extras = Object.keys(statsByCategory)
-      .filter((k) => !base.includes(k))
-      .sort((a, b) => a.localeCompare(b));
-    return [...base, ...extras];
-  }, [statsByCategory]);
+const HIDDEN_CATEGORY_NAMES = new Set([
+  "Web 2.0 Asset Creation",
+  "Additional Asset Creation",
+  "Social Asset Creation",
+]);
+
+const categoryLabels = useMemo(() => {
+  const base = (dbCategories ?? [])
+    .map((c) => String(c?.name ?? "").trim())
+    .filter(Boolean)
+    .filter((name) => !HIDDEN_CATEGORY_NAMES.has(name));
+
+  const extras = Object.keys(statsByCategory)
+    .filter((k) => !base.includes(k))
+    .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k))
+    .sort((a, b) => a.localeCompare(b));
+
+  // Merge + de-dupe
+  const merged = Array.from(new Set([...base, ...extras]));
+
+  // ✅ Force "Asset Creation" to top
+  const ASSET_CREATION = "Asset Creation";
+  const withoutAsset = merged.filter((x) => x !== ASSET_CREATION);
+  const hasAsset = merged.includes(ASSET_CREATION);
+
+  return hasAsset ? [ASSET_CREATION, ...withoutAsset] : withoutAsset;
+}, [dbCategories, statsByCategory]);
+
+
+useEffect(() => {
+  if (!selectedCategory) {
+    const first = categoryLabels[0] ?? "Graphics Design";
+    setSelectedCategory(first);
+  }
+}, [categoryLabels, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
