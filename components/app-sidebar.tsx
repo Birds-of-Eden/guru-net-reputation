@@ -82,7 +82,7 @@ type NavLeaf = {
 
 type NavGroup = {
   title: string;
-  children: NavLeaf[];
+  children: NavItem[];
 };
 
 type NavItem = NavLeaf | NavGroup;
@@ -112,6 +112,7 @@ const ICONS: Record<string, React.ReactNode> = {
   Packages: <Package className="h-4 w-4" strokeWidth={1.75} />,
   "All Package": <Boxes className="h-4 w-4" strokeWidth={1.75} />,
   Template: <FileText className="h-4 w-4" strokeWidth={1.75} />,
+  "Asset Types": <GalleryVerticalEnd className="h-4 w-4" strokeWidth={1.75} />,
   sales: <LineChart className="h-4 w-4" strokeWidth={1.75} />,
 
   // Reports
@@ -136,6 +137,8 @@ const ICONS: Record<string, React.ReactNode> = {
   "Team Management": <Users className="h-4 w-4" strokeWidth={1.75} />,
   "User Management": <UserCircle className="h-4 w-4" strokeWidth={1.75} />,
   "Role Permissions": <Key className="h-4 w-4" strokeWidth={1.75} />,
+  Settings: <Settings className="h-4 w-4" strokeWidth={1.75} />,
+  Configuration: <FolderTree className="h-4 w-4" strokeWidth={1.75} />,
 
   // QC
   QC: <ShieldCheck className="h-4 w-4" strokeWidth={1.75} />,
@@ -399,6 +402,22 @@ function buildNav(role: Role): NavItem[] {
       url: p(r, "/activity"),
       permission: "view_activity_logs",
     },
+    // Settings -> Configuration -> Asset Types
+    {
+      title: "Settings",
+      children: [
+        {
+          title: "Configuration",
+          children: [
+            {
+              title: "Asset Types",
+              url: p(r, "/asset-types"),
+              permission: "asset_type_manage",
+            },
+          ],
+        },
+      ],
+    },
 
     // Notifications
     {
@@ -424,6 +443,29 @@ function isGroup(item: NavItem): item is NavGroup {
   return (item as NavGroup).children !== undefined;
 }
 
+function groupHasActive(item: NavGroup, active: (url: string) => boolean): boolean {
+  return item.children.some((child) =>
+    isGroup(child) ? groupHasActive(child, active) : active(child.url)
+  );
+}
+
+function collectLeafUrls(item: NavItem): string[] {
+  if (isGroup(item)) return item.children.flatMap((child) => collectLeafUrls(child));
+  return [item.url];
+}
+
+function collectExpandedGroups(
+  item: NavItem,
+  active: (url: string) => boolean,
+  out: Set<string>
+) {
+  if (!isGroup(item)) return;
+  if (groupHasActive(item, active)) out.add(item.title);
+  for (const child of item.children) {
+    if (isGroup(child)) collectExpandedGroups(child, active, out);
+  }
+}
+
 function normalizePath(u: string) {
   const noQ = u.replace(/[?#].*$/, "");
   return noQ !== "/" ? noQ.replace(/\/+$/, "") : "/";
@@ -443,16 +485,17 @@ function filterNavByAccess(
 ) {
   const hasPerm = (perm?: string) =>
     !perm ? true : !!permissionSet?.has(perm);
-  return items
-    .map((it) => {
-      if (isGroup(it)) {
-        const kids = it.children.filter((c) => hasPerm(c.permission));
-        if (kids.length === 0) return null;
-        return { ...it, children: kids } as NavGroup;
-      }
-      return hasPerm(it.permission) ? it : null;
-    })
-    .filter(Boolean) as NavItem[];
+  const filterItem = (item: NavItem): NavItem | null => {
+    if (isGroup(item)) {
+      const kids = item.children
+        .map(filterItem)
+        .filter(Boolean) as NavItem[];
+      if (kids.length === 0) return null;
+      return { ...item, children: kids } as NavGroup;
+    }
+    return hasPerm(item.permission) ? item : null;
+  };
+  return items.map(filterItem).filter(Boolean) as NavItem[];
 }
 
 /* =========================
@@ -604,12 +647,15 @@ export function AppSidebar({ className }: { className?: string }) {
   }, [isMobile]);
 
   React.useEffect(() => {
-    const next: Record<string, boolean> = {};
+    const expandedGroups = new Set<string>();
     for (const item of visibleNav) {
-      if (isGroup(item) && item.children.some((c) => active(c.url))) {
-        next[item.title] = true;
-      }
+      collectExpandedGroups(item, active, expandedGroups);
     }
+    if (expandedGroups.size === 0) return;
+    const next: Record<string, boolean> = {};
+    expandedGroups.forEach((title) => {
+      next[title] = true;
+    });
     setExpanded((prev) => ({ ...prev, ...next }));
   }, [visibleNav, active]);
 
@@ -694,7 +740,7 @@ export function AppSidebar({ className }: { className?: string }) {
               ) : (
                 visibleNav.map((item, idx) => {
                   if (isGroup(item)) {
-                    const childKeys = item.children.map((c) => c.url).join("|");
+                    const childKeys = collectLeafUrls(item).join("|");
                     return (
                       <MobileItem
                         key={`group:${item.title}:${childKeys}:${idx}`}
@@ -788,7 +834,7 @@ export function AppSidebar({ className }: { className?: string }) {
             ) : (
               visibleNav.map((item, idx) => {
                 if (isGroup(item)) {
-                  const childKeys = item.children.map((c) => c.url).join("|");
+                  const childKeys = collectLeafUrls(item).join("|");
                   return (
                     <GroupItem
                       key={`group:${item.title}:${childKeys}:${idx}`}
@@ -843,18 +889,21 @@ function GroupItem({
   expanded,
   setExpanded,
   chatUnread,
+  depth = 0,
 }: {
   item: NavGroup;
   active: (url: string) => boolean;
   expanded: Record<string, boolean>;
   setExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   chatUnread?: number;
+  depth?: number;
 }) {
-  const isActive = item.children.some((c) => active(c.url));
+  const isActive = groupHasActive(item, active);
   const open = !!expanded[item.title];
+  const childIndent = depth > 0 ? "ml-4" : "ml-6";
 
   return (
-    <div className="space-y-1">
+    <div className={cn("space-y-1", depth > 0 && "ml-4")}>
       <motion.button
         type="button"
         onClick={() =>
@@ -910,16 +959,28 @@ function GroupItem({
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="ml-6 space-y-1"
+            className={cn(childIndent, "space-y-1")}
           >
-            {item.children.map((child) => (
-              <LeafItem
-                key={`leaf:${child.url}`}
-                item={child}
-                active={active}
-                chatUnread={chatUnread}
-              />
-            ))}
+            {item.children.map((child, idx) =>
+              isGroup(child) ? (
+                <GroupItem
+                  key={`group:${child.title}:${idx}`}
+                  item={child}
+                  active={active}
+                  expanded={expanded}
+                  setExpanded={setExpanded}
+                  chatUnread={chatUnread}
+                  depth={depth + 1}
+                />
+              ) : (
+                <LeafItem
+                  key={`leaf:${child.url}`}
+                  item={child}
+                  active={active}
+                  chatUnread={chatUnread}
+                />
+              )
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -987,7 +1048,7 @@ function MobileItem({
   if (!isGroup(item))
     return <LeafItem item={item} active={active} chatUnread={chatUnread} />;
   const open = !!expanded[item.title];
-  const isActive = item.children.some((c) => active(c.url));
+  const isActive = groupHasActive(item, active);
   return (
     <div className="rounded-lg border border-gray-200/60 overflow-hidden mb-1">
       <button
@@ -1024,14 +1085,26 @@ function MobileItem({
             className="bg-white"
           >
             <div className="px-3 py-2 space-y-1">
-              {item.children.map((c) => (
-                <LeafItem
-                  key={`leaf:${c.url}`}
-                  item={c}
-                  active={active}
-                  chatUnread={chatUnread}
-                />
-              ))}
+              {item.children.map((child, idx) =>
+                isGroup(child) ? (
+                  <MobileItem
+                    key={`group:${child.title}:${idx}`}
+                    item={child}
+                    active={active}
+                    role={role}
+                    expanded={expanded}
+                    setExpanded={setExpanded}
+                    chatUnread={chatUnread}
+                  />
+                ) : (
+                  <LeafItem
+                    key={`leaf:${child.url}`}
+                    item={child}
+                    active={active}
+                    chatUnread={chatUnread}
+                  />
+                )
+              )}
             </div>
           </motion.div>
         )}

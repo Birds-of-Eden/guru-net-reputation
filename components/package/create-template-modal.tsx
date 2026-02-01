@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth-context";
+import { hasPermissionClient } from "@/lib/permissions-client";
+import {
+  formatAssetTypeLabel,
+  normalizeAssetTypeSlug,
+  slugifyAssetType,
+} from "@/lib/asset-types";
+import type { AssetTypeOption } from "@/types/asset-types";
 import {
   DEFAULT_SOCIAL_SITES,
   DEFAULT_WEB2_SITES,
@@ -106,6 +113,11 @@ export function CreateTemplateModal({
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const { user } = useAuth();
+  const canManageAssetTypes = hasPermissionClient(
+    user?.permissions,
+    "asset_type_manage"
+  );
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([]);
 
   // Basic fields
   const [name, setName] = useState("");
@@ -137,12 +149,13 @@ export function CreateTemplateModal({
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
   const [newTypeError, setNewTypeError] = useState("");
+  const [creatingType, setCreatingType] = useState(false);
 
   // Dynamic enabled types for steps (after Basic Info)
-  const ALL_TYPES: SiteAssetTypeTS[] = [
+  const FALLBACK_TYPES: SiteAssetTypeTS[] = [
     "social_site",
     "web2_site",
-    "additional_site",
+    "other_asset",
     "graphics_design",
     "image_optimization",
     "content_studio",
@@ -155,6 +168,21 @@ export function CreateTemplateModal({
     "summary_report",
     "guest_posting",
   ];
+  const allTypes = useMemo(
+    () =>
+      (assetTypes.length ? assetTypes.map((t) => t.slug) : FALLBACK_TYPES) as
+        SiteAssetTypeTS[],
+    [assetTypes],
+  );
+
+  const labelBySlug = useMemo(
+    () =>
+      assetTypes.reduce<Record<string, string>>((acc, t) => {
+        acc[t.slug] = t.label;
+        return acc;
+      }, {}),
+    [assetTypes],
+  );
 
   const TYPE_CONFIG: Record<
     SiteAssetTypeTS,
@@ -170,7 +198,7 @@ export function CreateTemplateModal({
       colorClass: "bg-purple-500",
       icon: <Globe className="w-5 h-5" />,
     },
-    additional_site: {
+    other_asset: {
       title: "Additional Sites",
       colorClass: "bg-green-500",
       icon: <Sparkles className="w-5 h-5" />,
@@ -233,13 +261,7 @@ export function CreateTemplateModal({
   };
 
   const [enabledTypes, setEnabledTypes] =
-    useState<SiteAssetTypeTS[]>(ALL_TYPES);
-
-  const slugify = (name: string) =>
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
+    useState<SiteAssetTypeTS[]>(allTypes);
 
   const steps = [
     {
@@ -250,9 +272,11 @@ export function CreateTemplateModal({
     },
     ...enabledTypes.map((t) => {
       const cfg = TYPE_CONFIG[t];
-      const title = cfg
-        ? cfg.title
-        : t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const title =
+        labelBySlug[t] ||
+        (cfg
+          ? cfg.title
+          : t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()));
       return {
         id: t,
         title,
@@ -282,7 +306,7 @@ export function CreateTemplateModal({
 
         const assets = initialData.sitesAssets ?? [];
         const pick = (t: SiteAssetTypeTS) =>
-          assets.filter((a) => a.type === t) as SiteAsset[];
+          assets.filter((a) => normalizeAssetTypeSlug(a.type) === t) as SiteAsset[];
 
         setSocialSites(
           pick("social_site").length
@@ -295,9 +319,9 @@ export function CreateTemplateModal({
             : DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")),
         );
         setAdditionalSites(
-          pick("additional_site").length
-            ? pick("additional_site")
-            : DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site")),
+          pick("other_asset").length
+            ? pick("other_asset")
+            : DEFAULT_ADDITIONAL_SITES.map(mapDefaults("other_asset")),
         );
         setGraphicsDesign(
           pick("graphics_design").length
@@ -369,18 +393,21 @@ export function CreateTemplateModal({
         // Enable types which have assets in initial data
         const presentTypes = Array.from(
           new Set(
-            (assets as SiteAsset[]).map((a) => a.type as SiteAssetTypeTS),
+            (assets as SiteAsset[]).map((a) =>
+              normalizeAssetTypeSlug(a.type) as SiteAssetTypeTS
+            ),
           ),
         );
-        setEnabledTypes(presentTypes.length ? presentTypes : ALL_TYPES);
+        setEnabledTypes(presentTypes.length ? presentTypes : allTypes);
 
-        // Populate custom type lists for unknown types
-        const unknownTypes = presentTypes.filter((t) => !ALL_TYPES.includes(t));
-        if (unknownTypes.length) {
+        // Populate custom type lists for types not handled by fixed state lists
+        const fixedTypeSet = new Set(FALLBACK_TYPES);
+        const customPresentTypes = presentTypes.filter((t) => !fixedTypeSet.has(t));
+        if (customPresentTypes.length) {
           const map: Record<string, SiteAsset[]> = {};
-          for (const t of unknownTypes) {
+          for (const t of customPresentTypes) {
             map[t] = (assets as SiteAsset[]).filter(
-              (a) => a.type === t,
+              (a) => normalizeAssetTypeSlug(a.type) === t,
             ) as SiteAsset[];
           }
           setCustomTypes(map);
@@ -394,6 +421,26 @@ export function CreateTemplateModal({
     }
   }, [isOpen, isEditMode, initialData]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch("/api/asset-types");
+        const data = await res.json();
+        setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : []);
+      } catch (error) {
+        console.error("Failed to load asset types:", error);
+      }
+    };
+    fetchAssetTypes();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (isEditMode && initialData) return;
+    setEnabledTypes(allTypes);
+  }, [allTypes, isOpen, isEditMode, initialData]);
+
   const initializeDefaultAssets = () => {
     setName("");
     setDescription("");
@@ -402,7 +449,7 @@ export function CreateTemplateModal({
     setSocialSites(DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")));
     setWeb2Sites(DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")));
     setAdditionalSites(
-      DEFAULT_ADDITIONAL_SITES.map(mapDefaults("additional_site")),
+      DEFAULT_ADDITIONAL_SITES.map(mapDefaults("other_asset")),
     );
     setGraphicsDesign(
       DEFAULT_GRAPHICS_DESIGN.map(mapDefaults("graphics_design")),
@@ -435,7 +482,7 @@ export function CreateTemplateModal({
     setReviewRemoval(DEFAULT_REVIEW_REMOVAL.map(mapDefaults("review_removal")));
     setSummaryReport(DEFAULT_SUMMARY_REPORT.map(mapDefaults("summary_report")));
     setMonthlyReport(DEFAULT_guest_posting.map(mapDefaults("guest_posting")));
-    setEnabledTypes(ALL_TYPES);
+    setEnabledTypes(allTypes);
     setCustomTypes({});
   };
 
@@ -453,7 +500,7 @@ export function CreateTemplateModal({
         return [socialSites, setSocialSites];
       case "web2_site":
         return [web2Sites, setWeb2Sites];
-      case "additional_site":
+      case "other_asset":
         return [additionalSites, setAdditionalSites];
       case "graphics_design":
         return [graphicsDesign, setGraphicsDesign];
@@ -532,6 +579,63 @@ export function CreateTemplateModal({
   const prevStep = () => currentStep > 0 && setCurrentStep(currentStep - 1);
   const canProceed = () => (currentStep === 0 ? name.trim().length > 0 : true);
 
+  const handleCreateType = async () => {
+    if (!canManageAssetTypes) {
+      setNewTypeError("You do not have permission to add asset types");
+      return;
+    }
+    const label = newTypeName.trim();
+    if (!label) {
+      setNewTypeError("Type name is required");
+      return;
+    }
+    const slug = normalizeAssetTypeSlug(slugifyAssetType(label));
+    if (!slug) {
+      setNewTypeError("Invalid type name");
+      return;
+    }
+
+    setCreatingType(true);
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (user?.id && user.id.trim() !== "") {
+        headers["x-actor-id"] = user.id.trim();
+      }
+
+      const res = await fetch("/api/asset-types", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ label, slug }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        setNewTypeError(error.message || "Failed to create type");
+        return;
+      }
+
+      const created = await res.json();
+      setAssetTypes((prev) => {
+        const next = [...prev, created];
+        return next.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      });
+      setEnabledTypes((prev) =>
+        prev.includes(created.slug) ? prev : [...prev, created.slug]
+      );
+      setNewTypeName("");
+      setNewTypeError("");
+      setShowAddTypeModal(false);
+      toast.success("Asset type created");
+    } catch (error) {
+      console.error("Create type error:", error);
+      setNewTypeError("Failed to create type");
+    } finally {
+      setCreatingType(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -542,6 +646,14 @@ export function CreateTemplateModal({
     setLoading(true);
     try {
       // Collect all lists
+      const customSiteAssets = Object.entries(customTypes).flatMap(
+        ([type, list]) =>
+          list.map((site) => ({
+            ...site,
+            type: site.type ? site.type : type,
+          })),
+      );
+
       const allSiteAssets = [
         socialSites,
         web2Sites,
@@ -557,17 +669,23 @@ export function CreateTemplateModal({
         reviewRemoval,
         summaryReport,
         monthlyReport,
+        customSiteAssets,
       ]
         .flat()
         .filter((site) => site.name.trim())
-        .filter((site) => enabledTypes.includes(site.type));
+        .filter((site) => enabledTypes.includes(normalizeAssetTypeSlug(site.type)));
+
+      const normalizedAssets = allSiteAssets.map((site) => ({
+        ...site,
+        type: normalizeAssetTypeSlug(site.type),
+      }));
 
       const templateData = {
         name: name.trim(),
         description: description.trim() || null,
         status,
         packageId,
-        sitesAssets: allSiteAssets,
+        sitesAssets: normalizedAssets,
       };
 
       const url =
@@ -836,7 +954,7 @@ export function CreateTemplateModal({
     const type = steps[currentStep].id as SiteAssetTypeTS;
     const [list] = getListAndSetter(type);
     const cfg = TYPE_CONFIG[type] || {
-      title: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      title: labelBySlug[type] || formatAssetTypeLabel(type),
       colorClass: "bg-gray-500",
       icon: <FileBarChart className="w-5 h-5" />,
     };
@@ -923,13 +1041,28 @@ export function CreateTemplateModal({
               <ChevronLeft className="w-4 h-4" />
               Previous
             </Button>
+
+            {canManageAssetTypes ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setNewTypeError("");
+                  setShowAddTypeModal(true);
+                }}
+                className="border-dashed bg-purple-500 hover:bg-purple-600 text-white hover:text-white"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Add Type
+              </Button>
+            ) : null}
             
             {/* Add and Reset buttons - only show on site asset steps */}
             {(() => {
               if (currentStep === 0) return null;
               const type = steps[currentStep].id as SiteAssetTypeTS;
               const cfg = TYPE_CONFIG[type] || {
-                title: type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+                title: labelBySlug[type] || formatAssetTypeLabel(type),
               };
               return (
                 <>
@@ -1056,6 +1189,14 @@ export function CreateTemplateModal({
               onClick={() => setShowAddTypeModal(false)}
             >
               Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreateType}
+              disabled={creatingType}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {creatingType ? "Creating..." : "Create Type"}
             </Button>
           </div>
         </DialogContent>

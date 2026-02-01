@@ -2,32 +2,10 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { SiteAssetType } from "@prisma/client";
+import { normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap } from "@/lib/asset-types.server";
 
 // --- Helpers -----------------------------------------------------------------
-
-/** Map frontend type string -> Prisma enum (covers ALL types) */
-const mapSiteAssetType = (frontendType: string): SiteAssetType => {
-  const m: Record<string, SiteAssetType> = {
-    social_site: SiteAssetType.social_site,
-    web2_site: SiteAssetType.web2_site,
-    additional_site: SiteAssetType.other_asset, // front uses 'additional_site' → DB 'other_asset'
-    image_optimization: SiteAssetType.image_optimization,
-
-    graphics_design: SiteAssetType.graphics_design,
-    content_studio: SiteAssetType.content_studio,
-    content_writing: SiteAssetType.content_writing,
-    backlinks: SiteAssetType.backlinks,
-    completed_com: SiteAssetType.completed_com,
-    youtube_video_optimization: SiteAssetType.youtube_video_optimization,
-    monitoring: SiteAssetType.monitoring,
-    review_removal: SiteAssetType.review_removal,
-    summary_report: SiteAssetType.summary_report,
-    guest_posting: SiteAssetType.guest_posting,
-  };
-
-  return m[frontendType as keyof typeof m] ?? SiteAssetType.other_asset;
-};
 
 /** Minimal template snapshot for logging */
 const sanitizeTemplate = (t: any) => {
@@ -91,11 +69,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Normalize and validate site assets (COVERS ALL TYPES)
-    const validSitesAssets = dedupeByTypeAndName(
+    const assetTypeMap = await fetchAssetTypeMap();
+    if (!assetTypeMap.size) {
+      return NextResponse.json(
+        { message: "No asset types configured. Seed AssetType first." },
+        { status: 500 }
+      );
+    }
+
+    const fallbackType =
+      assetTypeMap.has("other_asset")
+        ? "other_asset"
+        : assetTypeMap.keys().next().value;
+
+    const normalizedAssets = dedupeByTypeAndName(
       (sitesAssets as any[]).filter((a) => a?.name && String(a.name).trim())
-    ).map((asset: any) => ({
-      type: mapSiteAssetType(String(asset.type ?? "other_asset")),
+    ).map((asset: any) => {
+      const normalizedType = normalizeAssetTypeSlug(
+        String(asset.type ?? fallbackType)
+      );
+      return { asset, normalizedType };
+    });
+
+    const invalidTypes = normalizedAssets
+      .filter((a) => !a.normalizedType || !assetTypeMap.has(a.normalizedType))
+      .map((a) => a.normalizedType || String(a.asset?.type ?? ""))
+      .filter(Boolean);
+
+    if (invalidTypes.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Invalid site asset type(s) provided",
+          invalidTypes: Array.from(new Set(invalidTypes)),
+        },
+        { status: 400 }
+      );
+    }
+
+    // Normalize and validate site assets (dynamic)
+    const validSitesAssets = normalizedAssets.map(({ asset, normalizedType }) => ({
+      type: normalizedType,
       name: String(asset.name).trim(),
       url: asset.url?.trim() || null,
       description: asset.description?.trim() || null,
@@ -127,7 +140,9 @@ export async function POST(request: NextRequest) {
         },
         include: {
           package: true,
-          sitesAssets: true,
+          sitesAssets: {
+            include: { assetType: { select: { slug: true, label: true } } },
+          },
           templateTeamMembers: {
             include: {
               agent: { select: { id: true, name: true, email: true } },

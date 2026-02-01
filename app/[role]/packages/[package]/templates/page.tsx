@@ -30,8 +30,6 @@ import {
   X,
   RotateCcw,
   Users,
-  Globe,
-  Share2,
   Eye,
   Sparkles,
   TrendingUp,
@@ -48,10 +46,12 @@ import { TemplateViewModal } from "@/components/package/Template-View-Modal";
 import { AssignTemplateModal } from "@/components/package/assign-template-modal";
 import { toast } from "sonner";
 import DangerDeleteTemplateModal from "@/components/package/DangerDeleteTemplateModal";
+import type { AssetTypeOption } from "@/types/asset-types";
+import { formatAssetTypeLabel, normalizeAssetTypeSlug } from "@/lib/asset-types";
 
 interface TemplateSiteAsset {
   id: number;
-  type: "social_site" | "web2_site" | "other_asset";
+  type: string;
   name: string;
   url?: string;
   description?: string;
@@ -163,6 +163,28 @@ export default function TemplateListPage() {
   );
 
   const packageName = packageData?.name || (packageError ? "Package Not Found" : "Loading...");
+
+  // Fetch asset types (for dynamic labels + ordering)
+  const { data: assetTypeData } = useSWR<{ assetTypes: AssetTypeOption[] }>(
+    "/api/asset-types",
+    jsonFetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  const assetTypes = assetTypeData?.assetTypes ?? [];
+
+  const assetTypeOrder = useMemo(() => {
+    const map = new Map<string, number>();
+    assetTypes.forEach((t) => map.set(t.slug, t.sortOrder ?? 0));
+    return map;
+  }, [assetTypes]);
+
+  const labelBySlug = useMemo(() => {
+    const map: Record<string, string> = {};
+    assetTypes.forEach((t) => {
+      map[t.slug] = t.label;
+    });
+    return map;
+  }, [assetTypes]);
 
   // Fetch templates
   const {
@@ -341,19 +363,19 @@ export default function TemplateListPage() {
     );
   });
 
-  // Get site statistics for a template
-  const getTemplateStats = (template: Template) => {
-    const socialSites =
-      template.sitesAssets?.filter((site) => site.type === "social_site")
-        .length || 0;
-    const web2Sites =
-      template.sitesAssets?.filter((site) => site.type === "web2_site")
-        .length || 0;
-    const otherAssets =
-      template.sitesAssets?.filter((site) => site.type === "other_asset")
-        .length || 0;
-
-    return { socialSites, web2Sites, otherAssets };
+  // Get type counts for a template (dynamic)
+  const getTemplateTypeEntries = (template: Template) => {
+    const counts: Record<string, number> = {};
+    for (const site of template.sitesAssets ?? []) {
+      const normalized = normalizeAssetTypeSlug(site.type) || site.type;
+      counts[normalized] = (counts[normalized] || 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => {
+      const orderA = assetTypeOrder.get(a[0]) ?? 0;
+      const orderB = assetTypeOrder.get(b[0]) ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return a[0].localeCompare(b[0]);
+    });
   };
 
   if (loading) {
@@ -608,7 +630,7 @@ export default function TemplateListPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredTemplates.map((template) => {
-              const stats = getTemplateStats(template);
+              const typeEntries = getTemplateTypeEntries(template);
               // Detect if this is a customized template
               const isCustomized = template.description?.includes("Custom template for client:") || false;
               const isMainTemplate = !isCustomized;
@@ -728,40 +750,20 @@ export default function TemplateListPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                          <div className="flex items-center justify-center gap-1 text-blue-600 mb-1">
-                            <Share2 className="w-3 h-3" />
-                          </div>
-                          <div className="text-lg font-bold text-blue-900">
-                            {stats.socialSites}
-                          </div>
-                          <div className="text-xs text-blue-700 font-medium">
-                            Social
-                          </div>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                          <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
-                            <Globe className="w-3 h-3" />
-                          </div>
-                          <div className="text-lg font-bold text-green-900">
-                            {stats.web2Sites}
-                          </div>
-                          <div className="text-xs text-green-700 font-medium">
-                            Web 2.0
-                          </div>
-                        </div>
-                        <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                          <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
-                            <FileText className="w-3 h-3" />
-                          </div>
-                          <div className="text-lg font-bold text-purple-900">
-                            {stats.otherAssets}
-                          </div>
-                          <div className="text-xs text-purple-700 font-medium">
-                            Other
-                          </div>
-                        </div>
+                      <div className="flex flex-wrap gap-2">
+                        {typeEntries.length ? (
+                          typeEntries.map(([type, count]) => (
+                            <Badge
+                              key={type}
+                              variant="outline"
+                              className="bg-white text-gray-700 border-gray-200"
+                            >
+                              {labelBySlug[type] || formatAssetTypeLabel(type)}: {count}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-500">No assets</span>
+                        )}
                       </div>
                     </div>
 
@@ -921,6 +923,7 @@ export default function TemplateListPage() {
           isOpen={!!viewingTemplate}
           onClose={() => setViewingTemplate(null)}
           template={viewingTemplate}
+          assetTypeLabels={labelBySlug}
         />
 
         <AssignTemplateModal

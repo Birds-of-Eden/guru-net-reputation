@@ -48,23 +48,6 @@ enum NotificationType {
   chat_mention
 }
 
-enum SiteAssetType {
-  social_site
-  web2_site
-  other_asset
-  graphics_design
-  image_optimization
-  content_studio
-  content_writing
-  backlinks
-  completed_com
-  youtube_video_optimization
-  monitoring
-  review_removal
-  summary_report
-  guest_posting
-}
-
 enum PeriodType {
   daily
   weekly
@@ -440,6 +423,19 @@ model ClientTeamMember {
 }
 
 // ========== TEMPLATES ==========
+model AssetType {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  categoryName String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  templateSiteAssets TemplateSiteAsset[]
+}
+
 model Template {
   id          String   @id @default(cuid())
   name        String
@@ -469,7 +465,8 @@ model TemplateSiteAsset {
   id                          Int           @id @default(autoincrement())
   templateId                  String
   template                    Template      @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  type                        SiteAssetType
+  type                        String
+  assetType                   AssetType     @relation(fields: [type], references: [slug], onDelete: Restrict, onUpdate: Cascade)
   name                        String
   url                         String?
   description                 String?
@@ -490,6 +487,8 @@ model TemplateSiteAsset {
   templatesiteasset_field_08 Json?
   templatesiteasset_field_09 Json?
   templatesiteasset_field_10 Json?
+
+  @@index([type])
 }
 
 // ========== TEMPLATE TEAM MEMBERS ==========

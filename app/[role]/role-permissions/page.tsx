@@ -64,6 +64,7 @@ const PERMISSION_CATEGORY_MAP: Record<string, string> = {
   // ---- Templates ----
   template_edit: "templates",
   template_delete: "templates",
+  asset_type_manage: "templates",
 
   // ---- User Management ----
   user_delete: "user_management",

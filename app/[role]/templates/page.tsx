@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Table,
   TableBody,
@@ -17,8 +17,9 @@ import { Plus, Search, Eye, List, Grid, Trash2, Edit, Download } from 'lucide-re
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SiteAssetType } from '@prisma/client'
 import { TemplateViewModal } from '@/components/TemplateViewModal'
+import type { AssetTypeOption } from '@/types/asset-types'
+import { formatAssetTypeLabel, normalizeAssetTypeSlug } from '@/lib/asset-types'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +41,7 @@ interface Template {
   sitesAssets: {
     id: number
     name: string
-    type: SiteAssetType
+    type: string
   }[]
 }
 
@@ -54,6 +55,21 @@ export default function TemplatesPage() {
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
+
+  const assetTypeOrder = useMemo(() => {
+    const map = new Map<string, number>()
+    assetTypes.forEach((t) => map.set(t.slug, t.sortOrder ?? 0))
+    return map
+  }, [assetTypes])
+
+  const labelBySlug = useMemo(() => {
+    const map: Record<string, string> = {}
+    assetTypes.forEach((t) => {
+      map[t.slug] = t.label
+    })
+    return map
+  }, [assetTypes])
 
   const handleView = (templateId: string) => {
     setSelectedTemplateId(templateId)
@@ -81,10 +97,37 @@ export default function TemplatesPage() {
     fetchTemplates()
   }, [])
 
+  useEffect(() => {
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch('/api/asset-types')
+        const data = await res.json()
+        setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : [])
+      } catch (error) {
+        console.error('Error fetching asset types:', error)
+      }
+    }
+    fetchAssetTypes()
+  }, [])
+
   const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.description?.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  const getTypeEntries = (template: Template) => {
+    const counts: Record<string, number> = {}
+    for (const asset of template.sitesAssets || []) {
+      const normalized = normalizeAssetTypeSlug(asset.type) || asset.type
+      counts[normalized] = (counts[normalized] || 0) + 1
+    }
+    return Object.entries(counts).sort((a, b) => {
+      const orderA = assetTypeOrder.get(a[0]) ?? 0
+      const orderB = assetTypeOrder.get(b[0]) ?? 0
+      if (orderA !== orderB) return orderA - orderB
+      return a[0].localeCompare(b[0])
+    })
+  }
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this template?')) {
@@ -200,19 +243,15 @@ export default function TemplatesPage() {
                       {template.description || 'No description provided'}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {['social_site', 'web2_site', 'other_asset'].map((type) => {
-                        const count = template.sitesAssets.filter(asset => asset.type === type).length
-                        if (count === 0) return null
-                        return (
-                          <Badge
-                            key={type}
-                            variant="outline"
-                            className="capitalize text-xs"
-                          >
-                            {type.replace('_', ' ')} ({count})
-                          </Badge>
-                        )
-                      })}
+                      {getTypeEntries(template).map(([type, count]) => (
+                        <Badge
+                          key={type}
+                          variant="outline"
+                          className="capitalize text-xs"
+                        >
+                          {labelBySlug[type] || formatAssetTypeLabel(type)} ({count})
+                        </Badge>
+                      ))}
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-between items-center">
@@ -280,19 +319,15 @@ export default function TemplatesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
-                          {['social_site', 'web2_site', 'other_asset'].map((type) => {
-                            const count = template.sitesAssets.filter(asset => asset.type === type).length
-                            if (count === 0) return null
-                            return (
-                              <Badge
-                                key={type}
-                                variant="outline"
-                                className="capitalize text-xs"
-                              >
-                                {type.replace('_', ' ')} ({count})
-                              </Badge>
-                            )
-                          })}
+                          {getTypeEntries(template).map(([type, count]) => (
+                            <Badge
+                              key={type}
+                              variant="outline"
+                              className="capitalize text-xs"
+                            >
+                              {labelBySlug[type] || formatAssetTypeLabel(type)} ({count})
+                            </Badge>
+                          ))}
                         </div>
                       </TableCell>
                       <TableCell>

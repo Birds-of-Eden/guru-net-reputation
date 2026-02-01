@@ -8,15 +8,23 @@ import prisma from "@/lib/prisma";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 
 // ---------- Constants ----------
-const ALLOWED_ASSET_TYPES = [
-  "social_site",
-  "web2_site",
-  "other_asset",
-] as const;
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
+const CAT_GRAPHICS_DESIGN = "Graphics Design";
+const CAT_IMAGE_OPTIMIZATION = "Image Optimization";
+const CAT_CONTENT_STUDIO = "Content Studio";
+const CAT_CONTENT_WRITING = "Content Writing";
+const CAT_BACKLINKS = "Backlinks";
+const CAT_COMPLETED_COM = "Completed.com";
+const CAT_YOUTUBE_VIDEO_OPTIMIZATION = "YouTube Video Optimization";
+const CAT_MONITORING = "Monitoring";
+const CAT_REVIEW_REMOVAL = "Review Removal";
+const CAT_SUMMARY_REPORT = "Summary Report";
+const CAT_GUEST_POSTING = "Guest Posting";
 
 // 👉 NEW
 const CAT_SOCIAL_COMMUNICATION = "Social Communication";
@@ -48,10 +56,35 @@ function normalizeTaskPriority(v: unknown): TaskPriority {
   }
 }
 
-function resolveCategoryFromType(assetType?: string): string {
-  if (!assetType) return CAT_SOCIAL_ACTIVITY;
-  if (assetType === "web2_site") return CAT_BLOG_POSTING;
-  return CAT_SOCIAL_ACTIVITY; // social_site + other_asset
+const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
+  social_site: CAT_SOCIAL_ACTIVITY,
+  web2_site: CAT_BLOG_POSTING,
+  other_asset: CAT_SOCIAL_ACTIVITY,
+  graphics_design: CAT_GRAPHICS_DESIGN,
+  image_optimization: CAT_IMAGE_OPTIMIZATION,
+  content_studio: CAT_CONTENT_STUDIO,
+  content_writing: CAT_CONTENT_WRITING,
+  backlinks: CAT_BACKLINKS,
+  completed_com: CAT_COMPLETED_COM,
+  youtube_video_optimization: CAT_YOUTUBE_VIDEO_OPTIMIZATION,
+  monitoring: CAT_MONITORING,
+  review_removal: CAT_REVIEW_REMOVAL,
+  summary_report: CAT_SUMMARY_REPORT,
+  guest_posting: CAT_GUEST_POSTING,
+};
+
+function resolveCategoryFromType(
+  assetType: string | undefined | null,
+  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  fallbackMap: Record<string, string>
+): string {
+  return resolveCategoryFromMap(
+    assetType ?? "",
+    CATEGORY_BY_ASSET_TYPE,
+    assetTypeMap,
+    fallbackMap,
+    CAT_SOCIAL_ACTIVITY
+  );
 }
 
 function baseNameOf(name: string): string {
@@ -251,14 +284,34 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const assetTypeMap = await fetchAssetTypeMap();
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const normalizedOnlyType = onlyType
+      ? normalizeAssetTypeSlug(onlyType)
+      : undefined;
+    const allowedTypes = Array.from(assetTypeMap.keys());
+    if (
+      normalizedOnlyType &&
+      allowedTypes.length > 0 &&
+      !allowedTypes.includes(normalizedOnlyType)
+    ) {
+      return NextResponse.json(
+        { message: "Invalid asset type", assetType: normalizedOnlyType },
+        { status: 400 }
+      );
+    }
+    const typeFilter = normalizedOnlyType
+      ? { type: normalizedOnlyType }
+      : allowedTypes.length
+        ? { type: { in: allowedTypes as unknown as string[] } }
+        : {};
+
     const sourceTasks = await prisma.task.findMany({
       where: {
         assignmentId: assignment.id,
         templateSiteAsset: {
           is: {
-            ...(onlyType
-              ? { type: onlyType as any }
-              : { type: { in: ALLOWED_ASSET_TYPES as unknown as string[] } }),
+            ...typeFilter,
           },
         },
       },
@@ -313,7 +366,9 @@ export async function GET(req: NextRequest) {
         required: assetId ? requiredByAssetId.get(assetId) : undefined,
         defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
       });
-      const assetType = src.templateSiteAsset?.type;
+      const assetType = normalizeAssetTypeSlug(
+        src.templateSiteAsset?.type ?? ""
+      );
       return {
         id: src.id,
         name: src.name,
@@ -323,20 +378,30 @@ export async function GET(req: NextRequest) {
         assetType,
         // 👇 multiply original frequency by package months
         frequency: freq * packageTotalMonths,
-        categoryName: resolveCategoryFromType(assetType),
+        categoryName: resolveCategoryFromType(
+          assetType,
+          assetTypeMap,
+          fallbackCategoryMap
+        ),
       };
     });
 
     // Build expanded copy names (matches POST creation naming)
     const expandedCopies: { name: string; catName: string }[] = [];
     for (const src of sourceTasks) {
-      const assetType = src.templateSiteAsset?.type;
+      const assetType = normalizeAssetTypeSlug(
+        src.templateSiteAsset?.type ?? ""
+      );
       const assetId = src.templateSiteAsset?.id;
       const freq = getFrequency({
         required: assetId ? requiredByAssetId.get(assetId) : undefined,
         defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
       });
-      const catName = resolveCategoryFromType(assetType);
+      const catName = resolveCategoryFromType(
+        assetType,
+        assetTypeMap,
+        fallbackCategoryMap
+      );
       const base = baseNameOf(src.name);
       const totalCopies = Math.max(1, freq * packageTotalMonths);
       for (let i = 1; i <= totalCopies; i++) {
@@ -348,7 +413,7 @@ export async function GET(req: NextRequest) {
 
     // social_site + other_asset: প্রতি অ্যাসেটে ১টা করে SC
     const scAssetSources = sourceTasks.filter((s) => {
-      const t = s.templateSiteAsset?.type;
+      const t = normalizeAssetTypeSlug(s.templateSiteAsset?.type ?? "");
       return t === "social_site" || t === "other_asset";
     });
 
@@ -358,9 +423,9 @@ export async function GET(req: NextRequest) {
       baseName: baseNameOf(src.name) || "Social",
       status: src.status,
       priority: src.priority,
-      assetType: (src.templateSiteAsset?.type ?? "other_asset") as
-        | "social_site"
-        | "other_asset",
+      assetType: (normalizeAssetTypeSlug(
+        src.templateSiteAsset?.type ?? "other_asset"
+      ) || "other_asset") as "social_site" | "other_asset",
       frequency: 1,
       categoryName: CAT_SOCIAL_COMMUNICATION,
     }));
@@ -391,6 +456,17 @@ export async function GET(req: NextRequest) {
       ])
     );
 
+    const postingCategories = Array.from(
+      new Set(
+        sourceTasks.map((src) =>
+          resolveCategoryFromType(
+            src.templateSiteAsset?.type,
+            assetTypeMap,
+            fallbackCategoryMap
+          )
+        )
+      )
+    );
     const existingCopies = namesToCheck.length
       ? await prisma.task.findMany({
           where: {
@@ -399,11 +475,7 @@ export async function GET(req: NextRequest) {
             category: {
               is: {
                 name: {
-                  in: [
-                    CAT_SOCIAL_ACTIVITY,
-                    CAT_BLOG_POSTING,
-                    CAT_SOCIAL_COMMUNICATION,
-                  ],
+                  in: [...postingCategories, CAT_SOCIAL_COMMUNICATION],
                 },
               },
             },
@@ -523,17 +595,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const assetTypeMap = await fetchAssetTypeMap();
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const normalizedOnlyType = onlyType
+      ? normalizeAssetTypeSlug(onlyType)
+      : undefined;
+    const allowedTypes = Array.from(assetTypeMap.keys());
+    if (
+      normalizedOnlyType &&
+      allowedTypes.length > 0 &&
+      !allowedTypes.includes(normalizedOnlyType)
+    ) {
+      return NextResponse.json(
+        { message: "Invalid asset type", assetType: normalizedOnlyType },
+        { status: 400 }
+      );
+    }
+    const typeFilter = normalizedOnlyType
+      ? { type: normalizedOnlyType }
+      : allowedTypes.length
+        ? { type: { in: allowedTypes as unknown as string[] } }
+        : {};
+
     const sourceTasks = await prisma.task.findMany({
       where: {
         assignmentId: assignment.id,
         templateSiteAsset: {
           is: {
-            ...(onlyType
-              ? { type: onlyType as any }
-              : { type: { in: ALLOWED_ASSET_TYPES as unknown as string[] } }),
-            ...(onlyType
-              ? { type: onlyType as any }
-              : { type: { in: ALLOWED_ASSET_TYPES as unknown as string[] } }),
+            ...typeFilter,
             // ✅ NEW: asset id include/exclude filters
             ...(includeAssetIds && includeAssetIds.length
               ? { id: { in: includeAssetIds as any } }
@@ -629,17 +718,24 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // Ensure 3 categories (includes Social Communication)
-    const [socialCat, blogCat, scCat] = await Promise.all([
-      ensureCategory(CAT_SOCIAL_ACTIVITY),
-      ensureCategory(CAT_BLOG_POSTING),
-      ensureCategory("Social Communication"), // constant exists in your file
-    ]);
-    const categoryIdByName = new Map<string, string>([
-      [socialCat.name, socialCat.id],
-      [blogCat.name, blogCat.id],
-      [scCat.name, scCat.id],
-    ]);
+    const postingCategories = Array.from(
+      new Set(
+        sourceTasks.map((src) =>
+          resolveCategoryFromType(
+            src.templateSiteAsset?.type,
+            assetTypeMap,
+            fallbackCategoryMap
+          )
+        )
+      )
+    );
+    const categoryNames = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
+    const ensured = await Promise.all(
+      categoryNames.map((name) => ensureCategory(name))
+    );
+    const categoryIdByName = new Map<string, string>(
+      ensured.map((c) => [c.name, c.id])
+    );
 
     // Expand copies: (per-asset frequency) × (package months)
     const expandedCopies: {
@@ -652,7 +748,9 @@ export async function POST(req: NextRequest) {
     const lastCycleDueByBase = new Map<string, Date>();
 
     for (const src of sourceTasks) {
-      const assetType = src.templateSiteAsset?.type;
+      const assetType = normalizeAssetTypeSlug(
+        src.templateSiteAsset?.type ?? ""
+      );
       const assetId = src.templateSiteAsset?.id;
 
       const freq = getFrequency({
@@ -660,7 +758,11 @@ export async function POST(req: NextRequest) {
         defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
       });
 
-      const catName = resolveCategoryFromType(assetType);
+      const catName = resolveCategoryFromType(
+        assetType,
+        assetTypeMap,
+        fallbackCategoryMap
+      );
       const base = baseNameOf(src.name);
 
       // total copies = freq * months
@@ -680,7 +782,7 @@ export async function POST(req: NextRequest) {
     // Prepare SC names for dedupe
     const scNamesFromAssets = sourceTasks
       .filter((s) => {
-        const t = s.templateSiteAsset?.type;
+        const t = normalizeAssetTypeSlug(s.templateSiteAsset?.type ?? "");
         return t === "social_site" || t === "other_asset";
       })
       .map((s) => `${baseNameOf(s.name) || "Social"} - Social Communication`);
@@ -705,11 +807,7 @@ export async function POST(req: NextRequest) {
         category: {
           is: {
             name: {
-              in: [
-                CAT_SOCIAL_ACTIVITY,
-                CAT_BLOG_POSTING,
-                "Social Communication",
-              ],
+              in: [...postingCategories, CAT_SOCIAL_COMMUNICATION],
             },
           },
         },
@@ -759,7 +857,7 @@ export async function POST(req: NextRequest) {
 
     // Social Communication from assets (social_site + other_asset), 1 per asset
     for (const src of sourceTasks) {
-      const t = src.templateSiteAsset?.type;
+      const t = normalizeAssetTypeSlug(src.templateSiteAsset?.type ?? "");
       if (t !== "social_site" && t !== "other_asset") continue;
 
       const base = baseNameOf(src.name) || "Social";

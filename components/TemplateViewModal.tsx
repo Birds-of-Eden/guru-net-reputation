@@ -13,15 +13,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash, Save, Edit, X, Share2, Globe, FileText } from "lucide-react"
-import type { SiteAssetType } from "@prisma/client"
+import { formatAssetTypeLabel, normalizeAssetTypeSlug } from "@/lib/asset-types"
+import type { AssetTypeOption } from "@/types/asset-types"
 import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+type AssetTypeSlug = string
+
 interface TemplateAsset {
   id: number
-  type: SiteAssetType
+  type: AssetTypeSlug
   name: string
   url?: string
   description?: string
@@ -56,7 +59,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
   const [loading, setLoading] = useState(false)
   const [editing, setEditing] = useState(false)
   const [newAsset, setNewAsset] = useState({
-    type: "social_site" as SiteAssetType,
+    type: "social_site" as AssetTypeSlug,
     name: "",
     url: "",
     description: "",
@@ -64,6 +67,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
     defaultPostingFrequency: undefined as number | undefined,
     defaultIdealDurationMinutes: undefined as number | undefined,
   })
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
 
   useEffect(() => {
     if (open && templateId) {
@@ -73,6 +77,20 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
       setEditing(false)
     }
   }, [open, templateId])
+
+  useEffect(() => {
+    if (!open) return
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch("/api/asset-types")
+        const data = await res.json()
+        setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : [])
+      } catch (error) {
+        console.error("Error fetching asset types:", error)
+      }
+    }
+    fetchAssetTypes()
+  }, [open])
 
   const fetchTemplate = async () => {
     if (!templateId) return
@@ -150,43 +168,65 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
     fetchTemplate()
   }
 
+  const typeLabelBySlug = assetTypes.reduce<Record<string, string>>((acc, t) => {
+    acc[t.slug] = t.label
+    return acc
+  }, {})
+
+  const resolveTypeLabel = (type: string) =>
+    typeLabelBySlug[type] ?? formatAssetTypeLabel(type)
+
   // Group assets by type
   const groupedAssets =
     template?.sitesAssets.reduce(
       (acc, asset) => {
-        if (!acc[asset.type]) {
-          acc[asset.type] = []
+        const key = normalizeAssetTypeSlug(asset.type)
+        if (!acc[key]) {
+          acc[key] = []
         }
-        acc[asset.type].push(asset)
+        acc[key].push(asset)
         return acc
       },
-      {} as Record<SiteAssetType, typeof template.sitesAssets>,
+      {} as Record<string, typeof template.sitesAssets>,
     ) || {}
 
   // Asset type configurations
-  const assetTypeConfig = {
+  const assetTypeConfig: Record<string, { label: string; icon: any; color: string; badgeVariant: "default" | "secondary" | "outline" }> = {
     social_site: {
-      label: "Social Sites",
+      label: resolveTypeLabel("social_site"),
       icon: Share2,
       color: "bg-blue-50 border-blue-200",
-      badgeVariant: "default" as const,
+      badgeVariant: "default",
     },
     web2_site: {
-      label: "Web 2.0 Sites",
+      label: resolveTypeLabel("web2_site"),
       icon: Globe,
       color: "bg-green-50 border-green-200",
-      badgeVariant: "secondary" as const,
+      badgeVariant: "secondary",
     },
     other_asset: {
-      label: "Other Assets",
+      label: resolveTypeLabel("other_asset"),
       icon: FileText,
       color: "bg-purple-50 border-purple-200",
-      badgeVariant: "outline" as const,
+      badgeVariant: "outline",
     },
   }
 
-  const renderAssetGroup = (type: SiteAssetType, assets: typeof template.sitesAssets) => {
-    const config = assetTypeConfig[type]
+  const displayTypes =
+    assetTypes.length > 0
+      ? Array.from(
+          new Set([...assetTypes.map((t) => t.slug), ...Object.keys(groupedAssets)])
+        )
+      : Object.keys(assetTypeConfig)
+
+  const renderAssetGroup = (type: string, assets: typeof template.sitesAssets) => {
+    const config =
+      assetTypeConfig[type] || {
+        label: resolveTypeLabel(type),
+        icon: FileText,
+        color: "bg-gray-50 border-gray-200",
+        badgeVariant: "outline" as const,
+      }
     const IconComponent = config.icon
 
     return (
@@ -357,8 +397,13 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Site Assets ({template.sitesAssets.length})</h3>
                     <div className="flex gap-2">
-                      {Object.entries(assetTypeConfig).map(([type, config]) => {
-                        const count = groupedAssets[type as SiteAssetType]?.length || 0
+                      {displayTypes.map((type) => {
+                        const config =
+                          assetTypeConfig[type] || {
+                            label: resolveTypeLabel(type),
+                            badgeVariant: "outline" as const,
+                          }
+                        const count = groupedAssets[type as string]?.length || 0
                         return (
                           <Badge key={type} variant={config.badgeVariant} className="text-xs bg-amber-700 text-white">
                             {config.label}: {count}
@@ -369,9 +414,9 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                   </div>
 
                   <div className="space-y-4">
-                    {Object.entries(assetTypeConfig).map(([type]) => {
-                      const assets = groupedAssets[type as SiteAssetType] || []
-                      return renderAssetGroup(type as SiteAssetType, assets)
+                    {displayTypes.map((type) => {
+                      const assets = groupedAssets[type as string] || []
+                      return renderAssetGroup(type as string, assets)
                     })}
                   </div>
                 </div>
@@ -390,15 +435,21 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                         <Label htmlFor="asset-type">Type</Label>
                         <Select
                           value={newAsset.type}
-                          onValueChange={(value: SiteAssetType) => setNewAsset({ ...newAsset, type: value })}
+                          onValueChange={(value: string) => setNewAsset({ ...newAsset, type: value })}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select asset type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="social_site">Social Site</SelectItem>
-                            <SelectItem value="web2_site">Web 2.0 Site</SelectItem>
-                            <SelectItem value="other_asset">Other Asset</SelectItem>
+                            {(assetTypes.length ? assetTypes : [
+                              { slug: "social_site", label: "Social Site" },
+                              { slug: "web2_site", label: "Web 2.0 Site" },
+                              { slug: "other_asset", label: "Other Asset" },
+                            ]).map((type) => (
+                              <SelectItem key={type.slug} value={type.slug}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>

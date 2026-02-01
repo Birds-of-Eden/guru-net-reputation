@@ -2,22 +2,10 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { SiteAssetType } from "@prisma/client";
 import { logActivity } from "@/lib/logActivity";
 import { diffChanges } from "@/utils/audit"; // না থাকলে নিচের লোকাল fallback ব্যবহার করো
-
-const mapSiteAssetType = (frontendType: string): SiteAssetType => {
-  switch (frontendType) {
-    case "social_site":
-      return SiteAssetType.social_site;
-    case "web2_site":
-      return SiteAssetType.web2_site;
-    case "additional_site":
-      return SiteAssetType.other_asset;
-    default:
-      return SiteAssetType.other_asset;
-  }
-};
+import { normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap } from "@/lib/asset-types.server";
 
 const sanitizeTemplate = (t: any) => {
   if (!t) return t;
@@ -64,23 +52,58 @@ export async function PUT(
       );
     }
 
-    const validSitesAssets = sitesAssets
-      .filter((asset: any) => asset.name && asset.name.trim())
-      .map((asset: any) => ({
-        type: mapSiteAssetType(asset.type),
-        name: asset.name.trim(),
-        url: asset.url?.trim() || null,
-        description: asset.description?.trim() || null,
-        isRequired: Boolean(asset.isRequired),
-        defaultPostingFrequency: Math.max(
-          0,
-          Number.parseInt(String(asset.defaultPostingFrequency), 10) || 0
-        ),
-        defaultIdealDurationMinutes: Math.max(
-          1,
-          parseInt(asset.defaultIdealDurationMinutes) || 30
-        ),
-      }));
+    const assetTypeMap = await fetchAssetTypeMap({ includeInactive: true });
+    if (!assetTypeMap.size) {
+      return NextResponse.json(
+        { message: "No asset types configured. Seed AssetType first." },
+        { status: 500 }
+      );
+    }
+
+    const fallbackType =
+      assetTypeMap.has("other_asset")
+        ? "other_asset"
+        : assetTypeMap.keys().next().value;
+
+    const normalizedAssets = sitesAssets
+      .filter((asset: any) => asset?.name && asset.name.trim())
+      .map((asset: any) => {
+        const normalizedType = normalizeAssetTypeSlug(
+          String(asset.type ?? fallbackType)
+        );
+        return { asset, normalizedType };
+      });
+
+    const invalidTypes = normalizedAssets
+      .filter((a) => !a.normalizedType || !assetTypeMap.has(a.normalizedType))
+      .map((a) => a.normalizedType || String(a.asset?.type ?? ""))
+      .filter(Boolean);
+
+    if (invalidTypes.length > 0) {
+      return NextResponse.json(
+        {
+          message: "Invalid site asset type(s) provided",
+          invalidTypes: Array.from(new Set(invalidTypes)),
+        },
+        { status: 400 }
+      );
+    }
+
+    const validSitesAssets = normalizedAssets.map(({ asset, normalizedType }) => ({
+      type: normalizedType,
+      name: asset.name.trim(),
+      url: asset.url?.trim() || null,
+      description: asset.description?.trim() || null,
+      isRequired: Boolean(asset.isRequired),
+      defaultPostingFrequency: Math.max(
+        0,
+        Number.parseInt(String(asset.defaultPostingFrequency), 10) || 0
+      ),
+      defaultIdealDurationMinutes: Math.max(
+        1,
+        parseInt(asset.defaultIdealDurationMinutes) || 30
+      ),
+    }));
 
     const validTeamMembers = teamMembers
       .filter((member: any) => member.agentId && member.role)
@@ -127,7 +150,9 @@ export async function PUT(
         },
         include: {
           package: true,
-          sitesAssets: true,
+          sitesAssets: {
+            include: { assetType: { select: { slug: true, label: true } } },
+          },
           templateTeamMembers: {
             include: {
               agent: { select: { id: true, name: true, email: true } },
@@ -224,7 +249,9 @@ export async function GET(
       where: { id: templateId },
       include: {
         package: { select: { id: true, name: true } },
-        sitesAssets: true,
+        sitesAssets: {
+          include: { assetType: { select: { slug: true, label: true } } },
+        },
         templateTeamMembers: {
           include: {
             agent: { select: { id: true, name: true, email: true } },

@@ -1,14 +1,11 @@
 // app/api/assignments/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  TaskStatus,
-  TaskPriority,
-  SiteAssetType,
-  PeriodType,
-} from "@prisma/client";
+import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import prisma from "@/lib/prisma";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryName } from "@/lib/asset-types.server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,28 +143,16 @@ export async function POST(request: NextRequest) {
       return copy;
     };
 
-    // Prisma enum → TaskCategory.name map (ensure these exact names exist or will be created)
-    const CATEGORY_NAME_BY_TYPE: Record<SiteAssetType, string> = {
-      social_site: "Social Asset Creation",
-      web2_site: "Web 2.0 Asset Creation",
-      other_asset: "Additional Asset Creation",
-      graphics_design: "Graphics Design",
-      image_optimization: "Image Optimization",
-      content_studio: "Content Studio",
-      content_writing: "Content Writing",
-      backlinks: "Backlinks",
-      completed_com: "Completed Communication",
-      youtube_video_optimization: "YouTube Video Optimization",
-      monitoring: "Monitoring",
-      review_removal: "Review Removal",
-      summary_report: "Summary Report",
-      guest_posting: "Guest Posting",
-    };
+    const CATEGORY_NAME_BY_TYPE = getDefaultCategoryBySlug();
+    const assetTypeMap = await fetchAssetTypeMap({ includeInactive: true });
 
     const ensureTaskCategories = async () => {
-      const names = Array.from(new Set(Object.values(CATEGORY_NAME_BY_TYPE)));
+      const names = new Set<string>(Object.values(CATEGORY_NAME_BY_TYPE));
+      for (const t of assetTypeMap.values()) {
+        if (t.categoryName) names.add(t.categoryName);
+      }
       await prisma.$transaction(
-        names.map((name) =>
+        Array.from(names).map((name) =>
           prisma.taskCategory.upsert({
             where: { name }, // name is unique in schema
             create: { name },
@@ -215,8 +200,12 @@ export async function POST(request: NextRequest) {
 
         const tasksToCreate = template.sitesAssets.map((site) => {
           const duration = site.defaultIdealDurationMinutes ?? 30;
-          const type = site.type as SiteAssetType;
-          const categoryName = CATEGORY_NAME_BY_TYPE[type] ?? "Other Task";
+          const type = normalizeAssetTypeSlug(site.type);
+          const categoryName = resolveCategoryName(
+            type,
+            assetTypeMap,
+            CATEGORY_NAME_BY_TYPE
+          );
           const categoryId = idByName.get(categoryName) ?? null;
 
           return {

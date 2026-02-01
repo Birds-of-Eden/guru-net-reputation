@@ -25,7 +25,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { SiteAssetType } from '@prisma/client'
+import type { AssetTypeOption } from '@/types/asset-types'
 import { toast } from 'sonner'
 
 interface Template {
@@ -36,7 +36,7 @@ interface Template {
   status?: string
   sitesAssets: {
     id: number
-    type: SiteAssetType
+    type: string
     name: string
     url?: string
     description?: string
@@ -51,8 +51,9 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
   const [template, setTemplate] = useState<Template | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
   const [newAsset, setNewAsset] = useState({
-    type: 'social_site' as SiteAssetType,
+    type: 'social_site' as string,
     name: '',
     url: '',
     description: '',
@@ -89,6 +90,19 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
     
     fetchTemplate()
   }, [templateId, toast])
+
+  useEffect(() => {
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch('/api/asset-types')
+        const data = await res.json()
+        setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : [])
+      } catch (error) {
+        console.error('Error fetching asset types:', error)
+      }
+    }
+    fetchAssetTypes()
+  }, [])
 
   const handleSave = async () => {
     if (!template || !templateId) return
@@ -354,7 +368,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                   <Label htmlFor="asset-type">Type</Label>
                   <Select
                     value={newAsset.type}
-                    onValueChange={(value: SiteAssetType) =>
+                    onValueChange={(value: string) =>
                       setNewAsset({ ...newAsset, type: value })
                     }
                   >
@@ -362,9 +376,18 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                       <SelectValue placeholder="Select asset type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="social_site">Social Site</SelectItem>
-                      <SelectItem value="web2_site">Web 2.0 Site</SelectItem>
-                      <SelectItem value="other_asset">Other Asset</SelectItem>
+                      {(assetTypes.length
+                        ? assetTypes
+                        : [
+                            { slug: 'social_site', label: 'Social Site' },
+                            { slug: 'web2_site', label: 'Web 2.0 Site' },
+                            { slug: 'other_asset', label: 'Other Asset' },
+                          ]
+                      ).map((type) => (
+                        <SelectItem key={type.slug} value={type.slug}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

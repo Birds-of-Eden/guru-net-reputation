@@ -4,14 +4,52 @@ import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { calculateTaskDueDate } from "@/utils/working-days";
 import { differenceInCalendarDays, addDays, isWeekend } from "date-fns";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
-const ALLOWED_ASSET_TYPES = ["social_site", "web2_site", "other_asset"] as const;
+const CAT_GRAPHICS_DESIGN = "Graphics Design";
+const CAT_IMAGE_OPTIMIZATION = "Image Optimization";
+const CAT_CONTENT_STUDIO = "Content Studio";
+const CAT_CONTENT_WRITING = "Content Writing";
+const CAT_BACKLINKS = "Backlinks";
+const CAT_COMPLETED_COM = "Completed.com";
+const CAT_YOUTUBE_VIDEO_OPTIMIZATION = "YouTube Video Optimization";
+const CAT_MONITORING = "Monitoring";
+const CAT_REVIEW_REMOVAL = "Review Removal";
+const CAT_SUMMARY_REPORT = "Summary Report";
+const CAT_GUEST_POSTING = "Guest Posting";
 
-function resolveCategoryFromType(assetType?: string): string {
-  if (assetType === "web2_site") return CAT_BLOG_POSTING;
-  return CAT_SOCIAL_ACTIVITY;
+const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
+  social_site: CAT_SOCIAL_ACTIVITY,
+  web2_site: CAT_BLOG_POSTING,
+  other_asset: CAT_SOCIAL_ACTIVITY,
+  graphics_design: CAT_GRAPHICS_DESIGN,
+  image_optimization: CAT_IMAGE_OPTIMIZATION,
+  content_studio: CAT_CONTENT_STUDIO,
+  content_writing: CAT_CONTENT_WRITING,
+  backlinks: CAT_BACKLINKS,
+  completed_com: CAT_COMPLETED_COM,
+  youtube_video_optimization: CAT_YOUTUBE_VIDEO_OPTIMIZATION,
+  monitoring: CAT_MONITORING,
+  review_removal: CAT_REVIEW_REMOVAL,
+  summary_report: CAT_SUMMARY_REPORT,
+  guest_posting: CAT_GUEST_POSTING,
+};
+
+function resolveCategoryFromType(
+  assetType: string | undefined | null,
+  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  fallbackMap: Record<string, string>
+): string {
+  return resolveCategoryFromMap(
+    assetType ?? "",
+    CATEGORY_BY_ASSET_TYPE,
+    assetTypeMap,
+    fallbackMap,
+    CAT_SOCIAL_ACTIVITY
+  );
 }
 
 // ---------- GET: Preview (minimal) ----------
@@ -104,8 +142,16 @@ export async function POST(
       );
     }
 
-    const assetType = qcTask.templateSiteAsset?.type;
-    if (!assetType || !ALLOWED_ASSET_TYPES.includes(assetType as any)) {
+    const assetTypeMap = await fetchAssetTypeMap();
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const assetType = normalizeAssetTypeSlug(
+      qcTask.templateSiteAsset?.type ?? ""
+    );
+    const allowedTypes = Array.from(assetTypeMap.keys());
+    if (
+      !assetType ||
+      (allowedTypes.length > 0 && !allowedTypes.includes(assetType))
+    ) {
       return NextResponse.json({ message: "Invalid asset type" }, { status: 400 });
     }
 
@@ -126,7 +172,11 @@ export async function POST(
     const totalTasks = frequency * totalMonths;
 
     // === 3️⃣ Determine category ===
-    const categoryName = resolveCategoryFromType(assetType);
+    const categoryName = resolveCategoryFromType(
+      assetType,
+      assetTypeMap,
+      fallbackCategoryMap
+    );
     const category = await prisma.taskCategory.upsert({
       where: { name: categoryName },
       update: {},

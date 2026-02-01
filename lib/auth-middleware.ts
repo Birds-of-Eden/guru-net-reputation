@@ -100,6 +100,49 @@ export function requireRole(
   }
 }
 
+async function getUserPermissionIds(userId: string): Promise<Set<string>> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      role: {
+        select: {
+          rolePermissions: { select: { permissionId: true } },
+        },
+      },
+    },
+  });
+  return new Set(
+    user?.role?.rolePermissions?.map((rp) => rp.permissionId) ?? []
+  );
+}
+
+export async function hasPermission(
+  authContext: AuthContext,
+  permissionId: string
+): Promise<boolean> {
+  if (!authContext.userId) return false;
+  const set = await getUserPermissionIds(authContext.userId);
+  return set.has(permissionId);
+}
+
+export async function requirePermission(
+  authContext: AuthContext,
+  permissionId: string,
+  fallbackRoles: UserRole[] = []
+): Promise<void> {
+  const exists = await prisma.permission.findUnique({
+    where: { id: permissionId },
+    select: { id: true },
+  });
+
+  if (!exists && fallbackRoles.length > 0) {
+    if (hasRole(authContext, fallbackRoles)) return;
+  }
+
+  const ok = await hasPermission(authContext, permissionId);
+  if (!ok) throw new Error("FORBIDDEN");
+}
+
 /**
  * Check if user owns or manages a client
  */

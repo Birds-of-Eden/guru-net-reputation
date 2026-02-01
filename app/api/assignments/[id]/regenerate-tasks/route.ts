@@ -1,13 +1,10 @@
 // app/api/assignments/[id]/regenerate-tasks/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import {
-  TaskStatus,
-  TaskPriority,
-  SiteAssetType,
-  PeriodType,
-} from "@prisma/client";
+import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { resolveCategoryName } from "@/lib/asset-types.server";
 
 /**
  * Regenerate tasks for missing or new template assets in an assignment
@@ -41,22 +38,7 @@ export async function POST(
       (request.nextUrl.searchParams.get("actorId") as string) ||
       null;
 
-    const CATEGORY_NAME_BY_TYPE: Record<SiteAssetType, string> = {
-      social_site: "Social Asset Creation",
-      web2_site: "Web 2.0 Asset Creation",
-      other_asset: "Additional Asset Creation",
-      graphics_design: "Graphics Design",
-      image_optimization: "Image Optimization",
-      content_studio: "Content Studio",
-      content_writing: "Content Writing",
-      backlinks: "Backlinks",
-      completed_com: "Completed Communication",
-      youtube_video_optimization: "YouTube Video Optimization",
-      monitoring: "Monitoring",
-      review_removal: "Review Removal",
-      summary_report: "Summary Report",
-      guest_posting: "Guest Posting",
-    };
+    const CATEGORY_NAME_BY_TYPE = getDefaultCategoryBySlug();
 
     const result = await prisma.$transaction(async (tx) => {
       // 1) Load assignment with template and existing tasks
@@ -91,12 +73,30 @@ export async function POST(
         throw new Error("NO_TEMPLATE_ATTACHED");
       }
 
-      // 2) Ensure task categories exist
-      const categoryNames = Array.from(
-        new Set(Object.values(CATEGORY_NAME_BY_TYPE))
+      const assetTypes = await tx.assetType.findMany({
+        select: { slug: true, categoryName: true, isActive: true },
+      });
+      const assetTypeMap = new Map(
+        assetTypes.map((t) => [
+          t.slug,
+          {
+            id: t.slug,
+            slug: t.slug,
+            label: t.slug,
+            isActive: t.isActive,
+            sortOrder: 0,
+            categoryName: t.categoryName ?? null,
+          },
+        ])
       );
+
+      // 2) Ensure task categories exist
+      const categoryNames = new Set<string>(Object.values(CATEGORY_NAME_BY_TYPE));
+      for (const t of assetTypes) {
+        if (t.categoryName) categoryNames.add(t.categoryName);
+      }
       await Promise.all(
-        categoryNames.map((name) =>
+        Array.from(categoryNames).map((name) =>
           tx.taskCategory.upsert({
             where: { name },
             create: { name },
@@ -155,8 +155,11 @@ export async function POST(
           continue;
         }
 
-        const categoryName =
-          CATEGORY_NAME_BY_TYPE[asset.type as SiteAssetType] ?? "Other Task";
+        const categoryName = resolveCategoryName(
+          normalizeAssetTypeSlug(asset.type),
+          assetTypeMap,
+          CATEGORY_NAME_BY_TYPE
+        );
         const categoryId = categoryIdByName.get(categoryName) ?? null;
 
         const newTask = {

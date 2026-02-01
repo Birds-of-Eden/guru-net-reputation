@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { ListTodo, AlertCircle, CheckCircle, Loader, CalendarDays, Check, X } from "lucide-react"
 import { type FormEvent, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
+import { formatAssetTypeLabel } from "@/lib/asset-types"
 
 interface ValidationErrors {
   cycleCount?: string
@@ -44,7 +45,7 @@ const CATEGORY_BY_ASSET: Record<string, string> = {
   guest_posting: "Guest Posting",
 };
 
-const SITE_ASSET_TYPES = [
+const FALLBACK_ASSET_TYPES = [
   { value: "social_site", label: "Social Site" },
   { value: "web2_site", label: "Web2 Site" },
   { value: "other_asset", label: "Other Asset" },
@@ -65,6 +66,27 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [selectedSiteAssetTypes, setSelectedSiteAssetTypes] = useState<string[]>([])
+  const [assetTypes, setAssetTypes] = useState(FALLBACK_ASSET_TYPES)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch("/api/asset-types")
+        const data = await res.json()
+        const types = Array.isArray(data?.assetTypes)
+          ? data.assetTypes.map((t: any) => ({
+              value: t.slug,
+              label: t.label || formatAssetTypeLabel(t.slug),
+            }))
+          : []
+        if (types.length) setAssetTypes(types)
+      } catch (error) {
+        console.error("Failed to fetch asset types:", error)
+      }
+    }
+    fetchAssetTypes()
+  }, [isOpen])
 
   const validateForm = (formData: FormData): boolean => {
     const errors: ValidationErrors = {}
@@ -162,7 +184,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
   }
 
   const handleSelectAll = () => {
-    setSelectedSiteAssetTypes(SITE_ASSET_TYPES.map(type => type.value))
+    setSelectedSiteAssetTypes(assetTypes.map(type => type.value))
     if (validationErrors.siteAssetTypes) {
       setValidationErrors(prev => ({ ...prev, siteAssetTypes: undefined }))
     }
@@ -279,7 +301,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
               </div>
               
               <div className="space-y-2">
-                {SITE_ASSET_TYPES.map((type) => (
+                {assetTypes.map((type) => (
                   <div
                     key={type.value}
                     className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-md transition-all duration-200"
@@ -288,7 +310,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
                       <span>{type.label}</span>
                       <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                         <ListTodo className="h-3 w-3" />
-                        {CATEGORY_BY_ASSET[type.value]}
+                        {CATEGORY_BY_ASSET[type.value] ?? "Other Task"}
                       </span>
                     </Label>
                     <Checkbox

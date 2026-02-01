@@ -2,7 +2,7 @@
 //components/package/NewTemplete.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,11 +18,11 @@ import {
 import { Plus, Trash, Save, ArrowLeft, Badge } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { SiteAssetType } from '@prisma/client'
+import type { AssetTypeOption } from '@/types/asset-types'
 import { useRoleSegment } from '@/lib/hooks/use-role-segment'
 
 interface NewAsset {
-  type: SiteAssetType
+  type: string
   name: string
   url?: string
   description?: string
@@ -46,9 +46,23 @@ export default function NewTemplatePage() {
     defaultPostingFrequency: 1,
     defaultIdealDurationMinutes: 1,
   })
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
   const router = useRouter()
   const roleSegment = useRoleSegment()
   const templatesBasePath = `/${roleSegment}/templates`
+
+  useEffect(() => {
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch('/api/asset-types')
+        const data = await res.json()
+        setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : [])
+      } catch (error) {
+        console.error('Error fetching asset types:', error)
+      }
+    }
+    fetchAssetTypes()
+  }, [])
 
   const handleAddAsset = () => {
     if (!newAsset.name) return
@@ -211,7 +225,7 @@ export default function NewTemplatePage() {
                 <Label htmlFor="asset-type">Type</Label>
                 <Select
                   value={newAsset.type}
-                  onValueChange={(value: SiteAssetType) =>
+                  onValueChange={(value: string) =>
                     setNewAsset({ ...newAsset, type: value })
                   }
                 >
@@ -219,9 +233,18 @@ export default function NewTemplatePage() {
                     <SelectValue placeholder="Select asset type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="social_site">Social Site</SelectItem>
-                    <SelectItem value="web2_site">Web 2.0 Site</SelectItem>
-                    <SelectItem value="other_asset">Other Asset</SelectItem>
+                    {(assetTypes.length
+                      ? assetTypes
+                      : [
+                          { slug: 'social_site', label: 'Social Site' },
+                          { slug: 'web2_site', label: 'Web 2.0 Site' },
+                          { slug: 'other_asset', label: 'Other Asset' },
+                        ]
+                    ).map((type) => (
+                      <SelectItem key={type.slug} value={type.slug}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,6 +1,7 @@
 // prisma/seed.ts
 import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { DEFAULT_ASSET_TYPES } from "../lib/asset-types";
 
 const prisma = new PrismaClient();
 
@@ -233,6 +234,11 @@ const PERMS = [
     description: "Can delete templates",
   },
   {
+    id: "asset_type_manage",
+    name: "asset_type_manage",
+    description: "Manage asset types (create/edit/disable)",
+  },
+  {
     id: "template_assign",
     name: "template_assign",
     description: "Can assign templates",
@@ -339,6 +345,7 @@ const ADMIN_PERMS: string[] = [
   "package_delete",
   "template_edit",
   "template_delete",
+  "asset_type_manage",
   "user_delete",
   "user_edit",
   "user_view",
@@ -377,6 +384,7 @@ const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     "package_delete",
     "template_edit",
     "template_delete",
+    "asset_type_manage",
     "user_delete",
     "user_edit",
     "user_view",
@@ -523,6 +531,31 @@ async function seedTeams() {
     });
   }
   console.log("✅ Teams ready");
+}
+
+/* =========================================
+   5) ASSET TYPES
+========================================= */
+async function seedAssetTypes() {
+  for (const t of DEFAULT_ASSET_TYPES) {
+    await prisma.assetType.upsert({
+      where: { slug: t.slug },
+      update: {
+        label: t.label,
+        isActive: t.isActive ?? true,
+        sortOrder: t.sortOrder,
+        categoryName: t.categoryName ?? null,
+      },
+      create: {
+        slug: t.slug,
+        label: t.label,
+        isActive: t.isActive ?? true,
+        sortOrder: t.sortOrder,
+        categoryName: t.categoryName ?? null,
+      },
+    });
+  }
+  console.log("✅ Asset types ready");
 }
 
 /* =========================================
@@ -685,6 +718,7 @@ async function main() {
   await seedPermissions();
   await assignRolePermissions();
   await seedTeams();
+  await seedAssetTypes();
   await seedUsers();
   console.log("🎉 All seeders completed");
 }

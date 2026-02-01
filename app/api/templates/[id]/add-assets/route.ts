@@ -1,7 +1,8 @@
 // app/api/templates/[id]/add-assets/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { SiteAssetType } from "@prisma/client";
+import { normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap } from "@/lib/asset-types.server";
 
 /**
  * Add new site assets to an existing template
@@ -10,7 +11,7 @@ import { SiteAssetType } from "@prisma/client";
  * POST /api/templates/{templateId}/add-assets
  * Body: {
  *   assets: Array<{
- *     type: SiteAssetType,
+ *     type: string,
  *     name: string,
  *     url?: string,
  *     description?: string,
@@ -30,7 +31,7 @@ export async function POST(
     const body = await request.json();
     const { assets } = body as {
       assets: Array<{
-        type: SiteAssetType;
+        type: string;
         name: string;
         url?: string;
         description?: string;
@@ -62,13 +63,28 @@ export async function POST(
         throw new Error("TEMPLATE_NOT_FOUND");
       }
 
+      const assetTypeMap = await fetchAssetTypeMap();
+      if (!assetTypeMap.size) {
+        throw new Error("NO_ASSET_TYPES");
+      }
+      const fallbackType =
+        assetTypeMap.has("other_asset")
+          ? "other_asset"
+          : assetTypeMap.keys().next().value;
+
       // Create all new assets
       const createdAssets = [];
       for (const assetData of assets) {
+        const normalizedType = normalizeAssetTypeSlug(
+          String(assetData.type ?? fallbackType)
+        );
+        if (!normalizedType || !assetTypeMap.has(normalizedType)) {
+          throw new Error("INVALID_ASSET_TYPE");
+        }
         const newAsset = await tx.templateSiteAsset.create({
           data: {
             templateId,
-            type: assetData.type,
+            type: normalizedType,
             name: assetData.name,
             url: assetData.url || null,
             description: assetData.description || null,
@@ -116,6 +132,18 @@ export async function POST(
       { status: 201 }
     );
   } catch (error: any) {
+    if (error?.message === "NO_ASSET_TYPES") {
+      return NextResponse.json(
+        { message: "No asset types configured. Seed AssetType first." },
+        { status: 500 }
+      );
+    }
+    if (error?.message === "INVALID_ASSET_TYPE") {
+      return NextResponse.json(
+        { message: "Invalid asset type provided" },
+        { status: 400 }
+      );
+    }
     if (error?.message === "TEMPLATE_NOT_FOUND") {
       return NextResponse.json(
         { message: "Template not found" },

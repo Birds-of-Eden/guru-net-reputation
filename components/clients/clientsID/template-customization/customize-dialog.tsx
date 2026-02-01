@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import { formatAssetTypeLabel } from "@/lib/asset-types";
 
 interface CustomizeTemplateDialogProps {
   open: boolean;
@@ -93,11 +94,12 @@ export function CustomizeTemplateDialog({
         const response = await fetch("/api/asset-types");
         if (response.ok) {
           const data = await response.json();
-          // Transform enum values to readable labels
-          const types = data.assetTypes.map((type: string) => ({
-            value: type,
-            label: formatAssetTypeLabel(type),
-          }));
+          const types = Array.isArray(data?.assetTypes)
+            ? data.assetTypes.map((type: any) => ({
+                value: type.slug,
+                label: type.label || formatAssetTypeLabel(type.slug),
+              }))
+            : [];
           setAssetTypes(types);
         } else {
           // Fallback to default types if API fails
@@ -116,14 +118,6 @@ export function CustomizeTemplateDialog({
       fetchAssetTypes();
     }
   }, [open]);
-
-  // Format asset type enum to readable label
-  const formatAssetTypeLabel = (type: string): string => {
-    return type
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
 
   // Default fallback asset types
   const getDefaultAssetTypes = (): AssetTypeOption[] => [

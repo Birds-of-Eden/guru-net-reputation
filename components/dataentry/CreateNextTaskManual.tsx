@@ -40,7 +40,7 @@ export default function CreateNextTask({
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const SITE_ASSET_TYPES = [
+  const FALLBACK_TYPES = [
     "social_site",
     "web2_site",
     "other_asset",
@@ -55,13 +55,26 @@ export default function CreateNextTask({
     "review_removal",
     "summary_report",
     "guest_posting",
-  ] as const;
-  type SiteAssetTypeLocal = (typeof SITE_ASSET_TYPES)[number];
-  const [countsByType, setCountsByType] = useState<Partial<Record<SiteAssetTypeLocal, number>>>({});
-  const [assetCountsByType, setAssetCountsByType] = useState<Partial<Record<SiteAssetTypeLocal, number>>>({});
+  ];
+  const [assetTypes, setAssetTypes] = useState<string[]>(FALLBACK_TYPES);
+  const [countsByType, setCountsByType] = useState<Record<string, number>>({});
+  const [assetCountsByType, setAssetCountsByType] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!open) return;
+    const fetchAssetTypes = async () => {
+      try {
+        const res = await fetch("/api/asset-types");
+        const data = await res.json();
+        const types = Array.isArray(data?.assetTypes)
+          ? data.assetTypes.map((t: any) => t.slug)
+          : [];
+        if (types.length) setAssetTypes(types);
+      } catch (err) {
+        console.error("Failed to fetch asset types:", err);
+      }
+    };
+    fetchAssetTypes();
     // Fetch asset counts when dialog opens
     const fetchAssetCounts = async () => {
       try {
@@ -338,7 +351,7 @@ export default function CreateNextTask({
                 <span className="text-3xl font-bold text-sky-600 dark:text-sky-400">
                   {Object.entries(countsByType).reduce(
                     (sum, [type, cycles]) => {
-                      const assets = assetCountsByType[type as SiteAssetTypeLocal] || 0;
+                      const assets = assetCountsByType[type] || 0;
                       return sum + (cycles || 0) * assets;
                     },
                     0
@@ -351,7 +364,7 @@ export default function CreateNextTask({
           {/* Scrollable Asset Type List */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="space-y-2">
-              {SITE_ASSET_TYPES.map((type) => (
+              {assetTypes.map((type) => (
                 <div
                   key={type}
                   className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-md transition-all duration-200"
@@ -472,7 +485,7 @@ export default function CreateNextTask({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const allOnes = SITE_ASSET_TYPES.reduce((acc, type) => {
+                  const allOnes = assetTypes.reduce((acc, type) => {
                     acc[type] = 1;
                     return acc;
                   }, {} as Record<string, number>);

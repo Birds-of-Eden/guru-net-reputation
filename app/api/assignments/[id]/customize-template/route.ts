@@ -1,13 +1,10 @@
 // app/api/assignments/[id]/customize-template/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import {
-  TaskStatus,
-  TaskPriority,
-  SiteAssetType,
-  PeriodType,
-} from "@prisma/client";
+import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { resolveCategoryName } from "@/lib/asset-types.server";
 import {
   authenticateUser,
   canModifyAssignment,
@@ -27,7 +24,7 @@ import {
  * POST /api/assignments/{assignmentId}/customize-template
  * Body: {
  *   newAssets?: Array<{ // New site assets to add
- *     type: SiteAssetType,
+ *     type: string,
  *     name: string,
  *     customName?: string, // Optional custom name that overrides default name
  *     url?: string,
@@ -39,7 +36,7 @@ import {
  *   replacements?: Array<{ // Replace existing assets
  *     oldAssetId: number, // ID from current template
  *     newAssetName: string,
- *     newAssetType?: SiteAssetType,
+ *     newAssetType?: string,
  *     newAssetUrl?: string,
  *     newAssetDescription?: string,
  *     isRequired?: boolean,
@@ -77,7 +74,7 @@ export async function POST(
       forceRecreate = false,
     } = body as {
       newAssets?: Array<{
-        type: SiteAssetType;
+        type: string;
         name: string;
         customName?: string;  // Optional custom name
         url?: string;
@@ -89,7 +86,7 @@ export async function POST(
       replacements?: Array<{
         oldAssetId: number;
         newAssetName: string;
-        newAssetType?: SiteAssetType;
+        newAssetType?: string;
         newAssetUrl?: string;
         newAssetDescription?: string;
         isRequired?: boolean;
@@ -106,22 +103,7 @@ export async function POST(
       (request.nextUrl.searchParams.get("actorId") as string) ||
       null;
 
-    const CATEGORY_NAME_BY_TYPE: Record<SiteAssetType, string> = {
-      social_site: "Social Asset Creation",
-      web2_site: "Web 2.0 Asset Creation",
-      other_asset: "Additional Asset Creation",
-      graphics_design: "Graphics Design",
-      image_optimization: "Image Optimization",
-      content_studio: "Content Studio",
-      content_writing: "Content Writing",
-      backlinks: "Backlinks",
-      completed_com: "Completed Communication",
-      youtube_video_optimization: "YouTube Video Optimization",
-      monitoring: "Monitoring",
-      review_removal: "Review Removal",
-      summary_report: "Summary Report",
-      guest_posting: "Guest Posting",
-    };
+    const CATEGORY_NAME_BY_TYPE = getDefaultCategoryBySlug();
 
     const result = await prisma.$transaction(async (tx) => {
       // 1) Load current assignment
@@ -321,12 +303,30 @@ export async function POST(
         }
       }
 
-      // 6) Ensure task categories exist
-      const categoryNames = Array.from(
-        new Set(Object.values(CATEGORY_NAME_BY_TYPE))
+      const assetTypes = await tx.assetType.findMany({
+        select: { slug: true, categoryName: true, isActive: true },
+      });
+      const assetTypeMap = new Map(
+        assetTypes.map((t) => [
+          t.slug,
+          {
+            id: t.slug,
+            slug: t.slug,
+            label: t.slug,
+            isActive: t.isActive,
+            sortOrder: 0,
+            categoryName: t.categoryName ?? null,
+          },
+        ])
       );
+
+      // 6) Ensure task categories exist
+      const categoryNames = new Set<string>(Object.values(CATEGORY_NAME_BY_TYPE));
+      for (const t of assetTypes) {
+        if (t.categoryName) categoryNames.add(t.categoryName);
+      }
       await Promise.all(
-        categoryNames.map((name) =>
+        Array.from(categoryNames).map((name) =>
           tx.taskCategory.upsert({
             where: { name },
             create: { name },
@@ -361,12 +361,18 @@ export async function POST(
           (a) => a.id === oldAssetId
         );
 
+        const rawType = replacement.newAssetType ?? oldAsset?.type;
+        const normalizedType = normalizeAssetTypeSlug(String(rawType ?? ""));
+        if (replacement.newAssetType && (!normalizedType || !assetTypeMap.has(normalizedType))) {
+          throw new Error("INVALID_ASSET_TYPE");
+        }
+
         // Update the cloned asset with new values
         const updatedAsset = await tx.templateSiteAsset.update({
           where: { id: newAssetInClonedTemplate },
           data: {
             name: replacement.newAssetName,
-            type: replacement.newAssetType || oldAsset?.type,
+            type: normalizedType || oldAsset?.type,
             url: replacement.newAssetUrl ?? oldAsset?.url,
             description:
               replacement.newAssetDescription ?? oldAsset?.description,
@@ -412,9 +418,11 @@ export async function POST(
         }
 
         // Create new task for replaced asset (using NEW asset ID from cloned template)
-        const categoryName =
-          CATEGORY_NAME_BY_TYPE[updatedAsset.type as SiteAssetType] ??
-          "Other Task";
+        const categoryName = resolveCategoryName(
+          normalizeAssetTypeSlug(updatedAsset.type),
+          assetTypeMap,
+          CATEGORY_NAME_BY_TYPE
+        );
         const categoryId = categoryIdByName.get(categoryName) ?? null;
 
         const newTask = {
@@ -459,11 +467,15 @@ export async function POST(
       for (const newAssetData of newAssets) {
         // Use customName if provided, otherwise use default name
         const finalAssetName = newAssetData.customName?.trim() || newAssetData.name;
-        
+        const normalizedType = normalizeAssetTypeSlug(String(newAssetData.type ?? ""));
+        if (!normalizedType || !assetTypeMap.has(normalizedType)) {
+          throw new Error("INVALID_ASSET_TYPE");
+        }
+
         const newAsset = await tx.templateSiteAsset.create({
           data: {
             templateId: customTemplate.id,
-            type: newAssetData.type,
+            type: normalizedType,
             name: finalAssetName,  // Use customName if provided
             url: newAssetData.url || null,
             description: newAssetData.description || null,
@@ -483,8 +495,11 @@ export async function POST(
         });
 
         // Create task for new asset
-        const categoryName =
-          CATEGORY_NAME_BY_TYPE[newAsset.type as SiteAssetType] ?? "Other Task";
+        const categoryName = resolveCategoryName(
+          normalizeAssetTypeSlug(newAsset.type),
+          assetTypeMap,
+          CATEGORY_NAME_BY_TYPE
+        );
         const categoryId = categoryIdByName.get(categoryName) ?? null;
 
         const newTask = {
@@ -652,6 +667,12 @@ export async function POST(
       return NextResponse.json(
         { message: "Client not found" },
         { status: 404 }
+      );
+    }
+    if (error?.message === "INVALID_ASSET_TYPE") {
+      return NextResponse.json(
+        { message: "Invalid asset type provided" },
+        { status: 400 }
       );
     }
     console.error("Customize template error:", error);

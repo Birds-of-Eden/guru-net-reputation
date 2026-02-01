@@ -8,11 +8,6 @@ import prisma from "@/lib/prisma";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 
 // ---------- Constants ----------
-const ALLOWED_ASSET_TYPES = [
-  "social_site",
-  "web2_site",
-  "other_asset",
-] as const;
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
 

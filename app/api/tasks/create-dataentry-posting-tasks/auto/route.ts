@@ -2,21 +2,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import type { TaskPriority, TaskStatus, SiteAssetType } from "@prisma/client";
+import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 
 // ================== CONSTANTS ==================
-// Allow ALL asset types defined in prisma enum
-const ALLOWED_ASSET_TYPES: SiteAssetType[] = [
-  "social_site",
-  "web2_site",
-  "other_asset",
-  "content_writing",
-  "backlinks",
-  "review_removal",
-  "summary_report",
-  "guest_posting",
-];
+type AssetTypeSlug = string;
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
@@ -58,27 +50,16 @@ function normalizeTaskPriority(v: unknown): TaskPriority {
   }
 }
 
-function resolveCategoryFromType(assetType?: SiteAssetType | null): string {
-  switch (assetType) {
-    case "web2_site":
-      return CAT_BLOG_POSTING;
-    case "social_site":
-      return CAT_SOCIAL_ACTIVITY;
-    case "content_writing":
-      return CAT_CONTENT_WRITING;
-    case "guest_posting":
-      return CAT_GUEST_POSTING;
-    case "backlinks":
-      return CAT_BACKLINKS;
-    case "review_removal":
-      return CAT_REVIEW_REMOVAL;
-    case "summary_report":
-      return CAT_SUMMARY_REPORT;
-    case "other_asset":
-    default:
-      return CAT_SOCIAL_ACTIVITY;
-  }
-}
+const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
+  web2_site: CAT_BLOG_POSTING,
+  social_site: CAT_SOCIAL_ACTIVITY,
+  content_writing: CAT_CONTENT_WRITING,
+  guest_posting: CAT_GUEST_POSTING,
+  backlinks: CAT_BACKLINKS,
+  review_removal: CAT_REVIEW_REMOVAL,
+  summary_report: CAT_SUMMARY_REPORT,
+  other_asset: CAT_SOCIAL_ACTIVITY,
+};
 
 function baseNameOf(name: string): string {
   return String(name)
@@ -166,7 +147,7 @@ function collectWeb2PlatformSources(
     email: string | null;
     password: string | null;
     completionLink: string | null;
-    templateSiteAsset?: { type: SiteAssetType | null } | null;
+    templateSiteAsset?: { type: string | null } | null;
     idealDurationMinutes?: number | null;
   }[]
 ) {
@@ -244,7 +225,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const clientId: string | undefined = body?.clientId;
     const templateIdRaw: string | undefined = body?.templateId;
-    const onlyType: SiteAssetType | undefined = body?.onlyType;
+    const onlyType: string | undefined = body?.onlyType;
     const overridePriority = body?.priority
       ? normalizeTaskPriority(body?.priority)
       : undefined;
@@ -285,6 +266,17 @@ export async function POST(req: NextRequest) {
     const todayOnly = dateOnly(new Date());
     const cutoff = todayOnly <= dueDate ? todayOnly : dueDate;
 
+    const assetTypeMap = await fetchAssetTypeMap();
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const resolveCategoryFromType = (assetType?: string | null) =>
+      resolveCategoryFromMap(
+        assetType ?? "",
+        CATEGORY_BY_ASSET_TYPE,
+        assetTypeMap,
+        fallbackCategoryMap,
+        CAT_SOCIAL_ACTIVITY
+      );
+
     // Assignment
     const templateId = templateIdRaw === "none" ? null : templateIdRaw;
     const assignment = await prisma.assignment.findFirst({
@@ -302,6 +294,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedOnlyType = onlyType ? normalizeAssetTypeSlug(onlyType) : undefined;
+    const allowedTypes = Array.from(assetTypeMap.keys());
+    const typeFilter = normalizedOnlyType
+      ? { type: normalizedOnlyType }
+      : allowedTypes.length
+        ? { type: { in: allowedTypes } }
+        : {};
+
     // Source (qc_approved only) + type filter
     const sourceTasks = await prisma.task.findMany({
       where: {
@@ -309,7 +309,7 @@ export async function POST(req: NextRequest) {
         status: "qc_approved",
         templateSiteAsset: {
           is: {
-            ...(onlyType ? { type: onlyType } : { type: { in: ALLOWED_ASSET_TYPES } }),
+            ...typeFilter,
           },
         },
       },
@@ -349,18 +349,15 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // Ensure all categories that can be used
-    const ALL_CATEGORY_NAMES = [
-      CAT_SOCIAL_ACTIVITY,
-      CAT_BLOG_POSTING,
-      CAT_SOCIAL_COMMUNICATION,
-      CAT_CONTENT_WRITING,
-      CAT_GUEST_POSTING,
-      CAT_BACKLINKS,
-      CAT_REVIEW_REMOVAL,
-      CAT_SUMMARY_REPORT,
-    ];
-    const ensured = await Promise.all(ALL_CATEGORY_NAMES.map((n) => ensureCategory(n)));
+    const categoryNames = new Set<string>();
+    for (const src of sourceTasks) {
+      categoryNames.add(resolveCategoryFromType(src.templateSiteAsset?.type));
+    }
+    categoryNames.add(CAT_SOCIAL_COMMUNICATION);
+
+    const ensured = await Promise.all(
+      Array.from(categoryNames).map((n) => ensureCategory(n))
+    );
     const categoryIdByName = new Map<string, string>(ensured.map((c) => [c.name, c.id] as const));
 
     // Web2 creds for SC (kept same)
@@ -478,7 +475,7 @@ export async function POST(req: NextRequest) {
           where: {
             assignmentId: assignment.id,
             name: { in: namesToCheck },
-            category: { name: { in: ALL_CATEGORY_NAMES } },
+            category: { name: { in: Array.from(categoryNames) } },
           },
           select: { name: true },
         })

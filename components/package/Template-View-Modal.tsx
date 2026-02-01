@@ -36,6 +36,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatAssetTypeLabel } from "@/lib/asset-types";
 
 interface TemplateSiteAsset {
   id: number;
@@ -102,12 +103,14 @@ interface TemplateViewModalProps {
   isOpen: boolean;
   onClose: () => void;
   template: Template | null;
+  assetTypeLabels?: Record<string, string>;
 }
 
 export function TemplateViewModal({
   isOpen,
   onClose,
   template,
+  assetTypeLabels,
 }: TemplateViewModalProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedSiteType, setSelectedSiteType] = useState<string | null>(null);
@@ -177,7 +180,7 @@ export function TemplateViewModal({
       configs[type as keyof typeof configs] || {
         icon: FileText,
         color: "gray",
-        label: "Other",
+        label: assetTypeLabels?.[type] || formatAssetTypeLabel(type),
       }
     );
   };
@@ -208,20 +211,11 @@ export function TemplateViewModal({
   const socialSites = groupedSites.social_site || [];
   const web2Sites = groupedSites.web2_site || [];
   const otherAssets = groupedSites.other_asset || [];
-
-  const otherTasks = [
-    ...(groupedSites.graphics_design || []),
-    ...(groupedSites.image_optimization || []),
-    ...(groupedSites.content_studio || []),
-    ...(groupedSites.content_writing || []),
-    ...(groupedSites.backlinks || []),
-    ...(groupedSites.completed_com || []),
-    ...(groupedSites.youtube_video_optimization || []),
-    ...(groupedSites.monitoring || []),
-    ...(groupedSites.review_removal || []),
-    ...(groupedSites.summary_report || []),
-    ...(groupedSites.guest_posting || []),
-  ];
+  const primaryTypes = new Set(["social_site", "web2_site", "other_asset"]);
+  const otherTaskEntries = Object.entries(groupedSites).filter(
+    ([type]) => !primaryTypes.has(type)
+  );
+  const otherTasks = otherTaskEntries.flatMap(([, sites]) => sites);
 
   const totalSites = template.sitesAssets?.length || 0;
   const requiredSites =
@@ -568,44 +562,37 @@ export function TemplateViewModal({
             <TabsContent value="otherTasks" className="mt-0 space-y-4">
               {/* Task Categories */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                {[
-                  "graphics_design",
-                  "image_optimization",
-                  "content_studio",
-                  "content_writing",
-                  "backlinks",
-                  "completed_com",
-                  "youtube_video_optimization",
-                  "monitoring",
-                  "review_removal",
-                  "summary_report",
-                  "guest_posting",
-                ].map((type) => {
-                  const config = getSiteTypeConfig(type);
-                  const sites = groupedSites[type] || [];
-                  if (sites.length === 0) return null;
+                {otherTaskEntries
+                  .sort(([a], [b]) =>
+                    (assetTypeLabels?.[a] || formatAssetTypeLabel(a)).localeCompare(
+                      assetTypeLabels?.[b] || formatAssetTypeLabel(b)
+                    )
+                  )
+                  .map(([type, sites]) => {
+                    const config = getSiteTypeConfig(type);
+                    if (sites.length === 0) return null;
 
-                  return (
-                    <Card
-                      key={type}
-                      className="border-0 shadow-sm bg-white text-center hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="p-4">
-                        <div
-                          className={`p-3 bg-${config.color}-100 rounded-full w-fit mx-auto mb-3`}
-                        >
-                          <SiteTypeIcon type={type} size={20} />
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {sites.length}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium">
-                          {config.label}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                    return (
+                      <Card
+                        key={type}
+                        className="border-0 shadow-sm bg-white text-center hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="p-4">
+                          <div
+                            className={`p-3 bg-${config.color}-100 rounded-full w-fit mx-auto mb-3`}
+                          >
+                            <SiteTypeIcon type={type} size={20} />
+                          </div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {sites.length}
+                          </div>
+                          <div className="text-sm text-gray-600 font-medium">
+                            {config.label}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
               </div>
 
               {/* Task Details */}

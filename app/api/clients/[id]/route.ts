@@ -4,6 +4,11 @@ import prisma from "@/lib/prisma";
 import type { TaskStatus } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { getDefaultCategoryBySlug } from "@/lib/asset-types";
+import {
+  fetchAssetTypeMap,
+  resolveCategoryFromMap,
+} from "@/lib/asset-types.server";
 
 // --- helpers ---
 function coerceSocialMedia(input: any): any[] | undefined {
@@ -929,6 +934,18 @@ export async function POST(
 
         // ======= SEEDING with category-aware, client-wide dedupe =======
         if (targetAssignment) {
+          const assetTypeMap = await fetchAssetTypeMap({
+            includeInactive: true,
+          });
+          const fallbackCategoryMap = getDefaultCategoryBySlug();
+          const resolveCategoryFromType = (assetType?: string | null) =>
+            resolveCategoryFromMap(
+              assetType ?? "",
+              CATEGORY_BY_ASSET_TYPE,
+              assetTypeMap,
+              fallbackCategoryMap,
+              CATEGORY_BY_ASSET_TYPE["other_asset"] ?? "Additional Asset Creation"
+            );
           const toCheckIds = [...newOnlyAssetIds, ...commonAssetIds];
           if (toCheckIds.length) {
             const metaById = new Map(newScopedAssets.map((a) => [a.id, a]));
@@ -997,8 +1014,7 @@ export async function POST(
               const rawType = norm(meta?.type || "");
               const rawNameNorm = norm(rawName);
 
-              const catName = CATEGORY_BY_ASSET_TYPE[rawType];
-              if (!catName) continue;
+              const catName = resolveCategoryFromType(rawType);
 
               const finalName = `${stripTaskSuffix(rawName)} Task`;
               const finalBase = normalizeForDedupe(finalName);
@@ -1037,7 +1053,7 @@ export async function POST(
               for (const id of needSeeds) {
                 const meta = metaById.get(id);
                 const rawType = norm(meta?.type || "");
-                const catName = CATEGORY_BY_ASSET_TYPE[rawType];
+                const catName = resolveCategoryFromType(rawType);
                 if (catName) categoriesNeeded.add(catName);
               }
               for (const nm of Array.from(categoriesNeeded)) {
@@ -1050,8 +1066,7 @@ export async function POST(
                   const meta = metaById.get(assetId)!;
                   const raw = meta?.name || `Asset ${assetId}`;
                   const rawType = norm(meta?.type || "");
-                  const catName = CATEGORY_BY_ASSET_TYPE[rawType];
-                  if (!catName) return prisma.$queryRaw`SELECT 1`;
+                  const catName = resolveCategoryFromType(rawType);
                   const catId = catIdByName.get(catName)!;
                   const finalName = `${stripTaskSuffix(raw)} Task`;
 

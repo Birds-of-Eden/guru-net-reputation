@@ -2,22 +2,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import type { TaskPriority, TaskStatus, SiteAssetType } from "@prisma/client";
+import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 import { extractCycleNumber, addWorkingDays } from "@/utils/working-days";
 
 // ================== CONSTANTS ==================
-// Allow ALL asset types defined in prisma enum
-const ALLOWED_ASSET_TYPES: SiteAssetType[] = [
-  "social_site",
-  "web2_site",
-  "other_asset",
-  "content_writing",
-  "backlinks",
-  "review_removal",
-  "summary_report",
-  "guest_posting",
-];
+type AssetTypeSlug = string;
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
@@ -59,8 +51,8 @@ function normalizeTaskPriority(v: unknown): TaskPriority {
   }
 }
 
-// Simple mapping (no function) from SiteAssetType -> Category Name
-const TYPE_TO_CATEGORY: Record<SiteAssetType, string> = {
+// Simple mapping (no function) from asset type -> Category Name
+const TYPE_TO_CATEGORY: Record<AssetTypeSlug, string> = {
   social_site: CAT_SOCIAL_ACTIVITY,
   web2_site: CAT_BLOG_POSTING,
   other_asset: CAT_SOCIAL_ACTIVITY,
@@ -126,7 +118,7 @@ function collectWeb2PlatformSources(
     email: string | null;
     password: string | null;
     completionLink: string | null;
-    templateSiteAsset?: { type: SiteAssetType | null } | null;
+    templateSiteAsset?: { type: string | null } | null;
     idealDurationMinutes?: number | null;
   }[]
 ) {
@@ -204,9 +196,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const clientId: string | undefined = body?.clientId;
     const counts: Record<string, number> | undefined = body?.counts; // legacy: category -> count
-    const countsByType: Partial<Record<SiteAssetType, number>> | undefined = body?.countsByType; // new: type -> count
+    const countsByType: Partial<Record<string, number>> | undefined = body?.countsByType; // new: type -> count
     const templateIdRaw: string | undefined = body?.templateId;
-    const onlyType: SiteAssetType | undefined = body?.onlyType;
+    const onlyType: string | undefined = body?.onlyType;
     const overridePriority = body?.priority
       ? normalizeTaskPriority(body?.priority)
       : undefined;
@@ -236,6 +228,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!client) return NextResponse.json({ message: "Client not found" }, { status: 404 });
+
+    const assetTypeMap = await fetchAssetTypeMap();
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const resolveCategoryForType = (type: string) =>
+      resolveCategoryFromMap(
+        type,
+        TYPE_TO_CATEGORY,
+        assetTypeMap,
+        fallbackCategoryMap,
+        CAT_SOCIAL_ACTIVITY
+      );
 
     // Compute common due date for new tasks: 7 working days after latest completedAt among
     // client's tasks for social_site, web2_site, other_asset. If none, leave undefined.
@@ -274,7 +277,8 @@ export async function POST(req: NextRequest) {
       // Fetch qc_approved template source tasks for ONLY the requested types
       const requestedTypes = Object.entries(countsByType)
         .filter(([_, v]) => Number(v || 0) > 0)
-        .map(([k]) => k as SiteAssetType);
+        .map(([k]) => normalizeAssetTypeSlug(k))
+        .filter((t) => Boolean(t) && assetTypeMap.has(t));
 
       if (requestedTypes.length === 0) {
         return NextResponse.json(
@@ -311,7 +315,9 @@ export async function POST(req: NextRequest) {
       }
 
       // Ensure categories for all types we might use
-      const catNames = Array.from(new Set(requestedTypes.map((t) => TYPE_TO_CATEGORY[t])));
+      const catNames = Array.from(
+        new Set(requestedTypes.map((t) => resolveCategoryForType(t)))
+      );
       const ensured = await Promise.all(
         catNames.map((n) =>
           prisma.taskCategory.upsert({
@@ -325,9 +331,9 @@ export async function POST(req: NextRequest) {
       const categoryIdByName = new Map<string, string>(ensured.map((c) => [c.name, c.id] as const));
 
       // Group sources by type
-      const byType = new Map<SiteAssetType, typeof sourceTasks>();
+      const byType = new Map<AssetTypeSlug, typeof sourceTasks>();
       for (const s of sourceTasks) {
-        const t = s.templateSiteAsset?.type as SiteAssetType | undefined;
+        const t = s.templateSiteAsset?.type as AssetTypeSlug | undefined;
         if (!t) continue;
         const arr = byType.get(t) ?? [];
         arr.push(s);
@@ -341,7 +347,7 @@ export async function POST(req: NextRequest) {
         if (count <= 0) continue;
         const srcList = byType.get(t) ?? [];
         if (!srcList.length) continue;
-        const catName = TYPE_TO_CATEGORY[t];
+        const catName = resolveCategoryForType(t);
         const catId = categoryIdByName.get(catName);
         if (!catId) continue;
 
@@ -523,8 +529,8 @@ export async function POST(req: NextRequest) {
       // Group sources by category via TYPE_TO_CATEGORY
       const byCategory = new Map<string, typeof sourceTasks>();
       for (const s of sourceTasks) {
-        const t = s.templateSiteAsset?.type as SiteAssetType | undefined;
-        const cat = t ? TYPE_TO_CATEGORY[t] : CAT_SOCIAL_ACTIVITY;
+        const t = s.templateSiteAsset?.type as AssetTypeSlug | undefined;
+        const cat = t ? resolveCategoryForType(t) : CAT_SOCIAL_ACTIVITY;
         const arr = byCategory.get(cat) ?? [];
         arr.push(s);
         byCategory.set(cat, arr);

@@ -7,23 +7,9 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
+import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 
-const ALLOWED_ASSET_TYPES = [
-  "social_site",
-  "web2_site",
-  "other_asset",
-  "graphics_design",
-  "image_optimization",
-  "content_studio",
-  "content_writing",
-  "backlinks",
-  "completed_com",
-  "youtube_video_optimization",
-  "monitoring",
-  "review_removal",
-  "summary_report",
-  "guest_posting",
-] as const;
 
 // Category mapping mirrors posting-task logic
 const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
@@ -67,12 +53,6 @@ function fail(stage: string, err: unknown, http = 500) {
     { message: "Internal Server Error", stage, error: e },
     { status: http }
   );
-}
-
-// Determine category name based on asset type (strict posting logic)
-function resolveCategoryFromType(assetType?: string): string {
-  if (!assetType) return "Social Asset Creation";
-  return CATEGORY_BY_ASSET_TYPE[assetType] ?? "Social Asset Creation";
 }
 
 // POST: create manual tasks
@@ -120,19 +100,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const assetTypeMap = await fetchAssetTypeMap();
+    const allowedTypes = new Set(assetTypeMap.keys());
+    const fallbackCategoryMap = getDefaultCategoryBySlug();
+    const resolveCategoryFromType = (assetType: string) =>
+      resolveCategoryFromMap(
+        assetType,
+        CATEGORY_BY_ASSET_TYPE,
+        assetTypeMap,
+        fallbackCategoryMap,
+        "Social Asset Creation"
+      );
     const siteAssetTypes = Array.from(
       new Set(
-        siteAssetTypesRaw.filter((type): type is (typeof ALLOWED_ASSET_TYPES)[number] =>
-          ALLOWED_ASSET_TYPES.includes(type as any)
-        )
+        siteAssetTypesRaw
+          .map((type) => normalizeAssetTypeSlug(String(type)))
+          .filter((type) => allowedTypes.has(type))
       )
     );
 
     if (siteAssetTypes.length === 0) {
       return NextResponse.json(
         {
-          message:
-            "Invalid site asset types. Allowed types: social_site, web2_site, other_asset, graphics_design, image_optimization, content_studio, content_writing, backlinks, completed_com, youtube_video_optimization, monitoring, review_removal, summary_report, guest_posting.",
+          message: "Invalid site asset types. Please check configured asset types.",
         },
         { status: 400 }
       );
@@ -202,9 +192,7 @@ export async function POST(req: NextRequest) {
 
     // Ensure categories exist for selected asset types
     const neededCategories = Array.from(
-      new Set(
-        siteAssetTypes.map((t) => resolveCategoryFromType(t as string))
-      )
+      new Set(siteAssetTypes.map((t) => resolveCategoryFromType(t)))
     );
     const ensured = await Promise.all(neededCategories.map((name) => ensureCategory(name)));
     const categoryIdByName = new Map<string, string>();
