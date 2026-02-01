@@ -9,7 +9,7 @@ import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
-import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
 
 // ---------- Constants ----------
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
@@ -71,11 +71,12 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
   review_removal: CAT_REVIEW_REMOVAL,
   summary_report: CAT_SUMMARY_REPORT,
   guest_posting: CAT_GUEST_POSTING,
+  social_communication: CAT_SOCIAL_COMMUNICATION,
 };
 
 function resolveCategoryFromType(
   assetType: string | undefined | null,
-  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  assetTypeMap: Map<string, AssetTypeRecord>,
   fallbackMap: Record<string, string>
 ): string {
   return resolveCategoryFromMap(
@@ -327,7 +328,12 @@ export async function GET(req: NextRequest) {
         username: true,
         notes: true,
         templateSiteAsset: {
-          select: { id: true, type: true, defaultPostingFrequency: true },
+          select: {
+            id: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
         },
       },
     });
@@ -646,7 +652,12 @@ export async function POST(req: NextRequest) {
         notes: true,
         createdAt: true,
         templateSiteAsset: {
-          select: { id: true, type: true, defaultPostingFrequency: true },
+          select: {
+            id: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
         },
       },
     });
@@ -842,7 +853,16 @@ export async function POST(req: NextRequest) {
         name: item.name,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: resolveIdealDurationDynamic(item.name, item.catName as "Blog Posting" | "Social Activity", getRuntimeTaskDurationConfig()),
+        idealDurationMinutes:
+          (src.templateSiteAsset?.defaultIdealDurationMinutesForPosting &&
+          src.templateSiteAsset.defaultIdealDurationMinutesForPosting > 0
+            ? src.templateSiteAsset.defaultIdealDurationMinutesForPosting
+            : null) ??
+          resolveIdealDurationDynamic(
+            item.name,
+            item.catName as "Blog Posting" | "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
         dueDate: dueDate.toISOString(),
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,
@@ -884,7 +904,16 @@ export async function POST(req: NextRequest) {
         name: scName,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
+        idealDurationMinutes:
+          (src.templateSiteAsset?.defaultIdealDurationMinutesForPosting &&
+          src.templateSiteAsset.defaultIdealDurationMinutesForPosting > 0
+            ? src.templateSiteAsset.defaultIdealDurationMinutesForPosting
+            : null) ??
+          resolveIdealDurationDynamic(
+            scName,
+            "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
         dueDate: dueDate.toISOString(), // EXACT last social posting due date
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,
@@ -924,7 +953,13 @@ export async function POST(req: NextRequest) {
         email: creds?.email ?? undefined,
         password: creds?.password ?? undefined,
         completionLink: creds?.url ?? undefined, // url
-        idealDurationMinutes: creds?.idealDurationMinutes ?? resolveIdealDurationDynamic(scName, "Social Activity", getRuntimeTaskDurationConfig()),
+        idealDurationMinutes:
+          creds?.idealDurationMinutes ??
+          resolveIdealDurationDynamic(
+            scName,
+            "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
 
         assignment: { connect: { id: assignment.id } },
         client: { connect: { id: clientId } },

@@ -361,7 +361,12 @@ export async function GET(req: NextRequest) {
         username: true,
         notes: true,
         templateSiteAsset: {
-          select: { id: true, type: true, defaultPostingFrequency: true },
+          select: {
+            id: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
         },
       },
     });
@@ -660,7 +665,12 @@ export async function POST(req: NextRequest) {
         notes: true,
         createdAt: true,
         templateSiteAsset: {
-          select: { id: true, type: true, defaultPostingFrequency: true },
+          select: {
+            id: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
         },
       },
     });
@@ -873,11 +883,16 @@ export async function POST(req: NextRequest) {
           name,
           status: "pending",
           priority: overridePriority ?? src.priority,
-          idealDurationMinutes: resolveIdealDurationDynamic(
-            name,
-            item.catName as "Blog Posting" | "Social Activity",
-            getRuntimeTaskDurationConfig()
-          ),
+          idealDurationMinutes:
+            (src.templateSiteAsset?.defaultIdealDurationMinutesForPosting &&
+            src.templateSiteAsset.defaultIdealDurationMinutesForPosting > 0
+              ? src.templateSiteAsset.defaultIdealDurationMinutesForPosting
+              : null) ??
+            resolveIdealDurationDynamic(
+              name,
+              item.catName as "Blog Posting" | "Social Activity",
+              getRuntimeTaskDurationConfig()
+            ),
           dueDate: dueDate.toISOString(),
           completionLink: src.completionLink ?? undefined,
           email: src.email ?? undefined,
@@ -922,11 +937,16 @@ export async function POST(req: NextRequest) {
         name: scName,
         status: "pending",
         priority: overridePriority ?? src.priority,
-        idealDurationMinutes: resolveIdealDurationDynamic(
-          scName,
-          "Social Activity",
-          getRuntimeTaskDurationConfig()
-        ),
+        idealDurationMinutes:
+          (src.templateSiteAsset?.defaultIdealDurationMinutesForPosting &&
+          src.templateSiteAsset.defaultIdealDurationMinutesForPosting > 0
+            ? src.templateSiteAsset.defaultIdealDurationMinutesForPosting
+            : null) ??
+          resolveIdealDurationDynamic(
+            scName,
+            "Social Activity",
+            getRuntimeTaskDurationConfig()
+          ),
         dueDate: dueDate.toISOString(), // EXACT last social posting due date
         completionLink: src.completionLink ?? undefined,
         email: src.email ?? undefined,

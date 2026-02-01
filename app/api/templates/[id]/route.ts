@@ -88,6 +88,13 @@ export async function PUT(
       );
     }
 
+    const normalizePostingDuration = (val: any) => {
+      if (val === null || val === undefined || String(val).trim() === "") return null;
+      const n = Number.parseInt(String(val), 10);
+      if (!Number.isFinite(n) || Number.isNaN(n) || n <= 0) return null;
+      return n;
+    };
+
     const validSitesAssets = normalizedAssets.map(({ asset, normalizedType }) => ({
       type: normalizedType,
       name: asset.name.trim(),
@@ -101,6 +108,9 @@ export async function PUT(
       defaultIdealDurationMinutes: Math.max(
         1,
         parseInt(asset.defaultIdealDurationMinutes) || 30
+      ),
+      defaultIdealDurationMinutesForPosting: normalizePostingDuration(
+        asset.defaultIdealDurationMinutesForPosting
       ),
     }));
 

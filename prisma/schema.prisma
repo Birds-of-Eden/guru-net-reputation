@@ -473,6 +473,7 @@ model TemplateSiteAsset {
   isRequired                  Boolean
   defaultPostingFrequency     Int?
   defaultIdealDurationMinutes Int?
+  defaultIdealDurationMinutesForPosting Int?
 
   assignmentSettings AssignmentSiteAssetSetting[]
   tasks              Task[]

@@ -43,6 +43,7 @@ interface Template {
     isRequired: boolean
     defaultPostingFrequency?: number
     defaultIdealDurationMinutes?: number
+    defaultIdealDurationMinutesForPosting?: number
   }[]
 }
 
@@ -301,6 +302,9 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                   <TableHead>Name</TableHead>
                   <TableHead>URL</TableHead>
                   <TableHead>Required</TableHead>
+                  <TableHead>Posts/Month</TableHead>
+                  <TableHead>Duration (min)</TableHead>
+                  <TableHead>Posting Duration (min)</TableHead>
                   {editing && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -334,6 +338,87 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                         <Badge variant="outline">No</Badge>
                       )}
                     </TableCell>
+                    <TableCell>
+                      {editing ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          value={asset.defaultPostingFrequency ?? 0}
+                          onChange={(e) =>
+                            setTemplate({
+                              ...template,
+                              sitesAssets: template.sitesAssets.map((a) =>
+                                a.id === asset.id
+                                  ? {
+                                      ...a,
+                                      defaultPostingFrequency: Math.max(
+                                        0,
+                                        Number.parseInt(e.target.value, 10) || 0
+                                      ),
+                                    }
+                                  : a
+                              ),
+                            })
+                          }
+                        />
+                      ) : (
+                        asset.defaultPostingFrequency ?? 0
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editing ? (
+                        <Input
+                          type="number"
+                          min={1}
+                          value={asset.defaultIdealDurationMinutes ?? 30}
+                          onChange={(e) =>
+                            setTemplate({
+                              ...template,
+                              sitesAssets: template.sitesAssets.map((a) =>
+                                a.id === asset.id
+                                  ? {
+                                      ...a,
+                                      defaultIdealDurationMinutes: Math.max(
+                                        1,
+                                        Number.parseInt(e.target.value, 10) || 1
+                                      ),
+                                    }
+                                  : a
+                              ),
+                            })
+                          }
+                        />
+                      ) : (
+                        `${asset.defaultIdealDurationMinutes ?? 30}`
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editing ? (
+                        <Input
+                          type="number"
+                          min={1}
+                          value={asset.defaultIdealDurationMinutesForPosting ?? 30}
+                          onChange={(e) =>
+                            setTemplate({
+                              ...template,
+                              sitesAssets: template.sitesAssets.map((a) =>
+                                a.id === asset.id
+                                  ? {
+                                      ...a,
+                                      defaultIdealDurationMinutesForPosting: Math.max(
+                                        1,
+                                        Number.parseInt(e.target.value, 10) || 1
+                                      ),
+                                    }
+                                  : a
+                              ),
+                            })
+                          }
+                        />
+                      ) : (
+                        `${asset.defaultIdealDurationMinutesForPosting ?? 30}`
+                      )}
+                    </TableCell>
                     {editing && (
                       <TableCell className="text-right">
                         <Button
@@ -349,7 +434,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                 ))}
                 {template.sitesAssets.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={editing ? 5 : 4} className="h-24 text-center">
+                    <TableCell colSpan={editing ? 8 : 7} className="h-24 text-center">
                       No assets found
                     </TableCell>
                   </TableRow>

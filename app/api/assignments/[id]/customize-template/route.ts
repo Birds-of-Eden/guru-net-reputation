@@ -32,6 +32,7 @@ import {
  *     isRequired: boolean,
  *     defaultPostingFrequency?: number,
  *     defaultIdealDurationMinutes?: number
+ *     defaultIdealDurationMinutesForPosting?: number
  *   }>,
  *   replacements?: Array<{ // Replace existing assets
  *     oldAssetId: number, // ID from current template
@@ -42,6 +43,7 @@ import {
  *     isRequired?: boolean,
  *     defaultPostingFrequency?: number,
  *     defaultIdealDurationMinutes?: number
+ *     defaultIdealDurationMinutesForPosting?: number
  *   }>,
  *   customTemplateName?: string // Optional custom name for the new template
  *   idempotencyKey?: string // Optional key to prevent duplicate operations
@@ -82,6 +84,7 @@ export async function POST(
         isRequired: boolean;
         defaultPostingFrequency?: number;
         defaultIdealDurationMinutes?: number;
+        defaultIdealDurationMinutesForPosting?: number;
       }>;
       replacements?: Array<{
         oldAssetId: number;
@@ -92,6 +95,7 @@ export async function POST(
         isRequired?: boolean;
         defaultPostingFrequency?: number;
         defaultIdealDurationMinutes?: number;
+        defaultIdealDurationMinutesForPosting?: number;
       }>;
       customTemplateName?: string;
       idempotencyKey?: string;
@@ -252,6 +256,8 @@ export async function POST(
               defaultPostingFrequency: asset.defaultPostingFrequency ?? null,
               defaultIdealDurationMinutes:
                 asset.defaultIdealDurationMinutes ?? null,
+              defaultIdealDurationMinutesForPosting:
+                asset.defaultIdealDurationMinutesForPosting ?? null,
             },
           });
           clonedAssetMap.set(asset.id, newAsset.id);
@@ -384,6 +390,9 @@ export async function POST(
             defaultIdealDurationMinutes:
               replacement.defaultIdealDurationMinutes ??
               oldAsset?.defaultIdealDurationMinutes,
+            defaultIdealDurationMinutesForPosting:
+              replacement.defaultIdealDurationMinutesForPosting ??
+              oldAsset?.defaultIdealDurationMinutesForPosting,
           },
         });
 
@@ -484,6 +493,8 @@ export async function POST(
               newAssetData.defaultPostingFrequency ?? 3,  // Default to 3 instead of null
             defaultIdealDurationMinutes:
               newAssetData.defaultIdealDurationMinutes ?? null,
+            defaultIdealDurationMinutesForPosting:
+              newAssetData.defaultIdealDurationMinutesForPosting ?? null,
           },
         });
 

@@ -71,6 +71,8 @@ export async function POST(
             isRequired: s.isRequired,
             defaultPostingFrequency: s.defaultPostingFrequency ?? null,
             defaultIdealDurationMinutes: s.defaultIdealDurationMinutes ?? null,
+            defaultIdealDurationMinutesForPosting:
+              s.defaultIdealDurationMinutesForPosting ?? null,
           })),
         });
       }

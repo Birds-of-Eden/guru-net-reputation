@@ -33,6 +33,13 @@ const clampInt = (val: any, fallback: number, min = 1) => {
   return Math.max(min, n);
 };
 
+const normalizePostingDuration = (val: any) => {
+  if (val === null || val === undefined || String(val).trim() === "") return null;
+  const n = Number.parseInt(String(val), 10);
+  if (!Number.isFinite(n) || Number.isNaN(n) || n <= 0) return null;
+  return n;
+};
+
 /** Deduplicate by (type, name) to avoid accidental duplicates in payload */
 const dedupeByTypeAndName = <T extends { type: string; name: string }>(items: T[]) => {
   const seen = new Set<string>();
@@ -115,6 +122,9 @@ export async function POST(request: NextRequest) {
       isRequired: Boolean(asset.isRequired),
       defaultPostingFrequency: clampInt(asset.defaultPostingFrequency, 3, 0),
       defaultIdealDurationMinutes: clampInt(asset.defaultIdealDurationMinutes, 30, 1),
+      defaultIdealDurationMinutesForPosting: normalizePostingDuration(
+        asset.defaultIdealDurationMinutesForPosting
+      ),
     }));
 
     // Normalize team members (if provided)

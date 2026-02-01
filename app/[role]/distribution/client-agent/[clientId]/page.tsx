@@ -493,6 +493,24 @@ const { data: dbCategories = [], isLoading: categoriesLoading } = useSWR<
   dedupingInterval: 60000,
 });
 
+type AssetTypeApiRow = {
+  slug: string;
+  sortOrder: number;
+  categoryName?: string | null;
+};
+
+const { data: assetTypesData } = useSWR<{ assetTypes?: AssetTypeApiRow[] }>(
+  clientId ? "/api/asset-types" : null,
+  jsonFetcher,
+  {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  },
+);
+const assetTypes = Array.isArray(assetTypesData?.assetTypes)
+  ? assetTypesData?.assetTypes
+  : [];
+
   const {
     data: allAgents = [],
     isLoading: allAgentsLoading,
@@ -1007,6 +1025,18 @@ const HIDDEN_CATEGORY_NAMES = new Set([
   "Social Asset Creation",
 ]);
 
+const categoryOrderMap = useMemo(() => {
+  const map = new Map<string, number>();
+  for (const t of assetTypes) {
+    const name = String(t?.categoryName ?? "").trim();
+    if (!name) continue;
+    const order = Number(t?.sortOrder ?? 0);
+    const prev = map.get(name);
+    if (prev === undefined || order < prev) map.set(name, order);
+  }
+  return map;
+}, [assetTypes]);
+
 const categoryLabels = useMemo(() => {
   const base = (dbCategories ?? [])
     .map((c) => String(c?.name ?? "").trim())
@@ -1026,8 +1056,29 @@ const categoryLabels = useMemo(() => {
   const withoutAsset = merged.filter((x) => x !== ASSET_CREATION);
   const hasAsset = merged.includes(ASSET_CREATION);
 
-  return hasAsset ? [ASSET_CREATION, ...withoutAsset] : withoutAsset;
-}, [dbCategories, statsByCategory]);
+  const sorted = withoutAsset.sort((a, b) => {
+    const ao = categoryOrderMap.get(a);
+    const bo = categoryOrderMap.get(b);
+    if (ao !== undefined && bo !== undefined) return ao - bo;
+    if (ao !== undefined) return -1;
+    if (bo !== undefined) return 1;
+    return a.localeCompare(b);
+  });
+
+  const desired = ["Social Activity", "Blog Posting"];
+  const rest = sorted.filter((c) => !desired.includes(c));
+  const picked = desired.filter((c) => sorted.includes(c));
+
+  if (hasAsset) {
+    const first = rest.slice(0, 4);
+    const tail = rest.slice(4);
+    return [ASSET_CREATION, ...first, ...picked, ...tail];
+  }
+
+  const first = rest.slice(0, 4);
+  const tail = rest.slice(4);
+  return [...first, ...picked, ...tail];
+}, [dbCategories, statsByCategory, categoryOrderMap]);
 
 
 useEffect(() => {

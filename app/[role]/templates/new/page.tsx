@@ -29,6 +29,7 @@ interface NewAsset {
   isRequired: boolean
   defaultPostingFrequency?: number
   defaultIdealDurationMinutes?: number
+  defaultIdealDurationMinutesForPosting?: number
 }
 
 export default function NewTemplatePage() {
@@ -45,6 +46,7 @@ export default function NewTemplatePage() {
     isRequired: true,
     defaultPostingFrequency: 1,
     defaultIdealDurationMinutes: 1,
+    defaultIdealDurationMinutesForPosting: 30,
   })
   const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([])
   const router = useRouter()
@@ -76,6 +78,7 @@ export default function NewTemplatePage() {
       isRequired: true,
       defaultPostingFrequency: 1,
       defaultIdealDurationMinutes: 1,
+      defaultIdealDurationMinutesForPosting: 30,
     })
   }
 
@@ -275,6 +278,24 @@ export default function NewTemplatePage() {
                   value={newAsset.description}
                   onChange={(e) =>
                     setNewAsset({ ...newAsset, description: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="asset-posting-duration">Posting Task Duration (min)</Label>
+                <Input
+                  id="asset-posting-duration"
+                  type="number"
+                  min={1}
+                  value={newAsset.defaultIdealDurationMinutesForPosting || 30}
+                  onChange={(e) =>
+                    setNewAsset({
+                      ...newAsset,
+                      defaultIdealDurationMinutesForPosting: Math.max(
+                        1,
+                        Number.parseInt(e.target.value, 10) || 1
+                      ),
+                    })
                   }
                 />
               </div>

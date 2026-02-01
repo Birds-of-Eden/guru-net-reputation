@@ -81,6 +81,7 @@ interface SiteAsset {
   isRequired: boolean;
   defaultPostingFrequency: number; // per month
   defaultIdealDurationMinutes: number;
+  defaultIdealDurationMinutesForPosting?: number | null;
 }
 
 interface TemplateSiteAssetLike extends SiteAsset {}
@@ -287,14 +288,25 @@ export function CreateTemplateModal({
   ];
 
   // Helpers to create default SiteAsset from a simple default item
-  const mapDefaults = (type: SiteAssetTypeTS) => (site: SiteAsset) => ({
+  const mapDefaults = (type: SiteAssetTypeTS) => (site: {
+    name: string;
+    url: string;
+    isRequired: boolean;
+    defaultPostingFrequency: number;
+    defaultIdealDurationMinutes: number;
+    defaultIdealDurationMinutesForPosting?: number | null;
+  }) => ({
     type,
     name: site.name,
     url: site.url ?? "",
-    description: site.description ?? "",
+    description: "",
     isRequired: site.isRequired ?? true,
     defaultPostingFrequency: site.defaultPostingFrequency ?? 3,
     defaultIdealDurationMinutes: site.defaultIdealDurationMinutes ?? 30,
+    defaultIdealDurationMinutesForPosting:
+      site.defaultIdealDurationMinutesForPosting ??
+      site.defaultIdealDurationMinutes ??
+      30,
   });
 
   useEffect(() => {
@@ -360,6 +372,7 @@ export function CreateTemplateModal({
                   isRequired: true,
                   defaultPostingFrequency: 1,
                   defaultIdealDurationMinutes: 30,
+                  defaultIdealDurationMinutesForPosting: 30,
                 },
               ],
         );
@@ -471,6 +484,7 @@ export function CreateTemplateModal({
         isRequired: false,
         defaultPostingFrequency: 1,
         defaultIdealDurationMinutes: 30,
+        defaultIdealDurationMinutesForPosting: 30,
       },
     ]);
     setYoutubeOptimization(
@@ -553,6 +567,7 @@ export function CreateTemplateModal({
       isRequired: false,
       defaultPostingFrequency: 3,
       defaultIdealDurationMinutes: 30,
+      defaultIdealDurationMinutesForPosting: 30,
     };
     setter([...list, newAsset]);
   };
@@ -757,19 +772,20 @@ export function CreateTemplateModal({
 
       {/* Compact table-like layout */}
       <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
-        <div className="grid grid-cols-12 gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700">
+        <div className="grid grid-cols-13 gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700">
           <div className="col-span-2">Site Name</div>
           <div className="col-span-3">URL</div>
           <div className="col-span-2">Description</div>
           <div className="col-span-1 text-center">Required</div>
           <div className="col-span-1 text-center">Posts/Month</div>
           <div className="col-span-1 text-center">Duration (min)</div>
+          <div className="col-span-1 text-center">Posting Duration (min)</div>
           <div className="col-span-2"></div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
           {sites.map((site, index) => (
-            <div key={index} className="grid grid-cols-12 gap-2 p-2 border-b hover:bg-gray-50 items-center">
+            <div key={index} className="grid grid-cols-13 gap-2 p-2 border-b hover:bg-gray-50 items-center">
               <div className="col-span-2">
                 <Input
                   value={site.name}
@@ -850,6 +866,22 @@ export function CreateTemplateModal({
                   className="text-sm h-8 bg-white w-full"
                 />
               </div>
+              <div className="col-span-1">
+                <Input
+                  type="number"
+                  min={1}
+                  value={site.defaultIdealDurationMinutesForPosting ?? 30}
+                  onChange={(e) =>
+                    updateSiteAsset(
+                      type,
+                      index,
+                      "defaultIdealDurationMinutesForPosting",
+                      Number.parseInt(e.target.value || "30", 10) || 30,
+                    )
+                  }
+                  className="text-sm h-8 bg-white w-full"
+                />
+              </div>
               <div className="col-span-2 flex justify-end">
                 <Button
                   type="button"
@@ -880,7 +912,7 @@ export function CreateTemplateModal({
             <div>
               <h2 className="text-lg font-semibold">Basic Information</h2>
               <p className="text-sm text-gray-500">
-                Set up your template details
+                Set up your template details fcvfg
               </p>
             </div>
           </div>
@@ -974,7 +1006,7 @@ export function CreateTemplateModal({
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <FileText className="w-5 h-5 text-blue-600" />
-            {isEditMode ? "Edit Template" : "Create New Template"}
+            {isEditMode ? "Edit Template dfgfg" : "Create New Template"}
           </DialogTitle>
         </DialogHeader>
 

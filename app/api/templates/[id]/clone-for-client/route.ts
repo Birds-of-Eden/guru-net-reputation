@@ -94,6 +94,8 @@ export async function POST(
             isRequired: asset.isRequired,
             defaultPostingFrequency: asset.defaultPostingFrequency ?? null,
             defaultIdealDurationMinutes: asset.defaultIdealDurationMinutes ?? null,
+            defaultIdealDurationMinutesForPosting:
+              asset.defaultIdealDurationMinutesForPosting ?? null,
           })),
         });
       }
