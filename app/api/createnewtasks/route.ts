@@ -17,17 +17,6 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
   social_site: "Social Activity",
   web2_site: "Blog Posting",
   other_asset: "Social Activity",
-  graphics_design: "Graphics Design",
-  image_optimization: "Image Optimization",
-  content_studio: "Content Studio",
-  content_writing: "Content Writing",
-  backlinks: "Backlinks",
-  completed_com: "Completed Communication",
-  youtube_video_optimization: "YouTube Video Optimization",
-  monitoring: "Monitoring",
-  review_removal: "Review Removal",
-  summary_report: "Summary Report",
-  guest_posting: "Guest Posting",
 };
 
 // Node 18+ has global crypto.randomUUID()
@@ -216,6 +205,7 @@ export async function POST(req: NextRequest) {
         name: true,
         type: true,
         defaultIdealDurationMinutes: true,
+        defaultPostingFrequency: true,
       },
     });
 
@@ -247,8 +237,22 @@ export async function POST(req: NextRequest) {
     }> = [];
 
     for (const asset of templateAssets) {
+      const assetType = asset.type as string;
+      const isPostingType = ["social_site", "web2_site", "other_asset"].includes(
+        assetType
+      );
+      const postingFreq = Number(asset.defaultPostingFrequency ?? 0);
+      if (isPostingType && postingFreq <= 0) {
+        console.log("[create-manual-tasks] Skipping asset with 0 frequency:", {
+          assetId: asset.id,
+          assetType,
+          defaultPostingFrequency: asset.defaultPostingFrequency,
+        });
+        continue;
+      }
+
       // Determine category based on asset type (matches posting tasks)
-      const categoryName = resolveCategoryFromType(asset.type as string);
+      const categoryName = resolveCategoryFromType(assetType);
       const categoryId = categoryIdByName.get(categoryName);
 
       if (!categoryId) {
