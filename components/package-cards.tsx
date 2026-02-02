@@ -548,14 +548,6 @@ export function PackageCards() {
                     <Eye className="h-4 w-4 mr-2" />
                     Templates
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-green-200 hover:border-green-300 hover:bg-green-50 hover:text-green-600 transition-all duration-200 bg-transparent rounded-lg"
-                    onClick={() => handleViewDetails(pkg.id)}
-                  >
-                    <Info className="h-4 w-4 mr-2" />
-                    Details
-                  </Button>
                   {canEdit && (
                     <Button
                       variant="outline"
