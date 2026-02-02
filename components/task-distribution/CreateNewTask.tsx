@@ -28,45 +28,28 @@ interface CreateNewTaskModalProps {
 }
 
 const CATEGORY_BY_ASSET: Record<string, string> = {
-  // Posting categories: social_site + other_asset -> Social Activity; web2_site -> Blog Posting
   social_site: "Social Activity",
   web2_site: "Blog Posting",
   other_asset: "Social Activity",
-  graphics_design: "Graphics Design",
-  image_optimization: "Image Optimization",
-  content_studio: "Content Studio",
-  content_writing: "Content Writing",
-  backlinks: "Backlinks",
-  completed_com: "Completed Communication",
-  youtube_video_optimization: "YouTube Video Optimization",
-  monitoring: "Monitoring",
-  review_removal: "Review Removal",
-  summary_report: "Summary Report",
-  guest_posting: "Guest Posting",
 };
 
-const FALLBACK_ASSET_TYPES = [
-  { value: "social_site", label: "Social Site" },
-  { value: "web2_site", label: "Web2 Site" },
-  { value: "other_asset", label: "Other Asset" },
-  { value: "graphics_design", label: "Graphics Design" },
-  { value: "image_optimization", label: "Image Optimization" },
-  { value: "content_studio", label: "Content Studio" },
-  { value: "content_writing", label: "Content Writing" },
-  { value: "backlinks", label: "Backlinks" },
-  { value: "completed_com", label: "Completed.com" },
-  { value: "youtube_video_optimization", label: "YouTube Video Optimization" },
-  { value: "monitoring", label: "Monitoring" },
-  { value: "review_removal", label: "Review Removal" },
-  { value: "summary_report", label: "Summary Report" },
-  { value: "guest_posting", label: "Guest Posting" },
-];
+type AssetTypeOption = {
+  value: string
+  label: string
+  categoryName?: string | null
+}
+
+const FALLBACK_ASSET_TYPES: AssetTypeOption[] = [
+  { value: "social_site", label: "Social Site", categoryName: "Social Activity" },
+  { value: "web2_site", label: "Web2 Site", categoryName: "Blog Posting" },
+  { value: "other_asset", label: "Other Asset", categoryName: "Social Activity" },
+]
 
 export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: CreateNewTaskModalProps) {
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
   const [selectedSiteAssetTypes, setSelectedSiteAssetTypes] = useState<string[]>([])
-  const [assetTypes, setAssetTypes] = useState(FALLBACK_ASSET_TYPES)
+  const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>(FALLBACK_ASSET_TYPES)
 
   useEffect(() => {
     if (!isOpen) return
@@ -74,10 +57,11 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
       try {
         const res = await fetch("/api/asset-types")
         const data = await res.json()
-        const types = Array.isArray(data?.assetTypes)
+        const types: AssetTypeOption[] = Array.isArray(data?.assetTypes)
           ? data.assetTypes.map((t: any) => ({
               value: t.slug,
               label: t.label || formatAssetTypeLabel(t.slug),
+              categoryName: t.categoryName ?? null,
             }))
           : []
         if (types.length) setAssetTypes(types)
@@ -310,7 +294,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
                       <span>{type.label}</span>
                       <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                         <ListTodo className="h-3 w-3" />
-                        {CATEGORY_BY_ASSET[type.value] ?? "Other Task"}
+                        {type.categoryName || CATEGORY_BY_ASSET[type.value] || "Other Task"}
                       </span>
                     </Label>
                     <Checkbox
