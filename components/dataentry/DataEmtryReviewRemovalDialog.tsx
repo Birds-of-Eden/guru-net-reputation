@@ -134,8 +134,30 @@ export default function ReviewRemovalModal({
 
     setIsSubmitting(true);
     try {
-      // 1) Mark task as completed without setting completionLink (should remain null)
-      const completionResponse = await fetch(`/api/tasks/agents/${user.id}`, {
+      // 1) Reassign to actual performer before completing
+      if (doneBy) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            newAgentId: doneBy,
+            reassignNotes:
+              "Reassigned to actual performer by data_entry (review removal)",
+            reassignedById: user.id,
+          }),
+        });
+        const jReassign = await rReassign.json();
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error ||
+              jReassign?.message ||
+              "Failed to reassign task to selected agent"
+          );
+      }
+
+      // 2) Mark task as completed without setting completionLink (should remain null)
+      const completionResponse = await fetch(`/api/tasks/agents/${doneBy}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -147,7 +169,7 @@ export default function ReviewRemovalModal({
       if (!completionResponse.ok)
         throw new Error("Failed to submit review removal data");
 
-      // 2) Update task details
+      // 3) Update task details
       const updateResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -169,27 +191,6 @@ export default function ReviewRemovalModal({
         }),
       });
       if (!updateResponse.ok) throw new Error("Failed to update task");
-
-      // 3) Assign actual performer if provided
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId,
-          assignments: [
-            {
-              taskId: task.id,
-              agentId: doneBy,
-              note: "Reassigned to actual performer (review removal)",
-              dueDate: task.dueDate,
-            },
-          ],
-        };
-        const distRes = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        if (!distRes.ok) throw new Error("Failed to reassign agent");
-      }
 
       // 4) Approve the task
       const approveRes = await fetch(`/api/tasks/${task.id}/approve`, {

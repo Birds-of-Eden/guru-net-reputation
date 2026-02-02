@@ -48,7 +48,7 @@ export default function SheetBuilderDialog({
   open,
   onOpenChange,
   task,
-  clientId,
+  clientId: _clientId,
   onSuccess,
   readOnly = false,
 }: SheetBuilderDialogProps) {
@@ -317,15 +317,35 @@ export default function SheetBuilderDialog({
 
     // At this point, task is guaranteed to exist due to validation above
     const taskId = task!.id;
-    const dueDate = task!.dueDate;
-
     setIsSubmitting(true);
     try {
       const { user } = await fetch("/api/auth/session").then((r) => r.json());
       if (!user?.id) throw new Error("User not authenticated");
 
-      // 1) Mark task as completed
-      const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
+      // 1) Reassign to actual performer before completing
+      if (selectedAgent) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: taskId,
+            newAgentId: selectedAgent,
+            reassignNotes:
+              "Reassigned to actual performer by data_entry (monitoring)",
+            reassignedById: user.id,
+          }),
+        });
+        const jReassign = await rReassign.json();
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error ||
+              jReassign?.message ||
+              "Failed to reassign task to selected agent"
+          );
+      }
+
+      // 2) Mark task as completed
+      const r1 = await fetch(`/api/tasks/agents/${selectedAgent}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -337,7 +357,7 @@ export default function SheetBuilderDialog({
       });
       if (!r1.ok) throw new Error("Failed to mark task completed");
 
-      // 2) Update task with monitoring data
+      // 3) Update task with monitoring data
       const r2 = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -361,26 +381,6 @@ export default function SheetBuilderDialog({
         }),
       });
       if (!r2.ok) throw new Error("Failed to save monitoring data");
-
-      // 3) Reassign to selected agent
-      if (clientId) {
-        const r3 = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clientId,
-            assignments: [
-              {
-                taskId: taskId,
-                agentId: selectedAgent,
-                note: "Reassigned to actual performer by data_entry (monitoring)",
-                dueDate: dueDate,
-              },
-            ],
-          }),
-        });
-        if (!r3.ok) throw new Error("Failed to reassign task");
-      }
 
       // 4) Auto-approve
       const r4 = await fetch(`/api/tasks/${taskId}/approve`, {

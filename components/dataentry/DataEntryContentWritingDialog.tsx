@@ -51,7 +51,7 @@ export default function ContentWritingModal({
   open,
   onOpenChange,
   task,
-  clientId,
+  clientId: _clientId,
   onSuccess,
 }: ContentWritingModalProps) {
   const { user } = useUserSession();
@@ -148,8 +148,30 @@ export default function ContentWritingModal({
         content: section.content,
       }));
 
-      // 1) Mark task as completed with the content as completion data
-      const completionResponse = await fetch(`/api/tasks/agents/${user.id}`, {
+      // 1) Reassign to actual performer before completing
+      if (doneBy) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            newAgentId: doneBy,
+            reassignNotes:
+              "Reassigned to actual performer by data_entry (content writing)",
+            reassignedById: user.id,
+          }),
+        });
+        const jReassign = await rReassign.json();
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error ||
+              jReassign?.message ||
+              "Failed to reassign task to selected agent"
+          );
+      }
+
+      // 2) Mark task as completed with the content as completion data
+      const completionResponse = await fetch(`/api/tasks/agents/${doneBy}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +191,7 @@ export default function ContentWritingModal({
         );
       }
 
-      // 2) Update task status and add data entry report
+      // 3) Update task status and add data entry report
       const taskUpdateResponse = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -199,30 +221,6 @@ export default function ContentWritingModal({
         }),
       });
 
-      // 2.5) reassign to the selected 'doneBy' agent (if provided) so the task ownership reflects who actually did it
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId: clientId,
-          assignments: [
-            {
-              taskId: task.id,
-              agentId: doneBy,
-              note: "Reassigned to actual performer by data_entry (content writing)",
-              dueDate: task.dueDate, // Keep existing due date
-            },
-          ],
-        } as any;
-        const rDist = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        const jDist = await rDist.json();
-        if (!rDist.ok)
-          throw new Error(
-            jDist?.error || "Failed to reassign task to selected agent"
-          );
-      }
       const approveRes = await fetch(`/api/tasks/${task.id}/approve`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

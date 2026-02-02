@@ -116,6 +116,28 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
 
     setSubmitting(true);
     try {
+      // 1) Reassign to actual performer before completing
+      if (doneBy) {
+        const rReassign = await fetch(`/api/tasks/distribute`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            newAgentId: doneBy,
+            reassignNotes:
+              "Reassigned to actual performer by data_entry (summary report)",
+            reassignedById: user.id,
+          }),
+        });
+        const jReassign = await rReassign.json();
+        if (!rReassign.ok)
+          throw new Error(
+            jReassign?.error ||
+              jReassign?.message ||
+              "Failed to reassign task to selected agent"
+          );
+      }
+
       let pdfData: string | null = null;
       if (pdfFile) {
         pdfData = await new Promise<string>((resolve, reject) => {
@@ -129,15 +151,15 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
         });
       }
 
-      // 1) Mark completed for the agent
-      const r1 = await fetch(`/api/tasks/agents/${user.id}`, {
+      // 2) Mark completed for the agent
+      const r1 = await fetch(`/api/tasks/agents/${doneBy}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ taskId: task.id, status: "completed" }),
       });
       if (!r1.ok) throw new Error("Failed to mark task completed");
 
-      // 2) Update task with summaryReport and dataEntryReport
+      // 3) Update task with summaryReport and dataEntryReport
       const r2 = await fetch(`/api/tasks/${task.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -165,22 +187,6 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
         }),
       });
       if (!r2.ok) throw new Error("Failed to update task with summary report");
-
-      // 3) Optional reassign to actual performer
-      if (doneBy && clientId) {
-        const distBody = {
-          clientId,
-          assignments: [
-            { taskId: task.id, agentId: doneBy, note: "Reassigned to actual performer (summary report)", dueDate: task?.dueDate },
-          ],
-        } as any;
-        const rDist = await fetch(`/api/tasks/distribute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(distBody),
-        });
-        if (!rDist.ok) throw new Error("Failed to reassign agent");
-      }
 
       // 4) Approve
       const r3 = await fetch(`/api/tasks/${task.id}/approve`, {
