@@ -1,3 +1,4 @@
+//app/components/assignment-management.tsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -87,6 +88,15 @@ type TaskAssignment = {
   taskId: string;
   agentId: string;
 };
+
+function getAgentDisplayName(agent?: Agent | null) {
+  return (
+    agent?.name ||
+    `${agent?.firstName ?? ""} ${agent?.lastName ?? ""}`.trim() ||
+    agent?.email ||
+    "Agent"
+  );
+}
 
 const priorityColors = {
   low: "bg-gradient-to-r from-emerald-100 via-teal-50 to-green-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
@@ -571,12 +581,12 @@ export default function TaskDistribution() {
                     src={task.assignedTo.image || "/placeholder.svg"}
                   />
                   <AvatarFallback className="bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-sm">
-                    {task.assignedTo.name?.charAt(0) || "A"}
+                    {getAgentDisplayName(task.assignedTo).charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-emerald-900">
-                    ✅ Assigned to {task.assignedTo.name}
+                    ✅ Assigned to {getAgentDisplayName(task.assignedTo)}
                   </p>
                   <p className="text-xs text-emerald-700 font-medium">
                     {task.assignedTo.email}
@@ -897,12 +907,12 @@ export default function TaskDistribution() {
                       src={task.assignedTo.image || "/placeholder.svg"}
                     />
                     <AvatarFallback className="bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs">
-                      {task.assignedTo.name?.charAt(0) || "A"}
+                      {getAgentDisplayName(task.assignedTo).charAt(0) || "A"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-emerald-900 truncate">
-                      {task.assignedTo.name}
+                      {getAgentDisplayName(task.assignedTo)}
                     </p>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-emerald-700" />

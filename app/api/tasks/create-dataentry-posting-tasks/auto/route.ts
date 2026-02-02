@@ -1,3 +1,4 @@
+//app/api/tasks/create-dataentry-posting-tasks/auto
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -373,7 +374,7 @@ export async function POST(req: NextRequest) {
 
     // 👇 NEW: per-month capped schedule builder (first = +15WD, then +7WD), cut at `cutoff`
     function* cadenceDates(from: Date) {
-      let cur = addWorkingDays(from, 15);
+      let cur = addWorkingDays(from, 7);
       yield cur;
       while (true) {
         cur = addWorkingDays(cur, 7);
@@ -459,7 +460,7 @@ export async function POST(req: NextRequest) {
     if (future.length === 0) {
       return NextResponse.json(
         {
-          message: "No occurrences fall within the requested window (start+15WD to cutoff).",
+          message: "No occurrences fall within the requested window (start+7WD to cutoff).",
           created: 0,
           cutoff,
           scheduleCount: 0,
@@ -639,7 +640,7 @@ export async function POST(req: NextRequest) {
         scheduleCount: created.length, // count actually created
         assignedTo: null, // UI assigns to data_entry after creation
         assignmentId: assignment.id,
-        cadence: "first at startDate + 15 working days, then every +7 working days (per-month capped)",
+        cadence: "first at startDate + 7 working days, then every +7 working days (per-month capped)",
         tasks: created,
       },
       { status: 201 }

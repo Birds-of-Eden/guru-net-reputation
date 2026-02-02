@@ -168,7 +168,7 @@ export const TaskListItem = memo(function TaskListItem({
       (resolvedAgent as any)?.lastName ?? ""
     }`.trim() ||
     resolvedAgent?.email ||
-    "Assigned";
+    "Unassigned";
 
   const previewAgent = combinedAgents.find(
     (a: any) => a.id === assignment?.agentId,

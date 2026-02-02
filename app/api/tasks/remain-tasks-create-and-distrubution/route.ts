@@ -549,9 +549,16 @@ export async function POST(req: NextRequest) {
       const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
       if (freqPerMonth === 0) continue;
 
-      // Calculate total months remaining (from today to dueDate)
-      const remainingMonths = monthsBetweenInclusive(todayMidnight, dueDate);
-      const totalNeeded = remainingMonths * freqPerMonth;
+      // Total campaign months always based on full startDate → dueDate
+      const totalMonths = monthsBetweenInclusive(startDate, dueDate);
+      const totalCopies = totalMonths * freqPerMonth;
+
+      // Already created cycles for this asset
+      const alreadyCreated = existingTasksForSource.length;
+
+      // Remaining tasks needed
+      const remainingNeeded = Math.max(totalCopies - alreadyCreated, 0);
+      if (remainingNeeded === 0) continue;
 
       // Per-month cap implementation
       const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
@@ -582,7 +589,7 @@ export async function POST(req: NextRequest) {
             seqIndex,
           });
 
-          if (accepted >= totalNeeded) break;
+          if (accepted >= remainingNeeded) break;
         }
       }
     }
@@ -591,7 +598,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "No remaining occurrences fall within the requested window (today+15WD to dueDate).",
+            "No remaining occurrences fall within the requested window (today+7WD to dueDate).",
           created: 0,
           assignedTo: assignedAgent,
           tasks: [],
@@ -776,7 +783,7 @@ export async function POST(req: NextRequest) {
         assignedTo: assignedAgent,
         assignmentId: assignment.id,
         cadence:
-          "first at today + 15 working days, then every +7 working days (per-month capped)",
+          "first at today + 7 working days, then every +7 working days (per-month capped)",
         tasks: created,
       },
       { status: 201 }

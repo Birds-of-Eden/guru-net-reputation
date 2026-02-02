@@ -20,6 +20,18 @@ function parseDate(d: string | null) {
   return isValid(parsed) ? parsed : null;
 }
 
+function utcDayRangeFromYmd(ymd: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!y || !mo || !d) return null;
+  const start = new Date(Date.UTC(y, mo - 1, d, 0, 0, 0, 0));
+  const end = new Date(Date.UTC(y, mo - 1, d, 23, 59, 59, 999));
+  return { start, end };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -44,6 +56,10 @@ export async function GET(req: NextRequest) {
       cycleKeyParam && cycleKeyParam !== "No Due Date"
         ? parseDate(cycleKeyParam)
         : null;
+    const cycleKeyYmd =
+      cycleKeyParam && /^\d{4}-\d{2}-\d{2}$/.test(cycleKeyParam)
+        ? cycleKeyParam
+        : null;
 
     const limit = asPositiveInt(searchParams.get("limit"), 500, 5000);
 
@@ -64,6 +80,14 @@ export async function GET(req: NextRequest) {
     // ----- Date range (on dueDate) -----
     if (cycleKeyParam === "No Due Date") {
       where.dueDate = null;
+    } else if (cycleKeyYmd) {
+      const range = utcDayRangeFromYmd(cycleKeyYmd);
+      if (range) {
+        where.dueDate = {
+          gte: range.start,
+          lte: range.end,
+        };
+      }
     } else if (cycleDate) {
       where.dueDate = {
         gte: startOfDay(cycleDate),
@@ -200,8 +224,8 @@ export async function GET(req: NextRequest) {
 
       if (cycleKeyParam === "No Due Date") {
         sqlClauses.push(Prisma.sql`"dueDate" IS NULL`);
-      } else if (cycleDate) {
-        const cycleDateStr = cycleDate.toISOString().slice(0, 10);
+      } else if (cycleKeyYmd || cycleDate) {
+        const cycleDateStr = cycleKeyYmd ?? cycleDate!.toISOString().slice(0, 10);
         sqlClauses.push(Prisma.sql`DATE("dueDate") = ${cycleDateStr}`);
       } else {
         if (startDateRaw)

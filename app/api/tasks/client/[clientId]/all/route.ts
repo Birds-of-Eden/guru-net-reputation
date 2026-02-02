@@ -23,6 +23,16 @@ export async function GET(
         status: true,
         dueDate: true,
         assignedToId: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            image: true,
+          },
+        },
         templateSiteAsset: {
           select: {
             id: true,
