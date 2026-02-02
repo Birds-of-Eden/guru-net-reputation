@@ -117,7 +117,7 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
 
 function resolveCategoryFromType(
   assetType: string | null | undefined,
-  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  assetTypeMap: Map<string, import("@/lib/asset-types.server").AssetTypeRecord>,
   fallbackMap: Record<string, string>
 ): string {
   return resolveCategoryFromMap(
