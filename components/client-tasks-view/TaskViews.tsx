@@ -198,7 +198,7 @@ export default function TaskViews({
         <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
           {label}
         </span>
-        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold bg-gradient-to-r from-indigo-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:to-pink-900/30 dark:text-pink-200">
+        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold bg-linear-to-r from-indigo-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:to-pink-900/30 dark:text-pink-200">
           {v ?? "—"}
         </span>
       </div>
@@ -254,7 +254,7 @@ export default function TaskViews({
     const card = (
       <div
         id={`task-${task.id}`}
-        className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg ${
+        className={`group relative bg-linear-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-lg ${
           isThisTaskDisabled ? "opacity-70" : ""
         } ${isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""}`}
       >
@@ -268,7 +268,7 @@ export default function TaskViews({
                         <TooltipProvider delayDuration={100}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
+                              <span className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-linear-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
                                 🎯 Total Score:{" "}
                                 <span className="text-emerald-700 dark:text-emerald-300 font-bold">
                                   {task.qcTotalScore ?? "-"}
@@ -307,7 +307,7 @@ export default function TaskViews({
                                       </div>
                                       <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
                                         <div
-                                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
+                                          className="h-full rounded-full bg-linear-to-r from-blue-500 to-indigo-600"
                                           style={{ width: `${Math.max(0, Math.min(100, total))}%` }}
                                         />
                                       </div>
@@ -354,7 +354,7 @@ export default function TaskViews({
                         {task.name}
                       </h3>
                       {isTimerActive && !locked && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
                           <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                           <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
                             ACTIVE
@@ -394,7 +394,7 @@ export default function TaskViews({
                     )}
 
                     {!hideAssetSection && task.templateSiteAsset?.name && (
-                      <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
+                      <div className="mb-4 p-3 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
                         <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300 break-words">
                           <span className="text-gray-700 dark:text-gray-300">
                             Asset:
@@ -407,7 +407,7 @@ export default function TaskViews({
                 </div>
 
                 <div className="flex-1 min-w-0 w-full lg:w-auto">
-                  <div className="space-y-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
+                  <div className="space-y-3 bg-linear-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
                     {/* Email */}
                     <div className="text-sm flex items-center gap-2">
                       <span className="font-bold text-gray-800 dark:text-gray-200">
@@ -554,9 +554,9 @@ export default function TaskViews({
 
                     {/* URL */}
                     {displayUrl && (
-                      <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                      <div className="mt-3 p-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
                         <div className="text-sm flex items-start gap-2">
-                          <span className="font-bold text-blue-800 dark:text-blue-300 flex-shrink-0">
+                          <span className="font-bold text-blue-800 dark:text-blue-300 shrink-0">
                             URL:
                           </span>
                           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -583,7 +583,7 @@ export default function TaskViews({
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className={`h-6 w-6 rounded-xl transition-colors flex-shrink-0 ${
+                                className={`h-6 w-6 rounded-xl transition-colors shrink-0 ${
                                   reveal
                                     ? "hover:bg-blue-100 dark:hover:bg-blue-800/50"
                                     : "opacity-50 cursor-not-allowed"
@@ -667,7 +667,7 @@ export default function TaskViews({
           <div
             key={task.id}
             id={`task-${task.id}`}
-            className={`group relative bg-gradient-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-3xl border-2 transition-all duration-500 hover:shadow-2xl hover:-translate-y-0.5 border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-xl ${
+            className={`group relative bg-linear-to-br from-white via-violet-50/30 to-purple-50/30 dark:from-gray-800 dark:via-violet-900/10 dark:to-purple-900/10 rounded-3xl border-2 transition-all duration-500 hover:shadow-2xl hover:-translate-y-0.5 border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 shadow-xl ${
               isThisTaskDisabled ? "opacity-70" : ""
             } ${isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""}`}
           >
@@ -680,7 +680,7 @@ export default function TaskViews({
                         {task.name}
                       </h3>
                       {isTimerActive && !locked && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
                           <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
                           <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
                             ACTIVE
@@ -721,7 +721,7 @@ export default function TaskViews({
 
                 {/* Asset */}
                 {!hideAssetSection && task.templateSiteAsset?.name && (
-                  <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
+                  <div className="p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
                     <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
                       <span className="text-gray-700 dark:text-gray-300">
                         Asset:
@@ -733,9 +733,9 @@ export default function TaskViews({
 
                 {/* URL */}
                 {displayUrl && (
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-2xl border-2 border-blue-200 dark:border-blue-700">
+                  <div className="p-4 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-2xl border-2 border-blue-200 dark:border-blue-700">
                     <div className="text-sm flex items-start gap-3">
-                      <span className="font-bold text-blue-800 dark:text-blue-300 flex-shrink-0">
+                      <span className="font-bold text-blue-800 dark:text-blue-300 shrink-0">
                         URL:
                       </span>
                       <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -767,7 +767,7 @@ export default function TaskViews({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors flex-shrink-0"
+                            className="h-8 w-8 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors shrink-0"
                             onClick={() =>
                               reveal && handleCopy(displayUrl, task.id, "url")
                             }
@@ -787,7 +787,7 @@ export default function TaskViews({
                 )}
 
                 {/* Credentials */}
-                <div className="space-y-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-2xl p-4 border-2 border-gray-200 dark:border-gray-700">
+                <div className="space-y-3 bg-linear-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-2xl p-4 border-2 border-gray-200 dark:border-gray-700">
                   {/* Email */}
                   <div className="text-sm flex items-center gap-2">
                     <span className="font-bold text-gray-800 dark:text-gray-200">
@@ -915,7 +915,7 @@ export default function TaskViews({
                 </div>
               </div>
 
-              <div className="mt-6 -mx-6 -mb-8 px-8 py-5 bg-gradient-to-r from-violet-50/70 to-purple-50/70 dark:from-violet-900/20 dark:to-purple-900/20 border-t-2 border-violet-200/70 dark:border-violet-700/70 backdrop-blur-sm">
+              <div className="mt-6 -mx-6 -mb-8 px-8 py-5 bg-linear-to-r from-violet-50/70 to-purple-50/70 dark:from-violet-900/20 dark:to-purple-900/20 border-t-2 border-violet-200/70 dark:border-violet-700/70 backdrop-blur-sm">
                 <div className="flex justify-between mt-3">
                   <TaskTimer
                     task={task}
@@ -931,7 +931,7 @@ export default function TaskViews({
                     <TooltipProvider delayDuration={100}>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="flex items-center px-3 py-0 text-sm font-semibold rounded-full bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
+                          <span className="flex items-center px-3 py-0 text-sm font-semibold rounded-full bg-linear-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
                             🎯 Total Score:{" "}
                             <span className="text-emerald-700 dark:text-emerald-300 font-bold">
                               {task.qcTotalScore ?? "-"}
@@ -970,7 +970,7 @@ export default function TaskViews({
                                   </div>
                                   <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
                                     <div
-                                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
+                                      className="h-full rounded-full bg-linear-to-r from-blue-500 to-indigo-600"
                                       style={{
                                         width: `${Math.max(0, Math.min(100, total))}%`,
                                       }}
@@ -1025,7 +1025,7 @@ export default function TaskViews({
   if (!currentTasks.length) {
     return (
       <div className="py-16 text-center">
-        <div className="mx-auto w-32 h-32 bg-gradient-to-br from-gray-100 to-slate-100 dark:from-gray-800/30 dark:to-slate-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-gray-200 dark:border-gray-700">
+        <div className="mx-auto w-32 h-32 bg-linear-to-br from-gray-100 to-slate-100 dark:from-gray-800/30 dark:to-slate-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-gray-200 dark:border-gray-700">
           <EmptyIcon className="h-12 w-12 text-gray-500" />
         </div>
         <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">

@@ -40,4 +40,40 @@ export async function signOut() {
   return true;
 }
 
-export default { signOut };
+export const signUp = {
+  email: async (
+    userData: { name: string; email: string; password: string; role?: string },
+    callbacks: {
+      onRequest?: () => void;
+      onSuccess?: () => void;
+      onError?: (ctx: { error: { message: string } }) => void;
+    }
+  ) => {
+    try {
+      callbacks?.onRequest?.();
+      
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Signup failed");
+      }
+
+      callbacks?.onSuccess?.();
+    } catch (error) {
+      callbacks?.onError?.({
+        error: {
+          message: error instanceof Error ? error.message : "An error occurred during signup",
+        },
+      });
+    }
+  },
+};
+
+export default { signOut, signUp };

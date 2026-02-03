@@ -21,7 +21,7 @@ export default function ShortDurationConfirmDialog({
 }: ShortDurationConfirmDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] rounded-2xl border border-amber-200 dark:border-amber-800 bg-gradient-to-b from-white to-amber-50 dark:from-gray-900 dark:to-amber-950/20">
+      <DialogContent className="sm:max-w-[520px] rounded-2xl border border-amber-200 dark:border-amber-800 bg-linear-to-b from-white to-amber-50 dark:from-gray-900 dark:to-amber-950/20">
         <DialogHeader>
           <DialogTitle className="sr-only">Confirm Early Completion</DialogTitle>
           <div className="flex flex-col items-start gap-3">

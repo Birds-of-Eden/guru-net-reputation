@@ -182,7 +182,7 @@ export default function CreateTasksManualButton({
         onClick={() => setOpen(true)}
         disabled={isCreating || disabled}
         size="sm"
-        className={`bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+        className={`bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
           disabled ? "opacity-50 cursor-not-allowed" : ""
         }`}
         title={
@@ -208,7 +208,7 @@ export default function CreateTasksManualButton({
         <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col gap-0 p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50 flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg">
                 <Target className="w-5 h-5 text-white" />
               </div>
               Task Generator
@@ -222,7 +222,7 @@ export default function CreateTasksManualButton({
 
           {/* Summary Card - Fixed position */}
           <div className="px-6 pt-4">
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="p-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
@@ -435,7 +435,7 @@ export default function CreateTasksManualButton({
                     (count) => !count || count === 0
                   )
                 }
-                className="flex-1 h-11 font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50"
+                className="flex-1 h-11 font-semibold bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50"
               >
                 {isCreating ? (
                   <>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export function OnboardingFormSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Step Indicator Skeleton */}
         <Card className="mb-8 shadow-lg">
@@ -28,7 +28,7 @@ export function OnboardingFormSkeleton() {
 
         {/* Form Card Skeleton */}
         <Card className="shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6">
+          <CardHeader className="bg-linear-to-r from-purple-600 to-pink-600 text-white p-6">
             <div className="space-y-2">
               <Skeleton className="h-8 w-48 bg-white/20" />
               <Skeleton className="h-4 w-96 bg-white/20" />

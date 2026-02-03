@@ -214,7 +214,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
         {/* Modern Header with Gradient */}
-        <div className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 -m-6 mb-6 px-8 py-6">
+        <div className="bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
@@ -262,7 +262,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
             </label>
             <label
               htmlFor="pdf-upload"
-              className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl py-8 cursor-pointer hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 hover:border-green-400 transition-all group"
+              className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl py-8 cursor-pointer hover:bg-linear-to-br hover:from-green-50 hover:to-emerald-50 hover:border-green-400 transition-all group"
             >
               <Upload className="h-8 w-8 text-slate-400 group-hover:text-green-600 mb-3 transition-colors" />
               {pdfFile ? (
@@ -359,7 +359,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
                         >
                           <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <div
-                              className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${
+                              className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                                 a.id === doneBy ? "bg-blue-500" : "bg-green-500"
                               }`}
                             />
@@ -401,7 +401,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
+            className="rounded-2xl h-14 bg-linear-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
             disabled={submitting}
           >
             <X className="h-5 w-5 mr-2" />
@@ -410,7 +410,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
           <Button
             onClick={handleSubmit}
             disabled={submitting || !doneBy || !completedAt}
-            className="ml-2 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
+            className="ml-2 bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
           >
             <Save className="h-5 w-5 mr-2" />
             {submitting ? "Submitting..." : "Submit Report"}

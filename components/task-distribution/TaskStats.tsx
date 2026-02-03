@@ -19,7 +19,7 @@ export function TaskStats({
   submitting,
 }: TaskStatsProps) {
   return (
-    <div className="bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-8 rounded-2xl shadow-2xl">
+    <div className="bg-linear-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-8 rounded-2xl shadow-2xl">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-2xl font-bold mb-3">
@@ -32,7 +32,7 @@ export function TaskStats({
         </div>
         <div className="flex items-center space-x-8">
           <div className="text-right z-10">
-            <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+            <div className="bg-linear-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
               <div className="text-sm text-slate-100 font-medium">
                 Tasks Selected
               </div>
@@ -40,7 +40,7 @@ export function TaskStats({
             </div>
           </div>
           <div className="text-right">
-            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+            <div className="bg-linear-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
               <div className="text-sm text-slate-100 font-medium">
                 Ready to Assign
               </div>
@@ -51,7 +51,7 @@ export function TaskStats({
             onClick={onSubmit}
             disabled={taskAssignments.length === 0 || submitting}
             size="lg"
-            className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="bg-linear-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {submitting ? (
               <div className="flex items-center space-x-3">

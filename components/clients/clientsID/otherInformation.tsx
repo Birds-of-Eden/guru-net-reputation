@@ -261,7 +261,7 @@ function ValueRenderer({ value }: { value: unknown }) {
             className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
             title={trimmed}
           >
-            <Icon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <Icon className="h-4 w-4 shrink-0 mt-0.5" />
             <span className="font-medium break-words overflow-hidden text-ellipsis line-clamp-2">
               {trimmed}
             </span>
@@ -301,7 +301,7 @@ function ValueRenderer({ value }: { value: unknown }) {
                   className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
                   title={str}
                 >
-                  <LinkIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
                   <span className="break-words overflow-hidden text-ellipsis line-clamp-2">
                     {str}
                   </span>
@@ -473,7 +473,7 @@ export function OtherInformation({ clientData }: OtherInformationProps) {
 
   return (
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
-      <CardHeader className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+      <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
         <CardTitle className="flex items-center gap-2 flex-wrap">
           <FileText className="h-5 w-5 text-indigo-600" />
           <span>Other Information</span>
@@ -583,7 +583,7 @@ export function OtherInformation({ clientData }: OtherInformationProps) {
                                     className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
                                     title={v}
                                   >
-                                    <LinkIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                    <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
                                     <span className="break-words">{v}</span>
                                   </a>
                                   <CopyButton value={v} />

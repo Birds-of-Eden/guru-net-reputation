@@ -117,11 +117,11 @@ const CHART_COLORS = {
 };
 
 const GRADIENTS = {
-  indigo: "bg-gradient-to-br from-indigo-50 via-white to-indigo-100/70",
-  emerald: "bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70",
-  amber: "bg-gradient-to-br from-amber-50 via-white to-amber-100/70",
-  blue: "bg-gradient-to-br from-blue-50 via-white to-blue-100/70",
-  slate: "bg-gradient-to-br from-slate-50 via-white to-slate-100/70",
+  indigo: "bg-linear-to-br from-indigo-50 via-white to-indigo-100/70",
+  emerald: "bg-linear-to-br from-emerald-50 via-white to-emerald-100/70",
+  amber: "bg-linear-to-br from-amber-50 via-white to-amber-100/70",
+  blue: "bg-linear-to-br from-blue-50 via-white to-blue-100/70",
+  slate: "bg-linear-to-br from-slate-50 via-white to-slate-100/70",
 };
 
 // Fetcher for packages
@@ -264,11 +264,11 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
   const errorMsg = clients.error || summary.error;
 
   return (
-    <div className="space-y-6 px-4 bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen">
+    <div className="space-y-6 px-4 bg-linear-to-br from-slate-50 to-gray-100 min-h-screen">
       {/* Enhanced Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-6">
         <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
             AM CEO's Dashboard
           </h1>
           <p className="text-sm text-slate-600 font-medium">
@@ -289,10 +289,10 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                 aria-label="Filter by client"
               >
                 <span className="inline-flex items-center gap-2 truncate">
-                  <Filter className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  <Filter className="h-4 w-4 text-slate-500 shrink-0" />
                   <span className="truncate">{selectedClientName}</span>
                 </span>
-                <span className="ml-2 text-slate-400 flex-shrink-0">▾</span>
+                <span className="ml-2 text-slate-400 shrink-0">▾</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0 w-72" align="end">
@@ -461,7 +461,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
         </div>
       ) : errorMsg ? (
         <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <AlertTriangle className="w-5 h-5 shrink-0" />
           <span className="font-medium">{errorMsg}</span>
         </div>
       ) : (

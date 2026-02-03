@@ -4,7 +4,7 @@ export function EmptyState() {
   return (
     <div className="col-span-full text-center py-16">
       <div className="flex flex-col items-center gap-6">
-        <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full">
+        <div className="p-6 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full">
           <Users className="h-12 w-12 text-gray-400" />
         </div>
         <div className="space-y-2">

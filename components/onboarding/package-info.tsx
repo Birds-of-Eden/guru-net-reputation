@@ -176,10 +176,10 @@ export function PackageInfo({
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg mb-4 animate-pulse">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg mb-4 animate-pulse">
             <Package className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Select Package
           </h1>
           <p className="text-gray-600 text-lg">Loading available packages...</p>
@@ -207,10 +207,10 @@ export function PackageInfo({
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-purple-500 shadow-lg mb-4">
           <Package className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
           Select Your Package
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -221,7 +221,7 @@ export function PackageInfo({
 
       {packages.length === 0 ? (
         <div className="text-center py-16">
-          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+          <div className="mx-auto w-32 h-32 bg-linear-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
             <Package className="w-16 h-16 text-blue-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-3">
@@ -238,7 +238,7 @@ export function PackageInfo({
               key={pkg.id}
               className={`relative overflow-hidden cursor-pointer transition-all duration-500 group ${
                 selectedPackage === pkg.id
-                  ? "ring-4 ring-blue-500 shadow-2xl scale-105 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+                  ? "ring-4 ring-blue-500 shadow-2xl scale-105 bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50"
                   : "hover:shadow-xl hover:-translate-y-2 bg-white"
               }`}
               onClick={() => handlePackageSelect(pkg.id)}
@@ -247,23 +247,23 @@ export function PackageInfo({
               {/* Selection Badge */}
               {selectedPackage === pkg.id && (
                 <div className="absolute top-4 right-4 z-10 animate-in zoom-in duration-300">
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-2 shadow-lg">
+                  <div className="bg-linear-to-br from-blue-500 to-indigo-600 rounded-full p-2 shadow-lg">
                     <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                 </div>
               )}
 
               {/* Top Gradient Bar */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500">
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
               </div>
 
               {/* Glow Effect on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/0 to-purple-400/0 group-hover:from-blue-400/10 group-hover:to-purple-400/10 transition-all duration-500" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-400/0 to-purple-400/0 group-hover:from-blue-400/10 group-hover:to-purple-400/10 transition-all duration-500" />
 
               <CardHeader className="pb-4 pt-6">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <Sparkles className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
@@ -304,8 +304,8 @@ export function PackageInfo({
                 <Button
                   className={`w-full h-12 font-semibold transition-all duration-300 ${
                     selectedPackage === pkg.id
-                      ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl"
-                      : "bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 border-2 border-gray-200 hover:border-blue-300"
+                      ? "bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl"
+                      : "bg-linear-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-purple-50 text-gray-700 hover:text-blue-700 border-2 border-gray-200 hover:border-blue-300"
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -343,9 +343,9 @@ export function PackageInfo({
       )}
 
       {/* Date Selection Card */}
-      <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg">
             <Calendar className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Project Timeline</h2>
@@ -452,9 +452,9 @@ export function PackageInfo({
         {selectedPackageData?.totalMonths &&
           formData.startDate &&
           formData.dueDate && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
+            <div className="mt-6 p-4 bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center shrink-0">
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -478,7 +478,7 @@ export function PackageInfo({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 hover:border-blue-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 hover:border-blue-400 transition-all duration-200 rounded-xl"
         >
           <svg
             className="w-5 h-5 mr-2"
@@ -498,7 +498,7 @@ export function PackageInfo({
         <Button
           onClick={handleNext}
           disabled={!canProceed}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           Continue to Next Step
           <svg

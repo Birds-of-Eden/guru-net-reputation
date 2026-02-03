@@ -31,7 +31,7 @@ export function AgentDetailsDialog({ agent, isOpen, onOpenChange }: AgentDetails
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20 border-4 border-white shadow-xl ring-2 ring-gray-100 dark:ring-gray-800">
               <AvatarImage src={agent.image || "/placeholder.svg"} alt={`${agent.firstName} ${agent.lastName}`} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
+              <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
                 {agent.firstName.charAt(0)}
                 {agent.lastName.charAt(0)}
               </AvatarFallback>

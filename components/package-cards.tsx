@@ -275,7 +275,7 @@ export function PackageCards() {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Package Management
           </h1>
           <p className="text-gray-600 text-lg">
@@ -285,7 +285,7 @@ export function PackageCards() {
         {canCreate && (
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-8"
+            className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-8"
           >
             <Plus className="mr-2 h-5 w-5" />
             Add Package
@@ -295,7 +295,7 @@ export function PackageCards() {
 
       {/* Statistics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-blue-50 to-blue-100">
           <CardContent className="p-4 text-center">
             <div className="p-3 bg-blue-200 rounded-full w-fit mx-auto mb-4">
               <PackageIcon className="w-8 h-8 text-blue-700" />
@@ -309,7 +309,7 @@ export function PackageCards() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-green-50 to-green-100">
           <CardContent className="p-4 text-center">
             <div className="p-3 bg-green-200 rounded-full w-fit mx-auto mb-4">
               <FileText className="w-8 h-8 text-green-700" />
@@ -323,7 +323,7 @@ export function PackageCards() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-purple-50 to-purple-100">
           <CardContent className="p-4 text-center">
             <div className="p-3 bg-purple-200 rounded-full w-fit mx-auto mb-4">
               <Users className="w-8 h-8 text-purple-700" />
@@ -337,7 +337,7 @@ export function PackageCards() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-orange-50 to-orange-100">
           <CardContent className="p-4 text-center">
             <div className="p-3 bg-orange-200 rounded-full w-fit mx-auto mb-4">
               <Activity className="w-8 h-8 text-orange-700" />
@@ -362,12 +362,12 @@ export function PackageCards() {
               key={pkg.id}
               className="group overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border-0 ring-1 ring-gray-200 hover:ring-blue-300 hover:scale-101"
             >
-              <CardHeader className="bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 pb-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5"></div>
+              <CardHeader className="bg-linear-to-r from-slate-50 via-blue-50 to-indigo-50 pb-4 relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-r from-blue-600/5 to-purple-600/5"></div>
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-sm">
+                      <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl shadow-sm">
                         <PackageIcon className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -406,7 +406,7 @@ export function PackageCards() {
 
                     <div
                       className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 bg-gradient-to-r",
+                        "px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 bg-linear-to-r",
                         getHealthBg(healthScore)
                       )}
                     >
@@ -435,7 +435,7 @@ export function PackageCards() {
 
                 {/* Main Statistics Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                  <div className="text-center p-2 bg-linear-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
                     <div className="flex items-center justify-center gap-1 text-blue-600 mb-2">
                       <FileText className="w-4 h-4" />
                     </div>
@@ -447,7 +447,7 @@ export function PackageCards() {
                     </div>
                   </div>
 
-                  <div className="text-center p-2 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+                  <div className="text-center p-2 bg-linear-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
                     <div className="flex items-center justify-center gap-1 text-green-600 mb-2">
                       <Users className="w-4 h-4" />
                     </div>
@@ -580,7 +580,7 @@ export function PackageCards() {
       {!isLoading && packageList.length === 0 && (
         <Card className="border-dashed border-2 border-gray-300 bg-white/50 backdrop-blur-sm">
           <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6">
+            <div className="p-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full mb-6">
               <PackageIcon className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-3">
@@ -593,7 +593,7 @@ export function PackageCards() {
             <Button
               onClick={() => setIsModalOpen(true)}
               size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8"
+              className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Package

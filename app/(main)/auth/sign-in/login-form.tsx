@@ -98,7 +98,7 @@ export function LoginForm() {
     <Card className="bg-transparent border-none">
       <CardHeader>
         <div className="flex items-center justify-center mb-3">
-          <div className="p-[3px] bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-lg">
+          <div className="p-[3px] bg-linear-to-r from-pink-500 via-purple-500 to-blue-500 rounded-lg">
             <img
               src="/birds_of_eden.jpeg"
               alt="Boed-logo"
@@ -194,7 +194,7 @@ export function LoginForm() {
               type="submit"
               className={cn(
                 "relative w-full rounded-md px-4 py-2 font-semibold text-white",
-                "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500",
+                "bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500",
                 "transition-all duration-300 ease-in-out hover:from-pink-500 hover:to-indigo-500",
                 "shadow-lg hover:shadow-pink-400/40 disabled:opacity-50 disabled:cursor-not-allowed"
               )}

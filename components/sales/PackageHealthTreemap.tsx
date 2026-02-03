@@ -80,7 +80,7 @@ export function PackageHealthTreemap({
   const totalClients = nodes.reduce((s, n) => s + (n.clients || 0), 0);
 
   return (
-    <Card className="relative border-0 shadow-lg ring-1 ring-slate-200/60 p-6 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden">
+    <Card className="relative border-0 shadow-lg ring-1 ring-slate-200/60 p-6 rounded-3xl bg-linear-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden">
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between mb-4">
         <div>
@@ -222,7 +222,7 @@ export function PackageHealthTreemap({
           <span>~30 days</span>
           <span>60+ days</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-gradient-to-r from-[#ef4444] via-[#f59e0b] to-[#10b981]" />
+        <div className="h-2 w-full rounded-full bg-linear-to-r from-[#ef4444] via-[#f59e0b] to-[#10b981]" />
         <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 italic">
           🔍 Each box represents a package — bigger = more clients, color = time
           left before expiry (Red = short, Green = healthy).

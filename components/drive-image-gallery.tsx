@@ -244,11 +244,11 @@ export function DriveImageGallery({
 
   return (
     <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 overflow-hidden mb-6">
-      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-linear-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-b border-gray-100 dark:border-gray-800">
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
+              <div className="p-3 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
                 <Images className="h-6 w-6 text-white" />
               </div>
               <div>

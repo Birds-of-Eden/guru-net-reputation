@@ -71,7 +71,7 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
     <div className="rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-lg">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100">
+          <TableRow className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100">
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">Agent</TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Category</TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Contact</TableHead>
@@ -112,7 +112,7 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
                         src={agent.image || "/placeholder.svg"}
                         alt={`${agent.firstName} ${agent.lastName}`}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+                      <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white font-bold">
                         {agent.firstName.charAt(0)}
                         {agent.lastName.charAt(0)}
                       </AvatarFallback>

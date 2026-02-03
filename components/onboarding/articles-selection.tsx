@@ -154,10 +154,10 @@ export function ArticlesSelection({
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-red-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-orange-500 to-red-500 shadow-lg mb-4">
           <BookOpen className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-orange-600 via-red-600 to-rose-600 bg-clip-text text-transparent">
           Article Topics from CQ
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -166,9 +166,9 @@ export function ArticlesSelection({
       </div>
 
       {/* Categories Card */}
-      <div className="bg-gradient-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -215,7 +215,7 @@ export function ArticlesSelection({
                     variant="outline"
                     size="icon"
                     onClick={() => handleRemoveCategory(catIdx)}
-                    className="h-10 w-10 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 flex-shrink-0 mt-7"
+                    className="h-10 w-10 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 shrink-0 mt-7"
                   >
                     <Trash2 className="h-5 w-5" />
                   </Button>
@@ -375,7 +375,7 @@ export function ArticlesSelection({
                           variant="outline"
                           size="icon"
                           onClick={() => handleRemoveTitle(catIdx, titleIdx)}
-                          className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 flex-shrink-0"
+                          className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 shrink-0"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -402,7 +402,7 @@ export function ArticlesSelection({
         <div className="mt-6">
           <Button
             onClick={handleAddCategory}
-            className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            className="w-full h-14 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <Plus className="h-5 w-5 mr-2" />
             Add Topic From CQ
@@ -415,7 +415,7 @@ export function ArticlesSelection({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-700 hover:border-orange-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-700 hover:border-orange-400 transition-all duration-200 rounded-xl"
         >
           <svg
             className="w-5 h-5 mr-2"
@@ -434,7 +434,7 @@ export function ArticlesSelection({
         </Button>
         <Button
           onClick={handleNext}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 hover:from-orange-700 hover:via-red-700 hover:to-rose-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+          className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-orange-600 via-red-600 to-rose-600 hover:from-orange-700 hover:via-red-700 hover:to-rose-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
         >
           Continue to Next Step
           <svg

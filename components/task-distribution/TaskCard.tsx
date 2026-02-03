@@ -394,7 +394,7 @@ const TaskCardComponent = function TaskCard({
                     </p>
                   )}
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               </div>
             );
           })()
@@ -424,7 +424,7 @@ const TaskCardComponent = function TaskCard({
                     <p className="text-xs text-blue-700 truncate">{ag.email}</p>
                   )}
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0" />
               </div>
             );
           })()

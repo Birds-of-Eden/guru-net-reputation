@@ -88,7 +88,7 @@ export default function CreateNextTask({
     <Button
       onClick={createNext}
       disabled={isLoading}
-      className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
+      className="bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
       title="Create all remaining tasks (today → due date) and auto-assign to the top agent"
     >
       {isLoading ? (

@@ -75,7 +75,7 @@ export default function ExportClientTxtButton({
   return (
     <Button
       onClick={handleExportTxt}
-      className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all px-5 py-2 font-semibold"
+      className="flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all px-5 py-2 font-semibold"
     >
       <FileDown className="h-5 w-5" />
       Export Client's Details as TXT

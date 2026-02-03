@@ -29,14 +29,14 @@ function fmtInt(n: number) {
 
 function Medal({ rank }: { rank: number }) {
   const colors = [
-    "bg-gradient-to-br from-yellow-400 to-amber-500 text-white ring-amber-300",
-    "bg-gradient-to-br from-slate-300 to-zinc-400 text-white ring-zinc-300",
-    "bg-gradient-to-br from-amber-600 to-orange-600 text-white ring-orange-300",
+    "bg-linear-to-br from-yellow-400 to-amber-500 text-white ring-amber-300",
+    "bg-linear-to-br from-slate-300 to-zinc-400 text-white ring-zinc-300",
+    "bg-linear-to-br from-amber-600 to-orange-600 text-white ring-orange-300",
   ];
   const cls =
     rank <= 3
       ? colors[rank - 1]
-      : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 ring-slate-300";
+      : "bg-linear-to-br from-slate-100 to-slate-200 text-slate-700 ring-slate-300";
   return (
     <div
       className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-1 ${cls}`}
@@ -53,7 +53,7 @@ function ShareBar({ pct }: { pct: number }) {
     <div className="flex items-center gap-2">
       <div className="relative h-2 w-40 rounded-full bg-slate-100 ring-1 ring-slate-200">
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+          className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-cyan-500 to-blue-500"
           style={{ width: `${w}%` }}
         />
       </div>

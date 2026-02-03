@@ -193,8 +193,8 @@ export default function TaskTimer({
               <div
                 className={`h-full transition-all duration-1000 ${
                   isOvertime
-                    ? "bg-gradient-to-r from-red-500 to-red-600"
-                    : "bg-gradient-to-r from-blue-500 to-blue-600"
+                    ? "bg-linear-to-r from-red-500 to-red-600"
+                    : "bg-linear-to-r from-blue-500 to-blue-600"
                 }`}
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
@@ -263,7 +263,7 @@ export default function TaskTimer({
       <Dialog open={isPauseModalOpen} onOpenChange={setIsPauseModalOpen}>
         <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800/60 shadow-2xl">
           {/* Header */}
-          <DialogHeader className="px-6 py-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-orange-900/20 dark:to-amber-900/10 border-b border-amber-100/70 dark:border-amber-900/40">
+          <DialogHeader className="px-6 py-5 bg-linear-to-r from-amber-50 to-orange-50 dark:from-orange-900/20 dark:to-amber-900/10 border-b border-amber-100/70 dark:border-amber-900/40">
             <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Pause Task
             </DialogTitle>
@@ -329,7 +329,7 @@ export default function TaskTimer({
               type="button"
               onClick={handlePauseConfirm}
               disabled={!selectedReason || isSubmitting}
-              className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-600 hover:to-amber-600
+              className="rounded-xl bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-600 hover:to-amber-600
                    text-white shadow disabled:opacity-60"
             >
               {/* If you imported Loader2, use this block; otherwise keep just the text */}

@@ -78,7 +78,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
   // Loading state with professional skeleton
   if (isLoading && !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -92,7 +92,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         </div>
 
         {/* Sales Spotlight Skeleton */}
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-blue-50 to-indigo-50">
           <CardHeader className="space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-6 w-48" />
@@ -211,7 +211,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

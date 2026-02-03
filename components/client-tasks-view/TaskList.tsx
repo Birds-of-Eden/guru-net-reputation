@@ -496,15 +496,15 @@ export default function TaskList({
   return (
     <div className="w-full overflow-x-hidden">
       <Card className="border-0 shadow-2xl bg-white dark:bg-gray-900 overflow-hidden">
-        <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 dark:from-violet-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-b border-violet-100 dark:border-violet-800/50">
+        <div className="bg-linear-to-br from-violet-50 via-purple-50 to-pink-50 dark:from-violet-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-b border-violet-100 dark:border-violet-800/50">
           <CardHeader className="pb-8">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center w-full">
               <div className="col-span-2 flex items-center space-x-4 min-w-0">
-                <div className="p-4 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl">
+                <div className="p-4 bg-linear-to-br from-violet-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl">
                   <Calendar className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-violet-900 via-purple-900 to-pink-900 dark:from-violet-100 dark:via-purple-100 dark:to-pink-100 bg-clip-text text-transparent break-words">
+                  <CardTitle className="text-3xl font-bold bg-linear-to-r from-violet-900 via-purple-900 to-pink-900 dark:from-violet-100 dark:via-purple-100 dark:to-pink-100 bg-clip-text text-transparent break-words">
                     Task Management
                   </CardTitle>
                   <CardDescription className="text-gray-700 dark:text-gray-300 text-lg mt-1 font-medium">
@@ -517,14 +517,14 @@ export default function TaskList({
               </div>
 
               <div className="col-span-3 flex justify-end">
-                <div className="flex items-center bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-2 shadow-lg">
+                <div className="flex items-center bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-2 shadow-lg">
                   <Button
                     variant={viewMode === "list" ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setViewMode("list")}
                     className={`rounded-xl h-12 w-12 transition-all duration-300 ${
                       viewMode === "list"
-                        ? "bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
+                        ? "bg-linear-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
                         : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50"
                     }`}
                   >
@@ -536,7 +536,7 @@ export default function TaskList({
                     onClick={() => setViewMode("grid")}
                     className={`rounded-xl h-12 w-12 transition-all duration-300 ${
                       viewMode === "grid"
-                        ? "bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
+                        ? "bg-linear-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
                         : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50"
                     }`}
                   >
@@ -556,13 +556,13 @@ export default function TaskList({
               placeholder="Search tasks by name, category, asset, or completion link..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-14 border-2 border-violet-200 dark:border-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 text-gray-900 dark:text-gray-50 rounded-2xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 text-base shadow-lg transition-all duration-300 placeholder:text-violet-400"
+              className="pl-12 h-14 border-2 border-violet-200 dark:border-violet-700 bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 text-gray-900 dark:text-gray-50 rounded-2xl focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 text-base shadow-lg transition-all duration-300 placeholder:text-violet-400"
             />
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4 w-full xl:w-auto">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-blue-200 dark:border-blue-700 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl text-base shadow-lg font-medium">
+              <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-blue-200 dark:border-blue-700 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl text-base shadow-lg font-medium">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-2 border-blue-200 dark:border-blue-700 shadow-2xl">
@@ -577,7 +577,7 @@ export default function TaskList({
             </Select>
 
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-emerald-200 dark:border-emerald-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl text-base shadow-lg font-medium">
+              <SelectTrigger className="w-full lg:w-[200px] h-14 border-2 border-emerald-200 dark:border-emerald-700 bg-linear-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl text-base shadow-lg font-medium">
                 <SelectValue placeholder="All Priorities" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-700 shadow-2xl">
@@ -598,10 +598,10 @@ export default function TaskList({
             onValueChange={handleTabChange}
             className="w-full mb-8"
           >
-            <TabsList className="grid w-full grid-cols-6 h-14 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-6 h-14 bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-2 border-violet-200 dark:border-violet-700 rounded-2xl p-1">
               <TabsTrigger
                 value="today"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <Clock className="h-4 w-4" />
                 Today
@@ -617,7 +617,7 @@ export default function TaskList({
 
               <TabsTrigger
                 value="tomorrow"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <Calendar className="h-4 w-4" />
                 Tomorrow
@@ -633,7 +633,7 @@ export default function TaskList({
 
               <TabsTrigger
                 value="upcoming"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <Calendar className="h-4 w-4" />
                 Upcoming
@@ -649,7 +649,7 @@ export default function TaskList({
 
               <TabsTrigger
                 value="overdue"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:via-red-600 data-[state=active]:to-red-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-red-600 data-[state=active]:via-red-600 data-[state=active]:to-red-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <CheckCircle className="h-4 w-4" />
                 Overdue
@@ -665,7 +665,7 @@ export default function TaskList({
 
               <TabsTrigger
                 value="reassigned"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <CheckCircle className="h-4 w-4" />
                 Reassigned
@@ -681,7 +681,7 @@ export default function TaskList({
 
               <TabsTrigger
                 value="completed"
-                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
+                className="flex items-center gap-2 rounded-xl text-base font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white transition-all duration-300"
               >
                 <CheckCircle className="h-4 w-4" />
                 Completed
@@ -804,7 +804,7 @@ export default function TaskList({
           {sortedTasks.length > 0 && (
             <div className="max-w-full flex flex-col lg:flex-row items-start lg:items-center justify-between pt-8 mt-8 border-t-2 border-gradient-to-r from-violet-200 to-purple-200 dark:from-violet-800 dark:to-purple-800 gap-6">
               <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-4 py-3 rounded-2xl border-2 border-violet-200 dark:border-violet-700 shadow-lg">
+                <div className="flex items-center gap-2 bg-linear-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-4 py-3 rounded-2xl border-2 border-violet-200 dark:border-violet-700 shadow-lg">
                   <p className="text-lg font-bold text-gray-700 dark:text-gray-300">
                     Showing{" "}
                     <span className="text-violet-700 dark:text-violet-400 text-xl">

@@ -57,7 +57,7 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
       <div className="flex items-center gap-4 flex-1">
-        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
           {client.profilePicture &&
           typeof client.profilePicture === "object" &&
           client.profilePicture instanceof File ? (
@@ -76,38 +76,38 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-base truncate">{client.name}</h3>
-            <Badge variant="secondary" className="text-xs flex-shrink-0">
+            <Badge variant="secondary" className="text-xs shrink-0">
               {client.clientType === "business" ? "Business" : "Individual"}
             </Badge>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <Calendar className="h-3 w-3 shrink-0" />
               <span className="truncate">{formatDate(client.birthDate)}</span>
             </div>
 
             <div className="flex items-center gap-1">
-              <Globe className="h-3 w-3 flex-shrink-0" />
+              <Globe className="h-3 w-3 shrink-0" />
               <span className="truncate">{getWebsite()}</span>
             </div>
 
             {client.clientType === "business" && client.companyName && (
               <div className="flex items-center gap-1">
-                <Building className="h-3 w-3 flex-shrink-0" />
+                <Building className="h-3 w-3 shrink-0" />
                 <span className="truncate">{client.companyName}</span>
               </div>
             )}
 
             <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <MapPin className="h-3 w-3 shrink-0" />
               <span className="truncate">{getLocation()}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           variant="outline"
           size="sm"

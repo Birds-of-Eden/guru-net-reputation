@@ -55,7 +55,7 @@ export function TopPackagesShareRace({
   }));
 
   return (
-    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-gradient-to-br from-white via-slate-50 to-slate-100">
+    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-white via-slate-50 to-slate-100">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm font-semibold text-slate-800">
           Top Packages — Share Race

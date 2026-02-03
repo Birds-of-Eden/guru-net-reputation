@@ -74,7 +74,7 @@ export function AgentFilters({
             onClick={() => onViewModeChange("list")}
             className={`h-12 w-12 rounded-xl transition-all duration-200 ${
               viewMode === "list"
-                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
+                ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
                 : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
           >
@@ -86,7 +86,7 @@ export function AgentFilters({
             onClick={() => onViewModeChange("card")}
             className={`h-12 w-12 rounded-xl transition-all duration-200 ${
               viewMode === "card"
-                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
+                ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
                 : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
           >

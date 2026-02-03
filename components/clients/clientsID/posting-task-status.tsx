@@ -129,7 +129,7 @@ export function PostingTaskStatus({
     return (
       <div className="space-y-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
           <div className="flex-1 space-y-2">
             <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">
               No Posting Tasks Generated
@@ -169,7 +169,7 @@ export function PostingTaskStatus({
   return (
     <div className="space-y-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
       <div className="flex items-start gap-3">
-        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
         <div className="flex-1 space-y-2">
           <p className="text-sm font-semibold text-green-800 dark:text-green-300">
             Posting Tasks Generated ({postingTasks.length})
@@ -200,7 +200,7 @@ export function PostingTaskStatus({
                 className="flex items-center justify-between text-xs py-1 px-2 bg-white dark:bg-green-900/30 rounded border border-green-200 dark:border-green-800"
               >
                 <span className="font-medium truncate">{task.name}</span>
-                <span className="text-green-600 dark:text-green-400 capitalize ml-2 flex-shrink-0">
+                <span className="text-green-600 dark:text-green-400 capitalize ml-2 shrink-0">
                   {task.status?.replace(/_/g, " ")}
                 </span>
               </div>

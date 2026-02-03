@@ -81,7 +81,7 @@ export function AssignmentPreview({
   if (loading) {
     return (
       <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl rounded-2xl">
-        <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white py-6">
+        <CardHeader className="bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 text-white py-6">
           <CardTitle className="flex items-center gap-3 text-2xl font-bold">
             <FileText className="w-7 h-7" />
             Assignment Preview
@@ -99,7 +99,7 @@ export function AssignmentPreview({
   if (!templateDetails) {
     return (
       <Card className="overflow-hidden border-2 border-red-100 shadow-xl rounded-2xl">
-        <CardHeader className="bg-gradient-to-r from-red-600 via-pink-600 to-rose-600 text-white py-6">
+        <CardHeader className="bg-linear-to-r from-red-600 via-pink-600 to-rose-600 text-white py-6">
           <CardTitle className="flex items-center gap-3 text-2xl font-bold">
             <AlertCircle className="w-7 h-7" />
             Assignment Preview
@@ -189,7 +189,7 @@ export function AssignmentPreview({
           )}
 
         {/* Assignment Info */}
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200">
+        <div className="bg-linear-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-white" />

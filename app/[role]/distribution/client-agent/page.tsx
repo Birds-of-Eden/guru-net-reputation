@@ -220,7 +220,7 @@ export default function ClientUnifiedDashboard() {
         icon: <Layers className="h-4 w-4" />,
         go: () => router.push(`${distributionBasePath}/client/${client.id}`),
         klass:
-          "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white",
+          "bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white",
       };
     }
     if (ready) {
@@ -229,7 +229,7 @@ export default function ClientUnifiedDashboard() {
         icon: <Target className="h-4 w-4" />,
         go: () => router.push(`${distributionBasePath}/client/${client.id}`),
         klass:
-          "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white",
+          "bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white",
       };
     }
     // not ready → view details (same as second component)
@@ -238,7 +238,7 @@ export default function ClientUnifiedDashboard() {
       icon: <Building2 className="h-4 w-4" />,
       go: () => router.push(`${distributionBasePath}/client/${client.id}`),
       klass:
-        "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white",
+        "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white",
     };
   };
 
@@ -266,7 +266,7 @@ export default function ClientUnifiedDashboard() {
       return (
         <Badge
           variant="outline"
-          className="bg-gradient-to-r from-blue-50 to-indigo-50 text-indigo-700 border-indigo-300 font-semibold"
+          className="bg-linear-to-r from-blue-50 to-indigo-50 text-indigo-700 border-indigo-300 font-semibold"
           title={`Posting tasks created: ${
             client.existingPostingTasksCount ?? 0
           }`}
@@ -281,7 +281,7 @@ export default function ClientUnifiedDashboard() {
       return (
         <Badge
           variant="outline"
-          className="bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-semibold"
+          className="bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-semibold"
         >
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Ready for Task Creation
@@ -332,10 +332,10 @@ export default function ClientUnifiedDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-cyan-50">
       <div>
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm">
-          <CardHeader className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white px-8 py-4">
+        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm">
+          <CardHeader className="relative overflow-hidden bg-linear-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white px-8 py-4">
             <div className="absolute inset-0 bg-[radial-gradient(1200px_400px_at_0%_0%,rgba(255,255,255,0.15),transparent_60%)]" />
             <div className="relative flex items-center justify-between gap-4">
               <div className="min-w-0">
@@ -407,7 +407,7 @@ export default function ClientUnifiedDashboard() {
                     "h-10 w-full rounded-xl font-semibold transition shadow-md",
                     isClearDisabled
                       ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : "bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg"
+                      : "bg-linear-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg"
                   )}
                   title="Clear search and package filter"
                 >
@@ -422,7 +422,7 @@ export default function ClientUnifiedDashboard() {
                 {Array.from({ length: 6 }).map((_, index) => (
                   <Card
                     key={`skeleton-${index}`}
-                    className="border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                    className="border-2 border-slate-200 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
                   >
                     <CardContent className="p-6">
                       {/* Identity Skeleton */}
@@ -492,7 +492,7 @@ export default function ClientUnifiedDashboard() {
                     return (
                       <Card
                         key={client.id}
-                        className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-gradient-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                        className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
                       >
                         <CardContent className="p-6">
                           {/* Identity */}
@@ -658,8 +658,8 @@ export default function ClientUnifiedDashboard() {
                                     className={cn(
                                       "h-2 rounded-full transition-all duration-300",
                                       t.isReadyForTaskCreation
-                                        ? "bg-gradient-to-r from-emerald-500 to-green-500"
-                                        : "bg-gradient-to-r from-amber-500 to-orange-500"
+                                        ? "bg-linear-to-r from-emerald-500 to-green-500"
+                                        : "bg-linear-to-r from-amber-500 to-orange-500"
                                     )}
                                     style={{
                                       width: `${
@@ -734,8 +734,8 @@ export default function ClientUnifiedDashboard() {
                                   className={cn(
                                     "h-2 rounded-full transition-all duration-300",
                                     t.posting.isAllPostingCompleted
-                                      ? "bg-gradient-to-r from-indigo-500 to-blue-500"
-                                      : "bg-gradient-to-r from-blue-500 to-sky-500"
+                                      ? "bg-linear-to-r from-indigo-500 to-blue-500"
+                                      : "bg-linear-to-r from-blue-500 to-sky-500"
                                   )}
                                   style={{
                                     width: `${
@@ -803,7 +803,7 @@ export default function ClientUnifiedDashboard() {
                               }}
                               className={cn(
                                 "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
-                                "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                                "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                               )}
                               title="View client details"
                             >

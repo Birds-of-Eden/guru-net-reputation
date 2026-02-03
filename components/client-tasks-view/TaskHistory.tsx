@@ -362,7 +362,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                     Task: {taskNameFilter}
                     <button
                       onClick={() => setTaskNameFilter("")}
-                      className="ml-2 rounded-full flex-shrink-0 flex items-center justify-center text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 focus:outline-none transition-colors"
+                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 focus:outline-none transition-colors"
                     >
                       <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                         <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
@@ -381,7 +381,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                           const newStatuses = statusFilter.split(',').filter(s => s !== status);
                           setStatusFilter(newStatuses.join(','));
                         }}
-                        className="ml-2 rounded-full flex-shrink-0 flex items-center justify-center text-purple-400 hover:bg-purple-200 hover:text-purple-600 focus:outline-none transition-colors"
+                        className="ml-2 rounded-full shrink-0 flex items-center justify-center text-purple-400 hover:bg-purple-200 hover:text-purple-600 focus:outline-none transition-colors"
                       >
                         <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                           <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
@@ -396,7 +396,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                     Time: {formatRangeDisplay(dateRangeFilter)}
                     <button
                       onClick={() => setDateRangeFilter("today")}
-                      className="ml-2 rounded-full flex-shrink-0 flex items-center justify-center text-amber-400 hover:bg-amber-200 hover:text-amber-600 focus:outline-none transition-colors"
+                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-amber-400 hover:bg-amber-200 hover:text-amber-600 focus:outline-none transition-colors"
                     >
                       <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                         <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />

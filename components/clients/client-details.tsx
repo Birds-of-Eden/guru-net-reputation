@@ -130,7 +130,7 @@ export default function ClientDetailsPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
+    <div className="min-h-screen bg-linear-to-b from-white via-slate-50 to-slate-100">
       {/* Page Header */}
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
         <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between gap-3">

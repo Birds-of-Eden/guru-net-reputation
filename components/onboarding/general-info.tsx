@@ -115,10 +115,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg mb-4">
           <User className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
           General Information
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -127,9 +127,9 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Personal Information Card */}
-      <div className="bg-gradient-to-br from-white to-violet-50/30 rounded-2xl shadow-xl border border-violet-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-violet-50/30 rounded-2xl shadow-xl border border-violet-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
             <User className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Personal Details</h2>
@@ -166,7 +166,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center">
+                    <div className="h-full w-full bg-linear-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center">
                       <User className="w-12 h-12 text-violet-400" />
                     </div>
                   )}
@@ -259,9 +259,9 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Company Information Card */}
-      <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Company Information</h2>
@@ -329,9 +329,9 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Account Management Card */}
-      <div className="bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Account Management</h2>
@@ -414,10 +414,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Optional Information Card */}
-      <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
               <Lock className="w-5 h-5 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Optional Information</h2>
@@ -506,7 +506,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 <Button 
                   onClick={onNext} 
                   disabled={!formData.name || !formData.gender || !formData.status || !formData.amId}
-                  className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-700 hover:via-purple-700 hover:to-fuchsia-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-700 hover:via-purple-700 hover:to-fuchsia-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   Continue to Next Step
                   <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -166,7 +166,7 @@ export function PostingTaskGenerator({
         onClick={() => {
           setOpen(true);
         }}
-        className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+        className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 text-white"
       >
         <Rocket className="h-4 w-4" />
         Generate Posting Tasks
@@ -256,7 +256,7 @@ export function PostingTaskGenerator({
             <Button
               onClick={handleGenerate}
               disabled={loading || !dueDate}
-              className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+              className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 text-white"
             >
               {loading ? "Generating..." : "Generate Tasks"}
             </Button>

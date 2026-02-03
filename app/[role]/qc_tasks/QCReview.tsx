@@ -750,15 +750,15 @@ export const QCReview = memo(function QCReview({
   }, [searchParams]);
 
   return (
-    <div className="mx-auto w-full p-6 space-y-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 min-h-screen">
+    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+            <div className="p-2 bg-linear-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
               <Eye className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                 QC Review
               </h1>
               <p className="text-slate-600 font-medium">
@@ -803,10 +803,10 @@ export const QCReview = memo(function QCReview({
       </div>
 
       <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
-        <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80">
+        <CardHeader className="pb-4 bg-linear-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-sm">
+              <div className="p-2 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-sm">
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -819,7 +819,7 @@ export const QCReview = memo(function QCReview({
               </div>
             </div>
  
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+            <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <Award className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-blue-700">
                 {filteredTasks.length} of {qcScopedTasks.length} tasks
@@ -847,7 +847,7 @@ export const QCReview = memo(function QCReview({
           ) : filteredTasks.length === 0 ? (
             <div className="text-center py-16">
               <div className="flex flex-col items-center gap-6">
-                <div className="p-4 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl">
+                <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
                   <CheckCircle className="h-12 w-12 text-emerald-500" />
                 </div>
                 <div className="space-y-2 max-w-md">
@@ -896,7 +896,7 @@ export const QCReview = memo(function QCReview({
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
           <DialogHeader className="pb-2 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-sm">
+              <div className="p-2 bg-linear-to-br from-green-500 to-emerald-600 rounded-xl shadow-sm">
                 <CheckCircle className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-semibold text-slate-900">
@@ -907,7 +907,7 @@ export const QCReview = memo(function QCReview({
 
           {approveDialog.task && (
             <div className="space-y-4 py-1">
-              <div className="rounded-2xl p-3 border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 shadow-sm">
+              <div className="rounded-2xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">
@@ -1001,7 +1001,7 @@ export const QCReview = memo(function QCReview({
                   ? !canReviewTask(approveDialog.task)
                   : false)
               }
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {approveDialog.loading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1022,7 +1022,7 @@ export const QCReview = memo(function QCReview({
         <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
           <DialogHeader className="pb-2 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
                 <Eye className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-lg font-semibold text-slate-900">
@@ -1056,7 +1056,7 @@ export const QCReview = memo(function QCReview({
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
           <DialogHeader className="pb-2 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-sm">
+              <div className="p-2 bg-linear-to-br from-orange-500 to-red-500 rounded-xl shadow-sm">
                 <RotateCcw className="h-5 w-5 text-white" />
               </div>
               <DialogTitle className="text-xl font-semibold text-slate-900">
@@ -1067,7 +1067,7 @@ export const QCReview = memo(function QCReview({
 
           {reassignDialog.task && (
             <div className="space-y-3">
-              <div className="rounded-xl p-3 border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50">
+              <div className="rounded-xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-slate-900">
                     {reassignDialog.task.name}
@@ -1121,7 +1121,7 @@ export const QCReview = memo(function QCReview({
                   ? !canReviewTask(reassignDialog.task)
                   : false)
               }
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {reassignDialog.loading ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

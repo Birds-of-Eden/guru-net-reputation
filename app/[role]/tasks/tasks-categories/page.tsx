@@ -164,7 +164,7 @@ export default function TaskCategoriesPage() {
             />
           </div>
           <Button
-            className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
+            className="bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-md"
             onClick={() => {
               setSelectedCategory({ id: "", name: "", description: "" });
               setEditMode(true);
@@ -206,7 +206,7 @@ export default function TaskCategoriesPage() {
         <DialogContent className="max-w-2xl rounded-2xl border-0 bg-white shadow-2xl dark:bg-gray-900 overflow-hidden p-0">
           {selectedCategory && (
             <form onSubmit={handleUpdate} className="space-y-0">
-              <DialogHeader className="px-8 pt-8 pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
+              <DialogHeader className="px-8 pt-8 pb-4 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800">
                 <DialogTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                   {selectedCategory.id === "new" ? (
                     <>
@@ -272,7 +272,7 @@ export default function TaskCategoriesPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg hover:shadow-blue-500/30 dark:shadow-blue-700/30 transition-all duration-300 transform hover:-translate-y-0.5"
+                    className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg hover:shadow-blue-500/30 dark:shadow-blue-700/30 transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     {selectedCategory.id === "new" ? (
                       <span className="flex items-center gap-2">
@@ -328,7 +328,7 @@ function CategoryCard({
 }) {
   return (
     <Card className="overflow-hidden border border-gray-100 shadow-md bg-white hover:shadow-lg transition">
-      <CardHeader className="p-4 border-b bg-gradient-to-r from-cyan-50 to-blue-50 flex justify-between">
+      <CardHeader className="p-4 border-b bg-linear-to-r from-cyan-50 to-blue-50 flex justify-between">
         <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
           <ListChecks className="h-5 w-5 text-cyan-600" /> {category.name}
         </h3>

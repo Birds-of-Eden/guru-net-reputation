@@ -7,7 +7,7 @@ import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-svh flex items-center justify-center px-6 py-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+    <div className="min-h-svh flex items-center justify-center px-6 py-10 bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(30deg,#1e293b_12%,transparent_12.5%,transparent_87%,#1e293b_87.5%,#1e293b)] bg-[length:60px_60px] opacity-10"></div>
 

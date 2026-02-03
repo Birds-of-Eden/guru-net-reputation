@@ -152,33 +152,33 @@ function StatusBadge({ status }: { status: TaskStatus }) {
     { bg: string; text: string; icon?: React.ReactNode }
   > = {
     pending: {
-      bg: "bg-gradient-to-r from-gray-100 to-gray-200",
+      bg: "bg-linear-to-r from-gray-100 to-gray-200",
       text: "text-gray-800",
     },
     in_progress: {
-      bg: "bg-gradient-to-r from-blue-100 to-blue-200",
+      bg: "bg-linear-to-r from-blue-100 to-blue-200",
       text: "text-blue-800",
     },
     overdue: {
-      bg: "bg-gradient-to-r from-red-100 to-red-200",
+      bg: "bg-linear-to-r from-red-100 to-red-200",
       text: "text-red-800",
     },
     reassigned: {
-      bg: "bg-gradient-to-r from-orange-100 to-orange-200",
+      bg: "bg-linear-to-r from-orange-100 to-orange-200",
       text: "text-orange-800",
     },
     completed: {
-      bg: "bg-gradient-to-r from-emerald-100 to-emerald-200",
+      bg: "bg-linear-to-r from-emerald-100 to-emerald-200",
       text: "text-emerald-800",
       icon: <CheckCircle className="w-4 h-4" />,
     },
     qc_approved: {
-      bg: "bg-gradient-to-r from-purple-100 to-purple-200",
+      bg: "bg-linear-to-r from-purple-100 to-purple-200",
       text: "text-purple-800",
       icon: <Star className="w-4 h-4" />,
     },
     cancelled: {
-      bg: "bg-gradient-to-r from-gray-200 to-gray-300",
+      bg: "bg-linear-to-r from-gray-200 to-gray-300",
       text: "text-gray-700",
     },
   };
@@ -199,19 +199,19 @@ function StatusBadge({ status }: { status: TaskStatus }) {
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
   const map: Record<TaskPriority, { bg: string; text: string }> = {
     low: {
-      bg: "bg-gradient-to-r from-green-100 to-green-200",
+      bg: "bg-linear-to-r from-green-100 to-green-200",
       text: "text-green-800",
     },
     medium: {
-      bg: "bg-gradient-to-r from-yellow-100 to-yellow-200",
+      bg: "bg-linear-to-r from-yellow-100 to-yellow-200",
       text: "text-yellow-800",
     },
     high: {
-      bg: "bg-gradient-to-r from-orange-100 to-orange-200",
+      bg: "bg-linear-to-r from-orange-100 to-orange-200",
       text: "text-orange-800",
     },
     urgent: {
-      bg: "bg-gradient-to-r from-red-100 to-red-200",
+      bg: "bg-linear-to-r from-red-100 to-red-200",
       text: "text-red-800",
     },
   };
@@ -473,7 +473,7 @@ export default function TaskDetailsPage() {
   /* ---------------- Render ---------------- */
   if (loading && !task) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-6"></div>
           <div className="text-slate-700 font-semibold text-lg">
@@ -486,7 +486,7 @@ export default function TaskDetailsPage() {
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-8">
+      <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-8">
         <div className="max-w-5xl mx-auto">
           <Button
             variant="outline"
@@ -495,7 +495,7 @@ export default function TaskDetailsPage() {
           >
             <ArrowLeft className="w-5 h-5 mr-2" /> Back
           </Button>
-          <Card className="shadow-2xl border-0 bg-gradient-to-br from-white to-slate-50">
+          <Card className="shadow-2xl border-0 bg-linear-to-br from-white to-slate-50">
             <CardContent className="p-16 text-center">
               <div className="text-slate-500 mb-4">
                 <Building className="w-16 h-16 mx-auto mb-6 text-slate-300" />
@@ -514,7 +514,7 @@ export default function TaskDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-6 lg:p-10">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 p-6 lg:p-10">
       <div className="w-full mx-auto space-y-10">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
@@ -536,7 +536,7 @@ export default function TaskDetailsPage() {
                 <StatusBadge status={task.status} />
                 <PriorityBadge priority={task.priority} />
                 {coolingDown && (
-                  <Badge className="bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 border-emerald-300 font-semibold px-4 py-2 text-sm shadow-sm">
+                  <Badge className="bg-linear-to-r from-emerald-100 to-emerald-200 text-emerald-800 border-emerald-300 font-semibold px-4 py-2 text-sm shadow-sm">
                     <Clock className="w-4 h-4 mr-2" />
                     Cooldown: {daysLeft}d remaining
                   </Badge>
@@ -568,10 +568,10 @@ export default function TaskDetailsPage() {
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="bg-gradient-to-br from-white to-blue-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="bg-linear-to-br from-white to-blue-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-md">
+                <div className="p-3 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl shadow-md">
                   <Building className="w-6 h-6 text-blue-700" />
                 </div>
                 <div>
@@ -591,10 +591,10 @@ export default function TaskDetailsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white to-green-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="bg-linear-to-br from-white to-green-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl shadow-md">
+                <div className="p-3 bg-linear-to-br from-green-100 to-green-200 rounded-xl shadow-md">
                   <Tag className="w-6 h-6 text-green-700" />
                 </div>
                 <div>
@@ -614,10 +614,10 @@ export default function TaskDetailsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-white to-purple-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="bg-linear-to-br from-white to-purple-50 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl shadow-md">
+                <div className="p-3 bg-linear-to-br from-purple-100 to-purple-200 rounded-xl shadow-md">
                   <Globe className="w-6 h-6 text-purple-700" />
                 </div>
                 <div>
@@ -656,7 +656,7 @@ export default function TaskDetailsPage() {
         <Card className="shadow-xl border-0">
           <CardHeader className="border-b border-slate-100 pb-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl shadow-md">
+              <div className="p-3 bg-linear-to-br from-orange-100 to-orange-200 rounded-xl shadow-md">
                 <Activity className="w-6 h-6 text-orange-700" />
               </div>
               <div>
@@ -755,10 +755,10 @@ export default function TaskDetailsPage() {
         </Card>
 
         {/* Credentials Section */}
-        <Card className="bg-gradient-to-br from-white to-indigo-50 shadow-xl border-0">
+        <Card className="bg-linear-to-br from-white to-indigo-50 shadow-xl border-0">
           <CardHeader className="border-b border-slate-100 pb-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-md">
+              <div className="p-3 bg-linear-to-br from-indigo-100 to-indigo-200 rounded-xl shadow-md">
                 <User className="w-6 h-6 text-indigo-700" />
               </div>
               <div>
@@ -857,7 +857,7 @@ export default function TaskDetailsPage() {
             </div>
 
             {/* Primary URL Section */}
-            <div className="space-y-4 p-6 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200 shadow-inner">
+            <div className="space-y-4 p-6 bg-linear-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200 shadow-inner">
               <label className="text-base font-bold text-slate-800 flex items-center gap-3">
                 <Globe className="w-5 h-5" />
                 Primary Target URL
@@ -882,7 +882,7 @@ export default function TaskDetailsPage() {
                   <Link href={primaryUrl} target="_blank">
                     <Button
                       variant="default"
-                      className="shrink-0 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6"
+                      className="shrink-0 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6"
                     >
                       <Link2 className="w-5 h-5 mr-2" />
                       Open Site
@@ -895,11 +895,11 @@ export default function TaskDetailsPage() {
         </Card>
 
         {/* Social Communications */}
-        <Card className="bg-gradient-to-br from-white to-emerald-50 shadow-xl border-0">
+        <Card className="bg-linear-to-br from-white to-emerald-50 shadow-xl border-0">
           <CardHeader className="border-b border-slate-100 pb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl shadow-md">
+                <div className="p-3 bg-linear-to-br from-emerald-100 to-emerald-200 rounded-xl shadow-md">
                   <Activity className="w-6 h-6 text-emerald-700" />
                 </div>
                 <div>
@@ -913,7 +913,7 @@ export default function TaskDetailsPage() {
               </div>
               <Badge
                 variant="secondary"
-                className="text-base font-semibold px-4 py-2 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 shadow-sm"
+                className="text-base font-semibold px-4 py-2 bg-linear-to-r from-slate-100 to-slate-200 text-slate-800 shadow-sm"
               >
                 {sc.length} total submissions
               </Badge>
@@ -929,7 +929,7 @@ export default function TaskDetailsPage() {
                 <Button
                   onClick={() => setOpen(true)}
                   disabled={coolingDown}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
+                  className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
                   title={
                     coolingDown ? `Available in ${daysLeft} day(s)` : undefined
                   }
@@ -950,7 +950,7 @@ export default function TaskDetailsPage() {
             </div>
 
             {sc.length === 0 ? (
-              <div className="text-center py-16 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-dashed border-slate-300">
+              <div className="text-center py-16 bg-linear-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-dashed border-slate-300">
                 <Activity className="w-16 h-16 text-slate-400 mx-auto mb-6" />
                 <h3 className="text-xl font-bold text-slate-700 mb-3">
                   No Submissions Yet
@@ -961,7 +961,7 @@ export default function TaskDetailsPage() {
                 <Button
                   onClick={() => setOpen(true)}
                   disabled={coolingDown}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
+                  className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Add Your First Links
@@ -971,7 +971,7 @@ export default function TaskDetailsPage() {
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full text-base">
-                    <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                    <thead className="bg-linear-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                       <tr>
                         <th className="text-left px-8 py-5 font-bold text-slate-800">
                           #
@@ -1005,7 +1005,7 @@ export default function TaskDetailsPage() {
                           <td className="px-8 py-5">
                             <Badge
                               variant="secondary"
-                              className="capitalize font-semibold text-sm px-3 py-1 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800"
+                              className="capitalize font-semibold text-sm px-3 py-1 bg-linear-to-r from-slate-100 to-slate-200 text-slate-800"
                             >
                               {row.type}
                             </Badge>
@@ -1063,7 +1063,7 @@ export default function TaskDetailsPage() {
 
         {/* Add Links Modal */}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-slate-50">
+          <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-white to-slate-50">
             <DialogHeader className="border-b border-slate-100 pb-6">
               <DialogTitle className="text-3xl font-bold text-slate-900">
                 Add Social Media Links
@@ -1081,10 +1081,10 @@ export default function TaskDetailsPage() {
                   <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full text-base font-bold transition-all duration-300 shadow-md ${
                       step === stepNum
-                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
+                        ? "bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg"
                         : step > stepNum
-                        ? "bg-gradient-to-r from-green-100 to-green-200 text-green-700"
-                        : "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-500"
+                        ? "bg-linear-to-r from-green-100 to-green-200 text-green-700"
+                        : "bg-linear-to-r from-slate-100 to-slate-200 text-slate-500"
                     }`}
                   >
                     {step > stepNum ? (
@@ -1097,8 +1097,8 @@ export default function TaskDetailsPage() {
                     <div
                       className={`w-16 h-1 mx-3 rounded-full transition-colors duration-300 ${
                         step > stepNum
-                          ? "bg-gradient-to-r from-green-200 to-green-300"
-                          : "bg-gradient-to-r from-slate-200 to-slate-300"
+                          ? "bg-linear-to-r from-green-200 to-green-300"
+                          : "bg-linear-to-r from-slate-200 to-slate-300"
                       }`}
                     />
                   )}
@@ -1109,10 +1109,10 @@ export default function TaskDetailsPage() {
             <div className="max-h-[50vh] overflow-y-auto pr-3">
               {step === 1 && (
                 <div className="space-y-8">
-                  <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 shadow-lg">
+                  <Card className="bg-linear-to-r from-blue-50 to-blue-100 border-blue-200 shadow-lg">
                     <CardContent className="p-8">
                       <div className="flex items-start gap-6">
-                        <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl shadow-md">
+                        <div className="p-3 bg-linear-to-br from-blue-100 to-blue-200 rounded-xl shadow-md">
                           <Activity className="w-6 h-6 text-blue-700" />
                         </div>
                         <div>
@@ -1164,7 +1164,7 @@ export default function TaskDetailsPage() {
 
               {step === 2 && (
                 <div className="space-y-6">
-                  <div className="text-base text-slate-700 mb-6 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                  <div className="text-base text-slate-700 mb-6 p-4 bg-linear-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
                     <strong>Tip:</strong> Make sure all URLs are valid and start
                     with http:// or https://
                   </div>
@@ -1172,7 +1172,7 @@ export default function TaskDetailsPage() {
                   {rows.map((row, i) => (
                     <Card
                       key={i}
-                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-br from-white to-slate-50"
+                      className="p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-linear-to-br from-white to-slate-50"
                     >
                       <div className="grid grid-cols-12 gap-6 items-start">
                         <div className="col-span-12 md:col-span-3">
@@ -1261,7 +1261,7 @@ export default function TaskDetailsPage() {
                       type="button"
                       variant="outline"
                       onClick={addRow}
-                      className="bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200 hover:from-green-100 hover:to-green-200 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
+                      className="bg-linear-to-r from-green-50 to-green-100 text-green-700 border-green-200 hover:from-green-100 hover:to-green-200 shadow-lg hover:shadow-xl transition-all text-base px-6 py-3"
                     >
                       <Plus className="w-5 h-5 mr-2" />
                       Add Another Row
@@ -1276,10 +1276,10 @@ export default function TaskDetailsPage() {
 
               {step === 3 && (
                 <div className="space-y-8">
-                  <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
+                  <Card className="bg-linear-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
                     <CardContent className="p-8">
                       <div className="flex items-start gap-6">
-                        <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 rounded-xl shadow-md">
+                        <div className="p-3 bg-linear-to-br from-green-100 to-green-200 rounded-xl shadow-md">
                           <CheckCircle className="w-6 h-6 text-green-700" />
                         </div>
                         <div>
@@ -1311,7 +1311,7 @@ export default function TaskDetailsPage() {
                               <div className="flex items-center gap-3">
                                 <Badge
                                   variant="secondary"
-                                  className="capitalize text-sm font-semibold bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800"
+                                  className="capitalize text-sm font-semibold bg-linear-to-r from-slate-100 to-slate-200 text-slate-800"
                                 >
                                   {e.type}
                                 </Badge>
@@ -1356,7 +1356,7 @@ export default function TaskDetailsPage() {
                     setStep((s) => (s === 3 ? s : ((s + 1) as 1 | 2 | 3)))
                   }
                   disabled={step === 2 && !canNextFrom2}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-3 text-base px-6 py-3 shadow-lg hover:shadow-xl transition-all"
+                  className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-3 text-base px-6 py-3 shadow-lg hover:shadow-xl transition-all"
                 >
                   Continue
                   <ChevronRight className="w-5 h-5" />
@@ -1365,7 +1365,7 @@ export default function TaskDetailsPage() {
                 <Button
                   onClick={submitAndComplete}
                   disabled={submitting || entries.length === 0 || coolingDown}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 min-w-[160px] text-base px-6 py-3 shadow-lg hover:shadow-xl transition-all"
+                  className="bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 min-w-[160px] text-base px-6 py-3 shadow-lg hover:shadow-xl transition-all"
                 >
                   {submitting ? (
                     <div className="flex items-center gap-3">

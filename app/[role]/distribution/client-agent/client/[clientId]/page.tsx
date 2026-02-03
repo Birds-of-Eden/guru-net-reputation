@@ -120,27 +120,27 @@ const toTitle = (s?: string | null) =>
 
 const statusTone: Record<string, string> = {
   pending:
-    "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 border-amber-300 shadow-sm",
+    "bg-linear-to-r from-amber-50 to-orange-50 text-amber-800 border-amber-300 shadow-sm",
   in_progress:
-    "bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-800 border-blue-300 shadow-sm",
+    "bg-linear-to-r from-blue-50 to-cyan-50 text-blue-800 border-blue-300 shadow-sm",
   completed:
-    "bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-800 border-emerald-300 shadow-sm",
+    "bg-linear-to-r from-emerald-50 to-green-50 text-emerald-800 border-emerald-300 shadow-sm",
   overdue:
-    "bg-gradient-to-r from-rose-50 to-red-50 text-rose-800 border-rose-300 shadow-sm",
+    "bg-linear-to-r from-rose-50 to-red-50 text-rose-800 border-rose-300 shadow-sm",
   cancelled:
-    "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300 shadow-sm",
+    "bg-linear-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300 shadow-sm",
   reassigned:
-    "bg-gradient-to-r from-purple-50 to-violet-50 text-purple-800 border-purple-300 shadow-sm",
+    "bg-linear-to-r from-purple-50 to-violet-50 text-purple-800 border-purple-300 shadow-sm",
   qc_approved:
-    "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-800 border-teal-300 shadow-sm",
+    "bg-linear-to-r from-teal-50 to-emerald-50 text-teal-800 border-teal-300 shadow-sm",
 };
 
 const priorityTone: Record<string, string> = {
-  low: "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300",
+  low: "bg-linear-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300",
   medium:
-    "bg-gradient-to-r from-indigo-50 to-blue-50 text-indigo-700 border-indigo-300",
-  high: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-300",
-  urgent: "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border-red-300",
+    "bg-linear-to-r from-indigo-50 to-blue-50 text-indigo-700 border-indigo-300",
+  high: "bg-linear-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-300",
+  urgent: "bg-linear-to-r from-red-50 to-rose-50 text-red-700 border-red-300",
 };
 
 const typeLabel: Record<string, string> = {
@@ -151,11 +151,11 @@ const typeLabel: Record<string, string> = {
 
 const typeColors: Record<string, string> = {
   social_site:
-    "bg-gradient-to-r from-pink-100 to-rose-100 text-pink-800 border-pink-300",
+    "bg-linear-to-r from-pink-100 to-rose-100 text-pink-800 border-pink-300",
   web2_site:
-    "bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-800 border-cyan-300",
+    "bg-linear-to-r from-cyan-100 to-blue-100 text-cyan-800 border-cyan-300",
   other_asset:
-    "bg-gradient-to-r from-violet-100 to-purple-100 text-violet-800 border-violet-300",
+    "bg-linear-to-r from-violet-100 to-purple-100 text-violet-800 border-violet-300",
 };
 
 function InfoRow({
@@ -221,7 +221,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
   };
 
   return (
-    <Card className="border-slate-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50">
+    <Card className="border-slate-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-linear-to-br from-white to-slate-50/50">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className="hidden sm:block">
@@ -273,7 +273,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
               {task.category?.name && (
                 <Badge
                   variant="outline"
-                  className="h-7 rounded-full border bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 font-medium"
+                  className="h-7 rounded-full border bg-linear-to-r from-indigo-50 to-purple-50 text-indigo-700 border-indigo-200 font-medium"
                 >
                   <Tag className="h-3.5 w-3.5 mr-1" /> {task.category.name}
                 </Badge>
@@ -605,9 +605,9 @@ export default function CreatePostingTasksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-      <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm">
-        <CardHeader className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white p-8 rounded-t-xl">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-cyan-50">
+      <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm">
+        <CardHeader className="relative overflow-hidden bg-linear-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white p-8 rounded-t-xl">
           <div className="absolute inset-0 bg-[radial-gradient(1200px_400px_at_0%_0%,rgba(255,255,255,0.15),transparent_60%)]" />
           <div className="relative flex items-center justify-between gap-4">
             <div className="min-w-0">
@@ -642,7 +642,7 @@ export default function CreatePostingTasksPage() {
           {/* Show selected client info */}
           {selectedClient && (
             <section className="space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 p-6 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-2xl border border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-4 p-6 bg-linear-to-r from-slate-50 to-indigo-50 rounded-2xl border border-slate-200">
                 <div className="min-w-0">
                   <h3 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
                     <Users className="h-6 w-6 text-indigo-600" />
@@ -654,7 +654,7 @@ export default function CreatePostingTasksPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 p-6 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-6 p-6 bg-linear-to-br from-white to-slate-50 border border-slate-200 rounded-2xl shadow-lg">
                 <Avatar className="h-20 w-20 ring-4 ring-indigo-500/20 shadow-lg">
                   {selectedClient.avatar ? (
                     <AvatarImage
@@ -689,8 +689,8 @@ export default function CreatePostingTasksPage() {
                         className={cn(
                           "border px-3 py-1.5 rounded-full text-sm font-medium",
                           selectedClient.status === "active"
-                            ? "bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 border-green-300"
-                            : "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300"
+                            ? "bg-linear-to-r from-green-50 to-emerald-50 text-green-800 border-green-300"
+                            : "bg-linear-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300"
                         )}
                       >
                         {selectedClient.status}
@@ -699,7 +699,7 @@ export default function CreatePostingTasksPage() {
                     {selectedClient.package?.name && (
                       <Badge
                         variant="secondary"
-                        className="rounded-full text-sm bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-800 px-3 py-1.5 font-medium"
+                        className="rounded-full text-sm bg-linear-to-r from-indigo-50 to-purple-50 text-indigo-800 px-3 py-1.5 font-medium"
                       >
                         📦 {selectedClient.package.name}
                       </Badge>
@@ -712,7 +712,7 @@ export default function CreatePostingTasksPage() {
 
           {clientId && existingTasks.length > 0 && (
             <section className="space-y-4">
-              <div className="flex items-center justify-between gap-3 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl">
+              <div className="flex items-center justify-between gap-3 p-6 bg-linear-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
                     <CheckCircle2 className="h-6 w-6 text-amber-700" />
@@ -752,7 +752,7 @@ export default function CreatePostingTasksPage() {
           {/* ---------- NEW: SOURCE PREVIEW + SUMMARY ---------- */}
           {clientId && (
             <section className="space-y-6">
-              <div className="flex items-start justify-between gap-4 p-6 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-2xl border border-cyan-200">
+              <div className="flex items-start justify-between gap-4 p-6 bg-linear-to-r from-cyan-50 to-blue-50 rounded-2xl border border-cyan-200">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center">
                     <LayoutList className="h-6 w-6 text-cyan-700" />
@@ -791,7 +791,7 @@ export default function CreatePostingTasksPage() {
                 {Object.entries(preview.countsByStatus).map(([k, v]) => (
                   <div
                     key={k}
-                    className="flex flex-col items-center justify-center rounded-xl border p-4 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow"
+                    className="flex flex-col items-center justify-center rounded-xl border p-4 bg-linear-to-br from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <span className="text-xs font-medium capitalize text-slate-600 mb-1">
                       {k.replace("_", " ")}
@@ -811,7 +811,7 @@ export default function CreatePostingTasksPage() {
                 {preview.tasks.map((t) => (
                   <Card
                     key={t.id}
-                    className="border-slate-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50"
+                    className="border-slate-200 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-linear-to-br from-white to-slate-50/50"
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between gap-4">
@@ -825,7 +825,7 @@ export default function CreatePostingTasksPage() {
                             </h4>
                             <Badge
                               variant="outline"
-                              className="h-7 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 text-indigo-700 font-medium"
+                              className="h-7 rounded-full bg-linear-to-r from-indigo-50 to-purple-50 border-indigo-200 text-indigo-700 font-medium"
                             >
                               <Tag className="h-3.5 w-3.5 mr-1" />
                               {t.categoryName}
@@ -851,7 +851,7 @@ export default function CreatePostingTasksPage() {
                         <div className="flex items-center gap-3 shrink-0">
                           <Badge
                             variant="outline"
-                            className="rounded-xl border px-3 py-2 text-sm bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-bold"
+                            className="rounded-xl border px-3 py-2 text-sm bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-bold"
                           >
                             <Repeat className="h-4 w-4 mr-1" />
                             {t.frequency}x
@@ -888,7 +888,7 @@ export default function CreatePostingTasksPage() {
               </div>
 
               {/* footer line: total to be created */}
-              <div className="flex items-center justify-between p-6 bg-gradient-to-r from-slate-50 to-indigo-50 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between p-6 bg-linear-to-r from-slate-50 to-indigo-50 rounded-2xl border border-slate-200">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
                     <Target className="h-5 w-5 text-indigo-700" />
@@ -931,7 +931,7 @@ export default function CreatePostingTasksPage() {
           {/* CREATION CONTROLS */}
           {clientId && (
             <section className="space-y-6">
-              <div className="border rounded-2xl p-8 bg-gradient-to-br from-purple-50 via-white to-indigo-50 border-purple-200/70 shadow-lg">
+              <div className="border rounded-2xl p-8 bg-linear-to-br from-purple-50 via-white to-indigo-50 border-purple-200/70 shadow-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -1002,7 +1002,7 @@ export default function CreatePostingTasksPage() {
                     onClick={() => setOpenDurationModal(true)}
                     disabled={creating || !canCreateTasks}
                     className={cn(
-                      "w-full h-14 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
+                      "w-full h-14 bg-linear-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
                       (creating || !canCreateTasks) &&
                         "opacity-60 cursor-not-allowed"
                     )}
@@ -1031,8 +1031,8 @@ export default function CreatePostingTasksPage() {
               className={cn(
                 "rounded-2xl p-8 shadow-lg",
                 createdCount > 0
-                  ? "bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200"
-                  : "bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200"
+                  ? "bg-linear-to-r from-emerald-50 to-green-50 border border-emerald-200"
+                  : "bg-linear-to-r from-yellow-50 to-amber-50 border border-yellow-200"
               )}
             >
               <div className="flex items-start gap-4">

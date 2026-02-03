@@ -141,10 +141,10 @@ const ReviewSectionCard: FC<ReviewSectionProps> = memo(({
   children,
   gradient = "from-blue-50 to-indigo-50",
 }) => (
-  <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
+  <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
     <CardHeader className="relative space-y-0 py-6 px-8 border-b-0">
       <div className="flex items-center gap-3 relative z-10">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
           <Icon className="w-5 h-5 text-white" />
         </div>
         <CardTitle className="text-2xl font-bold text-gray-900">
@@ -577,10 +577,10 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 shadow-lg mb-4">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent">
           Review & Confirm
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
@@ -709,7 +709,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                                       className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 break-all w-full"
                                       title={v}
                                     >
-                                      <LinkIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                                      <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
                                       <span className="break-words">{v}</span>
                                     </a>
                                   </li>
@@ -787,7 +787,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
                     >
-                      <LinkIcon className="h-4 w-4 flex-shrink-0" />
+                      <LinkIcon className="h-4 w-4 shrink-0" />
                       <span className="truncate text-sm">
                         {formData.imageDrivelink}
                       </span>
@@ -886,7 +886,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Previous
@@ -905,7 +905,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
           <Button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-700 hover:via-purple-700 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transform hover:scale-105 transition-all duration-200"
+            className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-700 hover:via-purple-700 hover:to-violet-700 text-white shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transform hover:scale-105 transition-all duration-200"
           >
             {isSaving ? (
               <>

@@ -23,7 +23,7 @@ export function Bio({ clientData }: BioProps) {
 
   return (
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-      <CardHeader className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+      <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
         <CardTitle className="flex items-center space-x-2">
           <FileText className="h-5 w-5 text-indigo-600" />
           <span>Biography - {clientData.name}</span>

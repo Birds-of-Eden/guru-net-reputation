@@ -2028,7 +2028,7 @@ export function ClientTasksView({
   };
 
   return (
-    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20 p-4 lg:p-8">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-linear-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20 p-4 lg:p-8">
       <div className="space-y-8 w-full max-w-[100vw] overflow-x-hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -2072,8 +2072,8 @@ export function ClientTasksView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-blue-500 to-blue-600 text-white">
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-100">
                 Total Tasks
@@ -2088,8 +2088,8 @@ export function ClientTasksView({
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-emerald-500 to-emerald-600 text-white">
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-emerald-100">
                 Completed
@@ -2105,8 +2105,8 @@ export function ClientTasksView({
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-amber-500 to-amber-600 text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-amber-500 to-amber-600 text-white">
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-amber-100">
                 In Progress
@@ -2125,8 +2125,8 @@ export function ClientTasksView({
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-red-500 to-red-600 text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-red-500 to-red-600 text-white">
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-red-100">
                 Overdue
@@ -2145,8 +2145,8 @@ export function ClientTasksView({
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-purple-500 to-purple-600 text-white">
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-purple-100">
                 QC Approved

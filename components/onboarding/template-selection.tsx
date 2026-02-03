@@ -112,10 +112,10 @@ export function TemplateSelection({
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-4 animate-pulse">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-purple-500 to-pink-500 shadow-lg mb-4 animate-pulse">
             <FileText className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
             Select Template
           </h1>
           <p className="text-gray-600 text-lg">
@@ -148,10 +148,10 @@ export function TemplateSelection({
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-purple-500 to-pink-500 shadow-lg mb-4">
           <FileText className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
           Select Your Template
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -162,7 +162,7 @@ export function TemplateSelection({
 
       {templates.length === 0 ? (
         <div className="text-center py-16">
-          <div className="mx-auto w-32 h-32 bg-gradient-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+          <div className="mx-auto w-32 h-32 bg-linear-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
             <FileText className="w-16 h-16 text-purple-600" />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-3">
@@ -186,10 +186,10 @@ export function TemplateSelection({
                 className={`relative overflow-hidden cursor-pointer transition-all duration-500 group ${
                   selectedTemplate === template.id
                     ? isCustomized
-                      ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-gradient-to-br from-purple-100 via-pink-100 to-purple-100"
-                      : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50"
+                      ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-linear-to-br from-purple-100 via-pink-100 to-purple-100"
+                      : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-linear-to-br from-blue-50 via-indigo-50 to-blue-50"
                     : isCustomized
-                    ? "hover:shadow-xl hover:-translate-y-2 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
+                    ? "hover:shadow-xl hover:-translate-y-2 bg-linear-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
                     : "hover:shadow-xl hover:-translate-y-2 bg-white border-2 border-blue-200"
                 }`}
                 onClick={() => handleTemplateSelect(template.id)}
@@ -216,8 +216,8 @@ export function TemplateSelection({
                     <div
                       className={`rounded-full p-2 shadow-lg ${
                         isCustomized
-                          ? "bg-gradient-to-br from-purple-500 to-pink-600"
-                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                          ? "bg-linear-to-br from-purple-500 to-pink-600"
+                          : "bg-linear-to-br from-blue-500 to-indigo-600"
                       }`}
                     >
                       <CheckCircle className="w-6 h-6 text-white" />
@@ -230,8 +230,8 @@ export function TemplateSelection({
                     <div
                       className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
                         isCustomized
-                          ? "bg-gradient-to-br from-purple-500 to-pink-600"
-                          : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                          ? "bg-linear-to-br from-purple-500 to-pink-600"
+                          : "bg-linear-to-br from-blue-500 to-indigo-600"
                       }`}
                     >
                       {isCustomized ? (
@@ -292,11 +292,11 @@ export function TemplateSelection({
                     className={`w-full h-12 font-semibold transition-all duration-300 ${
                       selectedTemplate === template.id
                         ? isCustomized
-                          ? "bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white"
-                          : "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white"
+                          ? "bg-linear-to-r from-purple-600 via-pink-600 to-purple-600 text-white"
+                          : "bg-linear-to-r from-blue-600 via-indigo-600 to-blue-600 text-white"
                         : isCustomized
-                        ? "bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-2 border-purple-200"
-                        : "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-2 border-blue-200"
+                        ? "bg-linear-to-r from-purple-50 to-pink-50 text-purple-700 border-2 border-purple-200"
+                        : "bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-2 border-blue-200"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -331,7 +331,7 @@ export function TemplateSelection({
         <Button
           onClick={onNext}
           disabled={!selectedTemplate}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-xl shadow-xl disabled:opacity-50"
+          className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white rounded-xl shadow-xl disabled:opacity-50"
         >
           Continue to Next Step
         </Button>

@@ -85,7 +85,7 @@ export default function CreateTeamPage() {
 
   if (sessionLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-lg text-gray-600 dark:text-gray-400">Loading...</p>
@@ -96,7 +96,7 @@ export default function CreateTeamPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="p-4 bg-red-100 dark:bg-red-900/30 rounded-full w-fit mx-auto">
             <TeamIcon className="h-8 w-8 text-red-600 dark:text-red-400" />
@@ -112,20 +112,20 @@ export default function CreateTeamPage() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl border-0 shadow-2xl bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-1">
+          <div className="bg-linear-to-r from-green-500 to-emerald-600 p-1">
             <div className="bg-white dark:bg-gray-900 rounded-t-lg">
               <CardContent className="pt-12 pb-8">
                 <div className="text-center space-y-6">
                   <div className="relative">
                     <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
-                    <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-full p-4 w-20 h-20 mx-auto flex items-center justify-center">
+                    <div className="relative bg-linear-to-br from-green-500 to-emerald-600 rounded-full p-4 w-20 h-20 mx-auto flex items-center justify-center">
                       <CheckCircle className="h-10 w-10 text-white animate-bounce" />
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <h2 className="text-3xl font-bold bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                       Team Created Successfully!
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -135,7 +135,7 @@ export default function CreateTeamPage() {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
                     <Link href={teamsBasePath}>
-                      <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3">
+                      <Button className="w-full sm:w-auto bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3">
                         <Sparkles className="w-4 h-4 mr-2" />
                         View All Teams
                       </Button>
@@ -165,7 +165,7 @@ export default function CreateTeamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-3xl mx-auto space-y-8">
           {/* Enhanced Header */}
@@ -181,7 +181,7 @@ export default function CreateTeamPage() {
               </Button>
             </Link>
             <div className="text-center sm:text-right">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Create New Team
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">Build and organize your team structure</p>
@@ -191,10 +191,10 @@ export default function CreateTeamPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Team Information Card */}
             <Card className="border-0 shadow-xl overflow-hidden bg-white dark:bg-gray-900">
-              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+              <div className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
                 <CardHeader className="pb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                    <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg">
                       <TeamIcon className="h-6 w-6 text-white" />
                     </div>
                     <div>
@@ -265,13 +265,13 @@ export default function CreateTeamPage() {
 
                 {/* Preview Section */}
                 {formData.name && (
-                  <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="mt-8 p-6 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-3 flex items-center">
                       <Sparkles className="w-5 h-5 mr-2 text-blue-500" />
                       Team Preview
                     </h3>
                     <div className="flex items-start space-x-4">
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                      <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
                         <TeamIcon className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1">
@@ -306,7 +306,7 @@ export default function CreateTeamPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting || !formData.name.trim()}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="flex items-center">

@@ -777,7 +777,7 @@ export function AppSidebar({ className }: { className?: string }) {
         transition={{ type: "spring", damping: 22, stiffness: 220 }}
         className={cn(
           "hidden md:flex fixed top-0 left-0 h-screen w-64 z-40 flex-col",
-          "bg-gradient-to-b from-slate-50 via-white to-slate-50",
+          "bg-linear-to-b from-slate-50 via-white to-slate-50",
           "border-r border-gray-200/80 shadow-xl",
           className
         )}
@@ -800,7 +800,7 @@ export function AppSidebar({ className }: { className?: string }) {
           {/* Role / quick actions */}
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md px-2 py-0.5">
+              <Badge className="bg-linear-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md px-2 py-0.5">
                 <Shield className="h-3 w-3 mr-1" />
                 {actingRole.charAt(0).toUpperCase() + actingRole.slice(1)} Area
               </Badge>
@@ -914,10 +914,10 @@ function GroupItem({
         className={cn(
           "w-full cursor-pointer p-2.5 rounded-lg flex items-center justify-between",
           "transition-all duration-200 group",
-          "hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/50",
+          "hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100/50",
           "hover:shadow-sm hover:border-gray-200/50 border border-transparent text-left",
           isActive &&
-            "bg-gradient-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm"
+            "bg-linear-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm"
         )}
         aria-expanded={open}
         aria-controls={`section-${item.title}`}
@@ -925,7 +925,7 @@ function GroupItem({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "p-2 rounded-lg transition-all duration-200 bg-gradient-to-br from-gray-100 to-gray-200",
+              "p-2 rounded-lg transition-all duration-200 bg-linear-to-br from-gray-100 to-gray-200",
               isActive && "from-cyan-500 to-blue-500 text-white shadow-md"
             )}
           >
@@ -1147,7 +1147,7 @@ function SidebarFooter({
   const roleLabel = role?.toUpperCase?.() || "USER";
 
   return (
-    <div className="p-4 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-white/50">
+    <div className="p-4 border-t border-gray-200/50 bg-linear-to-r from-gray-50/50 to-white/50">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button

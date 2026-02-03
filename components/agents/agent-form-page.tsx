@@ -302,13 +302,13 @@ export default function AgentFormPage({
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4 border-0 shadow-2xl bg-white dark:bg-gray-900">
           <div className="relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-blue-500/20"></div>
+            <div className="absolute inset-0 bg-linear-to-br from-green-400/20 to-blue-500/20"></div>
             <div className="relative">
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-16 h-16 bg-linear-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-50 mb-2">
@@ -321,7 +321,7 @@ export default function AgentFormPage({
                 <div className="space-y-3">
                   <Button
                     onClick={() => router.push(agentsPath)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   >
                     View All Agents
                   </Button>
@@ -360,7 +360,7 @@ export default function AgentFormPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="p-4">
         <div className="w-full mx-auto space-y-8">
           {/* Enhanced Header */}
@@ -376,7 +376,7 @@ export default function AgentFormPage({
               </Button>
             </Link>
             <div className="text-center sm:text-right">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {mode === "edit" ? "Edit Agent" : "Add New Agent"}
               </h1>
             </div>
@@ -385,10 +385,10 @@ export default function AgentFormPage({
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Personal Information Card */}
             <Card className="border-0 shadow-xl overflow-hidden bg-white dark:bg-gray-900">
-              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
+              <div className="bg-linear-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
                 <CardHeader className="pb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                    <div className="p-2 bg-linear-to-br from-purple-500 to-pink-600 rounded-lg">
                       <User className="h-6 w-6 text-white" />
                     </div>
                     <div>
@@ -613,10 +613,10 @@ export default function AgentFormPage({
 
             {/* Team Assignment Card */}
             <Card className="border-0 shadow-xl overflow-hidden bg-white dark:bg-gray-900">
-              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20">
+              <div className="bg-linear-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20">
                 <CardHeader className="pb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+                    <div className="p-2 bg-linear-to-br from-blue-500 to-cyan-600 rounded-lg">
                       <Users className="h-6 w-6 text-white" />
                     </div>
                     <div>
@@ -755,12 +755,12 @@ export default function AgentFormPage({
 
                 {/* Team Preview */}
                 {selectedTeam && (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="mt-6 p-4 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                     <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-50 mb-2">
                       Selected Team:
                     </h4>
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+                      <div className="p-2 bg-linear-to-br from-blue-500 to-cyan-600 rounded-lg">
                         <Users className="h-4 w-4 text-white" />
                       </div>
                       <div>
@@ -798,7 +798,7 @@ export default function AgentFormPage({
                   !formData.lastName.trim() ||
                   !formData.teamId
                 }
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="flex items-center">

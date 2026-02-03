@@ -113,7 +113,7 @@ export function OtherInfo({
     <div className="space-y-8 animate-in fade-in-50 duration-300">
       {/* Header */}
       <div className="text-center space-y-3">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg ring-1 ring-black/5">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 shadow-lg ring-1 ring-black/5">
           <ListChecks className="h-7 w-7 text-white" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
@@ -141,7 +141,7 @@ export function OtherInfo({
         <CardContent className="p-6 md:p-8">
           {/* Card Header */}
           <div className="mb-6 flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-sm ring-1 ring-black/5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 text-white shadow-sm ring-1 ring-black/5">
               <Info className="h-5 w-5" />
             </div>
             <div className="flex-1">
@@ -282,7 +282,7 @@ export function OtherInfo({
               <Button
                 type="button"
                 onClick={handleAddRow}
-                className="h-12 w-full rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 font-semibold text-white shadow-lg transition-all hover:translate-y-[-1px] hover:shadow-xl"
+                className="h-12 w-full rounded-xl bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 font-semibold text-white shadow-lg transition-all hover:translate-y-[-1px] hover:shadow-xl"
               >
                 <Plus className="mr-2 h-5 w-5" />
                 Add Another Field
@@ -298,7 +298,7 @@ export function OtherInfo({
           type="button"
           variant="outline"
           onClick={onPrevious}
-          className="h-12 rounded-xl border-2 transition-all hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:shadow-sm"
+          className="h-12 rounded-xl border-2 transition-all hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:shadow-sm"
         >
           <svg
             className="mr-2 h-5 w-5"

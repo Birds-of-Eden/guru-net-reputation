@@ -321,7 +321,7 @@ export function Tasks({ clientData }: TasksProps) {
   }) => (
     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
       <div
-        className={`h-2 rounded-full bg-gradient-to-r ${gradient} transition-all`}
+        className={`h-2 rounded-full bg-linear-to-r ${gradient} transition-all`}
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>
@@ -751,7 +751,7 @@ export function Tasks({ clientData }: TasksProps) {
                   {pendingTasks + overdueTasks} pending
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+              <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
             </div>
@@ -775,7 +775,7 @@ export function Tasks({ clientData }: TasksProps) {
                   {totalTasks}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
+              <div className="p-3 bg-linear-to-br from-green-500 to-emerald-600 rounded-lg">
                 <Target className="h-6 w-6 text-white" />
               </div>
             </div>
@@ -799,7 +799,7 @@ export function Tasks({ clientData }: TasksProps) {
                   {getDaysElapsed()}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
+              <div className="p-3 bg-linear-to-br from-orange-500 to-red-600 rounded-lg">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
             </div>
@@ -822,7 +822,7 @@ export function Tasks({ clientData }: TasksProps) {
                   {getDaysRemaining()}
                 </p>
               </div>
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+              <div className="p-3 bg-linear-to-br from-purple-500 to-pink-600 rounded-lg">
                 <Clock className="h-6 w-6 text-white" />
               </div>
             </div>
@@ -837,7 +837,7 @@ export function Tasks({ clientData }: TasksProps) {
 
       {/* Task Breakdown */}
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-        <CardHeader className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+        <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="text-indigo-600" />
             <span>Task Breakdown- {clientData.name}</span>
@@ -942,7 +942,7 @@ export function Tasks({ clientData }: TasksProps) {
 
       {/* Categories */}
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-        <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
+        <CardHeader className="bg-linear-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
           <CardTitle className="flex items-center space-x-2">
             <Activity className="h-5 w-5 text-emerald-600" />
             <span>Tasks by Category</span>
@@ -960,7 +960,7 @@ export function Tasks({ clientData }: TasksProps) {
                 >
                   <AccordionTrigger className="px-4 py-3 rounded-md hover:no-underline group">
                     <div
-                      className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 bg-gradient-to-r ${headerGradient(
+                      className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 bg-linear-to-r ${headerGradient(
                         categoryName
                       )}`}
                     >

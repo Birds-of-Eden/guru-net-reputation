@@ -199,7 +199,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
-        <div className="bg-gradient-to-r from-sky-600 to-cyan-600 p-6 text-white">
+        <div className="bg-linear-to-r from-sky-600 to-cyan-600 p-6 text-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-lg">
@@ -214,7 +214,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
         </div>
 
         <div className="px-6 pt-4">
-          <div className="p-4 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20 rounded-xl border border-sky-200 dark:border-sky-800">
+          <div className="p-4 bg-linear-to-r from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20 rounded-xl border border-sky-200 dark:border-sky-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
@@ -332,7 +332,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
             type="submit"
             form="create-task-form"
             disabled={loading || selectedSiteAssetTypes.length === 0}
-            className="min-w-[140px] h-11 font-semibold bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 gap-2"
+            className="min-w-[140px] h-11 font-semibold bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 gap-2"
           >
             {loading ? (
               <>
@@ -356,7 +356,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
 function ErrorText({ text }: { text: string }) {
   return (
     <p className="text-sm text-destructive flex items-center gap-1.5 mt-1.5 font-medium">
-      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+      <AlertCircle className="h-4 w-4 shrink-0" />
       <span>{text}</span>
     </p>
   )

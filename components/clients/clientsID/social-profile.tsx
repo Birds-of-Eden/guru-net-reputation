@@ -96,7 +96,7 @@ export function SocialProfile({ clientData }: SocialProfileProps) {
   ) => {
     return (
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-        <CardHeader className={`bg-gradient-to-r ${headerGradient}`}>
+        <CardHeader className={`bg-linear-to-r ${headerGradient}`}>
           <CardTitle className="flex items-center gap-2">
             {icon}
             <span>{title}</span>

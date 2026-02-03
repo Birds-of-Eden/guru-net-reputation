@@ -108,10 +108,10 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-pink-500 to-rose-500 shadow-lg mb-4">
           <Share2 className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-600 via-rose-600 to-red-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-pink-600 via-rose-600 to-red-600 bg-clip-text text-transparent">
           Social Media Profiles
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -121,7 +121,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
 
       <div className="space-y-6">
         {socialLinks.map((link, index) => (
-          <div key={index} className="bg-gradient-to-br from-white to-pink-50/30 rounded-2xl shadow-lg border border-pink-100 p-6 space-y-4 hover:shadow-xl transition-all duration-300">
+          <div key={index} className="bg-linear-to-br from-white to-pink-50/30 rounded-2xl shadow-lg border border-pink-100 p-6 space-y-4 hover:shadow-xl transition-all duration-300">
             <div className="flex gap-4 items-end">
               <div className="flex-1">
                 <Label htmlFor={`platform-${index}`} className="text-sm font-semibold text-gray-700">Platform</Label>
@@ -238,7 +238,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
         <Button 
           type="button" 
           onClick={addSocialLink} 
-          className="w-full h-14 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          className="w-full h-14 bg-linear-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
         >
           <Plus className="h-5 w-5 mr-2" />
           Add Another Social Link
@@ -250,7 +250,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-700 hover:border-pink-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-700 hover:border-pink-400 transition-all duration-200 rounded-xl"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -259,7 +259,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
         </Button>
         <Button
           onClick={onNext}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-pink-600 via-rose-600 to-red-600 hover:from-pink-700 hover:via-rose-700 hover:to-red-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+          className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-pink-600 via-rose-600 to-red-600 hover:from-pink-700 hover:via-rose-700 hover:to-red-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
         >
           Continue to Next Step
           <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">

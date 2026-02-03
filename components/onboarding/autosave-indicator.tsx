@@ -147,9 +147,9 @@ export function DraftRestorationBanner({
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl mx-auto px-4">
-      <div className="bg-gradient-to-r from-violet-500 to-purple-500 text-white rounded-xl shadow-2xl p-4 border border-white/20 backdrop-blur-sm">
+      <div className="bg-linear-to-r from-violet-500 to-purple-500 text-white rounded-xl shadow-2xl p-4 border border-white/20 backdrop-blur-sm">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <div className="shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="flex-1">

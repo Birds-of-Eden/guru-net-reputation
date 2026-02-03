@@ -183,7 +183,7 @@ export function TemplateManagement({
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
+      <Card className="shadow-lg border-0 bg-linear-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
@@ -210,7 +210,7 @@ export function TemplateManagement({
 
       {/* Current Template Overview */}
       <Card className="shadow-lg border-0">
-        <CardHeader className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+        <CardHeader className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-600" />
             Current Template
@@ -306,7 +306,7 @@ export function TemplateManagement({
             <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
               <Button
                 onClick={() => setCustomizeOpen(true)}
-                className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
               >
                 <Edit className="h-4 w-4" />
                 Customize Template
@@ -337,7 +337,7 @@ export function TemplateManagement({
 
       {/* Assets List */}
       <Card className="shadow-lg border-0">
-        <CardHeader className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+        <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-indigo-600" />
             Template Assets ({totalAssets})

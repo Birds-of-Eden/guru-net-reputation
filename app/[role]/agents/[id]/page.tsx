@@ -121,37 +121,37 @@ function statusBadge(status: string) {
   const map: Record<string, { color: string; icon: ReactElement }> = {
     pending: {
       color:
-        "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50",
+        "bg-linear-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50",
       icon: <Clock className="w-3 h-3" />,
     },
     in_progress: {
       color:
-        "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
+        "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
       icon: <div className="w-3 h-3 rounded-full bg-white animate-pulse" />,
     },
     completed: {
       color:
-        "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
+        "bg-linear-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
       icon: <CheckCircle className="w-3 h-3" />,
     },
     overdue: {
       color:
-        "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50",
+        "bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50",
       icon: <AlertTriangle className="w-3 h-3" />,
     },
     cancelled: {
       color:
-        "bg-gradient-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
+        "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
       icon: <div className="w-3 h-3 rounded-full bg-white/70" />,
     },
     reassigned: {
       color:
-        "bg-gradient-to-r from-purple-400 to-violet-500 text-white shadow-lg shadow-purple-200/50",
+        "bg-linear-to-r from-purple-400 to-violet-500 text-white shadow-lg shadow-purple-200/50",
       icon: <Activity className="w-3 h-3" />,
     },
     qc_approved: {
       color:
-        "bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-200/50",
+        "bg-linear-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-200/50",
       icon: <Award className="w-3 h-3" />,
     },
   };
@@ -171,11 +171,11 @@ function statusBadge(status: string) {
 
 function priorityBadge(priority: string) {
   const map: Record<string, string> = {
-    low: "bg-gradient-to-r from-green-400 to-emerald-500 text-white",
-    medium: "bg-gradient-to-r from-yellow-400 to-orange-500 text-white",
-    high: "bg-gradient-to-r from-red-400 to-pink-500 text-white",
+    low: "bg-linear-to-r from-green-400 to-emerald-500 text-white",
+    medium: "bg-linear-to-r from-yellow-400 to-orange-500 text-white",
+    high: "bg-linear-to-r from-red-400 to-pink-500 text-white",
     urgent:
-      "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
+      "bg-linear-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
   };
   const cls = map[priority] ?? "bg-gray-100 text-gray-800";
   const stars =
@@ -203,27 +203,27 @@ function performanceRatingBadge(rating: string | null) {
   const map: Record<string, { color: string; icon: ReactElement }> = {
     Excellent: {
       color:
-        "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
+        "bg-linear-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
       icon: <Award className="w-3 h-3" />,
     },
     Good: {
       color:
-        "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
+        "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
       icon: <TrendingUp className="w-3 h-3" />,
     },
     Average: {
       color:
-        "bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg shadow-yellow-200/50",
+        "bg-linear-to-r from-yellow-400 to-orange-500 text-white shadow-lg shadow-yellow-200/50",
       icon: <Target className="w-3 h-3" />,
     },
     Poor: {
       color:
-        "bg-gradient-to-r from-red-400 to-rose-500 text-white shadow-lg shadow-red-200/50",
+        "bg-linear-to-r from-red-400 to-rose-500 text-white shadow-lg shadow-red-200/50",
       icon: <TrendingDown className="w-3 h-3" />,
     },
     Lazy: {
       color:
-        "bg-gradient-to-r from-gray-500 to-slate-600 text-white shadow-lg shadow-gray-200/50",
+        "bg-linear-to-r from-gray-500 to-slate-600 text-white shadow-lg shadow-gray-200/50",
       icon: <Clock className="w-3 h-3" />,
     },
   };
@@ -248,14 +248,14 @@ function qcScoreBadge(score: number | null) {
 
   const getScoreColor = (score: number) => {
     if (score >= 90)
-      return "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50";
+      return "bg-linear-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50";
     if (score >= 80)
-      return "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50";
+      return "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50";
     if (score >= 70)
-      return "bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg shadow-yellow-200/50";
+      return "bg-linear-to-r from-yellow-400 to-orange-500 text-white shadow-lg shadow-yellow-200/50";
     if (score >= 60)
-      return "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-200/50";
-    return "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50";
+      return "bg-linear-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-200/50";
+    return "bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50";
   };
 
   return (
@@ -273,9 +273,9 @@ function qcScoreBadge(score: number | null) {
 function userStatusBadge(status: string) {
   const map: Record<string, string> = {
     active:
-      "bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-lg shadow-emerald-200/50",
+      "bg-linear-to-r from-emerald-400 to-green-500 text-white shadow-lg shadow-emerald-200/50",
     inactive:
-      "bg-gradient-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
+      "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
   };
   const cls = map[status] ?? "bg-gray-100 text-gray-800";
   return (
@@ -289,13 +289,13 @@ function categoryBadge(category?: string | null) {
   if (!category) return null;
   const colors: Record<string, string> = {
     "Social Team":
-      "bg-gradient-to-r from-blue-400 to-indigo-500 text-white shadow-lg shadow-blue-200/50",
+      "bg-linear-to-r from-blue-400 to-indigo-500 text-white shadow-lg shadow-blue-200/50",
     "Asset Team":
-      "bg-gradient-to-r from-purple-400 to-violet-500 text-white shadow-lg shadow-purple-200/50",
+      "bg-linear-to-r from-purple-400 to-violet-500 text-white shadow-lg shadow-purple-200/50",
     "Marketing Team":
-      "bg-gradient-to-r from-pink-400 to-rose-500 text-white shadow-lg shadow-pink-200/50",
+      "bg-linear-to-r from-pink-400 to-rose-500 text-white shadow-lg shadow-pink-200/50",
     "Development Team":
-      "bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg shadow-green-200/50",
+      "bg-linear-to-r from-green-400 to-emerald-500 text-white shadow-lg shadow-green-200/50",
   };
   const cls = colors[category] ?? "bg-gray-100 text-gray-800";
   return <Badge className={`font-semibold ${cls} px-3 py-1`}>{category}</Badge>;
@@ -445,7 +445,7 @@ export default async function AgentPerformancePage({
   const clientGroups = Object.values(tasksByClient);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/30">
       <div className="w-full mx-auto py-8 px-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -460,7 +460,7 @@ export default async function AgentPerformancePage({
               </Button>
             </Link>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Agent Performance Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -487,7 +487,7 @@ export default async function AgentPerformancePage({
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
+              <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
                 Performance Tasks ({filter.replace("_", " ").toUpperCase()})
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -504,9 +504,9 @@ export default async function AgentPerformancePage({
           </div>
 
           {tasks.length === 0 ? (
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+            <Card className="border-0 shadow-2xl bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
               <CardContent className="py-16 text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <div className="w-20 h-20 bg-linear-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mx-auto mb-6 flex items-center justify-center">
                   <BarChart3 className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
@@ -600,16 +600,16 @@ function calculatePerformanceMetrics(tasks: any[]) {
 
 function AgentProfileCard({ agent }: { agent: any }) {
   return (
-    <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+    <Card className="border-0 shadow-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
       <CardContent className="p-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-center">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Avatar className="h-32 w-32 border-4 border-white shadow-2xl ring-4 ring-indigo-100 dark:ring-indigo-800">
               <AvatarImage
                 src={agent.image ?? undefined}
                 alt={`${agent.firstName ?? ""} ${agent.lastName ?? ""}`}
               />
-              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-3xl font-bold">
+              <AvatarFallback className="bg-linear-to-br from-indigo-500 to-purple-600 text-white text-3xl font-bold">
                 {agent.firstName?.[0] ?? "A"}
                 {agent.lastName?.[0] ?? "G"}
               </AvatarFallback>
@@ -626,7 +626,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg backdrop-blur-sm">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-white">
+                  <div className="p-2 bg-linear-to-r from-blue-500 to-indigo-600 rounded-lg text-white">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
@@ -639,7 +639,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg backdrop-blur-sm">
-                  <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg text-white">
+                  <div className="p-2 bg-linear-to-r from-green-500 to-emerald-600 rounded-lg text-white">
                     <Phone className="w-4 h-4" />
                   </div>
                   <div>
@@ -652,7 +652,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg backdrop-blur-sm">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg text-white">
+                  <div className="p-2 bg-linear-to-r from-purple-500 to-pink-600 rounded-lg text-white">
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
@@ -666,7 +666,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
                 </div>
                 {agent.address && (
                   <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg backdrop-blur-sm">
-                    <div className="p-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-r from-orange-500 to-red-600 rounded-lg text-white">
                       <MapPin className="w-4 h-4" />
                     </div>
                     <div>
@@ -682,7 +682,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
               </div>
             </div>
             {agent.biography && (
-              <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
+              <div className="p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   Biography
                 </h3>
@@ -717,9 +717,9 @@ function PerformanceMetricsCard({
       : "All Time";
 
   return (
-    <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
-      <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
-        <CardTitle className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
+    <Card className="border-0 shadow-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+      <CardHeader className="bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
+        <CardTitle className="text-xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
           Performance Analytics - {periodLabel}
         </CardTitle>
         <CardDescription>
@@ -781,7 +781,7 @@ function PerformanceMetricsCard({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg">
+              <div className="text-center p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg">
                 <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                   {metrics.avgQcScore}
                 </div>
@@ -825,7 +825,7 @@ function PerformanceMetricsCard({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg">
+              <div className="text-center p-4 bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg">
                 <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                   {metrics.avgEfficiency}%
                 </div>
@@ -884,16 +884,16 @@ function ClientPerformanceCard({
     : 0;
 
   return (
-    <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+    <Card className="border-0 shadow-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
       {/* Client Header */}
-      <CardHeader className="pb-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
+      <CardHeader className="pb-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div
               className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${
                 isUnassigned
-                  ? "bg-gradient-to-br from-gray-500 to-slate-600"
-                  : "bg-gradient-to-br from-indigo-500 to-purple-600"
+                  ? "bg-linear-to-br from-gray-500 to-slate-600"
+                  : "bg-linear-to-br from-indigo-500 to-purple-600"
               }`}
             >
               {isUnassigned ? "?" : client.name.charAt(0).toUpperCase()}
@@ -903,7 +903,7 @@ function ClientPerformanceCard({
                 className={`text-xl font-bold ${
                   isUnassigned
                     ? "text-gray-700 dark:text-gray-300"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
+                    : "bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
                 }`}
               >
                 {client.name}
@@ -922,22 +922,22 @@ function ClientPerformanceCard({
           {/* Client Performance Stats */}
           <div className="flex items-center gap-2 flex-wrap">
             {clientStats.pending > 0 && (
-              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50 px-2 py-1">
                 {clientStats.pending} Pending
               </Badge>
             )}
             {clientStats.in_progress > 0 && (
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50 px-2 py-1">
                 {clientStats.in_progress} Progress
               </Badge>
             )}
             {clientStats.overdue > 0 && (
-              <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50 px-2 py-1">
                 {clientStats.overdue} Overdue
               </Badge>
             )}
             {clientStats.qc_approved > 0 && (
-              <Badge className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-200/50 px-2 py-1">
                 {clientStats.qc_approved} QC Approved
               </Badge>
             )}
@@ -975,17 +975,17 @@ function PerformanceTaskItem({
 
   return (
     <div
-      className={`group relative p-6 transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 ${
+      className={`group relative p-6 transition-all duration-300 hover:bg-linear-to-r hover:from-indigo-50/50 hover:to-purple-50/50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 ${
         !isLast ? "border-b border-gray-100 dark:border-gray-700" : ""
       } ${
         isOverdue
-          ? "bg-gradient-to-r from-red-50/30 to-transparent dark:from-red-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-red-50/30 to-transparent dark:from-red-900/10 dark:to-transparent"
           : isCompleted
-          ? "bg-gradient-to-r from-emerald-50/30 to-transparent dark:from-emerald-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-emerald-50/30 to-transparent dark:from-emerald-900/10 dark:to-transparent"
           : isInProgress
-          ? "bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-blue-50/30 to-transparent dark:from-blue-900/10 dark:to-transparent"
           : isQcApproved
-          ? "bg-gradient-to-r from-teal-50/30 to-transparent dark:from-teal-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-teal-50/30 to-transparent dark:from-teal-900/10 dark:to-transparent"
           : ""
       }`}
     >
@@ -993,12 +993,12 @@ function PerformanceTaskItem({
       <div
         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
           task.priority === "urgent"
-            ? "bg-gradient-to-b from-purple-500 to-indigo-600"
+            ? "bg-linear-to-b from-purple-500 to-indigo-600"
             : task.priority === "high"
-            ? "bg-gradient-to-b from-red-500 to-pink-600"
+            ? "bg-linear-to-b from-red-500 to-pink-600"
             : task.priority === "medium"
-            ? "bg-gradient-to-b from-yellow-500 to-orange-600"
-            : "bg-gradient-to-b from-green-500 to-emerald-600"
+            ? "bg-linear-to-b from-yellow-500 to-orange-600"
+            : "bg-linear-to-b from-green-500 to-emerald-600"
         }`}
       />
 
@@ -1303,9 +1303,9 @@ function KpiCard({
   const t = tones[tone];
   return (
     <Card
-      className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
+      className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-linear-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <CardHeader className="relative pb-2">
         <CardTitle
           className={`text-sm font-semibold ${t.sub} uppercase tracking-wide`}
@@ -1379,7 +1379,7 @@ function ClientAccordionItem({
         className="
     relative px-5 py-4 hover:no-underline
     pr-12 md:pr-14
-    data-[state=open]:bg-gradient-to-r data-[state=open]:from-indigo-50/70 data-[state=open]:to-purple-50/70
+    data-[state=open]:bg-linear-to-r data-[state=open]:from-indigo-50/70 data-[state=open]:to-purple-50/70
     dark:data-[state=open]:from-indigo-900/20 dark:data-[state=open]:to-purple-900/20
 
     /* Built-in chevron: keep at right, make bigger, center vertically */
@@ -1400,8 +1400,8 @@ function ClientAccordionItem({
           flex items-center justify-center overflow-hidden
           ${
             isUnassigned
-              ? "bg-gradient-to-br from-slate-500 to-slate-700"
-              : "bg-gradient-to-br from-indigo-500 to-purple-600"
+              ? "bg-linear-to-br from-slate-500 to-slate-700"
+              : "bg-linear-to-br from-indigo-500 to-purple-600"
           }
         `}
             >
@@ -1416,7 +1416,7 @@ function ClientAccordionItem({
                 className={`text-base font-bold truncate ${
                   isUnassigned
                     ? "text-slate-800 dark:text-slate-200"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
+                    : "bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
                 }`}
               >
                 {client.name}
@@ -1432,7 +1432,7 @@ function ClientAccordionItem({
               {/* Slim completion progress */}
               <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                  className="h-full rounded-full bg-linear-to-r from-emerald-500 to-teal-500"
                   style={{ width: `${stats.completionRate}%` }}
                 />
               </div>
@@ -1442,22 +1442,22 @@ function ClientAccordionItem({
           {/* Right: status chips */}
           <div className="hidden md:flex items-center gap-1.5 flex-wrap">
             {stats.pending > 0 && (
-              <Badge className="px-2 py-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow">
+              <Badge className="px-2 py-0.5 bg-linear-to-r from-amber-400 to-orange-500 text-white shadow">
                 {stats.pending} Pending
               </Badge>
             )}
             {stats.in_progress > 0 && (
-              <Badge className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow">
+              <Badge className="px-2 py-0.5 bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow">
                 {stats.in_progress} Progress
               </Badge>
             )}
             {stats.overdue > 0 && (
-              <Badge className="px-2 py-0.5 bg-gradient-to-r from-red-500 to-rose-500 text-white shadow">
+              <Badge className="px-2 py-0.5 bg-linear-to-r from-red-500 to-rose-500 text-white shadow">
                 {stats.overdue} Overdue
               </Badge>
             )}
             {stats.qc_approved > 0 && (
-              <Badge className="px-2 py-0.5 bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow">
+              <Badge className="px-2 py-0.5 bg-linear-to-r from-teal-500 to-emerald-500 text-white shadow">
                 {stats.qc_approved} QC
               </Badge>
             )}

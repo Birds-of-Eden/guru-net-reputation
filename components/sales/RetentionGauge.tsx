@@ -78,7 +78,7 @@ export function RetentionGauge({
     <Card
       className={cn(
         "border-0 shadow-lg ring-1 ring-slate-200/70 rounded-3xl p-6",
-        "bg-gradient-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md"
+        "bg-linear-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md"
       )}
     >
       <div className="text-center mb-4">

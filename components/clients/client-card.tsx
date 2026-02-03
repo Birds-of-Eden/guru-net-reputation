@@ -259,7 +259,7 @@ const ClientCardComponent = function ClientCard({
   return (
     <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white">
       {/* Header */}
-      <CardHeader className="p-6 border-b border-gray-100 bg-gradient-to-r from-cyan-50 to-blue-50">
+      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-white shadow-md">
@@ -372,7 +372,7 @@ const ClientCardComponent = function ClientCard({
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2">
             <div
-              className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+              className="h-2.5 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
               style={{ width: `${client.overallProgress ?? 0}%` }}
             />
           </div>
@@ -387,7 +387,7 @@ const ClientCardComponent = function ClientCard({
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div
-              className="h-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
+              className="h-2.5 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
               style={{ width: `${client.monthProgress ?? 0}%` }}
             />
           </div>
@@ -440,7 +440,7 @@ const ClientCardComponent = function ClientCard({
               onMouseEnter={prefetchDetails}
               onFocus={prefetchDetails}
               onTouchStart={prefetchDetails}
-              className="flex-1 min-w-[150px] bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+              className="flex-1 min-w-[150px] bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
             >
               <Eye className="h-4 w-4 mr-2" /> View Details
             </Button>
@@ -453,7 +453,7 @@ const ClientCardComponent = function ClientCard({
             ) && (
               <Button
                 onClick={handleUpgrade}
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+                className="flex-1 min-w-[150px] bg-linear-to-r from-emerald-500 to-teal-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
                 <ArrowUpCircle className="h-4 w-4 mr-2" /> Upgrade Package
               </Button>
@@ -464,7 +464,7 @@ const ClientCardComponent = function ClientCard({
               <Button
                 onClick={() => setOpenDanger(true)}
                 disabled={isDeleting}
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-rose-500 to-red-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+                className="flex-1 min-w-[150px] bg-linear-to-r from-rose-500 to-red-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
                 <Trash2 className="h-4 w-4 mr-2" /> Delete
               </Button>
@@ -474,7 +474,7 @@ const ClientCardComponent = function ClientCard({
             hasPermissionClient(user?.permissions, "client_card_task_view") && (
               <Button
                 onClick={handleViewTasks}
-                className="flex-1 min-w-[150px] bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+                className="flex-1 min-w-[150px] bg-linear-to-r from-purple-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
               >
                 <ListChecks className="h-4 w-4 mr-2" /> View Tasks
               </Button>
@@ -484,7 +484,7 @@ const ClientCardComponent = function ClientCard({
             <ImpersonateButton
               targetUserId={clientUserId}
               targetName={client.name}
-              className="flex-1 min-w-[150px] bg-gradient-to-r from-gray-900 to-black text-white shadow-lg rounded-lg px-5 py-2.5 transition-all duration-300"
+              className="flex-1 min-w-[150px] bg-linear-to-r from-gray-900 to-black text-white shadow-lg rounded-lg px-5 py-2.5 transition-all duration-300"
             />
           )}
         </div>

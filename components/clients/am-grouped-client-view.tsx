@@ -313,7 +313,7 @@ export function AmGroupedClientView({
                 className="flex items-center gap-4 cursor-pointer"
                 onClick={() => toggleOpen(amId)}
               >
-                <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-100 to-teal-100 text-cyan-700 ring-2 ring-cyan-300">
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-linear-to-br from-cyan-100 to-teal-100 text-cyan-700 ring-2 ring-cyan-300">
                   <span className="text-lg font-bold">
                     {avatarText(group.am)}
                   </span>
@@ -334,7 +334,7 @@ export function AmGroupedClientView({
               {/* Status + chart */}
               <div className="flex items-center gap-6">
                 {totalCount > 0 && (
-                  <div className="hidden lg:block w-44 h-24 flex-shrink-0">
+                  <div className="hidden lg:block w-44 h-24 shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={summaryData}
@@ -357,7 +357,7 @@ export function AmGroupedClientView({
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 md:gap-4 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 md:gap-4 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-medium text-slate-800">
                       <Users className="w-4 h-4 mr-1 text-slate-500" />
@@ -406,7 +406,7 @@ export function AmGroupedClientView({
             </header>
 
             <div
-              className={`h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent ${
+              className={`h-px w-full bg-linear-to-r from-transparent via-gray-200 to-transparent ${
                 isOpen ? "opacity-100" : "opacity-0"
               } transition duration-300`}
             />

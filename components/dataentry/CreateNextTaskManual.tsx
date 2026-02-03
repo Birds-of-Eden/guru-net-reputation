@@ -292,7 +292,7 @@ export default function CreateNextTask({
       <Button
         onClick={() => setOpen(true)}
         disabled={isLoading}
-        className="bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
+        className="bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white h-11 rounded-xl font-semibold"
         title="Create next cycle of tasks by type and assign to last agent (button will hide after creation)"
       >
         {isLoading ? (
@@ -312,7 +312,7 @@ export default function CreateNextTask({
         <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col gap-0 p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50 flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-sky-500 to-cyan-600 rounded-lg">
+              <div className="p-2 bg-linear-to-br from-sky-500 to-cyan-600 rounded-lg">
                 <RefreshCcw className="w-5 h-5 text-white" />
               </div>
               Create Next Cycle Tasks
@@ -326,7 +326,7 @@ export default function CreateNextTask({
 
           {/* Summary Card */}
           <div className="px-6 pt-4">
-            <div className="p-4 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20 rounded-xl border border-sky-200 dark:border-sky-800">
+            <div className="p-4 bg-linear-to-r from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20 rounded-xl border border-sky-200 dark:border-sky-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
@@ -528,7 +528,7 @@ export default function CreateNextTask({
                     (count) => !count || count === 0
                   )
                 }
-                className="flex-1 h-11 font-semibold bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 disabled:opacity-50"
+                className="flex-1 h-11 font-semibold bg-linear-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

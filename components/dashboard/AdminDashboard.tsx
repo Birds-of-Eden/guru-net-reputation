@@ -178,8 +178,8 @@ export function AdminDashboard() {
   if (loading) return <DashboardSkeleton />;
   if (error)
     return (
-      <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-        <Card className="border-0 shadow-lg rounded-2xl bg-gradient-to-br from-rose-50 to-red-50">
+      <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
+        <Card className="border-0 shadow-lg rounded-2xl bg-linear-to-br from-rose-50 to-red-50">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
               <div className="h-9 w-9 rounded-xl bg-red-100 flex items-center justify-center">
@@ -198,12 +198,12 @@ export function AdminDashboard() {
   if (!dashboardData) return <DashboardSkeleton />;
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div>
-            <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-extrabold tracking-tight bg-linear-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
               Dashboard Overview
             </h2>
             <p className="text-muted-foreground mt-2">
@@ -272,45 +272,45 @@ export function AdminDashboard() {
 
       {/* Tabs */}
       <Tabs defaultValue="tasks" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 bg-gradient-to-br from-white/90 to-slate-50/90 backdrop-blur-md shadow-lg border border-white/20 rounded-2xl p-1.5 gap-2">
+        <TabsList className="grid w-full grid-cols-6 bg-linear-to-br from-white/90 to-slate-50/90 backdrop-blur-md shadow-lg border border-white/20 rounded-2xl p-1.5 gap-2">
           <TabsTrigger
             value="tasks"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <Layers className="w-4 h-4 mr-1.5" />
             Tasks
           </TabsTrigger>
           <TabsTrigger
             value="clients"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <Users className="w-4 h-4 mr-1.5" />
             Clients
           </TabsTrigger>
           <TabsTrigger
             value="teams"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <Briefcase className="w-4 h-4 mr-1.5" />
             Teams
           </TabsTrigger>
           <TabsTrigger
             value="performance"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <LineChart className="w-4 h-4 mr-1.5" />
             Performance
           </TabsTrigger>
           <TabsTrigger
             value="activity"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <Activity className="w-4 h-4 mr-1.5" />
             Activity
           </TabsTrigger>
           <TabsTrigger
             value="users"
-            className="rounded-xl data-[state=active]:bg-gradient-to-br data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
+            className="rounded-xl data-[state=active]:bg-linear-to-br data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
           >
             <UserCheck className="w-4 h-4 mr-1.5" />
             Users
@@ -322,8 +322,8 @@ export function AdminDashboard() {
           {/* Overview Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* STATUS BREAKDOWN */}
-            <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-              <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 backdrop-blur-sm">
+            <Card className="rounded-2xl border border-slate-200/60 bg-linear-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <CardHeader className="border-b border-slate-100 py-5 bg-linear-to-r from-blue-50/70 to-indigo-50/70 backdrop-blur-sm">
                 <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-blue-600" />
                   Task Status Distribution
@@ -370,8 +370,8 @@ export function AdminDashboard() {
             </Card>
 
             {/* PRIORITY BREAKDOWN */}
-            <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-              <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-purple-50/70 to-violet-50/70 backdrop-blur-sm">
+            <Card className="rounded-2xl border border-slate-200/60 bg-linear-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+              <CardHeader className="border-b border-slate-100 py-5 bg-linear-to-r from-purple-50/70 to-violet-50/70 backdrop-blur-sm">
                 <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                   <Target className="h-5 w-5 text-purple-600" />
                   Task Priority Breakdown
@@ -419,8 +419,8 @@ export function AdminDashboard() {
           </div>
 
           {/* TASK CATEGORIES */}
-          <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-            <CardHeader className="border-b border-slate-100 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70 backdrop-blur-sm">
+          <Card className="rounded-2xl border border-slate-200/60 bg-linear-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <CardHeader className="border-b border-slate-100 py-5 bg-linear-to-r from-cyan-50/70 to-blue-50/70 backdrop-blur-sm">
               <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
                 <Layers className="h-5 w-5 text-cyan-600" />
                 Task Categories
@@ -472,7 +472,7 @@ export function AdminDashboard() {
           </Card>
 
           {/* RECENT TASKS */}
-          <Card className="rounded-2xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+          <Card className="rounded-2xl border border-slate-200/60 bg-linear-to-br from-white to-slate-50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
             <CardHeader className="border-b border-slate-100 py-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -601,8 +601,8 @@ export function AdminDashboard() {
         <TabsContent value="clients" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Client status */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-emerald-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-green-50/70 to-emerald-50/70">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-emerald-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-green-50/70 to-emerald-50/70">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Users className="h-5 w-5 text-green-600" />
                   Client Status Overview
@@ -630,7 +630,7 @@ export function AdminDashboard() {
                         </div>
                         <Progress
                           value={pct}
-                          className="h-2.5 bg-slate-200 [&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-500 [&>div]:rounded-full"
+                          className="h-2.5 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-green-500 [&>div]:to-emerald-500 [&>div]:rounded-full"
                         />
                       </div>
                     );
@@ -640,7 +640,7 @@ export function AdminDashboard() {
             </Card>
 
             {/* Latest 5 clients */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
               <CardHeader className="border-b border-slate-200/70 py-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -674,7 +674,7 @@ export function AdminDashboard() {
                           {c.avatar ? (
                             <AvatarImage src={c.avatar} alt={c.name} />
                           ) : null}
-                          <AvatarFallback className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium">
+                          <AvatarFallback className="bg-linear-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium">
                             {c.name.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -719,7 +719,7 @@ export function AdminDashboard() {
             {allTeams.map((team) => (
               <Card
                 key={team.id}
-                className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/60"
+                className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50/60"
               >
                 <CardHeader className="border-b border-slate-200/70 py-4">
                   <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
@@ -742,7 +742,7 @@ export function AdminDashboard() {
                         ? Math.min((team.totalMembers / 10) * 100, 100)
                         : 0
                     }
-                    className="h-2 bg-slate-200 [&>div]:bg-gradient-to-r [&>div]:from-indigo-500 [&>div]:to-purple-500 [&>div]:rounded-full"
+                    className="h-2 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-indigo-500 [&>div]:to-purple-500 [&>div]:rounded-full"
                   />
                 </CardContent>
               </Card>
@@ -754,8 +754,8 @@ export function AdminDashboard() {
         <TabsContent value="performance" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Ratings */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-amber-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-yellow-50/70 to-amber-50/70">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-amber-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-yellow-50/70 to-amber-50/70">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-amber-600" />
                   Performance Ratings (QC Approved)
@@ -800,8 +800,8 @@ export function AdminDashboard() {
             </Card>
 
             {/* Time metrics */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-cyan-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-cyan-50/70 to-blue-50/70">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Timer className="h-5 w-5 text-cyan-600" />
                   Task Completion Metrics
@@ -844,7 +844,7 @@ export function AdminDashboard() {
         <TabsContent value="activity" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Latest 5 activities */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
               <CardHeader className="border-b border-slate-200/70 py-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -896,8 +896,8 @@ export function AdminDashboard() {
             </Card>
 
             {/* Latest 5 notifications */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-amber-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-orange-50/70 to-amber-50/70">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-amber-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-orange-50/70 to-amber-50/70">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Bell className="h-5 w-5 text-orange-600" />
                   Recent Notifications
@@ -958,8 +958,8 @@ export function AdminDashboard() {
         <TabsContent value="users" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Role distribution */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-fuchsia-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-fuchsia-50/70 to-violet-50/70">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-fuchsia-50/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-fuchsia-50/70 to-violet-50/70">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-fuchsia-600" />
                   User Role Distribution
@@ -985,7 +985,7 @@ export function AdminDashboard() {
                         </div>
                         <Progress
                           value={pct}
-                          className="h-2.5 bg-slate-200 [&>div]:bg-gradient-to-r [&>div]:from-fuchsia-500 [&>div]:to-violet-500 [&>div]:rounded-full"
+                          className="h-2.5 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-fuchsia-500 [&>div]:to-violet-500 [&>div]:rounded-full"
                         />
                       </div>
                     );
@@ -995,7 +995,7 @@ export function AdminDashboard() {
             </Card>
 
             {/* Latest 5 users */}
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
               <CardHeader className="border-b border-slate-200/70 py-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1032,7 +1032,7 @@ export function AdminDashboard() {
                               alt={u.name || u.email}
                             />
                           ) : null}
-                          <AvatarFallback className="bg-gradient-to-r from-slate-100 to-slate-200 text-slate-800 font-medium">
+                          <AvatarFallback className="bg-linear-to-r from-slate-100 to-slate-200 text-slate-800 font-medium">
                             {(u.name || u.email).substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -1145,7 +1145,7 @@ function MetricCard({
         <div
           className={cn(
             "p-3 rounded-xl text-white shadow-md shadow-slate-300/30 w-fit",
-            "bg-gradient-to-r",
+            "bg-linear-to-r",
             gradient
           )}
         >
@@ -1177,7 +1177,7 @@ function MetricCard({
 /* -------------------- Skeleton -------------------- */
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <Skeleton className="h-9 w-64 mb-2" />
@@ -1196,7 +1196,7 @@ function DashboardSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <Card
             key={i}
-            className="overflow-hidden border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/60"
+            className="overflow-hidden border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/60"
           >
             <CardContent className="p-6">
               <Skeleton className="h-12 w-12 rounded-xl mb-4" />

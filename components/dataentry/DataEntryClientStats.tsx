@@ -192,7 +192,7 @@ export default function DataEntryClientStats({ clients }: DataEntryClientStatsPr
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm">
+        <Card className="bg-linear-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-700">Completed (Range)</CardTitle>
             <BarChart3 className="h-4 w-4 text-blue-600" />
@@ -203,7 +203,7 @@ export default function DataEntryClientStats({ clients }: DataEntryClientStatsPr
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm">
+        <Card className="bg-linear-to-br from-green-50 to-green-100 border-green-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-700">Today</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -214,7 +214,7 @@ export default function DataEntryClientStats({ clients }: DataEntryClientStatsPr
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-sm">
+        <Card className="bg-linear-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-indigo-700">Last 7 Days</CardTitle>
             <BarChart3 className="h-4 w-4 text-indigo-600" />
@@ -225,7 +225,7 @@ export default function DataEntryClientStats({ clients }: DataEntryClientStatsPr
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm">
+        <Card className="bg-linear-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-amber-700">Last 30 Days</CardTitle>
             <BarChart3 className="h-4 w-4 text-amber-600" />

@@ -169,7 +169,7 @@ export function TabContent({
   return (
     <div className="space-y-6 h-full flex flex-col">
       {/* controls header - simplified */}
-      <div className="rounded-xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-white to-sky-50 p-4 shadow-sm flex-shrink-0">
+      <div className="rounded-xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-white to-sky-50 p-4 shadow-sm shrink-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button

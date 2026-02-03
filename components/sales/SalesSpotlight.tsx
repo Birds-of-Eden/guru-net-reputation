@@ -54,10 +54,10 @@ export function SalesSpotlight({
   const topPackage = packageSales?.[0];
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200/60 bg-gradient-to-br from-white via-slate-50 to-slate-100 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl">
+    <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200/60 bg-linear-to-br from-white via-slate-50 to-slate-100 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Left Summary */}
-        <div className="p-8 flex flex-col justify-between rounded-xl bg-gradient-to-br from-cyan-50 to-white ring-1 ring-cyan-100 shadow-sm hover:shadow-md transition-all">
+        <div className="p-8 flex flex-col justify-between rounded-xl bg-linear-to-br from-cyan-50 to-white ring-1 ring-cyan-100 shadow-sm hover:shadow-md transition-all">
           <div>
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-xl bg-white shadow-sm ring-1 ring-cyan-200/50">
@@ -99,7 +99,7 @@ export function SalesSpotlight({
           </div>
 
           {topPackage && (
-            <div className="mt-8 p-4 rounded-xl bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200 shadow-sm">
+            <div className="mt-8 p-4 rounded-xl bg-linear-to-r from-indigo-50 to-indigo-100 border border-indigo-200 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 <Star className="text-indigo-600 h-4 w-4" />
                 <p className="text-sm font-semibold text-indigo-700">
@@ -184,7 +184,7 @@ export function SalesSpotlight({
         </div>
 
         {/* Donut PieChart */}
-        <div className="p-8 rounded-xl bg-gradient-to-br from-slate-50 to-gray-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="p-8 rounded-xl bg-linear-to-br from-slate-50 to-gray-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <PieIcon className="h-4 w-4 text-violet-600" />

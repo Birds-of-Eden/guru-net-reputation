@@ -8,7 +8,7 @@ export function ClientCardSkeleton() {
   return (
     <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 bg-white">
       {/* Header */}
-      <CardHeader className="p-6 border-b border-gray-100 bg-gradient-to-r from-cyan-50 to-blue-50">
+      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-gray-200 animate-pulse"></div>

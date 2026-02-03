@@ -99,13 +99,13 @@ function MetricCard({
   subMetric?: string;
 }) {
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/60 backdrop-blur-sm group">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/60 backdrop-blur-sm group">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div
             className={cn(
               "p-3 rounded-xl text-white shadow-md",
-              "bg-gradient-to-r",
+              "bg-linear-to-r",
               gradient
             )}
           >
@@ -415,11 +415,11 @@ export default function QCDashboardPro({
   }, [rangedTasks]);
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-6 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-linear-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
             QC Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -522,8 +522,8 @@ export default function QCDashboardPro({
 
       {/* QC Agents Breakdown (when in QC supervision mode) */}
       {isQC && qcAgentsBreakdown.length > 0 && (
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-cyan-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-cyan-50/70 to-blue-50/70">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-cyan-50/60">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-cyan-50/70 to-blue-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Users className="h-5 w-5 text-cyan-600" />
               Supervised Agents
@@ -547,7 +547,7 @@ export default function QCDashboardPro({
                     </div>
                     <Progress
                       value={pct}
-                      className="h-2.5 bg-slate-200 [&>div]:rounded-full [&>div]:bg-gradient-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500"
+                      className="h-2.5 bg-slate-200 [&>div]:rounded-full [&>div]:bg-linear-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500"
                     />
                   </div>
                 );
@@ -560,8 +560,8 @@ export default function QCDashboardPro({
       {/* Status & Priority breakdown (matches your gradient bars) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Status */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-blue-50/70 to-indigo-50/70">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/70 to-indigo-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />
               Task Status Distribution
@@ -604,8 +604,8 @@ export default function QCDashboardPro({
         </Card>
 
         {/* Priority */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-purple-50/70 to-violet-50/70">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/70 to-violet-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Users className="h-5 w-5 text-purple-600" />
               Task Priority Breakdown
@@ -651,26 +651,26 @@ export default function QCDashboardPro({
       {/* Tables */}
       <Tabs defaultValue="all" className="w-full space-y-4">
         <TabsList className={cn(
-          "bg-gradient-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg",
+          "bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg",
           isQC ? "grid w-full grid-cols-4" : "grid w-full grid-cols-3"
         )}>
           <TabsTrigger
             value="all"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <BarChart3 className="h-4 w-4 mr-2" />
             All Tasks
           </TabsTrigger>
           <TabsTrigger
             value="qc"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             QC Approved
           </TabsTrigger>
           <TabsTrigger
             value="overdue"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reassign
@@ -678,7 +678,7 @@ export default function QCDashboardPro({
           {isQC && (
             <TabsTrigger
               value="agents"
-              className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+              className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
             >
               <Users className="h-4 w-4 mr-2" />
               Agents
@@ -688,7 +688,7 @@ export default function QCDashboardPro({
 
         {/* All Tasks */}
         <TabsContent value="all">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
             <CardHeader className="border-b border-slate-200/70 py-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -759,7 +759,7 @@ export default function QCDashboardPro({
 
         {/* QC Approved */}
         <TabsContent value="qc">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
             <CardHeader className="border-b border-slate-200/70 py-5">
               <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600" />
@@ -817,7 +817,7 @@ export default function QCDashboardPro({
 
         {/* Overdue */}
         <TabsContent value="overdue">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
             <CardHeader className="border-b border-slate-200/70 py-5">
               <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <RotateCcw className="h-5 w-5 text-violet-600" />
@@ -877,7 +877,7 @@ export default function QCDashboardPro({
         {/* QC Agents Detail Tab */}
         {isQC && (
           <TabsContent value="agents">
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
               <CardHeader className="border-b border-slate-200/70 py-5">
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Users className="h-5 w-5 text-cyan-600" />

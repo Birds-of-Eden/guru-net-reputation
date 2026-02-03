@@ -177,7 +177,7 @@ export function ClientOverviewHeader({
 
         {/* New Client */}
         <Button
-          className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
+          className="bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
           onClick={onAddNewClient}
         >
           <Plus className="h-4 w-4 mr-2" />

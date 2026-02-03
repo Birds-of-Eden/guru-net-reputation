@@ -17,7 +17,7 @@ const QCReview = lazy(() =>
 // Optimized loading skeleton
 function QCReviewSkeleton() {
   return (
-    <div className="mx-auto w-full p-6 space-y-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 min-h-screen">
+    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen">
       {/* Header skeleton */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">

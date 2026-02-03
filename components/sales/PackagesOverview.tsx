@@ -110,7 +110,7 @@ export function PackagesOverview({
   return (
     <section
       className="
-        relative bg-gradient-to-br from-white via-slate-50 to-cyan-50
+        relative bg-linear-to-br from-white via-slate-50 to-cyan-50
         rounded-3xl shadow-lg p-6 ring-1 ring-slate-200/70 overflow-hidden
         /* removed big fixed min-height to kill the bottom gap */
       "
@@ -187,7 +187,7 @@ export function PackagesOverview({
           <div className="lg:col-span-3 flex flex-col gap-6">
             {/* Top Performing Package */}
             {top && (
-              <Card className="relative border-0 shadow-md ring-1 ring-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 backdrop-blur-md overflow-hidden">
+              <Card className="relative border-0 shadow-md ring-1 ring-emerald-200 bg-linear-to-br from-emerald-50 via-white to-cyan-50 backdrop-blur-md overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-slate-900 font-semibold flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-emerald-500" />
@@ -224,7 +224,7 @@ export function PackagesOverview({
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-gradient-to-r from-slate-100 to-slate-50 text-slate-700 uppercase text-xs tracking-wider sticky top-0">
+                    <thead className="bg-linear-to-r from-slate-100 to-slate-50 text-slate-700 uppercase text-xs tracking-wider sticky top-0">
                       <tr>
                         <th className="px-4 py-3 text-left">#</th>
                         <th className="px-4 py-3 text-left">Package</th>
@@ -298,7 +298,7 @@ export function PackagesOverview({
 
             {/* KPI Overview */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-white border border-slate-200 shadow-sm">
+              <div className="p-4 rounded-xl bg-linear-to-br from-cyan-50 to-white border border-slate-200 shadow-sm">
                 <h4 className="text-xs text-slate-600 uppercase mb-1">
                   Total Clients
                 </h4>
@@ -306,7 +306,7 @@ export function PackagesOverview({
                   {totalClients.toLocaleString()}
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-white border border-slate-200 shadow-sm">
+              <div className="p-4 rounded-xl bg-linear-to-br from-emerald-50 to-white border border-slate-200 shadow-sm">
                 <h4 className="text-xs text-slate-600 uppercase mb-1">
                   Total Packages
                 </h4>

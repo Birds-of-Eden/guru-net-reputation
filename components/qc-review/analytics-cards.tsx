@@ -15,7 +15,7 @@ export function AnalyticsCards({ analytics }: AnalyticsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Total Completed Card */}
-      <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
+      <Card className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -31,7 +31,7 @@ export function AnalyticsCards({ analytics }: AnalyticsCardsProps) {
       </Card>
 
       {/* Avg Performance Card */}
-      <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
+      <Card className="bg-linear-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -47,7 +47,7 @@ export function AnalyticsCards({ analytics }: AnalyticsCardsProps) {
       </Card>
 
       {/* Avg Duration Card */}
-      <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
+      <Card className="bg-linear-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -63,7 +63,7 @@ export function AnalyticsCards({ analytics }: AnalyticsCardsProps) {
       </Card>
 
       {/* Efficiency Card */}
-      <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
+      <Card className="bg-linear-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">

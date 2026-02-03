@@ -135,7 +135,7 @@ export function AddClientAskPage() {
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-white to-slate-100" />
+      <div className="absolute inset-0 bg-linear-to-br from-slate-100 via-white to-slate-100" />
 
       <div className="relative z-10 py-16">
         <motion.div

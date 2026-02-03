@@ -201,7 +201,7 @@ export default function DangerDeleteClientModal({
         "
       >
         {/* Decorative danger header */}
-        <div className="bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500 px-6 py-4 text-white">
+        <div className="bg-linear-to-r from-rose-600 via-rose-500 to-orange-500 px-6 py-4 text-white">
           <div className="flex items-center gap-2">
             <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
               <Trash2 className="h-5 w-5" />
@@ -306,7 +306,7 @@ export default function DangerDeleteClientModal({
                           </div>
                         </div>
                         {/* subtle gradient accent */}
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50" />
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-linear-to-r from-gray-50 via-gray-100 to-gray-50" />
                       </div>
                     );
                   })}
@@ -371,7 +371,7 @@ export default function DangerDeleteClientModal({
                 await onConfirm(); // parent toggles isDeleting
               }}
               disabled={!canDelete || isDeleting}
-              className="bg-gradient-to-r from-rose-600 to-red-600
+              className="bg-linear-to-r from-rose-600 to-red-600
                hover:from-rose-700 hover:to-red-700
                text-white shadow"
             >

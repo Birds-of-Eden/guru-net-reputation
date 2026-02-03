@@ -321,10 +321,10 @@ export function TaskCard({
   return (
     <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group">
       <div
-        className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${cardGradient}`}
+        className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${cardGradient}`}
       />
       <div
-        className={`absolute inset-0 bg-gradient-to-br ${cardGradient} opacity-2 group-hover:opacity-4 transition-opacity duration-300`}
+        className={`absolute inset-0 bg-linear-to-br ${cardGradient} opacity-2 group-hover:opacity-4 transition-opacity duration-300`}
       />
 
       <CardContent className="relative p-5">
@@ -342,7 +342,7 @@ export function TaskCard({
                   {task.category && (
                     <Badge
                       variant="outline"
-                      className={`text-xs border bg-gradient-to-r ${cardGradient} text-white border-transparent font-medium px-2 py-1 shadow-sm`}
+                      className={`text-xs border bg-linear-to-r ${cardGradient} text-white border-transparent font-medium px-2 py-1 shadow-sm`}
                     >
                       {task.category.name}
                     </Badge>
@@ -350,7 +350,7 @@ export function TaskCard({
                   {task.templateSiteAsset && (
                     <Badge
                       variant="outline"
-                      className="text-xs border bg-gradient-to-r from-purple-500 to-pink-500 text-white border-transparent font-medium px-2 py-1 shadow-sm"
+                      className="text-xs border bg-linear-to-r from-purple-500 to-pink-500 text-white border-transparent font-medium px-2 py-1 shadow-sm"
                     >
                       {task.templateSiteAsset.name}
                     </Badge>
@@ -406,10 +406,10 @@ export function TaskCard({
 
             {/* ===== Body grid ===== */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div className="bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div
-                    className={`p-1.5 bg-gradient-to-r ${cardGradient} rounded-md`}
+                    className={`p-1.5 bg-linear-to-r ${cardGradient} rounded-md`}
                   >
                     <Building2 className="h-3 w-3 text-white" />
                   </div>
@@ -473,10 +473,10 @@ export function TaskCard({
                 )}
               </div>
 
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div className="bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div
-                    className={`p-1.5 bg-gradient-to-r ${cardGradient} rounded-md`}
+                    className={`p-1.5 bg-linear-to-r ${cardGradient} rounded-md`}
                   >
                     <User className="h-3 w-3 text-white" />
                   </div>
@@ -512,10 +512,10 @@ export function TaskCard({
                 )}
               </div>
 
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div className="bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <div
-                    className={`p-1.5 bg-gradient-to-r ${cardGradient} rounded-md`}
+                    className={`p-1.5 bg-linear-to-r ${cardGradient} rounded-md`}
                   >
                     <Clock className="h-3 w-3 text-white" />
                   </div>
@@ -545,7 +545,7 @@ export function TaskCard({
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+              <div className="flex flex-col items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                 {task.completionLink && (
                   <Button
                     onClick={() => {
@@ -559,7 +559,7 @@ export function TaskCard({
                         "noopener,noreferrer",
                       );
                     }}
-                    className="bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
+                    className="bg-linear-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
                   >
                     <ExternalLink className="h-3 w-3 mr-2" />
                     View Completion
@@ -577,7 +577,7 @@ export function TaskCard({
                       }
                       variant="outline"
                       size="sm"
-                      className="bg-gradient-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
+                      className="bg-linear-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
                     >
                       <Eye className="h-4 w-4 text-white" />
                       View Notes
@@ -618,11 +618,11 @@ export function TaskCard({
               </div>
             )}
             <div className="xl:w-72 space-y-3">
-              <div className="bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-md">
+              <div className="bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-md">
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="text-center flex gap-2">
                     <div
-                      className={`text-xl font-black bg-gradient-to-r ${cardGradient} bg-clip-text text-transparent`}
+                      className={`text-xl font-black bg-linear-to-r ${cardGradient} bg-clip-text text-transparent`}
                     >
                       {efficiency.percentage}%
                     </div>
@@ -640,7 +640,7 @@ export function TaskCard({
                   </div>
 
                   <div
-                    className={`text-xl font-black bg-gradient-to-r ${cardGradient} bg-clip-text text-transparent`}
+                    className={`text-xl font-black bg-linear-to-r ${cardGradient} bg-clip-text text-transparent`}
                   >
                     {Math.round((task.actualDurationMinutes / 60) * 10) / 10}h
                     ideal
@@ -657,7 +657,7 @@ export function TaskCard({
                   <div className="relative">
                     <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-gradient-to-r ${cardGradient} rounded-full transition-all duration-1000 shadow-sm`}
+                        className={`h-full bg-linear-to-r ${cardGradient} rounded-full transition-all duration-1000 shadow-sm`}
                         style={{ width: `${task.completionPercentage}%` }}
                       />
                     </div>
@@ -673,7 +673,7 @@ export function TaskCard({
                   className={`flex-1 font-bold text-xs py-2 ${
                     isApproved
                       ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md"
-                      : `bg-gradient-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
+                      : `bg-linear-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
                   }`}
                 >
                   <CheckCircle className="h-3 w-3 mr-1" />

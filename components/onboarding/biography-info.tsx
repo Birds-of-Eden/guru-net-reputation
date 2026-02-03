@@ -75,10 +75,10 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-amber-500 to-orange-500 shadow-lg mb-4">
           <FileText className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
           Your Biography
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -88,10 +88,10 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
       </div>
 
       {/* Biography Card */}
-      <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -106,7 +106,7 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
             <Button
               onClick={handleGenerateBio}
               disabled={isGenerating}
-              className="relative group overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-white shadow-lg"
+              className="relative group overflow-hidden bg-linear-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-white shadow-lg"
             >
               <span className="relative z-10 flex items-center gap-2">
                 {isGenerating ? (
@@ -140,7 +140,7 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
           />
 
           <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
               <span className="font-semibold">Pro tip:</span> This biography will be used across your profiles and marketing
               materials. Make it engaging, authentic, and professional to leave a lasting impression.
@@ -154,7 +154,7 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 hover:text-amber-700 hover:border-amber-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 hover:text-amber-700 hover:border-amber-400 transition-all duration-200 rounded-xl"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -163,7 +163,7 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
         </Button>
         <Button
           onClick={onNext}
-          className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:via-orange-700 hover:to-red-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+          className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:via-orange-700 hover:to-red-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
         >
           Continue to Next Step
           <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">

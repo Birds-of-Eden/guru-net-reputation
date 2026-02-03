@@ -477,7 +477,7 @@ export default function TasksPage() {
       >
         <DialogContent className="max-w-4xl md:max-w-5xl lg:max-w-6xl h-[85vh] overflow-y-auto p-0">
           <div className="h-full flex flex-col">
-            <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
+            <div className="px-6 py-4 border-b bg-linear-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
               <DialogHeader>
                 <DialogTitle className="flex items-center justify-between w-full">
                   <span className="text-xl">
@@ -625,7 +625,7 @@ function ClientCard({
       onClick={onClick}
       className={cn(
         "group cursor-pointer rounded-2xl border border-slate-200/70",
-        "bg-gradient-to-br from-white to-slate-50",
+        "bg-linear-to-br from-white to-slate-50",
         "shadow-sm hover:shadow-md hover:-translate-y-0.5",
         "transition-all duration-300 ease-out"
       )}

@@ -21,10 +21,10 @@ export function AssignmentSuccess({
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Success Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 shadow-2xl mb-4 animate-bounce">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-green-500 to-emerald-500 shadow-2xl mb-4 animate-bounce">
           <CheckCircle className="w-12 h-12 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Assignment Created Successfully!
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -32,13 +32,13 @@ export function AssignmentSuccess({
         </p>
       </div>
 
-      <Card className="overflow-hidden border-2 border-green-100 shadow-2xl bg-gradient-to-br from-white to-green-50/30 rounded-2xl">
+      <Card className="overflow-hidden border-2 border-green-100 shadow-2xl bg-linear-to-br from-white to-green-50/30 rounded-2xl">
         <CardContent className="p-8">
           <div className="space-y-6">
             {/* Client to Template Flow */}
             <div className="flex items-center justify-between p-6 bg-white rounded-xl border-2 border-green-200 shadow-lg">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-14 h-14 bg-linear-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
                   <Users className="w-7 h-7 text-white" />
                 </div>
                 <div>
@@ -48,7 +48,7 @@ export function AssignmentSuccess({
               </div>
               <ArrowRight className="w-6 h-6 text-green-500" />
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-14 h-14 bg-linear-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
                   <Clock className="w-7 h-7 text-white" />
                 </div>
                 <div>
@@ -77,7 +77,7 @@ export function AssignmentSuccess({
             </div>
 
             {/* Next Steps */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
+            <div className="bg-linear-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-white" />

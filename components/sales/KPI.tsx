@@ -33,7 +33,7 @@ export function KPI({
             </p>
           )}
         </div>
-        <div className="p-3 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm ring-1 ring-slate-200/50">
+        <div className="p-3 rounded-xl bg-linear-to-br from-slate-50 to-slate-100 shadow-sm ring-1 ring-slate-200/50">
           {icon}
         </div>
       </CardContent>

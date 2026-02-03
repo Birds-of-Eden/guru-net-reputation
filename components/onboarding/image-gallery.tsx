@@ -379,10 +379,10 @@ export function ImageGallery({
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-green-500 to-emerald-500 shadow-lg mb-4">
           <ImageIcon className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Image Gallery
         </h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
@@ -391,9 +391,9 @@ export function ImageGallery({
       </div>
 
       {/* Drive Link Card */}
-      <div className="bg-gradient-to-br from-white to-green-50/30 rounded-2xl shadow-xl border border-green-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-green-50/30 rounded-2xl shadow-xl border border-green-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
             <ImageIcon className="w-5 h-5 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Connect Drive Folder</h2>
@@ -423,7 +423,7 @@ export function ImageGallery({
             <Button
               onClick={validateDriveLink}
               disabled={isValidating || !formData.imageDrivelink}
-              className="h-12 px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50"
+              className="h-12 px-8 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50"
             >
               {isValidating ? (
                 <>
@@ -446,7 +446,7 @@ export function ImageGallery({
 
           {errorMsg && (
             <div className="mt-4 flex items-start gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
               <p className="text-sm text-red-800 font-medium">{errorMsg}</p>
             </div>
           )}
@@ -454,10 +454,10 @@ export function ImageGallery({
       </div>
 
       {/* Preview Grid */}
-      <div className="bg-gradient-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
               <ImageIcon className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -470,7 +470,7 @@ export function ImageGallery({
               <Button
                 onClick={handleDownloadAll}
                 disabled={isDownloadingAll}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-lg"
+                className="bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold shadow-lg"
               >
                 {isDownloadingAll ? (
                   <>
@@ -505,7 +505,7 @@ export function ImageGallery({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 rounded-xl"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -522,7 +522,7 @@ export function ImageGallery({
           </Button>
           <Button
             onClick={onNext}
-            className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+            className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
           >
             {images.length > 0 ? 'Save & Continue' : 'Continue'}
             <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">

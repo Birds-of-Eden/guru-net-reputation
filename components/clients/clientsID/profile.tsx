@@ -732,7 +732,7 @@ export function Profile({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Information */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-          <CardHeader className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+          <CardHeader className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
             <CardTitle className="flex items-center space-x-2">
               <User className="h-5 w-5 text-blue-600" />
               <span>Personal Information</span>
@@ -834,7 +834,7 @@ export function Profile({
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                   <div
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-linear-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${derivedProgress}%` }}
                   />
                 </div>
@@ -845,7 +845,7 @@ export function Profile({
 
         {/* Account Manager & Contact */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-          <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
+          <CardHeader className="bg-linear-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
             <CardTitle className="flex items-center space-x-2">
               <UserCircle2 className="h-5 w-5 text-emerald-600" />
               <span>Account Manager & Contact</span>
@@ -936,7 +936,7 @@ export function Profile({
 
         {/* Professional Information */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-          <CardHeader className="bg-gradient-to-r from-green-500/10 to-blue-500/10 dark:from-green-500/20 dark:to-blue-500/20">
+          <CardHeader className="bg-linear-to-r from-green-500/10 to-blue-500/10 dark:from-green-500/20 dark:to-blue-500/20">
             <CardTitle className="flex items-center space-x-2">
               <Briefcase className="h-5 w-5 text-green-600" />
               <span>Professional Information</span>
@@ -1012,7 +1012,7 @@ export function Profile({
 
         {/* Package Information */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
-          <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
+          <CardHeader className="bg-linear-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
             <CardTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5 text-purple-600" />
               <span>Package Information</span>
@@ -1097,7 +1097,7 @@ export function Profile({
 
         {/* Social Media (inline editable + add) */}
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
-          <CardHeader className="bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20">
+          <CardHeader className="bg-linear-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center space-x-2">
                 <Share2 className="h-5 w-5 text-rose-600" />
@@ -1108,7 +1108,7 @@ export function Profile({
               {!isClient && (
                 <Button
                   variant="default"
-                  className="gap-2 bg-gradient-to-r from-pink-600 to-pink-800 hover:from-pink-700 hover:to-pink-900 dark:from-pink-600 dark:to-pink-900"
+                  className="gap-2 bg-linear-to-r from-pink-600 to-pink-800 hover:from-pink-700 hover:to-pink-900 dark:from-pink-600 dark:to-pink-900"
                   onClick={() => setAddingRow(true)}
                   title="Add Social"
                 >

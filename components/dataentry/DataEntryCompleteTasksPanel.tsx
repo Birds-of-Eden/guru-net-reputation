@@ -443,7 +443,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
     return (
       <tr
         key={t.id}
-        className="group hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out"
+        className="group hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out"
       >
         <td className="px-6 py-5">
           <div
@@ -456,7 +456,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
         <td className="px-6 py-5">
           <Badge
             variant="outline"
-            className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm"
+            className="bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm"
           >
             {t.category?.name || "—"}
           </Badge>
@@ -503,7 +503,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
           <div className="flex gap-3 justify-end">
             {isContentWritingTask(t) ? (
               <Button
-                className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-purple-600 via-violet-600 to-blue-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openContentWritingModal(t)}
                 size="sm"
                 disabled={
@@ -515,7 +515,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
               </Button>
             ) : isReviewRemovalTask(t) ? (
               <Button
-                className="bg-gradient-to-r from-red-500 via-pink-500 to-orange-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-red-500 via-pink-500 to-orange-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openReviewRemovalModal(t)}
                 size="sm"
                 disabled={
@@ -527,7 +527,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
               </Button>
             ) : isBacklinkingTask(t) ? (
               <Button
-                className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openBacklinkingModal(t)}
                 size="sm"
                 disabled={
@@ -539,7 +539,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
               </Button>
             ) : isSummaryReportTask(t) ? (
               <Button
-                className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openSummaryReportModal(t)}
                 size="sm"
                 disabled={
@@ -551,7 +551,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
               </Button>
             ) : isMonitoringTask(t) ? (
               <Button
-                className="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openMonitoringModal(t)}
                 size="sm"
                 disabled={
@@ -563,7 +563,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
               </Button>
             ) : (
               <Button
-                className="bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
+                className="bg-linear-to-r from-indigo-600 via-blue-600 to-purple-600 hover:shadow-xl hover:scale-105 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => openComplete(t)}
                 size="sm"
                 disabled={
@@ -1180,7 +1180,7 @@ export default function DataEntryCompleteTasksPanel({
       {/* Statistics Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
         {/* Total Tasks Card */}
-        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-700 hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105">
+        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-indigo-600 via-blue-600 to-purple-700 hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
@@ -1202,7 +1202,7 @@ export default function DataEntryCompleteTasksPanel({
         </Card>
 
         {/* Completed Tasks Card */}
-        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 hover:shadow-emerald-500/50 transition-all duration-500 hover:scale-105">
+        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-emerald-500 via-green-600 to-teal-700 hover:shadow-emerald-500/50 transition-all duration-500 hover:scale-105">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
@@ -1226,7 +1226,7 @@ export default function DataEntryCompleteTasksPanel({
         </Card>
 
         {/* Overdue Tasks Card */}
-        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-red-600 hover:shadow-orange-500/50 transition-all duration-500 hover:scale-105">
+        <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-orange-500 via-amber-600 to-red-600 hover:shadow-orange-500/50 transition-all duration-500 hover:scale-105">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
@@ -1252,7 +1252,7 @@ export default function DataEntryCompleteTasksPanel({
 
       {/* Tasks Panel */}
       <Card className="border-0 shadow-2xl overflow-hidden backdrop-blur-xl bg-white/95">
-        <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-8 px-8">
+        <CardHeader className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-8 px-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
@@ -1276,7 +1276,7 @@ export default function DataEntryCompleteTasksPanel({
                 {showCreateTasksButton && (
                   <Button
                     onClick={handleCreateTasksChoiceOpen}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     Create Posting Tasks
                   </Button>
@@ -1369,7 +1369,7 @@ export default function DataEntryCompleteTasksPanel({
           <div className="border-2 border-slate-200 rounded-3xl overflow-hidden shadow-lg bg-white">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                <thead className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
                   <tr className="text-left">
                     <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
                       Task
@@ -1410,7 +1410,7 @@ export default function DataEntryCompleteTasksPanel({
                     <tr>
                       <td colSpan={6} className="py-24">
                         <div className="flex flex-col items-center gap-6">
-                          <div className="bg-gradient-to-br from-slate-100 to-slate-200 p-8 rounded-3xl">
+                          <div className="bg-linear-to-br from-slate-100 to-slate-200 p-8 rounded-3xl">
                             <BarChart3 className="h-20 w-20 text-slate-400" />
                           </div>
                           <div className="text-center">
@@ -1506,7 +1506,7 @@ export default function DataEntryCompleteTasksPanel({
               <Button
                 onClick={createPostingTasks}
                 disabled={creatingPosting}
-                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-2xl hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300 h-14 px-8 rounded-2xl font-bold text-lg"
+                className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-2xl hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300 h-14 px-8 rounded-2xl font-bold text-lg"
               >
                 {creatingPosting ? (
                   <>

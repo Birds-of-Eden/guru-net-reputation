@@ -32,7 +32,7 @@ export default function TrackDevelopment() {
   const curr2 = gen("current", 2);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-indigo-50 via-white to-sky-100 dark:from-neutral-900 dark:to-black p-10">
+    <div className="min-h-screen w-full bg-linear-to-b from-indigo-50 via-white to-sky-100 dark:from-neutral-900 dark:to-black p-10">
       {/* Header */}
       <motion.div
         initial={{ y: -15, opacity: 0 }}
@@ -118,7 +118,7 @@ export default function TrackDevelopment() {
 
         {/* Center - Smooth Tracker */}
         <div className="hidden md:flex flex-col items-center relative">
-          <div className="h-full w-[3px] bg-gradient-to-b from-indigo-400 via-blue-500 to-emerald-400 rounded-full relative overflow-hidden">
+          <div className="h-full w-[3px] bg-linear-to-b from-indigo-400 via-blue-500 to-emerald-400 rounded-full relative overflow-hidden">
             {months.map((m, i) => (
               <motion.div
                 key={i}

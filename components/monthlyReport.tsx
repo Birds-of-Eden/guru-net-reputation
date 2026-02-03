@@ -400,7 +400,7 @@ export default function MonthlyAgentPackageMatrix({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-4 sm:p-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 p-4 sm:p-6">
       <div className="mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -562,7 +562,7 @@ export default function MonthlyAgentPackageMatrix({
 
             {/* Grand Totals Skeleton */}
             <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm">
-              <CardHeader className="pb-3 bg-gradient-to-r from-slate-50 to-amber-50/60 border-b">
+              <CardHeader className="pb-3 bg-linear-to-r from-slate-50 to-amber-50/60 border-b">
                 <div className="flex items-center gap-3">
                   <Skeleton className="h-6 w-6 rounded" />
                   <Skeleton className="h-6 w-32" />
@@ -611,7 +611,7 @@ export default function MonthlyAgentPackageMatrix({
             {/* Table View */}
             <TabsContent value="table" className="space-y-4">
               <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm overflow-hidden">
-                <CardHeader className="pb-3 sm:pb-4 bg-gradient-to-r from-slate-50 to-blue-50/50 border-b px-4 sm:px-6">
+                <CardHeader className="pb-3 sm:pb-4 bg-linear-to-r from-slate-50 to-blue-50/50 border-b px-4 sm:px-6">
                   <CardTitle className="flex items-center gap-3 text-slate-800 text-lg sm:text-xl">
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
@@ -627,7 +627,7 @@ export default function MonthlyAgentPackageMatrix({
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b border-slate-200">
+                          <tr className="bg-linear-to-r from-slate-100 to-slate-50 border-b border-slate-200">
                             <th className="w-[160px] sm:w-[200px] px-4 sm:px-6 py-3 text-left font-semibold text-slate-700 sticky left-0 bg-slate-100 z-10 border-r border-slate-200">
                               Team Member
                             </th>
@@ -748,7 +748,7 @@ export default function MonthlyAgentPackageMatrix({
                           ))}
                         </tbody>
                         <tfoot>
-                          <tr className="bg-gradient-to-r from-slate-100 to-slate-50 font-semibold border-t border-slate-200">
+                          <tr className="bg-linear-to-r from-slate-100 to-slate-50 font-semibold border-t border-slate-200">
                             <td className="px-4 sm:px-6 py-3 text-slate-800 sticky left-0 bg-slate-100 border-r border-slate-200 z-10 text-sm">
                               Team Totals
                             </td>
@@ -804,7 +804,7 @@ export default function MonthlyAgentPackageMatrix({
             {/* Summary View */}
             <TabsContent value="summary">
               <Card className="bg-white/80 backdrop-blur-sm border-slate-200 shadow-sm">
-                <CardHeader className="pb-3 sm:pb-4 bg-gradient-to-r from-slate-50 to-green-50/50 border-b px-4 sm:px-6">
+                <CardHeader className="pb-3 sm:pb-4 bg-linear-to-r from-slate-50 to-green-50/50 border-b px-4 sm:px-6">
                   <CardTitle className="flex items-center gap-3 text-slate-800 text-lg sm:text-xl">
                     <div className="p-2 bg-green-100 rounded-lg">
                       <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
@@ -889,7 +889,7 @@ export default function MonthlyAgentPackageMatrix({
         {/* ===== Grand Totals Table ===== */}
         {!loading && (
           <Card className="bg-white/90 backdrop-blur-sm border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 sm:pb-4 bg-gradient-to-r from-slate-50 to-amber-50/60 border-b px-4 sm:px-6">
+            <CardHeader className="pb-3 sm:pb-4 bg-linear-to-r from-slate-50 to-amber-50/60 border-b px-4 sm:px-6">
               <CardTitle className="flex items-center gap-3 text-slate-800 text-lg sm:text-xl">
                 <div className="p-2 bg-amber-100 rounded-lg">
                   <TableIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700" />

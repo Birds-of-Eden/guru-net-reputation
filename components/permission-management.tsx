@@ -294,7 +294,7 @@ export default function AssignmentManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-4">
       <div className="max-w-full mx-auto">
         {/* Header */}
         <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
@@ -765,7 +765,7 @@ function AssignmentCard({
 }) {
   return (
     <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-purple-50 to-blue-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-white shadow-md">

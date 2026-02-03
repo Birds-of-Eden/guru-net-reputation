@@ -1089,13 +1089,13 @@ useEffect(() => {
 }, [categoryLabels, selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-indigo-50 to-purple-50">
       <div className="mx-auto">
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden flex flex-col h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)]">
-          <CardHeader className="relative bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
+        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden flex flex-col h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)]">
+          <CardHeader className="relative bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
             {/* Subtle background accent */}
             <div className="pointer-events-none absolute inset-0 opacity-40">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/20 rounded-full blur-3xl" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-100 to-transparent dark:from-blue-900/20 rounded-full blur-3xl" />
             </div>
 
             {/* Main content */}
@@ -1112,7 +1112,7 @@ useEffect(() => {
                         />
                       ) : (
                         <AvatarFallback
-                          className="text-white text-lg font-semibold bg-gradient-to-br from-blue-500 to-blue-600"
+                          className="text-white text-lg font-semibold bg-linear-to-br from-blue-500 to-blue-600"
                           style={{
                             backgroundColor: nameToColor(
                               client.name || client.id,
@@ -1193,8 +1193,8 @@ useEffect(() => {
             <section className="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full overflow-hidden min-h-0">
               {/* Sidebar category tabs - Fixed position */}
               <aside className="w-full lg:w-72 shrink-0">
-                <div className="rounded-2xl border border-purple-200 bg-gradient-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col">
-                  <div className="px-4 py-3 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-100 to-indigo-100">
+                <div className="rounded-2xl border border-purple-200 bg-linear-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col">
+                  <div className="px-4 py-3 flex items-center justify-between shrink-0 bg-linear-to-r from-purple-100 to-indigo-100">
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.08em] text-purple-700 font-bold">
                         Select Category
@@ -1271,7 +1271,7 @@ useEffect(() => {
               {/* Main content area */}
               <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
                 {/* Header actions - Fixed position */}
-                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 mb-6 flex-shrink-0 backdrop-blur">
+                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 mb-6 shrink-0 backdrop-blur">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500 font-semibold">
@@ -1333,7 +1333,7 @@ useEffect(() => {
                           sideOffset={8}
                           className="p-0 w-[300px] overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
                         >
-                          <div className="px-3 py-2 bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500">
+                          <div className="px-3 py-2 bg-linear-to-r from-indigo-500 via-blue-500 to-cyan-500">
                             <div className="text-[10px] uppercase tracking-wide text-white/80">
                               Due date
                             </div>
@@ -1467,7 +1467,7 @@ useEffect(() => {
                           submitting || categoryAssignments.length === 0
                         }
                         className={cn(
-                          "h-10 md:h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
+                          "h-10 md:h-11 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
                           (submitting || categoryAssignments.length === 0) &&
                             "opacity-60 cursor-not-allowed",
                         )}

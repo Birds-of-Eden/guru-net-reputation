@@ -140,7 +140,7 @@ export function AssetCard({
             {/* Override Info */}
             {hasOverride && (
               <div className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                <Zap className="h-4 w-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+                <Zap className="h-4 w-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
                 <p className="text-xs text-yellow-700 dark:text-yellow-400">
                   <span className="font-semibold">Client Override:</span> Using custom frequency of {displayFrequency}/month 
                   (template default: {asset.defaultPostingFrequency}/month)
@@ -151,7 +151,7 @@ export function AssetCard({
             {/* Template Source */}
             {!isCustomTemplate && (
               <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <p className="text-xs text-blue-700 dark:text-blue-400">
                   Shared template asset - customize to make client-specific changes
                 </p>

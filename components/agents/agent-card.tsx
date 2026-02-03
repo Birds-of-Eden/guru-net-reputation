@@ -74,8 +74,8 @@ export function AgentCard({ agent, onDelete, onViewDetails }: AgentCardProps) {
       aria-label={`Open ${agent.firstName} ${agent.lastName} profile`}
       title="Open profile"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <CardHeader className="relative pb-4">
         <div className="flex items-start justify-between">

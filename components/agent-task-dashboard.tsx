@@ -488,11 +488,11 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
   // ---------- UI ----------
   //
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-10">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent p-3">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent p-3">
             My Clients
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -548,10 +548,10 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
 
       {/* Management Card */}
       <Card className="border-0 shadow-xl bg-white dark:bg-gray-900 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+        <div className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
           <CardHeader className="pb-6">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg">
                 <List className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -608,7 +608,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
                   className={classNames(
                     "h-12 w-12 rounded-xl",
                     viewMode === "list"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                       : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                 >
@@ -621,7 +621,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
                   className={classNames(
                     "h-12 w-12 rounded-xl",
                     viewMode === "card"
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                       : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                 >
@@ -803,7 +803,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700">
+                    <tr className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700">
                       <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">
                         Client
                       </th>

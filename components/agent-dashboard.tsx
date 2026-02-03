@@ -293,7 +293,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 to-blue-50">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-red-600 mb-4">
@@ -312,11 +312,11 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent pa-3">
+          <h2 className="text-4xl font-bold bg-linear-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent pa-3">
             Agent Performance Dashboard
           </h2>
           <p className="text-muted-foreground mt-2">
@@ -382,8 +382,8 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
       {/* Middle section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Task Status Overview */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/50 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/50 to-indigo-50/50">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -441,8 +441,8 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         </Card>
 
         {/* Client Progress Distribution (QC-based) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-purple-50/50 to-violet-50/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/50 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/50 to-violet-50/50">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -478,7 +478,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                     </div>
                     <Progress
                       value={client._qcProgress}
-                      className="h-2 bg-slate-200 [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-violet-500 [&>div]:rounded-full"
+                      className="h-2 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-purple-500 [&>div]:to-violet-500 [&>div]:rounded-full"
                     />
                   </div>
                 ))}
@@ -490,8 +490,8 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
       {/* Bottom section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Assigned Clients (QC-based progress) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-slate-50/50 to-slate-100/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -526,7 +526,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                        <AvatarFallback className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium">
+                        <AvatarFallback className="bg-linear-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium">
                           {client.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -559,8 +559,8 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         </Card>
 
         {/* High Priority Summary (same as before) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-gradient-to-r from-slate-50/50 to-slate-100/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -667,7 +667,7 @@ function MetricCard({
 }) {
   if (loading) {
     return (
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/50">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50">
         <CardContent className="p-6">
           <Skeleton className="h-12 w-12 rounded-xl mb-4" />
           <Skeleton className="h-8 w-20 mb-2" />
@@ -678,11 +678,11 @@ function MetricCard({
     );
   }
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/50 backdrop-blur-sm group">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm group">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div
-            className={`p-3 rounded-xl bg-gradient-to-r ${gradient} text-white shadow-md`}
+            className={`p-3 rounded-xl bg-linear-to-r ${gradient} text-white shadow-md`}
           >
             {icon}
           </div>
@@ -765,7 +765,7 @@ function BarRow({
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <Skeleton className="h-9 w-64 mb-2" />
@@ -784,7 +784,7 @@ function DashboardSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <Card
             key={i}
-            className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-gradient-to-br from-white to-slate-50/50"
+            className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50"
           >
             <CardContent className="p-6">
               <Skeleton className="h-12 w-12 rounded-xl mb-4" />

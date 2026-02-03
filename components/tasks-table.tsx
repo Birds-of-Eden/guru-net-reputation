@@ -333,8 +333,8 @@ function TaskTimer({
             <div
               className={`h-full transition-all duration-1000 ${
                 isOvertime
-                  ? "bg-gradient-to-r from-red-500 to-red-600"
-                  : "bg-gradient-to-r from-blue-500 to-blue-600"
+                  ? "bg-linear-to-r from-red-500 to-red-600"
+                  : "bg-linear-to-r from-blue-500 to-blue-600"
               }`}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
@@ -438,7 +438,7 @@ export function TaskTable({
                       )}
                     </div>
                     {isTimerActive && (
-                      <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                      <div className="shrink-0 flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                         <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
                           Active

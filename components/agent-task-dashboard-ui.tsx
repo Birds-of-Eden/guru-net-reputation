@@ -130,10 +130,10 @@ export function StatCard({
     <Card
       className={classNames(
         "relative overflow-hidden border-0 shadow-lg text-white",
-        `bg-gradient-to-br ${gradient}`
+        `bg-linear-to-br ${gradient}`
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
       <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-white/90">
           {title}

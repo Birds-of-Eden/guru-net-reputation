@@ -86,7 +86,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
       <DialogContent className="sm:max-w-[750px] rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-6 px-8 py-6">
+        <div className="bg-linear-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
@@ -128,7 +128,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
           {/* Credentials */}
           {!isSimpleTask(selected) && (
-            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
+            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-amber-500 p-2 rounded-xl">
                   <KeyRound className="h-5 w-5 text-white" />
@@ -252,7 +252,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                         >
                           <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <div
-                              className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${
+                              className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                                 agent.id === doneBy
                                   ? "bg-blue-500"
                                   : "bg-green-500"
@@ -300,13 +300,13 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
           <Button
             variant="outline"
             onClick={resetModal}
-            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
+            className="rounded-2xl h-14 bg-linear-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
           >
             <X className="h-5 w-5 mr-2" />
             Cancel
           </Button>
           <Button
-            className="ml-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
+            className="ml-2 bg-linear-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
             disabled={!doneBy}
             onClick={submit}
           >

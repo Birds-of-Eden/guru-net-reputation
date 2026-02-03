@@ -239,7 +239,7 @@ export function TemplateViewModal({
     color?: string;
     trend?: string;
   }) => (
-    <Card className="border-0 shadow-sm bg-gradient-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
+    <Card className="border-0 shadow-sm bg-linear-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className={`p-2 bg-${color}-100 rounded-lg`}>
@@ -270,7 +270,7 @@ export function TemplateViewModal({
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <div
-                className={`p-1.5 bg-${config.color}-100 rounded-md flex-shrink-0`}
+                className={`p-1.5 bg-${config.color}-100 rounded-md shrink-0`}
               >
                 <SiteTypeIcon type={site.type} size={14} />
               </div>
@@ -300,7 +300,7 @@ export function TemplateViewModal({
             <Badge
               variant="outline"
               className={cn(
-                "text-xs flex-shrink-0 ml-2",
+                "text-xs shrink-0 ml-2",
                 site.isRequired
                   ? "bg-red-50 text-red-700 border-red-200"
                   : "bg-gray-50 text-gray-600 border-gray-200"
@@ -346,7 +346,7 @@ export function TemplateViewModal({
         <DialogHeader className="p-4 border-b bg-white/80 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -386,7 +386,7 @@ export function TemplateViewModal({
               {/* Overview Tab */}
               <TabsTrigger
                 value="overview"
-                className="text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
               >
                 <Activity className="w-4 h-4 mr-2" />
                 Overview
@@ -395,7 +395,7 @@ export function TemplateViewModal({
               {/* All Sites Tab */}
               <TabsTrigger
                 value="sites"
-                className="text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
               >
                 <LayoutGrid className="w-4 h-4 mr-2" />
                 All Sites ({totalSites})
@@ -404,7 +404,7 @@ export function TemplateViewModal({
               {/* Tasks Tab */}
               <TabsTrigger
                 value="otherTasks"
-                className="text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Tasks ({otherTasks.length})
@@ -465,25 +465,25 @@ export function TemplateViewModal({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                    <div className="text-center p-3 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg">
                       <div className="text-2xl font-bold text-blue-900">
                         {totalSites}
                       </div>
                       <div className="text-sm text-blue-700">Total Sites</div>
                     </div>
-                    <div className="text-center p-3 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
+                    <div className="text-center p-3 bg-linear-to-br from-red-50 to-red-100 rounded-lg">
                       <div className="text-2xl font-bold text-red-900">
                         {requiredSites}
                       </div>
                       <div className="text-sm text-red-700">Required</div>
                     </div>
-                    <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                    <div className="text-center p-3 bg-linear-to-br from-green-50 to-green-100 rounded-lg">
                       <div className="text-2xl font-bold text-green-900">
                         {totalSites - requiredSites}
                       </div>
                       <div className="text-sm text-green-700">Optional</div>
                     </div>
-                    <div className="text-center p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+                    <div className="text-center p-3 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg">
                       <div className="text-2xl font-bold text-gray-900">
                         {template._count?.assignments || 0}
                       </div>

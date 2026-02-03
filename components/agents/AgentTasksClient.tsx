@@ -110,7 +110,7 @@ export default function AgentTasksClient({
       {/* Header + Instant Filter */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
+          <h2 className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400">
             Tasks by Client
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -156,9 +156,9 @@ export default function AgentTasksClient({
       </Badge>
 
       {counts.total === 0 ? (
-        <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+        <Card className="border-0 shadow-2xl bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
           <CardContent className="py-16 text-center">
-            <div className="w-20 h-20 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <div className="w-20 h-20 bg-linear-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-full mx-auto mb-6 flex items-center justify-center">
               <CheckCircle className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
             </div>
             <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-3">
@@ -240,9 +240,9 @@ function KpiCard({
   const t = tones[tone];
   return (
     <Card
-      className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
+      className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-linear-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <CardHeader className="relative pb-2">
         <CardTitle
           className={`text-sm font-semibold ${t.sub} uppercase tracking-wide`}
@@ -262,29 +262,29 @@ function statusBadge(status: string) {
   const map: Record<string, { color: string; icon: ReactNode }> = {
     pending: {
       color:
-        "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50",
+        "bg-linear-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50",
       icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
     },
     in_progress: {
       color:
-        "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
+        "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
       icon: (
         <span className="block w-3 h-3 rounded-full bg-white animate-pulse" />
       ),
     },
     completed: {
       color:
-        "bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
+        "bg-linear-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
       icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
     },
     overdue: {
       color:
-        "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50",
+        "bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50",
       icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
     },
     cancelled: {
       color:
-        "bg-gradient-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
+        "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
       icon: <span className="block w-3 h-3 rounded-full bg-white/70" />,
     },
   };
@@ -304,11 +304,11 @@ function statusBadge(status: string) {
 
 function priorityBadge(priority: string) {
   const map: Record<string, string> = {
-    low: "bg-gradient-to-r from-green-400 to-emerald-500 text-white",
-    medium: "bg-gradient-to-r from-yellow-400 to-orange-500 text-white",
-    high: "bg-gradient-to-r from-red-400 to-pink-500 text-white",
+    low: "bg-linear-to-r from-green-400 to-emerald-500 text-white",
+    medium: "bg-linear-to-r from-yellow-400 to-orange-500 text-white",
+    high: "bg-linear-to-r from-red-400 to-pink-500 text-white",
     urgent:
-      "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
+      "bg-linear-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
   };
   const cls = map[priority] ?? "bg-gray-100 text-gray-800";
   const stars =
@@ -360,15 +360,15 @@ function ClientTaskCard({
     : 0;
 
   return (
-    <Card className="border-0 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
-      <CardHeader className="pb-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
+    <Card className="border-0 shadow-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50/30 dark:from-gray-800 dark:to-indigo-900/20">
+      <CardHeader className="pb-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-indigo-100 dark:border-indigo-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div
               className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg ${
                 isUnassigned
-                  ? "bg-gradient-to-br from-gray-500 to-slate-600"
-                  : "bg-gradient-to-br from-indigo-500 to-purple-600"
+                  ? "bg-linear-to-br from-gray-500 to-slate-600"
+                  : "bg-linear-to-br from-indigo-500 to-purple-600"
               }`}
             >
               {isUnassigned ? "?" : client.name.charAt(0).toUpperCase()}
@@ -378,7 +378,7 @@ function ClientTaskCard({
                 className={`text-xl font-bold ${
                   isUnassigned
                     ? "text-gray-700 dark:text-gray-300"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
+                    : "bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-400"
                 }`}
               >
                 {client.name}
@@ -392,17 +392,17 @@ function ClientTaskCard({
 
           <div className="flex items-center gap-2">
             {clientStats.pending > 0 && (
-              <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50 px-2 py-1">
                 {clientStats.pending} Pending
               </Badge>
             )}
             {clientStats.in_progress > 0 && (
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50 px-2 py-1">
                 {clientStats.in_progress} In Progress
               </Badge>
             )}
             {clientStats.overdue > 0 && (
-              <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50 px-2 py-1">
+              <Badge className="bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50 px-2 py-1">
                 {clientStats.overdue} Overdue
               </Badge>
             )}
@@ -438,27 +438,27 @@ function TaskListItem({ task, isLast }: { task: TaskLite; isLast?: boolean }) {
 
   return (
     <div
-      className={`group relative p-6 transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 ${
+      className={`group relative p-6 transition-all duration-300 hover:bg-linear-to-r hover:from-indigo-50/50 hover:to-purple-50/50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 ${
         !isLast ? "border-b border-gray-100 dark:border-gray-700" : ""
       } ${
         isOverdue
-          ? "bg-gradient-to-r from-red-50/30 to-transparent dark:from-red-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-red-50/30 to-transparent dark:from-red-900/10 dark:to-transparent"
           : isCompleted
-          ? "bg-gradient-to-r from-emerald-50/30 to-transparent dark:from-emerald-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-emerald-50/30 to-transparent dark:from-emerald-900/10 dark:to-transparent"
           : isInProgress
-          ? "bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-900/10 dark:to-transparent"
+          ? "bg-linear-to-r from-blue-50/30 to-transparent dark:from-blue-900/10 dark:to-transparent"
           : ""
       }`}
     >
       <div
         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
           task.priority === "urgent"
-            ? "bg-gradient-to-b from-purple-500 to-indigo-600"
+            ? "bg-linear-to-b from-purple-500 to-indigo-600"
             : task.priority === "high"
-            ? "bg-gradient-to-b from-red-500 to-pink-600"
+            ? "bg-linear-to-b from-red-500 to-pink-600"
             : task.priority === "medium"
-            ? "bg-gradient-to-b from-yellow-500 to-orange-600"
-            : "bg-gradient-to-b from-green-500 to-emerald-600"
+            ? "bg-linear-to-b from-yellow-500 to-orange-600"
+            : "bg-linear-to-b from-green-500 to-emerald-600"
         }`}
       />
       <div className="flex items-center justify-between gap-6">

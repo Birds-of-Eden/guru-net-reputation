@@ -593,7 +593,7 @@ export default function TasksPage() {
             <div className="flex items-center gap-2 ml-4">
               <Progress
                 value={clientData.progress}
-                className="h-2 w-[120px] bg-gray-200 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-gradient-to-r [&::-webkit-progress-value]:from-green-400 [&::-webkit-progress-value]:to-emerald-500"
+                className="h-2 w-[120px] bg-gray-200 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-linear-to-r [&::-webkit-progress-value]:from-green-400 [&::-webkit-progress-value]:to-emerald-500"
               />
               <span className="font-semibold text-gray-700">{clientData.progress}% Complete</span>
             </div>
@@ -856,7 +856,7 @@ export default function TasksPage() {
                         onClick={() => assignTaskToMember(selectedTask.id, member)}
                       >
                         <div className="flex items-center gap-4 mb-3">
-                          <Avatar className="h-12 w-12 flex-shrink-0 border-2 border-gray-200">
+                          <Avatar className="h-12 w-12 shrink-0 border-2 border-gray-200">
                             <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
                             <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
                           </Avatar>

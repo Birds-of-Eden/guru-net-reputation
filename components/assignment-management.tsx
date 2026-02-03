@@ -99,27 +99,27 @@ function getAgentDisplayName(agent?: Agent | null) {
 }
 
 const priorityColors = {
-  low: "bg-gradient-to-r from-emerald-100 via-teal-50 to-green-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
+  low: "bg-linear-to-r from-emerald-100 via-teal-50 to-green-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
   medium:
-    "bg-gradient-to-r from-amber-100 via-yellow-50 to-orange-100 text-amber-800 border-amber-300 shadow-amber-100",
-  high: "bg-gradient-to-r from-orange-100 via-red-50 to-rose-100 text-orange-800 border-orange-300 shadow-orange-100",
+    "bg-linear-to-r from-amber-100 via-yellow-50 to-orange-100 text-amber-800 border-amber-300 shadow-amber-100",
+  high: "bg-linear-to-r from-orange-100 via-red-50 to-rose-100 text-orange-800 border-orange-300 shadow-orange-100",
   urgent:
-    "bg-gradient-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
+    "bg-linear-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
 };
 
 const PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"] as const;
 
 const statusColors = {
   pending:
-    "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
+    "bg-linear-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
   in_progress:
-    "bg-gradient-to-r from-blue-100 via-indigo-50 to-sky-100 text-blue-800 border-blue-300 shadow-blue-100",
+    "bg-linear-to-r from-blue-100 via-indigo-50 to-sky-100 text-blue-800 border-blue-300 shadow-blue-100",
   completed:
-    "bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
+    "bg-linear-to-r from-emerald-100 via-green-50 to-teal-100 text-emerald-800 border-emerald-300 shadow-emerald-100",
   overdue:
-    "bg-gradient-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
+    "bg-linear-to-r from-red-100 via-rose-50 to-pink-100 text-red-800 border-red-300 shadow-red-100",
   cancelled:
-    "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
+    "bg-linear-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
 };
 
 const siteTypeIcons = {
@@ -130,11 +130,11 @@ const siteTypeIcons = {
 
 const siteTypeColors = {
   social_site:
-    "bg-gradient-to-r from-violet-100 via-purple-50 to-fuchsia-100 text-violet-800 border-violet-300 shadow-violet-100",
+    "bg-linear-to-r from-violet-100 via-purple-50 to-fuchsia-100 text-violet-800 border-violet-300 shadow-violet-100",
   web2_site:
-    "bg-gradient-to-r from-blue-100 via-cyan-50 to-sky-100 text-blue-800 border-blue-300 shadow-blue-100",
+    "bg-linear-to-r from-blue-100 via-cyan-50 to-sky-100 text-blue-800 border-blue-300 shadow-blue-100",
   other_asset:
-    "bg-gradient-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
+    "bg-linear-to-r from-slate-100 via-gray-50 to-zinc-100 text-slate-800 border-slate-300 shadow-slate-100",
 };
 
 export default function TaskDistribution() {
@@ -457,8 +457,8 @@ export default function TaskDistribution() {
       <Card
         className={`transition-all duration-300 transform hover:scale-[1.02] ${
           isSelected
-            ? "ring-2 ring-blue-400 shadow-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-300"
-            : "hover:shadow-lg bg-gradient-to-br from-white via-gray-50 to-slate-50 border-gray-200 hover:border-gray-300"
+            ? "ring-2 ring-blue-400 shadow-xl bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-300"
+            : "hover:shadow-lg bg-linear-to-br from-white via-gray-50 to-slate-50 border-gray-200 hover:border-gray-300"
         }`}
       >
         <CardHeader className="pb-4">
@@ -469,7 +469,7 @@ export default function TaskDistribution() {
                 onCheckedChange={(checked) =>
                   handleTaskSelection(task.id, checked as boolean)
                 }
-                className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
+                className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
               />
               <div className="flex items-center space-x-3">
                 <div
@@ -529,7 +529,7 @@ export default function TaskDistribution() {
             </div>
           </div>
           {task.templateSiteAsset?.description && (
-            <CardDescription className="text-xs text-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 p-3 rounded-lg mt-3 border border-gray-200">
+            <CardDescription className="text-xs text-gray-700 bg-linear-to-r from-gray-50 to-slate-50 p-3 rounded-lg mt-3 border border-gray-200">
               {task.templateSiteAsset.description}
             </CardDescription>
           )}
@@ -538,14 +538,14 @@ export default function TaskDistribution() {
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 px-3 py-1.5 rounded-lg shadow-sm">
+                <div className="flex items-center space-x-1.5 bg-linear-to-r from-blue-100 to-cyan-100 px-3 py-1.5 rounded-lg shadow-sm">
                   <CalendarDays className="h-3.5 w-3.5 text-blue-700" />
                   <span className="text-blue-800 font-bold">
                     {new Date(task.dueDate).toLocaleDateString()}
                   </span>
                 </div>
                 {task.idealDurationMinutes && (
-                  <div className="flex items-center space-x-1.5 bg-gradient-to-r from-violet-100 to-purple-100 px-3 py-1.5 rounded-lg shadow-sm">
+                  <div className="flex items-center space-x-1.5 bg-linear-to-r from-violet-100 to-purple-100 px-3 py-1.5 rounded-lg shadow-sm">
                     <Clock className="h-3.5 w-3.5 text-violet-700" />
                     <span className="text-violet-800 font-bold">
                       {task.idealDurationMinutes}min
@@ -562,7 +562,7 @@ export default function TaskDistribution() {
               </Badge>
             </div>
             {task.templateSiteAsset?.url && (
-              <div className="text-xs bg-gradient-to-r from-gray-50 via-blue-50 to-indigo-50 p-4 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs bg-linear-to-r from-gray-50 via-blue-50 to-indigo-50 p-4 rounded-xl border border-gray-200 shadow-sm">
                 <span className="text-gray-700 font-bold">Target URL: </span>
                 <a
                   href={task.templateSiteAsset.url}
@@ -575,12 +575,12 @@ export default function TaskDistribution() {
               </div>
             )}
             {task.assignedTo ? (
-              <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 rounded-xl border border-emerald-300 shadow-sm">
+              <div className="flex items-center space-x-3 p-4 bg-linear-to-r from-emerald-100 via-green-50 to-teal-100 rounded-xl border border-emerald-300 shadow-sm">
                 <Avatar className="h-9 w-9 ring-3 ring-emerald-400 shadow-md">
                   <AvatarImage
                     src={task.assignedTo.image || "/placeholder.svg"}
                   />
-                  <AvatarFallback className="bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-sm">
+                  <AvatarFallback className="bg-linear-to-r from-emerald-600 to-green-600 text-white font-bold text-sm">
                     {getAgentDisplayName(task.assignedTo).charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
@@ -595,7 +595,7 @@ export default function TaskDistribution() {
                 <CheckCircle2 className="h-6 w-6 text-emerald-700" />
               </div>
             ) : assignment ? (
-              <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-100 via-indigo-50 to-purple-100 rounded-xl border border-blue-300 shadow-sm">
+              <div className="flex items-center space-x-3 p-4 bg-linear-to-r from-blue-100 via-indigo-50 to-purple-100 rounded-xl border border-blue-300 shadow-sm">
                 <Avatar className="h-9 w-9 ring-3 ring-blue-400 shadow-md">
                   <AvatarImage
                     src={
@@ -603,7 +603,7 @@ export default function TaskDistribution() {
                       "/placeholder.svg"
                     }
                   />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm">
+                  <AvatarFallback className="bg-linear-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm">
                     {agents
                       .find((a) => a.id === assignment.agentId)
                       ?.name?.charAt(0) || "A"}
@@ -639,8 +639,8 @@ export default function TaskDistribution() {
                     <SelectTrigger
                       className={`h-12 text-sm transition-all duration-200 rounded-xl shadow-sm ${
                         shouldDisableDropdown
-                          ? "border-gray-300 bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 cursor-not-allowed"
-                          : "border-2 border-blue-300 hover:border-blue-500 bg-gradient-to-r from-white via-blue-50 to-indigo-50 hover:shadow-md"
+                          ? "border-gray-300 bg-linear-to-r from-gray-50 to-slate-50 text-gray-500 cursor-not-allowed"
+                          : "border-2 border-blue-300 hover:border-blue-500 bg-linear-to-r from-white via-blue-50 to-indigo-50 hover:shadow-md"
                       }`}
                     >
                       <SelectValue
@@ -656,14 +656,14 @@ export default function TaskDistribution() {
                         <SelectItem
                           key={agent.id}
                           value={agent.id}
-                          className="p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 rounded-lg m-1"
+                          className="p-4 hover:bg-linear-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 rounded-lg m-1"
                         >
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-7 w-7 ring-2 ring-blue-300 shadow-sm">
                               <AvatarImage
                                 src={agent.image || "/placeholder.svg"}
                               />
-                              <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold">
+                              <AvatarFallback className="bg-linear-to-r from-blue-600 to-purple-600 text-white text-xs font-bold">
                                 {agent.name?.charAt(0) || "A"}
                               </AvatarFallback>
                             </Avatar>
@@ -683,21 +683,21 @@ export default function TaskDistribution() {
 
                   {/* Bulk assignment indicator */}
                   {isFirstSelectedTask && isMultipleSelected && (
-                    <div className="absolute -top-3 -right-3 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white text-xs px-3 py-1.5 rounded-full shadow-lg animate-pulse font-bold">
+                    <div className="absolute -top-3 -right-3 bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 text-white text-xs px-3 py-1.5 rounded-full shadow-lg animate-pulse font-bold">
                       Bulk Control
                     </div>
                   )}
 
                   {/* Disabled indicator */}
                   {shouldDisableDropdown && (
-                    <div className="absolute -top-3 -right-3 bg-gradient-to-r from-gray-500 to-slate-500 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-bold">
+                    <div className="absolute -top-3 -right-3 bg-linear-to-r from-gray-500 to-slate-500 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-bold">
                       Linked
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-gray-100 via-slate-50 to-zinc-100 rounded-xl border border-gray-300 shadow-sm">
+              <div className="flex items-center space-x-3 p-4 bg-linear-to-r from-gray-100 via-slate-50 to-zinc-100 rounded-xl border border-gray-300 shadow-sm">
                 <User className="h-5 w-5 text-gray-500" />
                 <span className="text-sm text-gray-700 font-medium">
                   Select task to assign an agent
@@ -705,7 +705,7 @@ export default function TaskDistribution() {
               </div>
             )}
             {task.templateSiteAsset?.isRequired && (
-              <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-orange-100 via-red-50 to-rose-100 rounded-xl border border-orange-300 shadow-sm">
+              <div className="flex items-center space-x-2 p-3 bg-linear-to-r from-orange-100 via-red-50 to-rose-100 rounded-xl border border-orange-300 shadow-sm">
                 <AlertCircle className="h-4 w-4 text-orange-700" />
                 <span className="text-sm text-orange-900 font-bold">
                   ⚡ Required Task
@@ -791,8 +791,8 @@ export default function TaskDistribution() {
       <Card
         className={`transition-all duration-300 ${
           isSelected
-            ? "ring-2 ring-blue-400 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-blue-300 shadow-lg"
-            : "hover:shadow-md bg-gradient-to-r from-white via-gray-50 to-slate-50 border-gray-200 hover:border-gray-300"
+            ? "ring-2 ring-blue-400 bg-linear-to-r from-blue-50 via-indigo-50 to-purple-50 border-blue-300 shadow-lg"
+            : "hover:shadow-md bg-linear-to-r from-white via-gray-50 to-slate-50 border-gray-200 hover:border-gray-300"
         }`}
       >
         <CardContent className="p-5">
@@ -802,7 +802,7 @@ export default function TaskDistribution() {
               onCheckedChange={(checked) =>
                 handleTaskSelection(task.id, checked as boolean)
               }
-              className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
+              className="w-5 h-5 rounded-md border-2 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-indigo-500"
             />
 
             <div
@@ -876,14 +876,14 @@ export default function TaskDistribution() {
               )}
 
               <div className="flex items-center space-x-3 mt-2 text-xs">
-                <div className="flex items-center space-x-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 px-2.5 py-1 rounded-lg shadow-sm">
+                <div className="flex items-center space-x-1.5 bg-linear-to-r from-blue-100 to-cyan-100 px-2.5 py-1 rounded-lg shadow-sm">
                   <CalendarDays className="h-3.5 w-3.5 text-blue-700" />
                   <span className="text-blue-800 font-bold">
                     {new Date(task.dueDate).toLocaleDateString()}
                   </span>
                 </div>
                 {task.idealDurationMinutes && (
-                  <div className="flex items-center space-x-1.5 bg-gradient-to-r from-violet-100 to-purple-100 px-2.5 py-1 rounded-lg shadow-sm">
+                  <div className="flex items-center space-x-1.5 bg-linear-to-r from-violet-100 to-purple-100 px-2.5 py-1 rounded-lg shadow-sm">
                     <Clock className="h-3.5 w-3.5 text-violet-700" />
                     <span className="text-violet-800 font-bold">
                       {task.idealDurationMinutes}min
@@ -891,7 +891,7 @@ export default function TaskDistribution() {
                   </div>
                 )}
                 {task.templateSiteAsset?.isRequired && (
-                  <div className="flex items-center space-x-1.5 bg-gradient-to-r from-orange-100 to-red-100 px-2.5 py-1 rounded-lg shadow-sm">
+                  <div className="flex items-center space-x-1.5 bg-linear-to-r from-orange-100 to-red-100 px-2.5 py-1 rounded-lg shadow-sm">
                     <AlertCircle className="h-3.5 w-3.5 text-orange-700" />
                     <span className="text-orange-800 font-bold">Required</span>
                   </div>
@@ -901,12 +901,12 @@ export default function TaskDistribution() {
 
             <div className="w-72">
               {task.assignedTo ? (
-                <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-emerald-100 via-green-50 to-teal-100 rounded-xl border border-emerald-300 shadow-sm">
+                <div className="flex items-center space-x-2 p-3 bg-linear-to-r from-emerald-100 via-green-50 to-teal-100 rounded-xl border border-emerald-300 shadow-sm">
                   <Avatar className="h-7 w-7 ring-2 ring-emerald-400 shadow-sm">
                     <AvatarImage
                       src={task.assignedTo.image || "/placeholder.svg"}
                     />
-                    <AvatarFallback className="bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs">
+                    <AvatarFallback className="bg-linear-to-r from-emerald-600 to-green-600 text-white font-bold text-xs">
                       {getAgentDisplayName(task.assignedTo).charAt(0) || "A"}
                     </AvatarFallback>
                   </Avatar>
@@ -918,7 +918,7 @@ export default function TaskDistribution() {
                   <CheckCircle2 className="h-5 w-5 text-emerald-700" />
                 </div>
               ) : assignment ? (
-                <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-blue-100 via-indigo-50 to-purple-100 rounded-xl border border-blue-300 shadow-sm">
+                <div className="flex items-center space-x-2 p-3 bg-linear-to-r from-blue-100 via-indigo-50 to-purple-100 rounded-xl border border-blue-300 shadow-sm">
                   <Avatar className="h-7 w-7 ring-2 ring-blue-400 shadow-sm">
                     <AvatarImage
                       src={
@@ -926,7 +926,7 @@ export default function TaskDistribution() {
                           ?.image || "/placeholder.svg"
                       }
                     />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs">
+                    <AvatarFallback className="bg-linear-to-r from-blue-600 to-indigo-600 text-white font-bold text-xs">
                       {agents
                         .find((a) => a.id === assignment.agentId)
                         ?.name?.charAt(0) || "A"}
@@ -949,8 +949,8 @@ export default function TaskDistribution() {
                     <SelectTrigger
                       className={`h-10 text-xs transition-all duration-200 rounded-xl shadow-sm ${
                         shouldDisableDropdown
-                          ? "border-gray-300 bg-gradient-to-r from-gray-50 to-slate-50 text-gray-500 cursor-not-allowed"
-                          : "border-2 border-blue-300 hover:border-blue-500 bg-gradient-to-r from-white to-blue-50 hover:shadow-md"
+                          ? "border-gray-300 bg-linear-to-r from-gray-50 to-slate-50 text-gray-500 cursor-not-allowed"
+                          : "border-2 border-blue-300 hover:border-blue-500 bg-linear-to-r from-white to-blue-50 hover:shadow-md"
                       }`}
                     >
                       <SelectValue
@@ -968,14 +968,14 @@ export default function TaskDistribution() {
                         <SelectItem
                           key={agent.id}
                           value={agent.id}
-                          className="p-3 hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 rounded-lg m-1"
+                          className="p-3 hover:bg-linear-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 rounded-lg m-1"
                         >
                           <div className="flex items-center space-x-2">
                             <Avatar className="h-6 w-6 ring-2 ring-blue-300 shadow-sm">
                               <AvatarImage
                                 src={agent.image || "/placeholder.svg"}
                               />
-                              <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold">
+                              <AvatarFallback className="bg-linear-to-r from-blue-600 to-purple-600 text-white text-xs font-bold">
                                 {agent.name?.charAt(0) || "A"}
                               </AvatarFallback>
                             </Avatar>
@@ -992,20 +992,20 @@ export default function TaskDistribution() {
 
                   {/* Bulk assignment indicator */}
                   {isFirstSelectedTask && isMultipleSelected && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white text-xs px-2.5 py-1 rounded-full shadow-lg font-bold">
+                    <div className="absolute -top-2 -right-2 bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 text-white text-xs px-2.5 py-1 rounded-full shadow-lg font-bold">
                       Bulk ({selectedTasks.size})
                     </div>
                   )}
 
                   {/* Disabled indicator */}
                   {shouldDisableDropdown && (
-                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-gray-500 to-slate-500 text-white text-xs px-2.5 py-1 rounded-full shadow-lg font-bold">
+                    <div className="absolute -top-2 -right-2 bg-linear-to-r from-gray-500 to-slate-500 text-white text-xs px-2.5 py-1 rounded-full shadow-lg font-bold">
                       Linked
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center space-x-2 p-3 bg-gradient-to-r from-gray-100 to-slate-100 rounded-xl border border-gray-300 shadow-sm">
+                <div className="flex items-center space-x-2 p-3 bg-linear-to-r from-gray-100 to-slate-100 rounded-xl border border-gray-300 shadow-sm">
                   <User className="h-4 w-4 text-gray-500" />
                   <span className="text-xs text-gray-700 font-medium">
                     Select to assign
@@ -1121,12 +1121,12 @@ export default function TaskDistribution() {
     return (
       <div className="space-y-6">
         <div
-          className={`rounded-2xl bg-gradient-to-r ${config.bgGradient} p-8 border-2 border-white shadow-xl`}
+          className={`rounded-2xl bg-linear-to-r ${config.bgGradient} p-8 border-2 border-white shadow-xl`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-5">
               <div
-                className={`p-4 rounded-2xl bg-gradient-to-r ${config.iconBg} text-white shadow-lg`}
+                className={`p-4 rounded-2xl bg-linear-to-r ${config.iconBg} text-white shadow-lg`}
               >
                 {React.createElement(
                   siteTypeIcons[siteType as keyof typeof siteTypeIcons],
@@ -1181,7 +1181,7 @@ export default function TaskDistribution() {
                   )
                 }
                 disabled={tasks.length === 0}
-                className={`bg-gradient-to-r ${config.gradient} text-white hover:text-gray-100 border-0 hover:opacity-90 font-bold px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}
+                className={`bg-linear-to-r ${config.gradient} text-white hover:text-gray-100 border-0 hover:opacity-90 font-bold px-6 py-2.5 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}
               >
                 ✅ Select All ({tasks.length})
               </Button>
@@ -1230,11 +1230,11 @@ export default function TaskDistribution() {
         </div>
 
         {tasks.length === 0 ? (
-          <div className="bg-gradient-to-br from-white via-gray-50 to-slate-100 rounded-2xl border-2 border-gray-200 shadow-xl">
+          <div className="bg-linear-to-br from-white via-gray-50 to-slate-100 rounded-2xl border-2 border-gray-200 shadow-xl">
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div
-                  className={`w-24 h-24 rounded-full bg-gradient-to-r ${config.iconBg} flex items-center justify-center mx-auto mb-8 shadow-2xl`}
+                  className={`w-24 h-24 rounded-full bg-linear-to-r ${config.iconBg} flex items-center justify-center mx-auto mb-8 shadow-2xl`}
                 >
                   {React.createElement(
                     siteTypeIcons[siteType as keyof typeof siteTypeIcons],
@@ -1284,15 +1284,15 @@ export default function TaskDistribution() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-zinc-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-100 via-gray-100 to-zinc-100">
       <div className="container mx-auto p-8">
         {/* Main Parent Card */}
-        <Card className="shadow-2xl border-0 bg-gradient-to-br from-white via-gray-50 to-slate-50 overflow-hidden">
+        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-gray-50 to-slate-50 overflow-hidden">
           {/* Header Section */}
-          <CardHeader className="bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-10">
+          <CardHeader className="bg-linear-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-10">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-4xl font-bold mb-3 bg-gradient-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-transparent">
+                <CardTitle className="text-4xl font-bold mb-3 bg-linear-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-transparent">
                   Task Distribution Center
                 </CardTitle>
                 <CardDescription className="text-slate-200 text-xl font-medium">
@@ -1301,7 +1301,7 @@ export default function TaskDistribution() {
                 </CardDescription>
               </div>
               <div className="hidden md:block">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-2xl">
+                <div className="w-24 h-24 rounded-full bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-2xl">
                   <Users className="h-12 w-12 text-white" />
                 </div>
               </div>
@@ -1417,7 +1417,7 @@ export default function TaskDistribution() {
             {selectedClientId && (
               <div className="space-y-8">
                 {/* Dashboard Header */}
-                <div className="bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-8 rounded-2xl shadow-2xl">
+                <div className="bg-linear-to-r from-cyan-600 via-cyan-700 to-cyan-800 text-white p-8 rounded-2xl shadow-2xl">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-2xl font-bold mb-3">
@@ -1430,7 +1430,7 @@ export default function TaskDistribution() {
                     </div>
                     <div className="flex items-center space-x-8">
                       <div className="text-right z-10">
-                        <div className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+                        <div className="bg-linear-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
                           <div className="text-sm text-slate-100 font-medium">
                             Tasks Selected
                           </div>
@@ -1440,7 +1440,7 @@ export default function TaskDistribution() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+                        <div className="bg-linear-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
                           <div className="text-sm text-slate-100 font-medium">
                             Ready to Assign
                           </div>
@@ -1453,7 +1453,7 @@ export default function TaskDistribution() {
                         onClick={submitTaskDistribution}
                         disabled={taskAssignments.length === 0 || submitting}
                         size="lg"
-                        className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        className="bg-linear-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-bold px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       >
                         {submitting ? (
                           <div className="flex items-center space-x-3">
@@ -1481,7 +1481,7 @@ export default function TaskDistribution() {
                     <div className="text-center">
                       <div className="relative">
                         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6 shadow-lg"></div>
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-0 rounded-full bg-linear-to-r from-blue-400 to-purple-500 opacity-20 animate-pulse"></div>
                       </div>
                       <p className="text-2xl font-bold text-gray-800 mb-3">
                         Loading Tasks
@@ -1494,10 +1494,10 @@ export default function TaskDistribution() {
                   </div>
                 ) : (
                   <Tabs defaultValue="social_site" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-gray-200 to-slate-200 p-2 rounded-2xl h-16 shadow-lg">
+                    <TabsList className="grid w-full grid-cols-3 bg-linear-to-r from-gray-200 to-slate-200 p-2 rounded-2xl h-16 shadow-lg">
                       <TabsTrigger
                         value="social_site"
-                        className="flex items-center space-x-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
+                        className="flex items-center space-x-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-violet-600 data-[state=active]:via-purple-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
                       >
                         <Users className="h-5 w-5" />
                         <span>Social Sites</span>
@@ -1507,7 +1507,7 @@ export default function TaskDistribution() {
                       </TabsTrigger>
                       <TabsTrigger
                         value="web2_site"
-                        className="flex items-center space-x-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:via-cyan-600 data-[state=active]:to-sky-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
+                        className="flex items-center space-x-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-600 data-[state=active]:via-cyan-600 data-[state=active]:to-sky-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
                       >
                         <Globe className="h-5 w-5" />
                         <span>Web2 Sites</span>
@@ -1517,7 +1517,7 @@ export default function TaskDistribution() {
                       </TabsTrigger>
                       <TabsTrigger
                         value="other_asset"
-                        className="flex items-center space-x-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-600 data-[state=active]:via-gray-600 data-[state=active]:to-zinc-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
+                        className="flex items-center space-x-3 data-[state=active]:bg-linear-to-r data-[state=active]:from-slate-600 data-[state=active]:via-gray-600 data-[state=active]:to-zinc-600 data-[state=active]:text-white rounded-xl font-bold transition-all duration-300 transform data-[state=active]:scale-105 shadow-md"
                       >
                         <Building2 className="h-5 w-5" />
                         <span>Other Assets</span>

@@ -52,7 +52,7 @@ export function AgentStatsCards({
       {stats.map((stat, index) => (
         <Card
           key={index}
-          className={`relative border ${stat.borderColor} bg-gradient-to-b ${stat.color} shadow-sm hover:shadow-md transition-all duration-300`}
+          className={`relative border ${stat.borderColor} bg-linear-to-b ${stat.color} shadow-sm hover:shadow-md transition-all duration-300`}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">

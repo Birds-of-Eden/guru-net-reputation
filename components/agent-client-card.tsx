@@ -71,10 +71,10 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
   return (
     <Card className="group overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 dark:border-slate-800/60 dark:bg-slate-900 dark:hover:shadow-slate-900/40">
       {/* Header */}
-      <CardHeader className="relative p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50">
+      <CardHeader className="relative p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-linear-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/50">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-3 border-white shadow-lg ring-2 ring-slate-100 dark:border-slate-700 dark:ring-slate-800 flex-shrink-0">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border-3 border-white shadow-lg ring-2 ring-slate-100 dark:border-slate-700 dark:ring-slate-800 shrink-0">
               <AvatarImage
                 src={client.avatar || undefined}
                 alt={client.name}
@@ -108,7 +108,7 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
               variant="outline"
               className="bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border-slate-200 dark:border-slate-700 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm shadow-sm flex items-center gap-1"
             >
-              <Package className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 text-indigo-600 dark:text-indigo-400" />
+              <Package className="h-3 w-3 sm:h-4 sm:w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
               <span>{client.package?.name || "No Package"}</span>
             </Badge>
           </div>
@@ -128,12 +128,12 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
               value={client.progress}
               className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent rounded-full pointer-events-none" />
           </div>
         </div>
 
         {/* Task Summary */}
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 p-4 sm:p-5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+        <div className="bg-linear-to-br from-slate-50 to-slate-100/50 dark:from-slate-800/50 dark:to-slate-800/30 p-4 sm:p-5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
               <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400" />
@@ -203,7 +203,7 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
       <CardFooter className="border-t border-slate-100 dark:border-slate-800 p-4 sm:p-6 bg-slate-50/50 dark:bg-slate-800/30">
         <div className="flex flex-col sm:flex-row gap-3 w-full">
           <Button
-            className="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300 font-semibold text-sm sm:text-base group-hover:scale-[1.02]"
+            className="flex-1 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 transition-all duration-300 font-semibold text-sm sm:text-base group-hover:scale-[1.02]"
             onClick={() => onViewTasks(client.id, client.name)}
             disabled={client.taskCounts.total === 0}
           >

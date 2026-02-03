@@ -425,7 +425,7 @@ export const ArticleTopics = ({
 
   return (
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
-      <CardHeader className="bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
+      <CardHeader className="bg-linear-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
         <CardTitle className="flex items-center space-x-2">
           <BookOpen className="h-5 w-5 text-orange-600" />
           <span>
@@ -446,7 +446,7 @@ export const ArticleTopics = ({
             onClick={() =>
               hasNewStructure ? setIsAddingCategory(true) : setIsAdding(true)
             }
-            className="ml-auto inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
+            className="ml-auto inline-flex items-center gap-2 rounded-md bg-linear-to-r from-orange-500 to-red-500 px-3 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
             title={hasNewStructure ? "Add Topic From CQ" : "Add Topic"}
           >
             <Plus size={16} />
@@ -462,7 +462,7 @@ export const ArticleTopics = ({
               {categories.map((category, catIdx) => (
                 <div
                   key={catIdx}
-                  className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5"
+                  className="bg-linear-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5"
                 >
                   <div className="flex items-start gap-3 mb-4">
                     <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -593,7 +593,7 @@ export const ArticleTopics = ({
               <div className="flex justify-end">
                 <Button
                   onClick={saveCategories}
-                  className="mt-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                  className="mt-2 bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
                 >
                   <Save className="h-4 w-4 mr-2" /> Save Changes
                 </Button>
@@ -605,7 +605,7 @@ export const ArticleTopics = ({
               <p className="text-base">No article categories found.</p>
               <button
                 onClick={() => setIsAddingCategory(true)}
-                className="mt-4 flex items-center gap-2 rounded-md bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
+                className="mt-4 flex items-center gap-2 rounded-md bg-linear-to-r from-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white hover:from-orange-600 hover:to-red-600 transition-colors"
               >
                 <Plus size={16} />
                 Add First Category
@@ -932,7 +932,7 @@ export const ArticleTopics = ({
                 <button
                   type="button"
                   onClick={handleAddCategory}
-                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
+                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
                 >
                   Add Category
                 </button>
@@ -1153,7 +1153,7 @@ export const ArticleTopics = ({
                         toast.error("Failed to add category");
                       });
                   }}
-                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
+                  className="px-4 py-2 text-sm font-medium rounded-md text-white bg-linear-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-colors"
                 >
                   Add Category
                 </button>

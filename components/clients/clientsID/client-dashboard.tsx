@@ -343,7 +343,7 @@ export function ClientDashboard({
                   src={client.avatar || undefined}
                   alt={client.name}
                 />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
+                <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
                   {getInitials(client.name)}
                 </AvatarFallback>
               </Avatar>
@@ -505,7 +505,7 @@ export function ClientDashboard({
                       ? "Clients cannot edit the profile"
                       : "Edit client profile"
                   }
-                  className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 text-white hover:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 text-white hover:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <PencilLine className="h-4 w-4" />
                   Edit Profile

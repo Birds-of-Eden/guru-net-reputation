@@ -127,7 +127,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
       <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-4 px-6 py-6 flex-shrink-0">
+        <div className="bg-linear-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-4 px-6 py-6 shrink-0">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-white flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
@@ -157,7 +157,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         {/* Body */}
         <div className="px-6 pb-6 space-y-5 flex-1 overflow-y-auto">
           {/* Timer Display */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="bg-blue-500 p-1.5 rounded-lg">
@@ -201,7 +201,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
           {/* Credentials */}
           {!isSimpleTask(selected) && (
-            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-4 space-y-4 shadow-inner">
+            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-4 space-y-4 shadow-inner">
               <div className="flex items-center gap-2 mb-1">
                 <div className="bg-amber-500 p-1.5 rounded-lg">
                   <KeyRound className="h-4 w-4 text-white" />
@@ -275,17 +275,17 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 flex-shrink-0">
+        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 shrink-0">
           <Button
             variant="outline"
             onClick={resetModal}
-            className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-6"
+            className="h-11 rounded-xl bg-linear-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-6"
           >
             <X className="h-4 w-4 mr-2" />
             Cancel
           </Button>
           <Button
-            className="h-11 rounded-xl bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-6"
+            className="h-11 rounded-xl bg-linear-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-6"
             onClick={() => {
               const elapsedMinutes = timerInfo
                 ? Math.ceil(timerInfo.elapsedSeconds / 60)

@@ -349,7 +349,7 @@ export default function TemplateListPage() {
     const baseClass =
       "px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105";
     if (statusFilter === filter) {
-      return `${baseClass} bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg`;
+      return `${baseClass} bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg`;
     }
     return `${baseClass} bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md`;
   };
@@ -380,7 +380,7 @@ export default function TemplateListPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="p-6 max-w-7xl mx-auto space-y-6">
           <div className="space-y-4">
             <Skeleton className="h-10 w-80" />
@@ -420,7 +420,7 @@ export default function TemplateListPage() {
   // Show error state if package not found
   if (packageName === "Package Not Found") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="p-6 max-w-7xl mx-auto">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -442,21 +442,21 @@ export default function TemplateListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="p-6 space-y-8">
         {/* Header Section */}
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
               <Package className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 Templates
               </h1>
               <p className="text-gray-600 mt-2 text-lg">
                 Managing templates for{" "}
-                <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="font-semibold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {packageName}
                 </span>
                 <span className="text-sm text-gray-400 ml-2">
@@ -573,7 +573,7 @@ export default function TemplateListPage() {
                 {canCreateTemplate && (
                   <Button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-6"
+                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl px-6"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Template
@@ -588,7 +588,7 @@ export default function TemplateListPage() {
         {filteredTemplates.length === 0 ? (
           <Card className="border-dashed border-2 border-gray-300 bg-white/50 backdrop-blur-sm">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6">
+              <div className="p-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full mb-6">
                 {hasActiveFilters ? (
                   <Search className="w-12 h-12 text-gray-400" />
                 ) : (
@@ -618,7 +618,7 @@ export default function TemplateListPage() {
                   <Button
                     onClick={() => setIsCreateModalOpen(true)}
                     size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8"
+                    className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-8"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Create Template
@@ -641,21 +641,21 @@ export default function TemplateListPage() {
                   className={cn(
                     "group overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 border-0 ring-2 hover:scale-101",
                     isCustomized 
-                      ? "bg-gradient-to-br from-purple-50 to-pink-50 ring-purple-300 hover:ring-purple-400"
+                      ? "bg-linear-to-br from-purple-50 to-pink-50 ring-purple-300 hover:ring-purple-400"
                       : "bg-white/90 ring-gray-200 hover:ring-blue-300"
                   )}
                 >
                   <CardHeader className={cn(
                     "pb-4 relative overflow-hidden",
                     isCustomized
-                      ? "bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100"
-                      : "bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50"
+                      ? "bg-linear-to-r from-purple-100 via-pink-100 to-purple-100"
+                      : "bg-linear-to-r from-slate-50 via-blue-50 to-indigo-50"
                   )}>
                     <div className={cn(
                       "absolute inset-0",
                       isCustomized
-                        ? "bg-gradient-to-r from-purple-600/10 to-pink-600/10"
-                        : "bg-gradient-to-r from-blue-600/5 to-purple-600/5"
+                        ? "bg-linear-to-r from-purple-600/10 to-pink-600/10"
+                        : "bg-linear-to-r from-blue-600/5 to-purple-600/5"
                     )}></div>
                     <div className="relative">
                       <div className="flex items-start justify-between mb-3">
@@ -663,8 +663,8 @@ export default function TemplateListPage() {
                           <div className={cn(
                             "p-2 rounded-lg shadow-sm",
                             isCustomized
-                              ? "bg-gradient-to-br from-purple-500 to-pink-600"
-                              : "bg-gradient-to-br from-blue-500 to-purple-600"
+                              ? "bg-linear-to-br from-purple-500 to-pink-600"
+                              : "bg-linear-to-br from-blue-500 to-purple-600"
                           )}>
                             {isCustomized ? (
                               <Sparkles className="w-5 h-5 text-white" />
@@ -681,7 +681,7 @@ export default function TemplateListPage() {
                                 {template.name}
                               </h3>
                               {isCustomized && (
-                                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-0.5 flex items-center gap-1">
+                                <Badge className="bg-linear-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-0.5 flex items-center gap-1">
                                   <Sparkles className="w-3 h-3" />
                                   Customized
                                 </Badge>
@@ -708,7 +708,7 @@ export default function TemplateListPage() {
                       <div className="space-y-2">
                         {isCustomized && (
                           <div className="flex items-start gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                            <Sparkles className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <Sparkles className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
                             <div>
                               <p className="text-xs font-semibold text-purple-900 mb-1">Customized Template</p>
                               <p className="text-xs text-purple-700 leading-relaxed">
@@ -719,7 +719,7 @@ export default function TemplateListPage() {
                         )}
                         {!isCustomized && (
                           <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <Star className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <Star className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                             <p className="text-sm text-blue-900 leading-relaxed line-clamp-2">
                               {template.description}
                             </p>

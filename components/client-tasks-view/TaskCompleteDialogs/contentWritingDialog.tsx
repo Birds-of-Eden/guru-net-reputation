@@ -217,7 +217,7 @@ export default function ContentWritingModal({
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
       <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
         {/* Modern Header with Gradient */}
-        <div className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 -m-6 mb-6 px-8 py-6">
+        <div className="bg-linear-to-r from-purple-600 via-violet-600 to-blue-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
@@ -253,12 +253,12 @@ export default function ContentWritingModal({
             className="flex-1 flex flex-col"
           >
             <div className="flex items-center justify-between mb-4">
-              <TabsList className="flex-wrap h-auto p-2 bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl shadow-inner">
+              <TabsList className="flex-wrap h-auto p-2 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl shadow-inner">
                 {contentSections.map((section, index) => (
                   <div key={section.id} className="flex items-center gap-1 bg-white rounded-xl shadow-sm px-2 py-1">
                     <TabsTrigger
                       value={section.id}
-                      className="relative px-3 py-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-xl transition-all"
+                      className="relative px-3 py-2 text-sm font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-xl transition-all"
                     >
                       <Input
                         value={section.title}
@@ -289,7 +289,7 @@ export default function ContentWritingModal({
                 onClick={addContentSection}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 via-violet-500 to-blue-500 hover:from-purple-600 hover:via-violet-600 hover:to-blue-600 text-white hover:text-white rounded-2xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all border-0"
+                className="flex items-center gap-2 bg-linear-to-r from-purple-500 via-violet-500 to-blue-500 hover:from-purple-600 hover:via-violet-600 hover:to-blue-600 text-white hover:text-white rounded-2xl h-12 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all border-0"
               >
                 <Plus className="h-4 w-4" />
                 Add Section
@@ -322,14 +322,14 @@ export default function ContentWritingModal({
           <Button
             variant="outline"
             onClick={resetModal}
-            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
+            className="rounded-2xl h-14 bg-linear-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
           >
             <X className="h-5 w-5 mr-2" />
             Cancel
           </Button>
           <Button
             onClick={submitContentWriting}
-            className="ml-2 bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:from-purple-700 hover:via-violet-700 hover:to-blue-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
+            className="ml-2 bg-linear-to-r from-purple-600 via-violet-600 to-blue-600 hover:from-purple-700 hover:via-violet-700 hover:to-blue-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
           >
             <Save className="h-5 w-5 mr-2" />
             {isSubmitting ? "Submitting..." : "Submit Content"}

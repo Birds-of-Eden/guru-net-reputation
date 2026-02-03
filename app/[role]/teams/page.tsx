@@ -135,14 +135,14 @@ function TeamCard({
   };
 
   return (
-    <Card className="group relative overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 hover:scale-[1.02]">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <Card className="group relative overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-linear-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 hover:scale-[1.02]">
+      <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <CardHeader className="relative pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <div
-              className={`p-3 rounded-xl bg-gradient-to-br ${getTeamColor(
+              className={`p-3 rounded-xl bg-linear-to-r ${getTeamColor(
                 team.name
               )} shadow-lg`}
             >
@@ -323,7 +323,7 @@ function TeamListView({
     <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700">
+          <TableRow className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700">
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300">
               Team
             </TableHead>
@@ -346,7 +346,7 @@ function TeamListView({
             <TableRow>
               <TableCell colSpan={5} className="text-center py-16">
                 <div className="flex flex-col items-center gap-6">
-                  <div className="p-6 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full">
+                  <div className="p-6 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full">
                     <TeamIcon className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="space-y-3">
@@ -369,7 +369,7 @@ function TeamListView({
               >
                 <TableCell>
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                    <div className="p-2 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg">
                       <TeamIcon className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -527,7 +527,7 @@ function TeamDetailsDialog({
       <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+            <div className="p-3 bg-linear-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
               <TeamIcon className="h-8 w-8 text-white" />
             </div>
             <div className="flex-1">
@@ -962,7 +962,7 @@ export default function TeamsPage() {
 
   if (loading || sessionLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-linear-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="p-4">
           <div className="flex flex-col space-y-8">
             {/* Header Skeleton */}
@@ -1083,13 +1083,13 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="p-4">
         <div className="flex flex-col space-y-8">
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent py-6">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent py-6">
                 Team Management
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -1097,7 +1097,7 @@ export default function TeamsPage() {
               </p>
             </div>
             <Link href={`${teamsBasePath}/create`}>
-              <Button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 text-base">
+              <Button className="flex items-center gap-2 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3 text-base">
                 <Plus className="h-5 w-5" />
                 Create New Team
               </Button>
@@ -1106,8 +1106,8 @@ export default function TeamsPage() {
 
           {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-blue-500 to-blue-600 text-white">
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-blue-100">
                   Total Teams
@@ -1126,8 +1126,8 @@ export default function TeamsPage() {
               </CardContent>
             </Card>
 
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-emerald-500 to-emerald-600 text-white">
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-emerald-100">
                   Total Members
@@ -1146,8 +1146,8 @@ export default function TeamsPage() {
               </CardContent>
             </Card>
 
-            <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-purple-500 to-purple-600 text-white">
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-purple-100">
                   Avg. Completion Time
@@ -1171,10 +1171,10 @@ export default function TeamsPage() {
 
           {/* Enhanced Management Card */}
           <Card className="border-0 shadow-xl bg-white dark:bg-gray-900 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+            <div className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
               <CardHeader className="pb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+                  <div className="p-2 bg-linear-to-r from-blue-500 to-purple-600 rounded-lg">
                     <TeamIcon className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -1209,7 +1209,7 @@ export default function TeamsPage() {
                     onClick={() => setViewMode("list")}
                     className={`h-12 w-12 rounded-xl ${
                       viewMode === "list"
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                        ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                     }`}
                   >
@@ -1221,7 +1221,7 @@ export default function TeamsPage() {
                     onClick={() => setViewMode("card")}
                     className={`h-12 w-12 rounded-xl ${
                       viewMode === "card"
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                        ? "bg-linear-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                     }`}
                   >
@@ -1243,7 +1243,7 @@ export default function TeamsPage() {
                   {filteredTeams.length === 0 ? (
                     <div className="col-span-full text-center py-16">
                       <div className="flex flex-col items-center gap-6">
-                        <div className="p-6 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full">
+                        <div className="p-6 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full">
                           <TeamIcon className="h-12 w-12 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div className="space-y-3">

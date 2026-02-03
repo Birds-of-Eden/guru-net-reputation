@@ -245,7 +245,7 @@ export function CustomizeTemplateDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-3 pb-4 border-b border-slate-200 dark:border-slate-700">
           <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+            <div className="p-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-lg">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -268,7 +268,7 @@ export function CustomizeTemplateDialog({
         </DialogHeader>
 
         {/* Custom Template Name Field */}
-        <div className="space-y-2 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl">
+        <div className="space-y-2 p-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl">
           <Label htmlFor="customTemplateName" className="text-sm font-semibold text-purple-900 dark:text-purple-300 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Custom Template Name
@@ -293,11 +293,11 @@ export function CustomizeTemplateDialog({
 
         <Tabs defaultValue="add" className="mt-6">
           <TabsList className="grid w-full grid-cols-2 h-12 bg-slate-100 dark:bg-slate-800 p-1">
-            <TabsTrigger value="add" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">
+            <TabsTrigger value="add" className="gap-2 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">
               <Plus className="h-4 w-4" />
               Add New Assets
             </TabsTrigger>
-            <TabsTrigger value="replace" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+            <TabsTrigger value="replace" className="gap-2 data-[state=active]:bg-linear-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Sparkles className="h-4 w-4" />
               Replace Assets
             </TabsTrigger>
@@ -319,7 +319,7 @@ export function CustomizeTemplateDialog({
                 {newAssets.map((asset, index) => (
                   <div
                     key={index}
-                    className="p-5 border-2 border-blue-200 dark:border-blue-700 rounded-xl space-y-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:bg-gradient-to-br dark:from-blue-900/20 dark:to-indigo-900/20 shadow-md hover:shadow-lg transition-shadow"
+                    className="p-5 border-2 border-blue-200 dark:border-blue-700 rounded-xl space-y-4 bg-linear-to-br from-blue-50 to-indigo-50 dark:bg-linear-to-br dark:from-blue-900/20 dark:to-indigo-900/20 shadow-md hover:shadow-lg transition-shadow"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -557,7 +557,7 @@ export function CustomizeTemplateDialog({
                   return (
                   <div
                     key={index}
-                    className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg space-y-3 bg-gradient-to-br from-amber-50 to-orange-50 dark:bg-gradient-to-br dark:from-amber-900/20 dark:to-orange-900/20 shadow-sm"
+                    className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg space-y-3 bg-linear-to-br from-amber-50 to-orange-50 dark:bg-linear-to-br dark:from-amber-900/20 dark:to-orange-900/20 shadow-sm"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -699,7 +699,7 @@ export function CustomizeTemplateDialog({
           <Button
             onClick={handleSubmit}
             disabled={loading || (newAssets.length === 0 && replacements.length === 0)}
-            className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+            className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
           >
             {loading ? (
               <>

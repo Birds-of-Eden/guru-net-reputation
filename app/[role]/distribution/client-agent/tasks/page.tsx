@@ -424,7 +424,7 @@ export default function CreatedTasksPage() {
   const goBack = () => router.push(distributionBasePath);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-white to-cyan-50">
       <div>
         {/* Lighter Header */}
         <Card className="border-0 shadow-2xl overflow-hidden bg-white/90 backdrop-blur">
@@ -724,7 +724,7 @@ export default function CreatedTasksPage() {
                             className={cn(
                               "h-9 rounded-full",
                               active
-                                ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                                ? "bg-linear-to-r from-indigo-500 to-purple-500 text-white"
                                 : ""
                             )}
                           >
@@ -759,7 +759,7 @@ export default function CreatedTasksPage() {
                             {/* Lighter Section Header */}
                             <div
                               className={cn(
-                                "px-6 py-5 text-slate-800 bg-gradient-to-r",
+                                "px-6 py-5 text-slate-800 bg-linear-to-r",
                                 cycleGrad(Math.max(1, idx + 1))
                               )}
                             >

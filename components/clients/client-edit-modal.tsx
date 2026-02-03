@@ -516,8 +516,8 @@ export default function ClientEditModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl border-0 shadow-xl">
-        <DialogHeader className="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 py-4 px-6 rounded-t-2xl border-b border-slate-200/70">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-slate-50 to-blue-50 rounded-2xl border-0 shadow-xl">
+        <DialogHeader className="bg-linear-to-r from-blue-50/70 to-indigo-50/70 py-4 px-6 rounded-t-2xl border-b border-slate-200/70">
           <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
             <User className="h-5 w-5 text-blue-600" />
             Edit Client Profile
@@ -530,7 +530,7 @@ export default function ClientEditModal({
           className="space-y-6 p-6"
         >
           {/* Contact & Credentials - Available to all users */}
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                 <Mail className="h-5 w-5 text-blue-600" />
@@ -598,7 +598,7 @@ export default function ClientEditModal({
 
           {/* AGENT-ONLY: Media (Image Drive Link only) */}
           {isAgent && (
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-purple-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                   <Image className="h-5 w-5 text-purple-600" aria-label="media" />
@@ -626,7 +626,7 @@ export default function ClientEditModal({
           {!isAgent && (
             <>
               {/* FULL FORM for non-agents — Basic */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-blue-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <User className="h-5 w-5 text-blue-600" />
@@ -675,7 +675,7 @@ export default function ClientEditModal({
                         <Button
                           type="button"
                           variant="outline"
-                          className="border-slate-300 bg-gradient-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                          className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
                           onClick={addKeyword}
                         >
                           + Add Keyword
@@ -776,7 +776,7 @@ export default function ClientEditModal({
               </Card>
 
               {/* Professional */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-emerald-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-emerald-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <Building className="h-5 w-5 text-emerald-600" />
@@ -827,7 +827,7 @@ export default function ClientEditModal({
               </Card>
 
               {/* Account Manager */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-amber-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-amber-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <User className="h-5 w-5 text-amber-600" />
@@ -881,7 +881,7 @@ export default function ClientEditModal({
               </Card>
 
               {/* Websites */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-violet-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-violet-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <Globe className="h-5 w-5 text-violet-600" />
@@ -917,7 +917,7 @@ export default function ClientEditModal({
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-slate-300 bg-gradient-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                        className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
                         onClick={() => {
                           const current = (watch("websites") ?? []) as string[];
                           setValue("websites", [...current, ""], {
@@ -946,7 +946,7 @@ export default function ClientEditModal({
               </Card>
 
               {/* Media / Bio */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-rose-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-rose-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-rose-600" />
@@ -999,7 +999,7 @@ export default function ClientEditModal({
 
 
               {/* Other (Category + Title + Data[]) */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-white to-slate-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-slate-600" />
@@ -1103,7 +1103,7 @@ export default function ClientEditModal({
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-slate-300 bg-gradient-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                      className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
                       onClick={addRow}
                     >
                       + Add Row
@@ -1115,7 +1115,7 @@ export default function ClientEditModal({
           )}
         </form>
 
-        <DialogFooter className="px-6 py-4 bg-gradient-to-r from-slate-50/70 to-blue-50/70 border-t border-slate-200/70 rounded-b-2xl">
+        <DialogFooter className="px-6 py-4 bg-linear-to-r from-slate-50/70 to-blue-50/70 border-t border-slate-200/70 rounded-b-2xl">
           <Button
             variant="outline"
             className="border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -1126,7 +1126,7 @@ export default function ClientEditModal({
           <Button
             form="edit-client-form"
             type="submit"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+            className="bg-linear-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
             disabled={isSaving}
           >
             {isSaving ? "Saving..." : "Save Changes"}

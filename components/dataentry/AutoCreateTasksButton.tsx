@@ -124,7 +124,7 @@ export default function CreateTasksButton({
       onClick={createTasks}
       disabled={isCreating || disabled}
       size="sm"
-      className={`bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       title={disabled ? 'Tasks already created' : 'Create posting tasks for this client'}
     >
       {isCreating ? (

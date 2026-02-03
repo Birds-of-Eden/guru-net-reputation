@@ -27,12 +27,12 @@ export function StepIndicator({
     <nav aria-label="Progress" className="mb-16">
       {/* Progress Bar */}
       <div className="max-w-5xl mx-auto mb-8 px-4">
-        <div className="relative h-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
+        <div className="relative h-2 bg-linear-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
           <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-full transition-all duration-700 ease-out shadow-lg"
+            className="absolute top-0 left-0 h-full bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-full transition-all duration-700 ease-out shadow-lg"
             style={{ width: `${progress}%` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
           </div>
         </div>
         <div className="flex justify-between mt-3 px-2">
@@ -65,7 +65,7 @@ export function StepIndicator({
                       className={cn(
                         "absolute inset-0 h-full rounded-full transition-all duration-500 ease-out",
                         isCompleted
-                          ? "bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 w-full"
+                          ? "bg-linear-to-r from-violet-500 via-purple-500 to-fuchsia-500 w-full"
                           : "w-0"
                       )}
                     />
@@ -76,7 +76,7 @@ export function StepIndicator({
                 <div className="relative">
                   {/* Glow Effect for Active Step */}
                   {isActive && (
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 blur-xl opacity-60 animate-pulse" />
+                    <div className="absolute inset-0 rounded-full bg-linear-to-r from-violet-400 to-fuchsia-400 blur-xl opacity-60 animate-pulse" />
                   )}
 
                   {/* Step Circle */}
@@ -84,7 +84,7 @@ export function StepIndicator({
                     className={cn(
                       "relative z-10 flex h-12 w-12 items-center justify-center rounded-full transition-all duration-500 border-2 backdrop-blur-sm",
                       isCompleted
-                        ? "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 border-transparent shadow-xl text-white cursor-pointer hover:shadow-2xl hover:scale-110 hover:rotate-12"
+                        ? "bg-linear-to-br from-violet-500 via-purple-500 to-fuchsia-500 border-transparent shadow-xl text-white cursor-pointer hover:shadow-2xl hover:scale-110 hover:rotate-12"
                         : isActive
                         ? "bg-white border-violet-500 shadow-2xl ring-4 ring-violet-100 scale-110"
                         : "bg-white/80 border-gray-300 text-gray-400 hover:border-violet-300 hover:shadow-lg hover:scale-105"
@@ -136,7 +136,7 @@ export function StepIndicator({
                     {step.title}
                   </span>
                   {isActive && (
-                    <div className="mt-1 h-1 w-8 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full animate-in slide-in-from-bottom duration-300" />
+                    <div className="mt-1 h-1 w-8 bg-linear-to-r from-violet-500 to-fuchsia-500 rounded-full animate-in slide-in-from-bottom duration-300" />
                   )}
                 </div>
               </li>

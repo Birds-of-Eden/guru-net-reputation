@@ -98,14 +98,14 @@ export function RenewPostingTasksButton({
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium px-6 py-2.5 rounded-lg">
+          <Button className="bg-linear-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-medium px-6 py-2.5 rounded-lg">
             <RefreshCw className="w-4 h-4 mr-2" />
             Renew & Generate Posting Tasks
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md border-0 bg-white shadow-2xl rounded-xl backdrop-blur-sm">
           <div className="relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-t-xl" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-600 to-indigo-700 rounded-t-xl" />
             <DialogHeader className="pt-4 pb-2">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 rounded-lg">
@@ -159,7 +159,7 @@ export function RenewPostingTasksButton({
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                   <p className="text-xs text-blue-800">
                     This action will renew the client's package and automatically
                     generate all associated posting tasks.
@@ -180,7 +180,7 @@ export function RenewPostingTasksButton({
               <Button
                 onClick={() => setConfirmOpen(true)}
                 disabled={submitting}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg py-2.5 font-medium"
+                className="w-full sm:w-auto bg-linear-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg py-2.5 font-medium"
               >
                 {submitting ? (
                   <>
@@ -217,7 +217,7 @@ export function RenewPostingTasksButton({
             <AlertDialogAction
               onClick={onConfirm}
               disabled={submitting}
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+              className="bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
             >
               {submitting ? (
                 <>

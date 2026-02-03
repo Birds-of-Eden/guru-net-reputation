@@ -218,7 +218,7 @@ export default function BacklinkingModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-auto">
         {/* Modern Header with Gradient */}
-        <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 -m-6 mb-6 px-8 py-6">
+        <div className="bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
@@ -250,7 +250,7 @@ export default function BacklinkingModal({
 
         <div className="px-6 pb-6 space-y-6">
           {/* Timer Display */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-500 p-2 rounded-xl">
@@ -312,7 +312,7 @@ export default function BacklinkingModal({
           </div>
 
           {/* Backlinking Details - Premium Design */}
-          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
+          <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-amber-500 p-2 rounded-xl">
                 <Package className="h-5 w-5 text-white" />
@@ -400,13 +400,13 @@ export default function BacklinkingModal({
           <Button
             variant="outline"
             onClick={resetModal}
-            className="rounded-2xl h-14 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
+            className="rounded-2xl h-14 bg-linear-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white hover:text-white font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105 border-0 px-8"
           >
             <X className="h-5 w-5 mr-2" />
             Cancel
           </Button>
           <Button
-            className="ml-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
+            className="ml-2 bg-linear-to-r from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 rounded-2xl h-14 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all px-8"
             onClick={submitBacklinking}
             disabled={isSubmitting}
           >

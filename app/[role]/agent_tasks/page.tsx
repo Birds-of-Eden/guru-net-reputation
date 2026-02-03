@@ -16,7 +16,7 @@ const AgentTaskDashboard = dynamic(
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 space-y-6">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 space-y-6">
       {/* Header Skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-10 w-64" />

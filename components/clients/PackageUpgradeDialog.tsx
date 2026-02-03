@@ -386,8 +386,8 @@ export default function PackageUpgradeDialog({
         <div className="flex max-h-[90vh] flex-col">
           {/* Header stays fixed */}
           <DialogHeader className="border-b border-slate-100 px-6 pb-6 pt-6">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl text-white">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="p-2 bg-linear-to-br from-blue-500 to-purple-500 rounded-xl text-white">
                 <TrendingUp className="h-6 w-6" />
               </div>
               Upgrade Client Package
@@ -405,7 +405,7 @@ export default function PackageUpgradeDialog({
                 {/* Current Package Overview */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
                       <Package className="h-5 w-5" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800">
@@ -413,7 +413,7 @@ export default function PackageUpgradeDialog({
                     </h3>
                   </div>
 
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200/60 p-6">
+                  <div className="bg-linear-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200/60 p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
                         <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
@@ -531,7 +531,7 @@ export default function PackageUpgradeDialog({
                 {/* Package Selection */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-500 rounded-lg text-white">
                       <Search className="h-5 w-5" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800">
@@ -616,7 +616,7 @@ export default function PackageUpgradeDialog({
                                 className={cn(
                                   "w-full text-left p-6 transition-all duration-200 hover:bg-blue-50/50 relative group",
                                   isSelected &&
-                                    "bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500"
+                                    "bg-linear-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500"
                                 )}
                               >
                                 <div className="flex items-start justify-between gap-4">
@@ -689,7 +689,7 @@ export default function PackageUpgradeDialog({
                 {/* Template Selection */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-lg text-white">
                       <LayoutTemplate className="h-5 w-5" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800">
@@ -751,7 +751,7 @@ export default function PackageUpgradeDialog({
                               className={cn(
                                 "w-full text-left p-6 transition-all duration-200 hover:bg-purple-50/50 relative group",
                                 isSelected &&
-                                  "bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500"
+                                  "bg-linear-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500"
                               )}
                             >
                               <div className="flex items-start justify-between gap-4">
@@ -821,7 +821,7 @@ export default function PackageUpgradeDialog({
                 {/* Asset Comparison */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
                       <ShieldCheck className="h-5 w-5" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800">
@@ -843,7 +843,7 @@ export default function PackageUpgradeDialog({
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Common Assets */}
-                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-6">
+                      <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-6">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="p-2 bg-emerald-500 rounded-lg text-white">
                             <CheckCircle2 className="h-4 w-4" />
@@ -889,7 +889,7 @@ export default function PackageUpgradeDialog({
                       </div>
 
                       {/* New Assets */}
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6">
+                      <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="p-2 bg-blue-500 rounded-lg text-white">
                             <Star className="h-4 w-4" />
@@ -944,7 +944,7 @@ export default function PackageUpgradeDialog({
                 {/* Migration Options */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg text-white">
+                    <div className="p-2 bg-linear-to-br from-orange-500 to-red-500 rounded-lg text-white">
                       <Zap className="h-5 w-5" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800">
@@ -958,7 +958,7 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           createAssignments
-                            ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50"
+                            ? "border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50"
                             : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30"
                         )}
                       >
@@ -991,7 +991,7 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           migrateCompleted
-                            ? "border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50"
+                            ? "border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50"
                             : "border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/30"
                         )}
                       >
@@ -1023,7 +1023,7 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           createPostingTasks
-                            ? "border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50"
+                            ? "border-purple-200 bg-linear-to-br from-purple-50 to-pink-50"
                             : "border-slate-200 bg-white hover:border-purple-200 hover:bg-purple-50/30"
                         )}
                       >
@@ -1069,7 +1069,7 @@ export default function PackageUpgradeDialog({
               <Button
                 onClick={handleConfirm}
                 disabled={loading || !selectedPackageId || !selectedTemplateId}
-                className="px-8 py-3 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+                className="px-8 py-3 text-base font-medium bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
               >
                 {loading ? (
                   <>

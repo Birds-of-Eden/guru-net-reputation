@@ -105,7 +105,7 @@ const isCustomized = template.description?.includes("Custom template for client:
 ```typescript
 className={`${
   isCustomized
-    ? "bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
+    ? "bg-linear-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
     : "bg-white border-2 border-blue-200"
 }`}
 ```
@@ -291,9 +291,9 @@ className={`${
 ### **Main Template:**
 | Element | Color |
 |---------|-------|
-| Top Bar | `bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500` |
-| Badge | `bg-gradient-to-r from-blue-600 to-indigo-600` |
-| Icon BG | `bg-gradient-to-br from-blue-500 to-indigo-600` |
+| Top Bar | `bg-linear-to-r from-blue-500 via-indigo-500 to-blue-500` |
+| Badge | `bg-linear-to-r from-blue-600 to-indigo-600` |
+| Icon BG | `bg-linear-to-br from-blue-500 to-indigo-600` |
 | Info Box | `bg-blue-50 border-l-4 border-blue-500` |
 | Selected Ring | `ring-4 ring-blue-500` |
 | Button (Selected) | `from-blue-600 via-indigo-600 to-blue-600` |
@@ -302,9 +302,9 @@ className={`${
 ### **Customized Template:**
 | Element | Color |
 |---------|-------|
-| Top Bar | `bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500` |
-| Badge | `bg-gradient-to-r from-purple-600 to-pink-600` |
-| Icon BG | `bg-gradient-to-br from-purple-500 to-pink-600` |
+| Top Bar | `bg-linear-to-r from-purple-500 via-pink-500 to-purple-500` |
+| Badge | `bg-linear-to-r from-purple-600 to-pink-600` |
+| Icon BG | `bg-linear-to-br from-purple-500 to-pink-600` |
 | Info Box | `bg-purple-50 border-l-4 border-purple-500` |
 | Selected Ring | `ring-4 ring-purple-500` |
 | Button (Selected) | `from-purple-600 via-pink-600 to-purple-600` |

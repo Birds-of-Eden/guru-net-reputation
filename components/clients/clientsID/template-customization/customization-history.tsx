@@ -83,7 +83,7 @@ export function CustomizationHistory({
 
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="bg-gradient-to-r from-slate-500/10 to-purple-500/10">
+      <CardHeader className="bg-linear-to-r from-slate-500/10 to-purple-500/10">
         <CardTitle className="flex items-center gap-2">
           <History className="h-5 w-5 text-slate-600" />
           Recent Changes
