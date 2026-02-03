@@ -1,6 +1,4 @@
-// @ts-nocheck
 // app/admin/packages/[package]/templates/page.tsx
-
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
@@ -953,4 +951,4 @@ export default function TemplateListPage() {
     </div>
   );
 }
-// @ts-nocheck
+
