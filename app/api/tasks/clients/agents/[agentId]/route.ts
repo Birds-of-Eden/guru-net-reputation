@@ -54,6 +54,36 @@ function parseExcluded(req: NextRequest): string[] {
     .filter(Boolean);
 }
 
+// --- helper: parse time range for completedAt filtering
+function getDateRangeFilter(timeRange: string): { gte?: Date; lt?: Date } | null {
+  if (!timeRange || timeRange === "all") return null;
+  
+  const now = new Date();
+  const startDate = new Date();
+  
+  switch (timeRange) {
+    case "week":
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case "month":
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case "quarter":
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case "year":
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+    default:
+      return null;
+  }
+  
+  return {
+    gte: startDate,
+    lt: now
+  };
+}
+
 // --- helper: relation-aware exclusion when Task.category is a relation.
 // Keeps tasks where category is NULL or category.name NOT IN excluded.
 // Excludes tasks where category.name IS IN excluded.
@@ -87,6 +117,11 @@ export async function GET(
     // Optional exclusion (no effect unless query param is provided)
     const excluded = parseExcluded(_request);
     const categoryWhere = excludeCategoriesWhere(excluded);
+    
+    // Optional date range filtering for completedAt
+    const timeRange = _request.nextUrl.searchParams.get("timeRange") ?? "all";
+    const dateFilter = getDateRangeFilter(timeRange);
+    const completedAtWhere = dateFilter ? { completedAt: dateFilter } : {};
 
     // 1) Which clients have tasks assigned to this agent?
     const distinctClientIds = await prisma.task.findMany({
@@ -94,6 +129,7 @@ export async function GET(
         assignedToId: agentId,
         clientId: { not: null },
         ...categoryWhere,
+        ...completedAtWhere,
       },
       select: { clientId: true },
       distinct: ["clientId"],
@@ -130,6 +166,7 @@ export async function GET(
         assignedToId: agentId,
         clientId: { in: clientIds },
         ...categoryWhere,
+        ...completedAtWhere,
       },
       _count: { _all: true },
     });
@@ -152,6 +189,7 @@ export async function GET(
         assignedToId: agentId,
         clientId: { in: clientIds },
         ...categoryWhere,
+        ...completedAtWhere,
       },
       _count: { _all: true },
     });
@@ -173,6 +211,7 @@ export async function GET(
         assignedToId: agentId,
         clientId: { in: clientIds },
         ...categoryWhere,
+        ...completedAtWhere,
         OR: [
           { email: { not: null } },
           { username: { not: null } },
@@ -220,6 +259,7 @@ export async function GET(
         assignedToId: agentId,
         clientId: { in: clientIds },
         ...categoryWhere,
+        ...completedAtWhere,
         templateSiteAsset: { is: { url: { not: null } } }, // ensure url exists
       },
       orderBy: [{ clientId: "asc" }, { updatedAt: "desc" }],
@@ -258,6 +298,7 @@ export async function GET(
         where: {
           clientId: { in: missingClientIds },
           ...categoryWhere,
+          ...completedAtWhere,
           templateSiteAsset: { is: { url: { not: null } } }, // ensure url exists
         },
         orderBy: [{ clientId: "asc" }, { updatedAt: "desc" }],
