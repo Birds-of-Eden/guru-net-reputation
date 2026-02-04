@@ -866,18 +866,6 @@ export default function TemplateListPage() {
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
-
-                      {canAssignTemplate && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200 bg-transparent rounded-lg px-3"
-                          onClick={() => setAssigningTemplate(template)}
-                        >
-                          <Users className="w-4 h-4 mr-1" />
-                          Assign
-                        </Button>
-                      )}
                       {canDuplicateTemplate && (
                         <Button
                           variant="outline"

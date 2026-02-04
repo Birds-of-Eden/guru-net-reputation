@@ -39,6 +39,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import TinymceEditor from "../TinyMC";
 
 interface SummaryReportModalProps {
   open: boolean;
@@ -299,7 +300,8 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
               Summary Text *
             </label>
             <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <QuillEditor
+              <TinymceEditor
+
                 initialValue={text}
                 onContentChange={(content) => setText(content)}
                 height={350}
