@@ -39,6 +39,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import TinymceEditor from "../TinyMC";
 
 interface SummaryReportModalProps {
   open: boolean;
