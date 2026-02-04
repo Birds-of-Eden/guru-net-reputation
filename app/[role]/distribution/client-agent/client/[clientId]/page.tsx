@@ -30,7 +30,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import PostingTaskDurationSettingsModal from "@/components/clients/clientsID/template-customization/PostingTaskTime";
 import {
   Repeat,
   Users,
@@ -189,12 +188,12 @@ function TaskListCard({ task }: { task: CreatedTask }) {
   const formatDueDate = (date: Date) => {
     const now = new Date();
     const diffDays = Math.ceil(
-      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays < 0) {
       return `${date.toLocaleDateString()} (${Math.abs(
-        diffDays
+        diffDays,
       )} days overdue)`;
     } else if (diffDays === 0) {
       return `${date.toLocaleDateString()} (Due today)`;
@@ -208,7 +207,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
   const getDueDateStyle = (date: Date) => {
     const now = new Date();
     const diffDays = Math.ceil(
-      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffDays < 0) {
@@ -236,12 +235,12 @@ function TaskListCard({ task }: { task: CreatedTask }) {
                   className="text-sm font-bold"
                   style={{
                     backgroundColor: nameToColor(
-                      task.assignedTo?.name ?? task.name ?? "?"
+                      task.assignedTo?.name ?? task.name ?? "?",
                     ),
                   }}
                 >
                   {getInitialsFromName(
-                    task.assignedTo?.name ?? task.name ?? "?"
+                    task.assignedTo?.name ?? task.name ?? "?",
                   )}
                 </AvatarFallback>
               )}
@@ -262,7 +261,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
                   className={cn(
                     "h-7 rounded-full border font-medium",
                     typeColors[task.templateSiteAsset.type] ??
-                      "bg-slate-50 text-slate-700 border-slate-200"
+                      "bg-slate-50 text-slate-700 border-slate-200",
                   )}
                 >
                   <Sparkles className="h-3.5 w-3.5 mr-1" />
@@ -299,7 +298,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
                 <div
                   className={cn(
                     "flex items-center gap-2 text-sm rounded-lg px-3 py-2 border",
-                    getDueDateStyle(dueAt)
+                    getDueDateStyle(dueAt),
                   )}
                 >
                   <CalendarDays className="h-4 w-4" />
@@ -332,7 +331,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-semibold",
                   statusTone[sKey] ??
-                    "bg-slate-50 text-slate-700 border-slate-200"
+                    "bg-slate-50 text-slate-700 border-slate-200",
                 )}
                 title={toTitle(task.status)}
               >
@@ -345,7 +344,7 @@ function TaskListCard({ task }: { task: CreatedTask }) {
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-semibold",
                   priorityTone[pKey] ??
-                    "bg-slate-50 text-slate-700 border-slate-200"
+                    "bg-slate-50 text-slate-700 border-slate-200",
                 )}
                 title={toTitle(task.priority)}
               >
@@ -374,7 +373,7 @@ export default function CreatePostingTasksPage() {
 
   // UI enums (server ignores status; keeps priority override optional)
   const [status] = useState<"PENDING" | "IN_PROGRESS" | "HOLD" | "DONE">(
-    "PENDING"
+    "PENDING",
   );
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
 
@@ -419,7 +418,7 @@ export default function CreatePostingTasksPage() {
         `/api/tasks?clientId=${clientId}&categories=Social Activity,Blog Posting,Social Communication`,
         {
           cache: "no-store",
-        }
+        },
       );
       if (res.ok) {
         const data = await res.json();
@@ -445,7 +444,7 @@ export default function CreatePostingTasksPage() {
         params.set("templateId", templateId);
       const res = await fetch(
         `/api/tasks/create-posting-tasks?${params.toString()}`,
-        { cache: "no-store" }
+        { cache: "no-store" },
       );
       const json = await res.json();
       if (!res.ok) {
@@ -529,13 +528,12 @@ export default function CreatePostingTasksPage() {
     return createdTasks.filter((t) =>
       [t.name, t.category?.name, t.templateSiteAsset?.name, t.assignedTo?.name]
         .filter(Boolean)
-        .some((x) => String(x).toLowerCase().includes(q))
+        .some((x) => String(x).toLowerCase().includes(q)),
     );
   }, [createdTasks, search]);
 
   const hasExistingPostingTasks = existingTasks.length > 0;
-  const canCreateTasks =
-    preview.allApproved && preview.totalWillCreate > 0;
+  const canCreateTasks = preview.allApproved && preview.totalWillCreate > 0;
 
   // ---------- Create handler with QC gate ----------
   const handleCreate = async () => {
@@ -690,7 +688,7 @@ export default function CreatePostingTasksPage() {
                           "border px-3 py-1.5 rounded-full text-sm font-medium",
                           selectedClient.status === "active"
                             ? "bg-linear-to-r from-green-50 to-emerald-50 text-green-800 border-green-300"
-                            : "bg-linear-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300"
+                            : "bg-linear-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-300",
                         )}
                       >
                         {selectedClient.status}
@@ -836,7 +834,7 @@ export default function CreatePostingTasksPage() {
                                 className={cn(
                                   "h-7 rounded-full border font-medium",
                                   typeColors[t.assetType] ??
-                                    "bg-slate-50 text-slate-700 border-slate-200"
+                                    "bg-slate-50 text-slate-700 border-slate-200",
                                 )}
                               >
                                 <Sparkles className="h-3.5 w-3.5 mr-1" />
@@ -860,7 +858,7 @@ export default function CreatePostingTasksPage() {
                             className={cn(
                               "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold border",
                               statusTone[t.status] ??
-                                "bg-slate-50 text-slate-700 border-slate-200"
+                                "bg-slate-50 text-slate-700 border-slate-200",
                             )}
                           >
                             {t.status === "qc_approved" ? (
@@ -1004,7 +1002,7 @@ export default function CreatePostingTasksPage() {
                     className={cn(
                       "w-full h-14 bg-linear-to-r from-indigo-600 via-purple-600 to-cyan-600 hover:from-indigo-700 hover:via-purple-700 hover:to-cyan-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600 text-lg",
                       (creating || !canCreateTasks) &&
-                        "opacity-60 cursor-not-allowed"
+                        "opacity-60 cursor-not-allowed",
                     )}
                   >
                     {creating ? (
@@ -1032,20 +1030,20 @@ export default function CreatePostingTasksPage() {
                 "rounded-2xl p-8 shadow-lg",
                 createdCount > 0
                   ? "bg-linear-to-r from-emerald-50 to-green-50 border border-emerald-200"
-                  : "bg-linear-to-r from-yellow-50 to-amber-50 border border-yellow-200"
+                  : "bg-linear-to-r from-yellow-50 to-amber-50 border border-yellow-200",
               )}
             >
               <div className="flex items-start gap-4">
                 <div
                   className={cn(
                     "mt-1 h-12 w-12 rounded-xl flex items-center justify-center shadow-sm",
-                    createdCount > 0 ? "bg-emerald-100" : "bg-yellow-100"
+                    createdCount > 0 ? "bg-emerald-100" : "bg-yellow-100",
                   )}
                 >
                   <CheckCircle2
                     className={cn(
                       "h-7 w-7",
-                      createdCount > 0 ? "text-emerald-700" : "text-yellow-700"
+                      createdCount > 0 ? "text-emerald-700" : "text-yellow-700",
                     )}
                   />
                 </div>
@@ -1089,9 +1087,22 @@ export default function CreatePostingTasksPage() {
             <DialogTitle>Posting Task Duration Settings</DialogTitle>
           </DialogHeader>
 
-          <PostingTaskDurationSettingsModal
-            onClose={() => setOpenDurationModal(false)}
-          />
+          {/* Warning / Confirmation note */}
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="mt-2 h-3.5 w-3.5 rounded-full bg-amber-500 shrink-0" />
+              <div>
+                <p className="text-xl font-semibold text-amber-900">
+                  Are you ready to create the tasks?
+                </p>
+                <p className="mt-1 text-md text-amber-800">
+                  Click <span className="font-medium">Create Tasks</span> to
+                  proceed, or <span className="font-medium">Cancel</span> to go
+                  back without creating anything.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button
@@ -1101,13 +1112,15 @@ export default function CreatePostingTasksPage() {
               Cancel
             </Button>
 
+            {/* Keep your onClick logic same */}
             <Button
               onClick={() => {
                 setOpenDurationModal(false);
                 handleCreate();
               }}
+              className="bg-amber-600 hover:bg-amber-700"
             >
-              Save & Create Tasks
+              Create Tasks
             </Button>
           </div>
         </DialogContent>
