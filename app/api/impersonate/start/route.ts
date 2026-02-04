@@ -1,8 +1,7 @@
 // @ts-nocheck
 // app/api/impersonate/start/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { randomUUID } from "crypto";
 import {
@@ -31,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ NextAuth-এর বর্তমান সেশন (অ্যাডমিন/AM/ইত্যাদি)
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
@@ -82,11 +81,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔐 রোল ডিটারমিনেশন
-    const actorRole = (
-      perm.roleName ??
-      session.user.role?.name ??
-      ""
-    ).toLowerCase();
+    const sessionRole =
+      typeof (session.user as any).role === "string"
+        ? (session.user as any).role
+        : (session.user as any).role?.name;
+    const actorRole = (perm.roleName ?? sessionRole ?? "").toLowerCase();
     const targetRole = target.role?.name?.toLowerCase() ?? "";
 
     // 🧱 HARD GUARD: শুধুমাত্র অ্যাডমিনই অ্যাডমিনকে ইমপারসোনেট করতে পারবে

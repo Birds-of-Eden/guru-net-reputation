@@ -1,13 +1,12 @@
 // @ts-nocheck
 // lib/getAuthUser.ts
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { amScopeCheck, amCeoScopeCheck, canImpersonate } from "./impersonation";
 
 export async function getAuthUser() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const baseUser = session?.user ?? null;
   if (!baseUser?.id) return null;
 

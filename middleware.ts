@@ -69,10 +69,10 @@ export async function middleware(req: NextRequest) {
   const isApi = path.startsWith("/api");
 
   // ✅ Get JWT token once and reuse
-  const token = await getToken({
+  const token = (await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
-  }) as DecodedToken | null;
+    secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  })) as DecodedToken | null;
 
   // 🎭 IMPERSONATION FIX: Check for impersonation cookies
   // These cookies are set by /api/impersonate/start API

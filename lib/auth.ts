@@ -1,15 +1,16 @@
 // lib/auth.ts
-import NextAuth from "next-auth";
-import type { NextAuthOptions } from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher/server";
 
-export const authOptions: NextAuthOptions = {
+export const authConfig = {
+  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -106,8 +107,18 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account, trigger }: { token: any; user?: any; account?: any; trigger?: string }) {
-      // ✅ On sign-in, enrich token with user role and Google access token
+    async jwt({
+      token,
+      user,
+      account,
+      trigger,
+    }: {
+      token: any;
+      user?: any;
+      account?: any;
+      trigger?: string;
+    }) {
+      // On sign-in, enrich token with user role and Google access token
       if (user?.id) {
         token.sub = user.id;
         try {
@@ -123,15 +134,14 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // ✅ Store Google Drive access token for private folder access
+      // Store Google Drive access token for private folder access
       if (account?.provider === "google" && account?.access_token) {
         token.googleAccessToken = account.access_token;
         token.googleRefreshToken = account.refresh_token;
         token.googleTokenExpires = account.expires_at;
       }
 
-      // ✅ On subsequent requests, refresh role if needed
-      // This handles role changes without requiring re-login
+      // On subsequent requests, refresh role if needed
       if (trigger === "update" && token.sub) {
         try {
           const dbUser = await prisma.user.findUnique({
@@ -147,40 +157,11 @@ export const authOptions: NextAuthOptions = {
 
       return token;
     },
-    async redirect({
-      url,
-      baseUrl,
-      token,
-    }: {
-      url: string;
-      baseUrl: string;
-      token?: any;
-    }) {
-      if (url.startsWith("/")) url = baseUrl + url;
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      if (url.startsWith("/")) return baseUrl + url;
       try {
         const target = new URL(url);
-        if (target.origin !== baseUrl) return baseUrl;
-        if (target.pathname === "/auth/sign-in") {
-          const role = (token?.role || "").toLowerCase();
-          const dest =
-            role === "admin"
-              ? "/admin"
-              : role === "agent"
-              ? "/agent"
-              : role === "manager"
-              ? "/manager"
-              : role === "qc"
-              ? "/qc"
-              : role === "am"
-              ? "/am"
-              : role === "am_ceo"
-              ? "/am_ceo"
-              : role === "data_entry"
-              ? "/data_entry"
-              : "/client";
-          return baseUrl + dest;
-        }
-        return url;
+        return target.origin === baseUrl ? url : baseUrl;
       } catch {
         return baseUrl;
       }
@@ -204,14 +185,14 @@ export const authOptions: NextAuthOptions = {
       (session.user as any).permissions =
         dbUser?.role?.rolePermissions.map((rp) => rp.permission.id) ?? [];
 
-      // ✅ Pass Google access token to session for Drive API access
+      // Pass Google access token to session for Drive API access
       (session.user as any).googleAccessToken = token.googleAccessToken ?? null;
 
       return session;
     },
   },
   events: {
-    async signIn({ user, account }) {
+    async signIn({ user, account }: { user: any; account?: any }) {
       try {
         const id = `log_${Date.now()}_${Math.random()
           .toString(36)
@@ -242,7 +223,7 @@ export const authOptions: NextAuthOptions = {
         } catch {}
       } catch (e) {}
     },
-    async signOut({ token }) {
+    async signOut({ token }: { token: any }) {
       try {
         const id = `log_${Date.now()}_${Math.random()
           .toString(36)
@@ -274,7 +255,6 @@ export const authOptions: NextAuthOptions = {
       } catch (e) {}
     },
   },
-};
+} satisfies NextAuthConfig;
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

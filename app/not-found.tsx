@@ -1,7 +1,7 @@
 // app/not-found.tsx
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";

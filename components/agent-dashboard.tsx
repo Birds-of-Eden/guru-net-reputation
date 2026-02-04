@@ -172,7 +172,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
     isLoading: loading,
     error: fetchError,
   } = useSWR<AgentClient[]>(
-    agentId ? `/api/tasks/clients/agents/${agentId}` : null,
+    agentId ? `/api/tasks/clients/agents/${agentId}?timeRange=${timeRange}` : null,
     agentDashboardFetcher,
     {
       revalidateOnFocus: false,
@@ -330,6 +330,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
               <SelectItem value="week">Last Week</SelectItem>
               <SelectItem value="month">Last Month</SelectItem>
               <SelectItem value="quarter">Last Quarter</SelectItem>

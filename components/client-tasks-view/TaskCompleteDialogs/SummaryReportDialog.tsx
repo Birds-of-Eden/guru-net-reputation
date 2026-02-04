@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import QuillEditor from "@/components/TinyMC";
+import TinyMceEditor from "@/components/TinyMC";
 
 interface SummaryReportModalProps {
   open: boolean;
@@ -303,7 +303,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
               Summary Text *
             </label>
             <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <QuillEditor
+              <TinyMceEditor
                 initialValue={text}
                 onContentChange={(content: any) => setText(content)}
                 height={350}

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import QuillEditor from "@/components/TinyMC";
+import TinyMceEditor from "@/components/TinyMC";
 import "react-datepicker/dist/react-datepicker.css";
 
 export type ContentSection = {
@@ -303,7 +303,7 @@ export default function ContentWritingModal({
                   value={section.id}
                   className="flex-1 flex flex-col m-0 data-[state=active]:flex"
                 >
-                  <QuillEditor
+                  <TinyMceEditor
                     initialValue={section.content}
                     onContentChange={(content) =>
                       updateSectionContent(section.id, content)

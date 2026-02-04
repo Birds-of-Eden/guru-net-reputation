@@ -300,8 +300,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
               Summary Text *
             </label>
             <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <TinymceEditor
-
+              <TinyMceEditor
                 initialValue={text}
                 onContentChange={(content) => setText(content)}
                 height={350}
