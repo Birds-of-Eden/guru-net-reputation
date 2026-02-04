@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { TabsContent } from "@radix-ui/react-tabs";
-import JoditEditorComponent from "../JoditEditor";
+import TinyMceEditor from "../TinyMC";
 import {
   Select,
   SelectContent,
@@ -299,7 +299,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
               Summary Text *
             </label>
             <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-              <JoditEditorComponent
+              <QuillEditor
                 initialValue={text}
                 onContentChange={(content) => setText(content)}
                 height={350}

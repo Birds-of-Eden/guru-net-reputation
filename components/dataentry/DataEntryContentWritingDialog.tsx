@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import JoditEditorComponent from "@/components/JoditEditor";
+import QuillEditor from "@/components/TinyMC";
 import {
   Select,
   SelectContent,
@@ -375,7 +375,7 @@ export default function ContentWritingModal({
                   value={section.id}
                   className="flex-1 flex flex-col m-0 data-[state=active]:flex"
                 >
-                  <JoditEditorComponent
+                  <QuillEditor
                     initialValue={section.content}
                     onContentChange={(content) =>
                       updateSectionContent(section.id, content)

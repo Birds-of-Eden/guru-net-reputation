@@ -16,7 +16,6 @@ export function Bio({ clientData }: BioProps) {
     typeof clientData.biography === "string" &&
     clientData.biography.trim() !== ""
 
-  // Sanitize rich HTML (from TinyMCE/Jodit) so tags render properly and safely.
   const safeBioHTML = hasBio
     ? DOMPurify.sanitize(clientData.biography!, { USE_PROFILES: { html: true } })
     : ""
