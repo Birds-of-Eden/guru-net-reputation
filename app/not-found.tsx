@@ -4,24 +4,40 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
 
 export default function NotFoundPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+      {/* Background Beams with Collision */}
+      <BackgroundBeamsWithCollision
+        className="absolute inset-0 z-0"
+        beamOptions={{
+          count: 15,
+          colors: ["#3B82F6", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B"],
+          minSpeed: 0.3,
+          maxSpeed: 1.5,
+          minLength: 80,
+          maxLength: 250,
+          minWidth: 1,
+          maxWidth: 2,
+        }}
+      />
+
       {/* Animated background elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
         <motion.div
-          className="absolute top-20 left-20 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          className="absolute top-20 left-20 w-72 h-72 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"
           animate={{ x: [0, 100, 0], y: [0, -100, 0] }}
           transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute top-40 right-20 w-96 h-96 bg-pink-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          className="absolute top-40 right-20 w-96 h-96 bg-pink-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"
           animate={{ x: [0, -100, 0], y: [0, 100, 0] }}
           transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-20 left-1/2 w-80 h-80 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          className="absolute bottom-20 left-1/2 w-80 h-80 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"
           animate={{ x: [0, 50, -50, 0], y: [0, -50, 50, 0] }}
           transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
         />
@@ -95,21 +111,21 @@ export default function NotFoundPage() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-          className="absolute top-10 right-10 text-4xl opacity-30"
+          className="absolute top-10 right-10 text-4xl opacity-30 z-10"
         >
           🚀
         </motion.div>
         <motion.div
           animate={{ y: [0, -20, 0] }}
           transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-          className="absolute bottom-20 left-10 text-3xl opacity-30"
+          className="absolute bottom-20 left-10 text-3xl opacity-30 z-10"
         >
           ⭐
         </motion.div>
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
-          className="absolute top-1/3 left-20 text-3xl opacity-30"
+          className="absolute top-1/3 left-20 text-3xl opacity-30 z-10"
         >
           🌙
         </motion.div>
