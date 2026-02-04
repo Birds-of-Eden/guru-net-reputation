@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import TinymceEditor from "@/components/TinyMC";
 import {
   User,
   Mail,
@@ -131,6 +132,8 @@ export default function ClientEditModal({
   const [ams, setAms] = useState<AMUser[]>([]);
   const [amsLoading, setAmsLoading] = useState(false);
   const [amsError, setAmsError] = useState<string | null>(null);
+  const [biographyContent, setBiographyContent] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const currentAmId = clientData.amId ?? null;
@@ -171,9 +174,17 @@ export default function ClientEditModal({
   const statusValue = watch("status");
   const genderValue = watch("gender");
 
+  // Client-side only initialization
+  useEffect(() => {
+    setIsClient(true);
+    setBiographyContent((clientData as any).biography ?? "");
+  }, []);
+
   // rehydrate form whenever the modal is opened (so stale edits don't linger)
   useEffect(() => {
     if (!open) return;
+    const biographyValue = (clientData as any).biography ?? "";
+    setBiographyContent(biographyValue);
     reset({
       name: clientData.name ?? "",
       birthdate: toDateInput(clientData.birthdate as any),
@@ -193,7 +204,7 @@ export default function ClientEditModal({
         : [],
       companywebsite: clientData.companywebsite ?? "",
       companyaddress: clientData.companyaddress ?? "",
-      biography: (clientData as any).biography ?? "",
+      biography: biographyValue,
       imageDrivelink: (clientData as any).imageDrivelink ?? "",
       avatar: (clientData as any).avatar ?? "",
       progress: clientData.progress ?? 0,
@@ -379,6 +390,9 @@ export default function ClientEditModal({
     try {
       setIsSaving(true);
 
+      // Update biography form value with current editor content
+      setValue("biography", biographyContent);
+
       let payload: Partial<FormValues>;
 
       if (isAgent) {
@@ -466,6 +480,7 @@ export default function ClientEditModal({
               : Number(values.progress),
           birthdate: values.birthdate || undefined,
           amId: values.amId && values.amId.trim() !== "" ? values.amId : null,
+          biography: biographyContent,
           // attach arbitrary JSON
           otherField: finalOtherField,
           articleTopics: parsedArticleTopics,
@@ -986,12 +1001,23 @@ export default function ClientEditModal({
                       >
                         Biography
                       </Label>
-                      <Textarea
-                        id="biography"
-                        rows={4}
-                        className="border-slate-300 focus:border-rose-500"
-                        {...register("biography")}
-                      />
+                      {isClient ? (
+                        <TinymceEditor
+                          initialValue={biographyContent}
+                          onContentChange={setBiographyContent}
+                          height="200px"
+                          placeholder="Enter client biography..."
+                        />
+                      ) : (
+                        <Textarea
+                          id="biography"
+                          rows={4}
+                          className="border-slate-300 focus:border-rose-500"
+                          value={biographyContent}
+                          onChange={(e) => setBiographyContent(e.target.value)}
+                          placeholder="Enter client biography..."
+                        />
+                      )}
                     </div>
                   </div>
                 </CardContent>
