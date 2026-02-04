@@ -403,17 +403,24 @@ export async function POST(
           newName: updatedAsset.name,
         });
 
-        // Archive old tasks for this asset (using OLD asset ID from source template)
-        const oldTasks = assignment.tasks.filter(
+        // Direct replacement: Update existing tasks instead of archiving them
+        const existingTasks = assignment.tasks.filter(
           (t) => t.templateSiteAssetId === oldAssetId
         );
 
-        for (const task of oldTasks) {
+        for (const task of existingTasks) {
           await tx.task.update({
             where: { id: task.id },
             data: {
-              status: TaskStatus.cancelled,
-              notes: `${task.notes || ""}\n\n[AUTO-ARCHIVED] Replaced by: ${updatedAsset.name}`,
+              templateSiteAssetId: updatedAsset.id, // Update to new asset
+              name: `${updatedAsset.name} Task`,
+              status: TaskStatus.pending, // Reset to pending for reassignment
+              notes: `${task.notes || ""}\n\n[DIRECT REPLACEMENT] Replaced: ${oldAsset?.name || "old asset"} → ${updatedAsset.name}`,
+              idealDurationMinutes: updatedAsset.defaultIdealDurationMinutes ?? task.idealDurationMinutes,
+              // Clear completion data since it's a new asset
+              completedAt: null,
+              completionLink: null,
+              taskCompletionJson: null,
             },
           });
 
@@ -422,40 +429,42 @@ export async function POST(
             taskName: task.name,
             oldAssetId,
             newAssetId: updatedAsset.id,
-            reason: "replaced",
+            reason: "direct_replacement",
           });
         }
 
-        // Create new task for replaced asset (using NEW asset ID from cloned template)
-        const categoryName = resolveCategoryName(
-          normalizeAssetTypeSlug(updatedAsset.type),
-          assetTypeMap,
-          CATEGORY_NAME_BY_TYPE
-        );
-        const categoryId = categoryIdByName.get(categoryName) ?? null;
+        // Only create new tasks if there were no existing tasks for this asset
+        if (existingTasks.length === 0) {
+          const categoryName = resolveCategoryName(
+            normalizeAssetTypeSlug(updatedAsset.type),
+            assetTypeMap,
+            CATEGORY_NAME_BY_TYPE
+          );
+          const categoryId = categoryIdByName.get(categoryName) ?? null;
 
-        const newTask = {
-          id: randomUUID(),
-          name: `${updatedAsset.name} Task`,
-          assignmentId: assignment.id,
-          clientId: assignment.clientId,
-          templateSiteAssetId: updatedAsset.id, // Use NEW asset ID
-          categoryId,
-          dueDate: defaultDueDate,
-          status: TaskStatus.pending,
-          priority: TaskPriority.medium,
-          idealDurationMinutes: updatedAsset.defaultIdealDurationMinutes ?? 30,
-          notes: `[REPLACEMENT] This replaces: ${oldAsset?.name || "old asset"}`,
-        };
+          const newTask = {
+            id: randomUUID(),
+            name: `${updatedAsset.name} Task`,
+            assignmentId: assignment.id,
+            clientId: assignment.clientId,
+            templateSiteAssetId: updatedAsset.id,
+            categoryId,
+            dueDate: defaultDueDate,
+            status: TaskStatus.pending,
+            priority: TaskPriority.medium,
+            idealDurationMinutes: updatedAsset.defaultIdealDurationMinutes ?? 30,
+            notes: `[REPLACEMENT] This replaces: ${oldAsset?.name || "old asset"}`,
+          };
 
-        await tx.task.create({ data: newTask });
-        tasksCreated.push({
-          taskId: newTask.id,
-          taskName: newTask.name,
-          assetId: updatedAsset.id,
-          assetName: updatedAsset.name,
-          type: "replacement",
-        });
+          await tx.task.create({ data: newTask });
+          tasksCreated.push({
+            taskId: newTask.id,
+            taskName: newTask.name,
+            assetId: updatedAsset.id,
+            assetName: updatedAsset.name,
+            type: "replacement",
+          });
+        }
 
         // Update setting for replaced asset (already migrated, just update values)
         // Since we already migrated settings from old → new IDs, we update the NEW asset ID

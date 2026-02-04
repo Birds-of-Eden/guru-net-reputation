@@ -566,7 +566,7 @@ export function CustomizeTemplateDialog({
                         </Badge>
                         {selectedOldAsset && (
                           <span className="text-xs text-slate-500">
-                            Replacing: <span className="font-semibold">{selectedOldAsset.name}</span>
+                            Directly replacing: <span className="font-semibold">{selectedOldAsset.name}</span>
                           </span>
                         )}
                       </div>
@@ -683,10 +683,10 @@ export function CustomizeTemplateDialog({
                 <p>• Will add {newAssets.length} new asset(s)</p>
               )}
               {replacements.length > 0 && (
-                <p>• Will replace {replacements.length} existing asset(s)</p>
+                <p>• Will directly replace {replacements.length} existing asset(s) with pending status</p>
               )}
               <p>• Will create a custom template for this client</p>
-              <p>• All settings will be preserved</p>
+              <p>• Replaced assets will have pending status and be immediately assignable</p>
               <p>• Other clients using the same template will not be affected</p>
             </div>
           </div>
