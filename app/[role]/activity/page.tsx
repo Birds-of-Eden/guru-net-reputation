@@ -7,7 +7,21 @@ import useSWR, { mutate } from "swr";
 import { pusherClient } from "@/lib/pusher/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type ActionType = "create" | "update" | "delete" | "sign_in" | "sign_out" | "onboarded" | "task_assigned";
+type ActionType =
+  | "create"
+  | "update"
+  | "delete"
+  | "sign_in"
+  | "sign_out"
+  | "onboarded"
+  | "task_assigned"
+  | "task_status_update"
+  | "impersonate_start"
+  | "impersonate_stop"
+  | "task_reassigned"
+  | "qc_reassigned"
+  | "qc_approved";
+
 type Log = {
   id: string;
   entityType: string;
@@ -92,21 +106,25 @@ export default function ActivityPage() {
     const channel = pusherClient.subscribe("activity");
     const onNew = (payload: any) => {
       // Optimistic update with SWR mutate
-      mutate(apiUrl, (current: any) => {
-        if (!current) return current;
-        const newLog = {
-          id: payload?.id || `rt_${Date.now()}`,
-          entityType: payload?.entityType || "",
-          entityId: payload?.entityId || "",
-          action: payload?.action || "update",
-          timestamp: payload?.timestamp || new Date().toISOString(),
-          details: payload?.details ?? null,
-        };
-        return {
-          ...current,
-          logs: [newLog, ...(current.logs || [])],
-        };
-      }, false);
+      mutate(
+        apiUrl,
+        (current: any) => {
+          if (!current) return current;
+          const newLog = {
+            id: payload?.id || `rt_${Date.now()}`,
+            entityType: payload?.entityType || "",
+            entityId: payload?.entityId || "",
+            action: payload?.action || "update",
+            timestamp: payload?.timestamp || new Date().toISOString(),
+            details: payload?.details ?? null,
+          };
+          return {
+            ...current,
+            logs: [newLog, ...(current.logs || [])],
+          };
+        },
+        false
+      );
       // Revalidate after a short delay
       setTimeout(() => mutate(apiUrl), 1200);
     };
@@ -118,11 +136,14 @@ export default function ActivityPage() {
   }, [apiUrl]);
 
   // ⚡ OPTIMIZED: Memoize page change handler
-  const handlePageChange = useCallback((page: number) => {
-    if (page >= 1 && page <= (pagination?.totalPages || 1)) {
-      setCurrentPage(page);
-    }
-  }, [pagination?.totalPages]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page >= 1 && page <= (pagination?.totalPages || 1)) {
+        setCurrentPage(page);
+      }
+    },
+    [pagination?.totalPages]
+  );
 
   // ⚡ OPTIMIZED: Memoize page numbers calculation
   const getPageNumbers = useCallback(() => {
@@ -201,16 +222,21 @@ export default function ActivityPage() {
           <option value="sign_out">Sign Out</option>
           <option value="onboarded">onboarded</option>
           <option value="task_assigned">Task Assigned</option>
+
+          {/* Added statuses */}
+          <option value="task_status_update">Task Status Update</option>
+          <option value="impersonate_start">Impersonate Start</option>
+          <option value="impersonate_stop">Impersonate Stop</option>
+          <option value="task_reassigned">Task Reassigned</option>
+          <option value="qc_reassigned">QC Reassigned</option>
+          <option value="qc_approved">QC Approved</option>
         </select>
       </div>
 
       {pagination && !isLoading && (
         <div className="text-sm text-gray-600">
           Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
-          {Math.min(
-            pagination.currentPage * pagination.limit,
-            pagination.totalCount
-          )}{" "}
+          {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}{" "}
           of {pagination.totalCount} logs
         </div>
       )}
@@ -258,58 +284,48 @@ export default function ActivityPage() {
                 </tr>
               ))
             ) : logs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-3 text-center text-gray-500">
-                    No matching logs found
+              <tr>
+                <td colSpan={5} className="p-3 text-center text-gray-500">
+                  No matching logs found
+                </td>
+              </tr>
+            ) : (
+              logs.map((log: Log) => (
+                <tr key={log.id} className="border-b hover:bg-gray-50 align-top">
+                  <td className="p-3">
+                    {log.user?.name || "Unknown"} <br />
+                    <span className="text-xs text-gray-500">{log.user?.email}</span>
+                  </td>
+                  <td className="p-3">
+                    {log.entityType} <br />
+                    <span className="text-xs text-gray-500">{log.entityId}</span>
+                  </td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded text-xs ${getActionColor(log.action)}`}>
+                      {log.action}
+                    </span>
+                  </td>
+
+                  <td className="p-3 max-w-[380px]">
+                    {log.details && typeof log.details === "object" ? (
+                      <pre className="text-xs border border-gray-200 rounded w-full max-h-40 overflow-auto p-2 whitespace-pre-wrap break-words">
+                        {JSON.stringify(log.details, null, 2)}
+                      </pre>
+                    ) : (
+                      <span className="text-gray-500">—</span>
+                    )}
+                  </td>
+                  <td className="p-3 whitespace-nowrap">
+                    <div
+                      title={new Date(log.timestamp).toLocaleString(undefined, { timeZone: TZ })}
+                    >
+                      {formatRelative(log.timestamp)}
+                    </div>
                   </td>
                 </tr>
-              ) : (
-                logs.map((log: Log) => (
-                  <tr
-                    key={log.id}
-                    className="border-b hover:bg-gray-50 align-top"
-                  >
-                    <td className="p-3">
-                      {log.user?.name || "Unknown"} <br />
-                      <span className="text-xs text-gray-500">
-                        {log.user?.email}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      {log.entityType} <br />
-                      <span className="text-xs text-gray-500">
-                        {log.entityId}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded text-xs ${getActionColor(log.action)}`}>
-                        {log.action}
-                      </span>
-                    </td>
-
-                    <td className="p-3 max-w-[380px]">
-                      {log.details && typeof log.details === "object" ? (
-                        <pre className="text-xs border border-gray-200 rounded w-full max-h-40 overflow-auto p-2 whitespace-pre-wrap break-words">
-                          {JSON.stringify(log.details, null, 2)}
-                        </pre>
-                      ) : (
-                        <span className="text-gray-500">—</span>
-                      )}
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <div
-                        title={new Date(log.timestamp).toLocaleString(
-                          undefined,
-                          { timeZone: TZ }
-                        )}
-                      >
-                        {formatRelative(log.timestamp)}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+              ))
+            )}
+          </tbody>
         </table>
       </div>
 
@@ -328,11 +344,7 @@ export default function ActivityPage() {
               {pageNumbers.map((page, index) => (
                 <button
                   key={index}
-                  onClick={() =>
-                    typeof page === "number"
-                      ? handlePageChange(page)
-                      : undefined
-                  }
+                  onClick={() => (typeof page === "number" ? handlePageChange(page) : undefined)}
                   disabled={page === "..."}
                   className={`px-3 py-2 text-sm border rounded ${
                     page === currentPage
