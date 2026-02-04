@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-// Removed Textarea in favor of QuillEditor
+// Removed Textarea in favor of TinyMceEditor
 import { Label } from "@/components/ui/label";
 import type { StepProps } from "@/types/onboarding";
 import { Sparkles, FileText, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { hasPermissionClient } from "@/lib/permissions-client";
 import { useAuth } from "@/context/auth-context";
-import QuillEditor from "@/components/TinyMC";
+import TinyMceEditor from "@/components/TinyMC";
 
 export function BiographyInfo({
   formData,
@@ -131,8 +131,8 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
             Biography
           </Label>
 
-          {/* Replaced Textarea with QuillEditor */}
-          <QuillEditor
+          {/* Replaced Textarea with TinyMceEditor */}
+          <TinyMceEditor
             initialValue={formData.biography || ""}
             onContentChange={(content: string) => updateFormData({ biography: content })}
             height={320}

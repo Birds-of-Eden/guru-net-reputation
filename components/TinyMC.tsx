@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Editor } from "@tinymce/tinymce-react";
+import dynamic from "next/dynamic";
+
+const TinyMCEEditor = dynamic(
+  async () => (await import("@tinymce/tinymce-react")).Editor,
+  { ssr: false }
+);
 
 interface TinymceEditorProps {
   placeholder?: string;
@@ -25,7 +30,7 @@ const TinymceEditor: React.FC<TinymceEditorProps> = ({
 
   return (
     <div style={{ height }}>
-      <Editor
+      <TinyMCEEditor
         apiKey="ojfr13shvq71zrs8u3y10vyx0ddwz1od1vozyjtcfcl17ylt"
         value={content}
         onEditorChange={handleChange}

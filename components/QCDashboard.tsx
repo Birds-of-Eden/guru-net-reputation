@@ -4,7 +4,7 @@
 
 import React, { useMemo, useState } from "react";
 import useSWR from "swr";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useAuth } from "@/context/auth-context";
 import {
   Card,

@@ -6,7 +6,7 @@ import * as React from "react";
 import useSWR, { useSWRConfig } from "swr";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   LayoutDashboard,
   Table2,

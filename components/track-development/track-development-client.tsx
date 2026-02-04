@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function TrackDevelopment() {
   const [preview, setPreview] = useState<string | null>(null);
