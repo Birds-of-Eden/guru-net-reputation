@@ -56,6 +56,8 @@ import {
 import type { AssetTypeOption } from "@/types/asset-types";
 import {
   DEFAULT_SOCIAL_SITES,
+  DEFAULT_BIO_OPTIMIZATION,
+  DEFAULT_EMD,
   DEFAULT_WEB2_SITES,
   DEFAULT_ADDITIONAL_SITES,
   DEFAULT_GRAPHICS_DESIGN,
@@ -127,6 +129,8 @@ export function CreateTemplateModal({
 
   // Per-type site-asset state
   const [socialSites, setSocialSites] = useState<SiteAsset[]>([]);
+  const [bioOptimization, setBioOptimization] = useState<SiteAsset[]>([]);
+  const [emd, setEmd] = useState<SiteAsset[]>([]);
   const [web2Sites, setWeb2Sites] = useState<SiteAsset[]>([]);
   const [additionalSites, setAdditionalSites] = useState<SiteAsset[]>([]);
   const [graphicsDesign, setGraphicsDesign] = useState<SiteAsset[]>([]);
@@ -155,6 +159,8 @@ export function CreateTemplateModal({
   // Dynamic enabled types for steps (after Basic Info)
   const FALLBACK_TYPES: SiteAssetTypeTS[] = [
     "social_site",
+    "bio_optimization",
+    "emd",
     "web2_site",
     "other_asset",
     "graphics_design",
@@ -191,6 +197,16 @@ export function CreateTemplateModal({
   > = {
     social_site: {
       title: "Social Sites",
+      colorClass: "bg-blue-500",
+      icon: <Share2 className="w-5 h-5" />,
+    },
+    bio_optimization: {
+      title: "Bio Optimization",
+      colorClass: "bg-blue-500",
+      icon: <Share2 className="w-5 h-5" />,
+    },
+    emd: {
+      title: "EMD",
       colorClass: "bg-blue-500",
       icon: <Share2 className="w-5 h-5" />,
     },
@@ -324,6 +340,16 @@ export function CreateTemplateModal({
           pick("social_site").length
             ? pick("social_site")
             : DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")),
+        );
+        setBioOptimization(
+          pick("bio_optimization").length
+            ? pick("bio_optimization")
+            : DEFAULT_BIO_OPTIMIZATION.map(mapDefaults("bio_optimization")),
+        );
+        setEmd(
+          pick("emd").length
+            ? pick("emd")
+            : DEFAULT_EMD.map(mapDefaults("emd")),
         );
         setWeb2Sites(
           pick("web2_site").length
@@ -460,6 +486,10 @@ export function CreateTemplateModal({
     setStatus("active");
 
     setSocialSites(DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")));
+    setBioOptimization(
+      DEFAULT_BIO_OPTIMIZATION.map(mapDefaults("bio_optimization")),
+    );
+    setEmd(DEFAULT_EMD.map(mapDefaults("emd")));
     setWeb2Sites(DEFAULT_WEB2_SITES.map(mapDefaults("web2_site")));
     setAdditionalSites(
       DEFAULT_ADDITIONAL_SITES.map(mapDefaults("other_asset")),
@@ -512,6 +542,10 @@ export function CreateTemplateModal({
     switch (type) {
       case "social_site":
         return [socialSites, setSocialSites];
+      case "bio_optimization":
+        return [bioOptimization, setBioOptimization];
+      case "emd":
+        return [emd, setEmd];
       case "web2_site":
         return [web2Sites, setWeb2Sites];
       case "other_asset":
@@ -671,6 +705,8 @@ export function CreateTemplateModal({
 
       const allSiteAssets = [
         socialSites,
+        bioOptimization,
+        emd,
         web2Sites,
         additionalSites,
         graphicsDesign,

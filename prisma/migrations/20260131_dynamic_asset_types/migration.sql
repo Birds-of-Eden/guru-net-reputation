@@ -1,2 +1,0 @@
--- This migration is now a no-op because the baseline (000_init)
--- creates the current schema directly.

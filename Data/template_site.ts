@@ -1,5 +1,27 @@
 //Data/template_site
 
+export const DEFAULT_BIO_OPTIMIZATION = [
+  {
+    name: "Bio Optimization",
+    url: "https://docs.google.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 120,
+    defaultIdealDurationMinutesForPosting: 20,
+    defaultPostingFrequency: 0,
+  },
+];
+
+export const DEFAULT_EMD = [
+  {
+    name: "EMD",
+    url: "",
+    isRequired: true,
+    defaultIdealDurationMinutes: 120,
+    defaultIdealDurationMinutesForPosting: 20,
+    defaultPostingFrequency: 3,
+  },
+];
+
 export const DEFAULT_SOCIAL_SITES = [
   {
     name: "Behance",
@@ -414,15 +436,6 @@ export const DEFAULT_WEB2_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 40,
     defaultIdealDurationMinutesForPosting: 13,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "EMD",
-    url: "#######",
-    isRequired: true,
-    defaultIdealDurationMinutes: 130,
-    defaultIdealDurationMinutesForPosting: 20,
     defaultPostingFrequency: 3,
   },
 ];
