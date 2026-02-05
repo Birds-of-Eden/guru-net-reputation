@@ -107,7 +107,13 @@ type FormValues = {
   companywebsite?: string;
   companyaddress?: string;
   biography?: string;
-  imageDrivelink?: string;
+  imageDrivelink?:
+    | string
+    | {
+        driveLink?: string;
+        items?: Array<{ title?: string; link?: string }>;
+      }
+    | Array<{ title?: string; link?: string }>;
   avatar?: string;
 
   progress?: number;

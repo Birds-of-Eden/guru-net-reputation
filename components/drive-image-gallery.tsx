@@ -42,11 +42,13 @@ interface DriveApiResponse {
 interface DriveImageGalleryProps {
   driveLink: string;
   clientName: string;
+  linkTabs?: Array<{ title?: string; link?: string }>;
 }
 
 export function DriveImageGallery({
   driveLink,
   clientName,
+  linkTabs = [],
 }: DriveImageGalleryProps) {
   const [images, setImages] = useState<DriveFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -242,6 +244,10 @@ export function DriveImageGallery({
 
   if (!driveLink) return null;
 
+  const tabs = Array.isArray(linkTabs)
+    ? linkTabs.filter((t) => t?.link || t?.title)
+    : [];
+
   return (
     <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 overflow-hidden mb-6">
       <div className="bg-linear-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border-b border-gray-100 dark:border-gray-800">
@@ -302,6 +308,25 @@ export function DriveImageGallery({
             </div>
           </div>
         </div>
+        {tabs.length > 0 && (
+          <div className="px-6 pb-4">
+            <div className="flex flex-wrap gap-2">
+              {tabs.map((tab, idx) => (
+                <Link
+                  key={`${tab?.link || "link"}-${idx}`}
+                  href={tab.link || "#"}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-white/80 dark:bg-gray-900/60 border border-indigo-100 dark:border-indigo-800 rounded-full hover:bg-white dark:hover:bg-gray-900 transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="truncate max-w-[180px]">
+                    {tab.title || "Untitled"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {isExpanded && (
@@ -377,7 +402,7 @@ export function DriveImageGallery({
                         }}
                       />
 
-                      <div className="absolute inset-0 flex items-end justify-center p-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
+                      <div className="absolute inset-0 flex items-end justify-center p-3 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-linear-to-t from-black/70 via-black/20 to-transparent">
                         <div className="flex gap-2">
                           {isCopied ? (
                             <Button

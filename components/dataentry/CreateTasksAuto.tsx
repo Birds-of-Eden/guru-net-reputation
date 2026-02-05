@@ -20,6 +20,7 @@ export default function CreateTasksButton({
   onAlreadyExists,
 }: CreateTasksButtonProps) {
   const [isCreating, setIsCreating] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const { user, status } = useAuth();
 
   const createTasks = async () => {
@@ -71,6 +72,8 @@ export default function CreateTasksButton({
 
           if (distRes.ok) {
             toast.success(`Created ${createdCount} posting task(s) and assigned to you`);
+            // Disable the button after successful creation
+            setIsDisabled(true);
           } else {
             const dj = await distRes.json().catch(() => ({}));
             console.error("Distribute failed", dj);
@@ -113,9 +116,9 @@ export default function CreateTasksButton({
   return (
     <Button
       onClick={createTasks}
-      disabled={isCreating || disabled}
-      className={` bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white h-11 flex-1 rounded-xl font-semibold transition-all duration-300 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      title={disabled ? 'Tasks already created' : 'Create posting tasks for this client'}
+      disabled={isCreating || disabled || isDisabled}
+      className={` bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white h-11 flex-1 rounded-xl font-semibold transition-all duration-300 ${disabled || isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      title={disabled || isDisabled ? 'Tasks already created' : 'Create posting tasks for this client'}
     >
       {isCreating ? (
         <>

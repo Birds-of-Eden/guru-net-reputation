@@ -65,6 +65,25 @@ function getTaskStatusCounts(tasks: Client["tasks"] = []): TaskStatusCounts {
   };
 }
 
+function normalizeDriveData(raw: any) {
+  if (typeof raw === "string") {
+    return { driveLink: raw, items: [] as Array<{ title?: string; link?: string }> };
+  }
+  if (Array.isArray(raw)) {
+    return {
+      driveLink: "",
+      items: raw.filter((i) => i?.link || i?.title),
+    };
+  }
+  if (raw && typeof raw === "object") {
+    return {
+      driveLink: typeof raw.driveLink === "string" ? raw.driveLink : "",
+      items: Array.isArray(raw.items) ? raw.items.filter((i: any) => i?.link || i?.title) : [],
+    };
+  }
+  return { driveLink: "", items: [] as Array<{ title?: string; link?: string }> };
+}
+
 export default function ClientDetailsPage({
   clientId,
 }: {
@@ -116,6 +135,10 @@ export default function ClientDetailsPage({
   );
 
   const taskCounts = useMemo(() => getTaskStatusCounts(client?.tasks), [client]);
+  const driveData = useMemo(
+    () => normalizeDriveData(client?.imageDrivelink),
+    [client?.imageDrivelink],
+  );
 
   if (loading) {
     return (
@@ -488,26 +511,57 @@ export default function ClientDetailsPage({
         )}
 
         {/* Image Drive Link */}
-        {client.imageDrivelink && (
+        {(driveData.driveLink || driveData.items.length > 0) && (
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="p-6">
-              <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3 mb-4">
+            <div className="p-6 space-y-4">
+              <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3">
                 <div className="p-2.5 bg-slate-100 rounded-lg">
                   <ImageIcon className="h-5 w-5 text-slate-700" />
                 </div>
                 Image Drive Link
               </h3>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
-                <a
-                  href={client.imageDrivelink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700 hover:underline font-medium flex items-center gap-2"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                  {client.imageDrivelink}
-                </a>
-              </div>
+
+              {driveData.driveLink && (
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <a
+                    href={driveData.driveLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 hover:underline font-medium flex items-center gap-2"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    {driveData.driveLink}
+                  </a>
+                </div>
+              )}
+
+              {driveData.items.length > 0 && (
+                <div className="space-y-2">
+                  {driveData.items.map((item, idx) => (
+                    <div
+                      key={`${item?.link || item?.title || "link"}-${idx}`}
+                      className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-lg p-3"
+                    >
+                      <ImageIcon className="h-4 w-4 text-slate-600 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">
+                          {item?.title || "(Untitled)"}
+                        </p>
+                        {item?.link && (
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline break-all"
+                          >
+                            {item.link}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -34,8 +34,14 @@ export interface OnboardingFormData {
   // Biography
   biography?: string;
 
-  // Image Gallery
-  imageDrivelink?: string;
+  // Image Gallery (supports string drive link or JSON: { driveLink, items: [{ title, link }] })
+  imageDrivelink?:
+    | string
+    | {
+        driveLink?: string;
+        items?: Array<{ title: string; link: string }>;
+      }
+    | Array<{ title: string; link: string }>;
   imageFolderId?: string;
   imageCount?: number;
 

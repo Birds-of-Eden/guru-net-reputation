@@ -65,7 +65,13 @@ interface OnboardingData {
   companywebsite?: string;
   companyaddress?: string;
   biography?: string;
-  imageDrivelink?: string;
+  imageDrivelink?:
+    | string
+    | {
+        driveLink?: string;
+        items?: Array<{ title?: string; link?: string }>;
+      }
+    | Array<{ title?: string; link?: string }>;
   avatar?: string | null;
   profilePicture?: File | null;
   progress?: number;
@@ -172,7 +178,7 @@ const InfoItem: FC<InfoItemProps> = memo(({ label, value, icon: Icon }) => {
         <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">
           {label}
         </span>
-        <span className="text-gray-900 font-medium text-base leading-relaxed break-words">
+        <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word">
           {value}
         </span>
       </div>
@@ -710,7 +716,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                                       title={v}
                                     >
                                       <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
-                                      <span className="break-words">{v}</span>
+                                      <span className="wrap-break-word">{v}</span>
                                     </a>
                                   </li>
                                 );
@@ -720,7 +726,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                               return (
                                 <li
                                   key={i}
-                                  className="text-slate-700 text-sm whitespace-pre-wrap break-words"
+                                  className="text-slate-700 text-sm whitespace-pre-wrap wrap-break-word"
                                 >
                                   {v}
                                 </li>
@@ -776,24 +782,76 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                     </div>
                   </div>
                 )}
-                {formData.imageDrivelink && (
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-600 mb-2">
-                      Image Gallery
-                    </h4>
-                    <a
-                      href={formData.imageDrivelink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
-                    >
-                      <LinkIcon className="h-4 w-4 shrink-0" />
-                      <span className="truncate text-sm">
-                        {formData.imageDrivelink}
-                      </span>
-                    </a>
-                  </div>
-                )}
+                {(() => {
+                  const raw = formData.imageDrivelink as any;
+                  const driveLink =
+                    typeof raw === "string"
+                      ? raw
+                      : Array.isArray(raw)
+                        ? ""
+                        : raw?.driveLink || "";
+                  const items = Array.isArray(raw)
+                    ? raw
+                    : Array.isArray(raw?.items)
+                      ? raw.items
+                      : [];
+
+                  if (!driveLink && items.length === 0) return null;
+
+                  return (
+                    <div className="space-y-3">
+                      {driveLink && (
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-600 mb-2">
+                            Image Gallery
+                          </h4>
+                          <a
+                            href={driveLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
+                          >
+                            <LinkIcon className="h-4 w-4 shrink-0" />
+                            <span className="truncate text-sm">{driveLink}</span>
+                          </a>
+                        </div>
+                      )}
+
+                      {items.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-600 mb-2">
+                            Added Links
+                          </h4>
+                          <ul className="space-y-2">
+                            {items.map((item: any, idx: number) => (
+                              <li
+                                key={`${item?.link || "link"}-${idx}`}
+                                className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3"
+                              >
+                                <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-slate-800 truncate">
+                                    {item?.title || "(Untitled)"}
+                                  </p>
+                                  {item?.link && (
+                                    <a
+                                      href={item.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-indigo-600 hover:underline break-all"
+                                    >
+                                      {item.link}
+                                    </a>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </ReviewSectionCard>
           )}

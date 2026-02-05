@@ -53,6 +53,8 @@ export default function CreateNextTask({
           json?.message ||
             `Created ${createdCount} remaining task(s) and assigned to ${assignedToName}`
         );
+        // Hide the button after successful creation
+        setIsHidden(true);
         // Optional: remember this client so you can hide the button if desired
         try {
           localStorage.setItem(`nextTasksCreated:${clientId}`, "1");

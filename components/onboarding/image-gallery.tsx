@@ -48,8 +48,26 @@ export function ImageGallery({
 
   // 💡 NEW: State for zip download
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  // Manual gallery items (title + link)
+  const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemLink, setNewItemLink] = useState("");
 
   // -------- helpers --------
+
+  const driveLink = useMemo(() => {
+    const val = formData.imageDrivelink as any;
+    if (typeof val === "string") return val;
+    if (Array.isArray(val)) return "";
+    return val?.driveLink ?? "";
+  }, [formData.imageDrivelink]);
+
+  const imageItems = useMemo(() => {
+    const val = formData.imageDrivelink as any;
+    if (Array.isArray(val)) return val.filter((i) => i?.link || i?.title);
+    if (val && Array.isArray(val.items))
+      return val.items.filter((i: any) => i?.link || i?.title);
+    return [] as Array<{ title?: string; link?: string }>;
+  }, [formData.imageDrivelink]);
 
   // ✅ Get Google access token from NextAuth session
   const { data: session } = useSession();
@@ -81,16 +99,15 @@ export function ImageGallery({
   };
 
   const folderId = useMemo(
-    () =>
-      formData.imageDrivelink ? extractFolderId(formData.imageDrivelink) : null,
-    [formData.imageDrivelink]
+    () => (driveLink ? extractFolderId(driveLink) : null),
+    [driveLink]
   );
 
   // -------- actions --------
   const validateDriveLink = async () => {
     setErrorMsg(null);
 
-    if (!formData.imageDrivelink) {
+    if (!driveLink) {
       toast.error("Please enter a Google Drive folder link");
       return;
     }
@@ -185,6 +202,32 @@ export function ImageGallery({
     }
   };
   // ------------------------------------
+
+  const handleAddItem = () => {
+    if (!newItemTitle.trim() && !newItemLink.trim()) return;
+    const next = [
+      ...imageItems,
+      { title: newItemTitle.trim(), link: newItemLink.trim() },
+    ].filter((i) => i.link || i.title);
+    updateFormData({
+      imageDrivelink: {
+        driveLink,
+        items: next,
+      },
+    });
+    setNewItemTitle("");
+    setNewItemLink("");
+  };
+
+  const handleRemoveItem = (idx: number) => {
+    const next = imageItems.filter((_, i) => i !== idx);
+    updateFormData({
+      imageDrivelink: {
+        driveLink,
+        items: next,
+      },
+    });
+  };
 
   const handleCopy = async (img: DriveImage) => {
     setCopyingId(img.id);
@@ -322,7 +365,7 @@ export function ImageGallery({
               />
 
               {/* hover actions */}
-              <div className="absolute inset-0 flex items-end justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/50 to-transparent">
+              <div className="absolute inset-0 flex items-end justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-linear-to-t from-black/50 to-transparent">
                 <div className="flex gap-2">
                   {isCopied ? (
                     <Button size="sm" variant="secondary" disabled>
@@ -414,15 +457,20 @@ export function ImageGallery({
             <Input
               id="imageDrivelink"
               placeholder="https://drive.google.com/drive/folders/XXXXXXXXXXXX"
-              value={formData.imageDrivelink || ""}
+              value={driveLink}
               onChange={(e) =>
-                updateFormData({ imageDrivelink: e.target.value })
+                updateFormData({
+                  imageDrivelink: {
+                    driveLink: e.target.value,
+                    items: imageItems,
+                  },
+                })
               }
               className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl"
             />
             <Button
               onClick={validateDriveLink}
-              disabled={isValidating || !formData.imageDrivelink}
+              disabled={isValidating || !driveLink}
               className="h-12 px-8 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50"
             >
               {isValidating ? (
@@ -450,6 +498,76 @@ export function ImageGallery({
               <p className="text-sm text-red-800 font-medium">{errorMsg}</p>
             </div>
           )}
+
+          {/* Manual items */}
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-semibold text-gray-700">
+                Add Image Links (Title + URL)
+              </Label>
+              <span className="text-xs text-gray-500">Optional</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Input
+                placeholder="Title"
+                value={newItemTitle}
+                onChange={(e) => setNewItemTitle(e.target.value)}
+                className="md:col-span-2 h-11"
+              />
+              <Input
+                placeholder="https://example.com/image"
+                value={newItemLink}
+                onChange={(e) => setNewItemLink(e.target.value)}
+                className="md:col-span-3 h-11"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleAddItem}
+                className="bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                disabled={!newItemTitle.trim() && !newItemLink.trim()}
+              >
+                Add Link
+              </Button>
+            </div>
+
+            {imageItems.length > 0 && (
+              <div className="space-y-2">
+                {imageItems.map((item, idx) => (
+                  <div
+                    key={`${item.title}-${idx}`}
+                    className="flex items-center justify-between bg-white border border-emerald-100 rounded-lg px-3 py-2"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 truncate">
+                        {item.title || "(Untitled)"}
+                      </p>
+                      {item.link && (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-emerald-600 hover:underline break-all"
+                        >
+                          {item.link}
+                        </a>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveItem(idx)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

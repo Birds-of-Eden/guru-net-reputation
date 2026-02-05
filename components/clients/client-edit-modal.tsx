@@ -70,7 +70,13 @@ export type FormValues = {
   companywebsite?: string;
   companyaddress?: string;
   biography?: string;
-  imageDrivelink?: string;
+  imageDrivelink?:
+    | string
+    | {
+        driveLink?: string;
+        items?: Array<{ title?: string; link?: string }>;
+      }
+    | Array<{ title?: string; link?: string }>;
   avatar?: string;
   socialMedia?: string;
   articleTopics?: string;
@@ -88,6 +94,38 @@ export type FormValues = {
 };
 
 type AMUser = { id: string; name: string | null; email: string | null };
+type DriveItem = { title?: string; link?: string };
+
+const normalizeImageDrive = (raw: any): { driveLink: string; items: DriveItem[] } => {
+  if (typeof raw === "string") {
+    return { driveLink: raw, items: [] };
+  }
+  if (Array.isArray(raw)) {
+    return {
+      driveLink: "",
+      items: raw.filter((i) => i?.link || i?.title),
+    };
+  }
+  if (raw && typeof raw === "object") {
+    return {
+      driveLink: typeof raw.driveLink === "string" ? raw.driveLink : "",
+      items: Array.isArray(raw.items) ? raw.items.filter((i: any) => i?.link || i?.title) : [],
+    };
+  }
+  return { driveLink: "", items: [] };
+};
+
+const buildImageDrivePayload = (driveLink: string, items: DriveItem[]) => {
+  const cleanDriveLink = String(driveLink || "").trim();
+  const cleanItems = (items || [])
+    .map((i) => ({
+      title: String(i?.title ?? "").trim() || undefined,
+      link: String(i?.link ?? "").trim() || undefined,
+    }))
+    .filter((i) => i.title || i.link);
+  if (!cleanDriveLink && cleanItems.length === 0) return null;
+  return { driveLink: cleanDriveLink, items: cleanItems };
+};
 
 export interface ClientEditModalProps {
   open: boolean;
@@ -134,6 +172,10 @@ export default function ClientEditModal({
   const [amsError, setAmsError] = useState<string | null>(null);
   const [biographyContent, setBiographyContent] = useState<string>("");
   const [isClient, setIsClient] = useState(false);
+  const [driveLink, setDriveLink] = useState("");
+  const [driveItems, setDriveItems] = useState<DriveItem[]>([]);
+  const [newDriveTitle, setNewDriveTitle] = useState("");
+  const [newDriveLink, setNewDriveLink] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
   const currentAmId = clientData.amId ?? null;
@@ -178,6 +220,9 @@ export default function ClientEditModal({
   useEffect(() => {
     setIsClient(true);
     setBiographyContent((clientData as any).biography ?? "");
+    const initialDrive = normalizeImageDrive((clientData as any).imageDrivelink);
+    setDriveLink(initialDrive.driveLink);
+    setDriveItems(initialDrive.items);
   }, []);
 
   // rehydrate form whenever the modal is opened (so stale edits don't linger)
@@ -185,6 +230,9 @@ export default function ClientEditModal({
     if (!open) return;
     const biographyValue = (clientData as any).biography ?? "";
     setBiographyContent(biographyValue);
+    const nextDrive = normalizeImageDrive((clientData as any).imageDrivelink);
+    setDriveLink(nextDrive.driveLink);
+    setDriveItems(nextDrive.items);
     reset({
       name: clientData.name ?? "",
       birthdate: toDateInput(clientData.birthdate as any),
@@ -343,6 +391,19 @@ export default function ClientEditModal({
   const removeKeyword = (idx: number) => 
     setKeywords(prev => prev.filter((_, i) => i !== idx));
 
+  const addDriveItem = () => {
+    if (!newDriveTitle.trim() && !newDriveLink.trim()) return;
+    setDriveItems((prev) => [
+      ...prev,
+      { title: newDriveTitle.trim(), link: newDriveLink.trim() },
+    ]);
+    setNewDriveTitle("");
+    setNewDriveLink("");
+  };
+
+  const removeDriveItem = (idx: number) =>
+    setDriveItems((prev) => prev.filter((_, i) => i !== idx));
+
   const fetchAMs = async (): Promise<AMUser[]> => {
     try {
       setAmsLoading(true);
@@ -392,6 +453,7 @@ export default function ClientEditModal({
 
       // Update biography form value with current editor content
       setValue("biography", biographyContent);
+      const imagePayload = buildImageDrivePayload(driveLink, driveItems);
 
       let payload: Partial<FormValues>;
 
@@ -408,6 +470,7 @@ export default function ClientEditModal({
           if (val !== undefined) (acc as any)[key] = val;
           return acc;
         }, {} as Partial<FormValues>);
+        (payload as any).imageDrivelink = imagePayload;
       } else {
         const {
           email,
@@ -472,7 +535,7 @@ export default function ClientEditModal({
           phone: values.phone || undefined,
           password: values.password || undefined,
           recoveryEmail: values.recoveryEmail || undefined,
-          imageDrivelink: values.imageDrivelink?.trim() || null,
+          imageDrivelink: imagePayload,
           websites: cleanedWebsites,
           progress:
             values.progress === undefined || values.progress === null
@@ -630,8 +693,79 @@ export default function ClientEditModal({
                     <Input
                       id="imageDrivelink"
                       className="border-slate-300 focus:border-purple-500"
-                      {...register("imageDrivelink")}
+                      value={driveLink}
+                      onChange={(e) => setDriveLink(e.target.value)}
+                      placeholder="https://drive.google.com/drive/folders/XXXXXXXXXXXX"
                     />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-slate-700">
+                        Add Image Links (Title + URL)
+                      </Label>
+                      <span className="text-xs text-slate-500">Optional</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      <Input
+                        placeholder="Title"
+                        value={newDriveTitle}
+                        onChange={(e) => setNewDriveTitle(e.target.value)}
+                        className="md:col-span-2 border-slate-300 focus:border-purple-500"
+                      />
+                      <Input
+                        placeholder="https://example.com/image"
+                        value={newDriveLink}
+                        onChange={(e) => setNewDriveLink(e.target.value)}
+                        className="md:col-span-3 border-slate-300 focus:border-purple-500"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-slate-300 bg-white text-purple-700 hover:bg-purple-50"
+                        onClick={addDriveItem}
+                        disabled={!newDriveTitle.trim() && !newDriveLink.trim()}
+                      >
+                        Add Link
+                      </Button>
+                    </div>
+
+                    {driveItems.length > 0 && (
+                      <div className="space-y-2">
+                        {driveItems.map((item, idx) => (
+                          <div
+                            key={`${item?.link || item?.title || idx}`}
+                            className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-slate-800 truncate">
+                                {item?.title || "(Untitled)"}
+                              </p>
+                              {item?.link && (
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-purple-600 hover:underline break-all"
+                                >
+                                  {item.link}
+                                </a>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeDriveItem(idx)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -991,8 +1125,79 @@ export default function ClientEditModal({
                       <Input
                         id="imageDrivelink"
                         className="border-slate-300 focus:border-rose-500"
-                        {...register("imageDrivelink")}
+                        value={driveLink}
+                        onChange={(e) => setDriveLink(e.target.value)}
+                        placeholder="https://drive.google.com/drive/folders/XXXXXXXXXXXX"
                       />
+                    </div>
+                    <div className="md:col-span-2 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Add Image Links (Title + URL)
+                        </Label>
+                        <span className="text-xs text-slate-500">Optional</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <Input
+                          placeholder="Title"
+                          value={newDriveTitle}
+                          onChange={(e) => setNewDriveTitle(e.target.value)}
+                          className="md:col-span-2 border-slate-300 focus:border-rose-500"
+                        />
+                        <Input
+                          placeholder="https://example.com/image"
+                          value={newDriveLink}
+                          onChange={(e) => setNewDriveLink(e.target.value)}
+                          className="md:col-span-3 border-slate-300 focus:border-rose-500"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-slate-300 bg-white text-rose-700 hover:bg-rose-50"
+                          onClick={addDriveItem}
+                          disabled={!newDriveTitle.trim() && !newDriveLink.trim()}
+                        >
+                          Add Link
+                        </Button>
+                      </div>
+
+                      {driveItems.length > 0 && (
+                        <div className="space-y-2">
+                          {driveItems.map((item, idx) => (
+                            <div
+                              key={`${item?.link || item?.title || "link"}-${idx}`}
+                              className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-slate-800 truncate">
+                                  {item?.title || "(Untitled)"}
+                                </p>
+                                {item?.link && (
+                                  <a
+                                    href={item.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-rose-600 hover:underline break-all"
+                                  >
+                                    {item.link}
+                                  </a>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeDriveItem(idx)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="md:col-span-2">
                       <Label

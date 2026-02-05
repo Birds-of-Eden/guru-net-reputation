@@ -11,6 +11,25 @@ interface DriveImageProps {
 }
 
 export function DriveImage({ clientData }: DriveImageProps) {
+  const normalizeDriveData = (raw: any) => {
+    if (typeof raw === "string") {
+      return { driveLink: raw, items: [] as Array<{ title?: string; link?: string }> }
+    }
+    if (Array.isArray(raw)) {
+      return {
+        driveLink: "",
+        items: raw.filter((i) => i?.link || i?.title),
+      }
+    }
+    if (raw && typeof raw === "object") {
+      return {
+        driveLink: typeof raw.driveLink === "string" ? raw.driveLink : "",
+        items: Array.isArray(raw.items) ? raw.items.filter((i: any) => i?.link || i?.title) : [],
+      }
+    }
+    return { driveLink: "", items: [] as Array<{ title?: string; link?: string }> }
+  }
+
   const extractFolderId = (url: string): string | null => {
     try {
       const u = new URL(url)
@@ -27,7 +46,11 @@ export function DriveImage({ clientData }: DriveImageProps) {
     }
   }
 
-  if (!clientData.imageDrivelink) {
+  const { driveLink, items } = normalizeDriveData(clientData.imageDrivelink)
+  const hasDriveLink = Boolean(driveLink)
+  const hasItems = items.length > 0
+
+  if (!hasDriveLink && !hasItems) {
     return (
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
         <CardContent className="p-12">
@@ -46,8 +69,8 @@ export function DriveImage({ clientData }: DriveImageProps) {
     )
   }
 
-  const folderId = extractFolderId(clientData.imageDrivelink)
-  if (!folderId) {
+  const folderId = hasDriveLink ? extractFolderId(driveLink) : null
+  if (hasDriveLink && !folderId) {
     return (
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
         <CardContent className="p-12">
@@ -70,8 +93,14 @@ export function DriveImage({ clientData }: DriveImageProps) {
   }
 
   return (
-    <div>
-      <DriveImageGallery driveLink={clientData.imageDrivelink ?? ""} clientName={clientData.name} />
+    <div className="space-y-6">
+      {hasDriveLink && (
+        <DriveImageGallery
+          driveLink={driveLink}
+          clientName={clientData.name}
+          linkTabs={items}
+        />
+      )}
     </div>
   )
 }

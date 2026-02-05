@@ -8,7 +8,14 @@ export type Client = {
     location: string | null
     websites: string[] | null
     biography: string | null
-    imageDrivelink: string | null
+    imageDrivelink:
+      | string
+      | {
+          driveLink?: string
+          items?: Array<{ title?: string; link?: string }>
+        }
+      | Array<{ title?: string; link?: string }>
+      | null
     companywebsite: string | null
     companyaddress: string | null
     avatar: string | null

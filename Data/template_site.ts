@@ -15,7 +15,7 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.youtube.com",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 20,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
 
@@ -24,7 +24,7 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.crunchbase.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 20,
+    defaultIdealDurationMinutesForPosting: 5,
     defaultPostingFrequency: 3,
   },
 
@@ -78,8 +78,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://hubpages.com",
     isRequired: true,
     defaultIdealDurationMinutes: 22,
-    defaultIdealDurationMinutesForPosting: 22,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -132,8 +132,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://completed.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 16,
-    defaultIdealDurationMinutesForPosting: 16,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -186,8 +186,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://speakerdeck.com",
     isRequired: true,
     defaultIdealDurationMinutes: 16,
-    defaultIdealDurationMinutesForPosting: 16,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -195,8 +195,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://bsky.app/profile",
     isRequired: true,
     defaultIdealDurationMinutes: 12,
-    defaultIdealDurationMinutesForPosting: 12,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -213,8 +213,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://speakerhub.com",
     isRequired: true,
     defaultIdealDurationMinutes: 30,
-    defaultIdealDurationMinutesForPosting: 30,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -222,8 +222,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.velvetjobs.com",
     isRequired: true,
     defaultIdealDurationMinutes: 16,
-    defaultIdealDurationMinutesForPosting: 16,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -231,8 +231,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://webflow.io/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 20,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -240,8 +240,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://reddit.com",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 15,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -258,8 +258,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://sessionize.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 14,
-    defaultIdealDurationMinutesForPosting: 14,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -276,8 +276,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.doyoubuzz.com/us",
     isRequired: true,
     defaultIdealDurationMinutes: 18,
-    defaultIdealDurationMinutesForPosting: 18,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -285,8 +285,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://infogram.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 18,
-    defaultIdealDurationMinutesForPosting: 18,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -294,8 +294,8 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.creator-spring.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 20,
-    defaultPostingFrequency: 3,
+    defaultIdealDurationMinutesForPosting: 0,
+    defaultPostingFrequency: 0,
   },
 
   {
@@ -303,42 +303,6 @@ export const DEFAULT_SOCIAL_SITES = [
     url: "https://www.bloglovin.com",
     isRequired: true,
     defaultIdealDurationMinutes: 14,
-    defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "SoundCloud",
-    url: "https://soundcloud.com",
-    isRequired: true,
-    defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "Flickr",
-    url: "https://flickr.com",
-    isRequired: true,
-    defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "Houzz",
-    url: "https://houzz.com",
-    isRequired: true,
-    defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "Medium.com",
-    url: "https://medium.com",
-    isRequired: true,
-    defaultIdealDurationMinutes: 30,
     defaultIdealDurationMinutesForPosting: 5,
     defaultPostingFrequency: 3,
   },
@@ -350,7 +314,7 @@ export const DEFAULT_WEB2_SITES = [
     url: "https://medium.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 30,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 15,
     defaultPostingFrequency: 3,
   },
 
@@ -368,7 +332,7 @@ export const DEFAULT_WEB2_SITES = [
     url: "https://www.tumblr.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 25,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 15,
     defaultPostingFrequency: 3,
   },
 
@@ -377,7 +341,7 @@ export const DEFAULT_WEB2_SITES = [
     url: "https://wordpress.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 40,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 15,
     defaultPostingFrequency: 3,
   },
 
@@ -395,15 +359,6 @@ export const DEFAULT_WEB2_SITES = [
     url: "https://jimdo.com",
     isRequired: true,
     defaultIdealDurationMinutes: 35,
-    defaultIdealDurationMinutesForPosting: 10,
-    defaultPostingFrequency: 3,
-  },
-
-  {
-    name: "Bravenet",
-    url: "https://www.bravenet.com/register",
-    isRequired: true,
-    defaultIdealDurationMinutes: 30,
     defaultIdealDurationMinutesForPosting: 10,
     defaultPostingFrequency: 3,
   },
@@ -461,6 +416,15 @@ export const DEFAULT_WEB2_SITES = [
     defaultIdealDurationMinutesForPosting: 13,
     defaultPostingFrequency: 3,
   },
+
+  {
+    name: "EMD",
+    url: "#######",
+    isRequired: true,
+    defaultIdealDurationMinutes: 130,
+    defaultIdealDurationMinutesForPosting: 20,
+    defaultPostingFrequency: 3,
+  },
 ];
 
 export const DEFAULT_ADDITIONAL_SITES = [
@@ -469,7 +433,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://triberr.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -477,7 +441,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://disqus.com",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -485,7 +449,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://www.dwell.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -493,7 +457,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://www.creator-spring.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -501,7 +465,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://www.producthunt.com",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -509,7 +473,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://hub.docker.com",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -517,7 +481,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://www.xing.com/en",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -525,7 +489,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://www.last.fm/",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -533,7 +497,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://wellfound.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -541,7 +505,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://padlet.com/",
     isRequired: true,
     defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
   {
@@ -549,7 +513,7 @@ export const DEFAULT_ADDITIONAL_SITES = [
     url: "https://diigo.com",
     isRequired: true,
     defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 10,
+    defaultIdealDurationMinutesForPosting: 0,
     defaultPostingFrequency: 0,
   },
 ];
@@ -560,7 +524,7 @@ export const DEFAULT_GRAPHICS_DESIGN = [
     url: "https://drive.google.com/drive/home",
     isRequired: true,
     defaultIdealDurationMinutes: 90,
-    defaultIdealDurationMinutesForPosting: 90,
+    defaultIdealDurationMinutesForPosting: 60,
     defaultPostingFrequency: 0,
   },
 ];
@@ -571,7 +535,7 @@ export const DEFAULT_BIOGRAPHY_OPTIMIZATION = [
     url: "https://docs.google.com/document/u/0/",
     isRequired: true,
     defaultIdealDurationMinutes: 60,
-    defaultIdealDurationMinutesForPosting: 30,
+    defaultIdealDurationMinutesForPosting: 60,
     defaultPostingFrequency: 0,
   },
 ];
@@ -582,7 +546,7 @@ export const DEFAULT_IMAGE_OPTIMIZATION = [
     url: "https://drive.google.com/drive/home",
     isRequired: true,
     defaultIdealDurationMinutes: 120,
-    defaultIdealDurationMinutesForPosting: 20,
+    defaultIdealDurationMinutesForPosting: 120,
     defaultPostingFrequency: 0,
   },
 ];
@@ -661,28 +625,6 @@ export const DEFAULT_SUMMARY_REPORT = [
     defaultIdealDurationMinutes: 40,
     defaultIdealDurationMinutesForPosting: 40,
     defaultPostingFrequency: 1,
-  },
-];
-
-export const DEFAULT_EMD_POSTING = [
-  {
-    name: "EMD Posting",
-    url: "https://www.google.com/",
-    isRequired: true,
-    defaultIdealDurationMinutes: 20,
-    defaultIdealDurationMinutesForPosting: 20,
-    defaultPostingFrequency: 3,
-  },
-];
-
-export const DEFAULT_SOCIAL_BOOKMARKING = [
-  {
-    name: "Social Bookmarking",
-    url: "https://www.google.com/",
-    isRequired: true,
-    defaultIdealDurationMinutes: 15,
-    defaultIdealDurationMinutesForPosting: 15,
-    defaultPostingFrequency: 3,
   },
 ];
 

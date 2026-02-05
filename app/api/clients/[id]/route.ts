@@ -17,6 +17,41 @@ function coerceSocialMedia(input: any): any[] | undefined {
   return [];
 }
 
+type ImageDriveItem = { title?: string; link?: string };
+
+const normalizeImageDrivelink = (input: unknown) => {
+  if (input === undefined) return undefined;
+  if (input === null) return null;
+  if (typeof input === "string") {
+    const driveLink = input.trim();
+    return driveLink ? { driveLink, items: [] as ImageDriveItem[] } : null;
+  }
+  if (Array.isArray(input)) {
+    const items = input
+      .map((item) => ({
+        title: String((item as any)?.title ?? "").trim() || undefined,
+        link: String((item as any)?.link ?? "").trim() || undefined,
+      }))
+      .filter((item) => item.title || item.link);
+    return items.length ? { driveLink: "", items } : null;
+  }
+  if (typeof input === "object") {
+    const obj = input as any;
+    const driveLink =
+      typeof obj?.driveLink === "string" ? obj.driveLink.trim() : "";
+    const items = Array.isArray(obj?.items)
+      ? obj.items
+          .map((item: any) => ({
+            title: String(item?.title ?? "").trim() || undefined,
+            link: String(item?.link ?? "").trim() || undefined,
+          }))
+          .filter((item: ImageDriveItem) => item.title || item.link)
+      : [];
+    return driveLink || items.length ? { driveLink, items } : null;
+  }
+  return null;
+};
+
 async function computeClientProgress(clientId: string) {
   // সব টাস্ক নিয়ে groupBy করে কাউন্ট
   const grouped = await prisma.task.groupBy({
@@ -302,6 +337,7 @@ export async function PUT(
       companywebsite,
       companyaddress,
       biography,
+      // Allow JSON payload (string/object/array) for Drive links
       imageDrivelink,
       avatar,
       // progress - ক্লায়েন্ট থেকে নেবো না; আমরা নিজেই রিক্যালকুলেট করবো
@@ -325,6 +361,10 @@ export async function PUT(
     } = body;
 
     const hasWebsites = Object.prototype.hasOwnProperty.call(body, "websites");
+    const hasImageDrivelink = Object.prototype.hasOwnProperty.call(
+      body,
+      "imageDrivelink",
+    );
     const hasAmId = Object.prototype.hasOwnProperty.call(body, "amId");
     const hasPackageId = Object.prototype.hasOwnProperty.call(body, "packageId");
     const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
@@ -392,7 +432,9 @@ export async function PUT(
         companywebsite: cleanString(companywebsite),
         companyaddress: cleanString(companyaddress),
         biography,
-        imageDrivelink: cleanString(imageDrivelink),
+        imageDrivelink: hasImageDrivelink
+          ? normalizeImageDrivelink(imageDrivelink)
+          : undefined,
         avatar: cleanString(avatar),
         status: hasStatus ? statusValue : undefined,
         // only update packageId if provided; undefined leaves current value

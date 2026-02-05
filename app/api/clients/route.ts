@@ -34,6 +34,41 @@ type ArticleTopic = {
   usedCount?: number;
 };
 
+type ImageDriveItem = { title?: string; link?: string };
+
+const normalizeImageDrivelink = (input: unknown) => {
+  if (input === undefined) return undefined;
+  if (input === null) return null;
+  if (typeof input === "string") {
+    const driveLink = input.trim();
+    return driveLink ? { driveLink, items: [] as ImageDriveItem[] } : null;
+  }
+  if (Array.isArray(input)) {
+    const items = input
+      .map((item) => ({
+        title: String((item as any)?.title ?? "").trim() || undefined,
+        link: String((item as any)?.link ?? "").trim() || undefined,
+      }))
+      .filter((item) => item.title || item.link);
+    return items.length ? { driveLink: "", items } : null;
+  }
+  if (typeof input === "object") {
+    const obj = input as any;
+    const driveLink =
+      typeof obj?.driveLink === "string" ? obj.driveLink.trim() : "";
+    const items = Array.isArray(obj?.items)
+      ? obj.items
+          .map((item: any) => ({
+            title: String(item?.title ?? "").trim() || undefined,
+            link: String(item?.link ?? "").trim() || undefined,
+          }))
+          .filter((item: ImageDriveItem) => item.title || item.link)
+      : [];
+    return driveLink || items.length ? { driveLink, items } : null;
+  }
+  return null;
+};
+
 // Normalize and validate articleTopics input from request body
 const normalizeArticleTopics = (input: unknown): ArticleTopic[] => {
   if (!Array.isArray(input)) return [];
@@ -530,6 +565,7 @@ export async function POST(req: NextRequest) {
       companywebsite,
       companyaddress,
       biography,
+      // Allow JSON payload (array/object/string) for Drive links
       imageDrivelink,
       avatar,
       progress,
@@ -612,7 +648,7 @@ export async function POST(req: NextRequest) {
           companywebsite,
           companyaddress,
           biography,
-          imageDrivelink,
+          imageDrivelink: normalizeImageDrivelink(imageDrivelink),
           avatar,
           progress: progressNumber as any,
           status,
@@ -839,6 +875,11 @@ export async function PUT(req: NextRequest) {
       keywords,
     } = body;
 
+    const hasImageDrivelink = Object.prototype.hasOwnProperty.call(
+      body,
+      "imageDrivelink",
+    );
+
     const updated = await prisma.client.update({
       where: { id },
       data: {
@@ -855,7 +896,9 @@ export async function PUT(req: NextRequest) {
         companywebsite,
         companyaddress,
         biography,
-        imageDrivelink,
+        imageDrivelink: hasImageDrivelink
+          ? normalizeImageDrivelink(imageDrivelink)
+          : undefined,
         avatar,
         progress,
         status,

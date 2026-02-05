@@ -352,7 +352,7 @@ model Client {
   recoveryEmail  String?
   websites       Json?
   biography      String?
-  imageDrivelink String?
+  imageDrivelink Json?
 
   articleTopics Json?
 

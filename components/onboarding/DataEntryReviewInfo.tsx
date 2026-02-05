@@ -556,7 +556,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
           <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">
             {label}
           </span>
-          <span className="text-gray-900 font-medium text-base leading-relaxed break-words">
+          <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word">
             {value}
           </span>
         </div>
@@ -637,50 +637,32 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                     link.url && (
                       <div
                         key={index}
-                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow"
+                        className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-rose-100 shadow-sm"
                       >
-                        <Badge
-                          variant="secondary"
-                          className="font-medium bg-slate-100 text-slate-700 border-slate-200 px-3 py-1.5"
-                        >
-                          {link.platform}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-rose-100 text-rose-700">
+                            <Share2 className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-800 truncate">
+                              {link.platform || "Social"}
+                            </p>
+                            <a
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-rose-600 hover:underline break-all"
+                            >
+                              {link.url}
+                            </a>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="bg-rose-50 text-rose-700">
+                          {link.username || link.email || "Profile"}
                         </Badge>
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline truncate flex-1 text-sm font-medium"
-                        >
-                          {link.url.replace(/^https?:\/\//, "")}
-                        </a>
                       </div>
-                    ),
+                    )
                 )}
-              </div>
-            </ReviewSectionCard>
-          )}
-
-          {/* Additional Information */}
-          {formData.otherField && formData.otherField.length > 0 && (
-            <ReviewSectionCard
-              icon={PlusCircle}
-              title="Additional Information"
-              gradient="from-violet-50 to-purple-50"
-            >
-              <div className="space-y-3">
-                {formData.otherField.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow"
-                  >
-                    <p className="font-semibold text-slate-800 text-sm mb-2">
-                      {item.title}
-                    </p>
-                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
-                      {item.data}
-                    </p>
-                  </div>
-                ))}
               </div>
             </ReviewSectionCard>
           )}
@@ -708,22 +690,76 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                   </div>
                 )}
                 {formData.imageDrivelink && (
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-600 mb-2">
-                      Image Gallery
-                    </h4>
-                    <a
-                      href={formData.imageDrivelink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
-                    >
-                      <LinkIcon className="h-4 w-4 shrink-0" />
-                      <span className="truncate text-sm">
-                        {formData.imageDrivelink}
-                      </span>
-                    </a>
-                  </div>
+                  (() => {
+                    const raw = formData.imageDrivelink as any;
+                    const driveLink =
+                      typeof raw === "string"
+                        ? raw
+                        : Array.isArray(raw)
+                          ? ""
+                          : raw?.driveLink || "";
+                    const items = Array.isArray(raw)
+                      ? raw
+                      : Array.isArray(raw?.items)
+                        ? raw.items
+                        : [];
+
+                    if (!driveLink && items.length === 0) return null;
+
+                    return (
+                      <div className="space-y-3">
+                        {driveLink && (
+                          <div>
+                            <h4 className="text-sm font-medium text-slate-600 mb-2">
+                              Image Gallery
+                            </h4>
+                            <a
+                              href={driveLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
+                            >
+                              <LinkIcon className="h-4 w-4 shrink-0" />
+                              <span className="truncate text-sm">{driveLink}</span>
+                            </a>
+                          </div>
+                        )}
+
+                        {items.length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-slate-600 mb-2">
+                              Added Links
+                            </h4>
+                            <ul className="space-y-2">
+                              {items.map((item: any, idx: number) => (
+                                <li
+                                  key={`${item?.link || "link"}-${idx}`}
+                                  className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3"
+                                >
+                                  <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-slate-800 truncate">
+                                      {item?.title || "(Untitled)"}
+                                    </p>
+                                    {item?.link && (
+                                      <a
+                                        href={item.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-indigo-600 hover:underline break-all"
+                                      >
+                                        {item.link}
+                                      </a>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
                 )}
               </div>
             </ReviewSectionCard>
