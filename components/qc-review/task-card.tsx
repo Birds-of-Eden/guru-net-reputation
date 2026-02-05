@@ -176,14 +176,18 @@ function StarRating({
   value,
   onChange,
   id,
+  disabled = false,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   id?: string;
+  disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 hover:bg-slate-50 transition-colors">
+    <div className={`flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 transition-colors ${
+      disabled ? "opacity-70 cursor-not-allowed" : "hover:bg-slate-50"
+    }`}>
       <label
         htmlFor={id}
         className="text-xs font-medium text-slate-600 select-none truncate"
@@ -202,8 +206,9 @@ function StarRating({
             <button
               key={i}
               type="button"
-              onClick={() => onChange(i === value ? i - 1 : i)}
-              className="p-0.5 outline-none focus:ring-1 focus:ring-amber-400 rounded transition-all duration-100 hover:scale-105"
+              onClick={() => disabled ? null : onChange(i === value ? i - 1 : i)}
+              disabled={disabled}
+              className="p-0.5 outline-none focus:ring-1 focus:ring-amber-400 rounded transition-all duration-100 hover:scale-105 disabled:hover:scale-100"
               role="radio"
               aria-checked={active}
               aria-label={`${i} star${i > 1 ? "s" : ""}`}
@@ -212,7 +217,7 @@ function StarRating({
                 className={`h-3 w-3 transition-colors ${
                   active
                     ? "text-amber-400"
-                    : "text-slate-300 hover:text-amber-300"
+                    : disabled ? "text-slate-300" : "text-slate-300 hover:text-amber-300"
                 }`}
                 fill={active ? "currentColor" : "none"}
               />
@@ -248,6 +253,7 @@ export function TaskCard({
   );
   const isApproved = approvedMap[task.id];
   const canReview = !task.completionLink || completionViewed;
+  const isQCApprovedTab = task.status === "qc_approved";
   const cardGradient =
     performanceGradients[
       task.performanceRating as keyof typeof performanceGradients
@@ -319,7 +325,9 @@ export function TaskCard({
   }, [isClientModalOpen, fetchClientData]);
 
   return (
-    <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group">
+    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group ${
+      isQCApprovedTab ? "opacity-60 cursor-not-allowed" : ""
+    }`}>
       <div
         className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${cardGradient}`}
       />
@@ -366,36 +374,42 @@ export function TaskCard({
                     value={scores.keyword}
                     onChange={(v) => setScore("keyword", v)}
                     id={`qc-keyword-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                   <StarRating
                     label="Content Optimization"
                     value={scores.contentQuality}
                     onChange={(v) => setScore("contentQuality", v)}
                     id={`qc-content-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                   <StarRating
                     label="Image Using"
                     value={scores.image}
                     onChange={(v) => setScore("image", v)}
                     id={`qc-image-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                   <StarRating
                     label="SEO"
                     value={scores.seo}
                     onChange={(v) => setScore("seo", v)}
                     id={`qc-seo-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                   <StarRating
                     label="Grammar "
                     value={scores.grammar}
                     onChange={(v) => setScore("grammar", v)}
                     id={`qc-grammar-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                   <StarRating
                     label="Humanization"
                     value={scores.humanization}
                     onChange={(v) => setScore("humanization", v)}
                     id={`qc-human-${task.id}`}
+                    disabled={isQCApprovedTab}
                   />
                 </div>
                 <div className="mt-1 text-right text-xs text-slate-500 font-medium">
@@ -440,7 +454,16 @@ export function TaskCard({
                       onOpenChange={setIsClientModalOpen}
                     >
                       <DialogTrigger asChild>
-                        <Button className="relative rounded-xl p-0 bg-transparent hover:bg-transparent overflow-hidden isolate mt-2 h-8">
+                        <Button 
+                          className={`relative rounded-xl p-0 bg-transparent hover:bg-transparent overflow-hidden isolate mt-2 h-8 ${
+                            isQCApprovedTab ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                          disabled={isQCApprovedTab}
+                          onClick={() => {
+                            if (isQCApprovedTab) return;
+                            setIsClientModalOpen(true);
+                          }}
+                        >
                           <BackgroundGradient className="rounded-xl">
                             <div className="rounded-xl px-3 py-1 text-white text-xs">
                               View Client Details
@@ -559,7 +582,9 @@ export function TaskCard({
                         "noopener,noreferrer",
                       );
                     }}
-                    className="bg-linear-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
+                    className={`bg-linear-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
+                      isQCApprovedTab ? "cursor-not-allowed" : ""
+                    }`}
                   >
                     <ExternalLink className="h-3 w-3 mr-2" />
                     View Completion
@@ -568,16 +593,20 @@ export function TaskCard({
                 {task.notes && (
                   <div className="mt-3">
                     <Button
-                      onClick={() =>
+                      onClick={() => {
+                        if (isQCApprovedTab) return; // Disable for QC-approved tasks
                         setNotePreview({
                           open: true,
                           note: task.notes || "",
                           taskName: task.name || "",
-                        })
-                      }
+                        });
+                      }}
+                      disabled={isQCApprovedTab}
                       variant="outline"
                       size="sm"
-                      className="bg-linear-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2"
+                      className={`bg-linear-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
+                        isQCApprovedTab ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <Eye className="h-4 w-4 text-white" />
                       View Notes
@@ -667,25 +696,31 @@ export function TaskCard({
 
               <div className="flex gap-2">
                 <Button
-                  onClick={() => onApprove(task)}
-                  disabled={isApproved || !canReview}
+                  onClick={() => isQCApprovedTab ? null : onApprove(task)}
+                  disabled={isApproved || !canReview || isQCApprovedTab}
                   size="sm"
                   className={`flex-1 font-bold text-xs py-2 ${
-                    isApproved
-                      ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md"
+                    isQCApprovedTab
+                      ? "bg-green-600 text-white hover:bg-green-600 shadow-md cursor-not-allowed"
+                      : isApproved
+                      ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md cursor-not-allowed"
                       : `bg-linear-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
                   }`}
                 >
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  {isApproved ? "Approved" : "Approve"}
+                  {isQCApprovedTab ? "QC Approved" : isApproved ? "QC Approved" : "Approve"}
                 </Button>
 
                 <Button
                   onClick={() => onReject(task)}
                   variant="outline"
                   size="sm"
-                  disabled={!canReview}
-                  className="flex-1 border border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 font-bold text-xs py-2 shadow-md hover:shadow-lg transition-all duration-200"
+                  disabled={isQCApprovedTab || !canReview}
+                  className={`flex-1 border font-bold text-xs py-2 shadow-md hover:shadow-lg transition-all duration-200 ${
+                    isQCApprovedTab 
+                      ? "border-orange-300 text-orange-600 opacity-60 cursor-not-allowed"
+                      : "border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30"
+                  }`}
                 >
                   <RotateCcw className="h-3 w-3 mr-1" />
                   Reassign

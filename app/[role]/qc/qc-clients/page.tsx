@@ -834,7 +834,7 @@ function ClientsTable({ rows }: { rows: ClientStats[] }) {
                         style={{ width: `${r.progress}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-50 min-w-[3rem]">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-50 min-w-12">
                       {r.progress}%
                     </span>
                   </div>

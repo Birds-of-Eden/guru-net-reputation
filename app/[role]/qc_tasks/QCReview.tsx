@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2,
@@ -31,6 +32,8 @@ import {
   ExternalLink,
   TrendingUp,
   Award,
+  ListTodo,
+  CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
@@ -341,7 +344,8 @@ export const QCReview = memo(function QCReview({
   // Build query params (QC-only enforced here)
   const taskParams = useMemo(() => {
     const params = new URLSearchParams();
-    params.set("status", "completed");
+    // Remove status filter to get both completed and qc_approved tasks
+    // params.set("status", "completed");
 
     if (agentId !== "all") params.set("assignedToId", agentId);
     if (clientId !== "all") params.set("clientId", clientId);
@@ -470,11 +474,29 @@ export const QCReview = memo(function QCReview({
     return tasks;
   }, [tasks, qcSupervisorId]);
 
+  // Filter tasks by status
+  const completedTasks = useMemo(() => {
+    return qcScopedTasks.filter(task => task.status === "completed");
+  }, [qcScopedTasks]);
+
+  const qcApprovedTasks = useMemo(() => {
+    return qcScopedTasks.filter(task => task.status === "qc_approved");
+  }, [qcScopedTasks]);
+
+  // Also include tasks that have qcReview but still show as completed
+  const allRelevantTasks = useMemo(() => {
+    return qcScopedTasks.filter(task => 
+      task.status === "completed" || 
+      task.status === "qc_approved" ||
+      (task.qcReview && task.qcReview.reviewedAt)
+    );
+  }, [qcScopedTasks]);
+
   const filteredTasks = useMemo(() => {
-    if (!debouncedQ.trim()) return qcScopedTasks;
+    if (!debouncedQ.trim()) return allRelevantTasks;
 
     const needle = debouncedQ.toLowerCase();
-    return qcScopedTasks.filter((t) => {
+    return allRelevantTasks.filter((t) => {
       const searchString = [
         t.name,
         t.notes ?? "",
@@ -491,7 +513,7 @@ export const QCReview = memo(function QCReview({
 
       return searchString.includes(needle);
     });
-  }, [debouncedQ, qcScopedTasks]);
+  }, [debouncedQ, allRelevantTasks]);
 
   const clearFilters = () => {
     setAgentId("all");
@@ -822,69 +844,222 @@ export const QCReview = memo(function QCReview({
             <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <Award className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-blue-700">
-                {filteredTasks.length} of {qcScopedTasks.length} tasks
+                {allRelevantTasks.length} total tasks
               </span>
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="p-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center space-y-4">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
+          <Tabs defaultValue="completed" className="w-full space-y-4">
+            <TabsList className="grid w-full grid-cols-2 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg">
+              <TabsTrigger
+                value="completed"
+                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Completed ({completedTasks.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="qc-approved"
+                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+              >
+                <CheckSquare className="h-4 w-4 mr-2" />
+                QC Approved ({qcApprovedTasks.length})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* All Tasks Tab */}
+            <TabsContent value="all">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center space-y-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-slate-700 font-medium">Loading tasks...</p>
+                      <p className="text-slate-500 text-sm">
+                        Please wait while we fetch the latest data
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-slate-700 font-medium">Loading tasks...</p>
-                  <p className="text-slate-500 text-sm">
-                    Please wait while we fetch the latest data
-                  </p>
+              ) : filteredTasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
+                      <CheckCircle className="h-12 w-12 text-emerald-500" />
+                    </div>
+                    <div className="space-y-2 max-w-md">
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        🎉 All Tasks Reviewed!
+                      </h3>
+                      <p className="text-slate-600">
+                        Great job! You've successfully completed QC review for all
+                        available tasks. Take a well-deserved break!
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="flex flex-col items-center gap-6">
-                <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
-                  <CheckCircle className="h-12 w-12 text-emerald-500" />
+              ) : (
+                <VirtualTaskList
+                  tasks={filteredTasks}
+                  approvedMap={approvedMap}
+                  onApprove={handleApprove}
+                  onReject={(t) => {
+                    if (!requireCompletionView(t)) return;
+                    setReassignDialog({
+                      open: true,
+                      task: t,
+                      reassignNotes: "",
+                      loading: false,
+                    });
+                  }}
+                  qcScoresByTask={qcScoresByTask}
+                  onChangeScores={(taskId, scores) =>
+                    setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
+                  }
+                  defaultScores={defaultScores}
+                  setNotePreview={setNotePreview}
+                  onOpenCompletionLink={openCompletionLink}
+                  completionViewedMap={completionViewedMap}
+                />
+              )}
+            </TabsContent>
+
+            {/* Completed Tasks Tab */}
+            <TabsContent value="completed">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center space-y-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-slate-700 font-medium">Loading completed tasks...</p>
+                      <p className="text-slate-500 text-sm">
+                        Please wait while we fetch the latest data
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2 max-w-md">
-                  <h3 className="text-xl font-semibold text-slate-900">
-                    🎉 All Tasks Reviewed!
-                  </h3>
-                  <p className="text-slate-600">
-                    Great job! You've successfully completed QC review for all
-                    available tasks. Take a well-deserved break!
-                  </p>
+              ) : completedTasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-4 bg-linear-to-br from-blue-100 to-cyan-100 rounded-2xl">
+                      <CheckCircle className="h-12 w-12 text-blue-500" />
+                    </div>
+                    <div className="space-y-2 max-w-md">
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        No Completed Tasks
+                      </h3>
+                      <p className="text-slate-600">
+                        There are no completed tasks available for QC review at the moment.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <VirtualTaskList
-              tasks={filteredTasks}
-              approvedMap={approvedMap}
-              onApprove={handleApprove}
-              onReject={(t) => {
-                if (!requireCompletionView(t)) return;
-                setReassignDialog({
-                  open: true,
-                  task: t,
-                  reassignNotes: "",
-                  loading: false,
-                });
-              }}
-              qcScoresByTask={qcScoresByTask}
-              onChangeScores={(taskId, scores) =>
-                setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
-              }
-              defaultScores={defaultScores}
-              setNotePreview={setNotePreview}
-              onOpenCompletionLink={openCompletionLink}
-              completionViewedMap={completionViewedMap}
-            />
-          )}
+              ) : (
+                <VirtualTaskList
+                  tasks={completedTasks}
+                  approvedMap={approvedMap}
+                  onApprove={handleApprove}
+                  onReject={(t) => {
+                    if (!requireCompletionView(t)) return;
+                    setReassignDialog({
+                      open: true,
+                      task: t,
+                      reassignNotes: "",
+                      loading: false,
+                    });
+                  }}
+                  qcScoresByTask={qcScoresByTask}
+                  onChangeScores={(taskId, scores) =>
+                    setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
+                  }
+                  defaultScores={defaultScores}
+                  setNotePreview={setNotePreview}
+                  onOpenCompletionLink={openCompletionLink}
+                  completionViewedMap={completionViewedMap}
+                />
+              )}
+            </TabsContent>
+
+            {/* QC Approved Tasks Tab */}
+            <TabsContent value="qc-approved">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center space-y-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <Loader2 className="h-8 w-8 animate-spin text-green-500 absolute top-4 left-4" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-slate-700 font-medium">Loading QC approved tasks...</p>
+                      <p className="text-slate-500 text-sm">
+                        Please wait while we fetch the latest data
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : qcApprovedTasks.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
+                      <CheckSquare className="h-12 w-12 text-emerald-500" />
+                    </div>
+                    <div className="space-y-2 max-w-md">
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        No QC Approved Tasks
+                      </h3>
+                      <p className="text-slate-600">
+                        No tasks have been QC approved yet. Complete and approve tasks to see them here.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <CheckSquare className="h-5 w-5 text-emerald-600" />
+                      <div>
+                        <h4 className="font-semibold text-emerald-800">QC Approved Tasks</h4>
+                        <p className="text-sm text-emerald-600">
+                          These tasks have passed QC review and are marked as approved.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <VirtualTaskList
+                    tasks={qcApprovedTasks}
+                    approvedMap={approvedMap}
+                    onApprove={handleApprove}
+                    onReject={(t) => {
+                      if (!requireCompletionView(t)) return;
+                      setReassignDialog({
+                        open: true,
+                        task: t,
+                        reassignNotes: "",
+                        loading: false,
+                      });
+                    }}
+                    qcScoresByTask={qcScoresByTask}
+                    onChangeScores={(taskId, scores) =>
+                      setQcScoresByTask((m) => ({ ...m, [taskId]: scores }))
+                    }
+                    defaultScores={defaultScores}
+                    setNotePreview={setNotePreview}
+                    onOpenCompletionLink={openCompletionLink}
+                    completionViewedMap={completionViewedMap}
+                  />
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
