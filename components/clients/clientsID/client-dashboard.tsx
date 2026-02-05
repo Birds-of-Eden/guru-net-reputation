@@ -290,9 +290,9 @@ export function ClientDashboard({
       )
     : 0;
 
-  // Clamp values for display
+  // Clamp values for display (only minimum, no maximum cap for This Month Progress)
   const displayOverall = Math.min(100, Math.max(0, derivedProgress));
-  const displayThisMonth = Math.min(100, Math.max(0, derivedProgressThisMonth));
+  const displayThisMonth = Math.max(0, derivedProgressThisMonth);
 
   const reloadClient = async () => {
     try {
