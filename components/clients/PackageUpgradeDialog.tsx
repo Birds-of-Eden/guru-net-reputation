@@ -283,13 +283,22 @@ export default function PackageUpgradeDialog({
           console.warn("Failed to scan current assets", e);
         }
 
-        const newAssets: { id?: any; name: string; type: string }[] = (
+        const rawNewAssets: { id?: any; name: string; type: string }[] = (
           tpl?.sitesAssets || []
         ).map((a: any) => ({
           id: a.id,
           name: a.name || "",
           type: a.type || "",
         }));
+
+        // Dedupe new assets by normalized key to avoid duplicates in preview.
+        const newAssetMap = new Map<string, { id?: any; name: string; type: string }>();
+        for (const a of rawNewAssets) {
+          const k = assetKey(a);
+          if (!newAssetMap.has(k)) newAssetMap.set(k, a);
+        }
+        const newAssets = Array.from(newAssetMap.values());
+
         const oldKeys = new Set(oldAssets.map((a) => assetKey(a)));
         const common = newAssets.filter((a) => oldKeys.has(assetKey(a)));
         const onlyInNew = newAssets.filter((a) => !oldKeys.has(assetKey(a)));
