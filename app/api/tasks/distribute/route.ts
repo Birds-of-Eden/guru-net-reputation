@@ -147,17 +147,20 @@ export async function POST(request: Request) {
       return updatedTasks;
     });
 
+    const taskNameById = new Map(result.map((task) => [task.id, task.name]));
+
     // 4) Notifications (mention due date if present)
     const notificationPromises = assignments.map(
       ({ taskId, agentId, dueDate }) => {
         const assigneeName = agentNameById.get(agentId) || "Agent";
+        const taskName = taskNameById.get(taskId) || "task";
         const dueLabel = formatDueDate(dueDate);
         return prisma.notification.create({
           data: {
             userId: agentId,
             taskId,
             type: NotificationType.general,
-            message: `${assigneeName} has been assigned a new task for ${clientName}${
+            message: `${assigneeName} has been assigned ${taskName} for ${clientName}${
               dueLabel ? ` (due ${dueLabel})` : ""
             }.`,
             createdAt: new Date(),
