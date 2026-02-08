@@ -185,6 +185,13 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
             id: true,
             name: true,
             description: true,
+            sitesAssets: {
+              select: {
+                id: true,
+                name: true,
+                type: true,
+              },
+            },
           },
         },
       },
@@ -609,8 +616,6 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
   summary_report: "Summary Report",
   guest_posting: "Guest Posting",
 };
-
-const WEB2_FIXED_PLATFORMS = new Set(["medium", "tumblr", "wordpress"]);
 
 async function ensureCategoryByName(name: string) {
   const found = await prisma.taskCategory.findFirst({
@@ -1054,8 +1059,6 @@ export async function POST(
               const meta = metaById.get(assetId);
               const rawName = meta?.name || `Asset ${assetId}`;
               const rawType = norm(meta?.type || "");
-              const rawNameNorm = norm(rawName);
-
               const catName = resolveCategoryFromType(rawType);
 
               const finalName = `${stripTaskSuffix(rawName)} Task`;
@@ -1066,20 +1069,11 @@ export async function POST(
               const typeBaseKey = `${rawType}::${finalBase}`;
               const assetBaseKey = `asset_${assetId}::${finalBase}`;
 
-              let isDup: boolean;
-              if (
-                rawType === "web2_site" &&
-                WEB2_FIXED_PLATFORMS.has(rawNameNorm)
-              ) {
-                // For Medium/Tumblr/WordPress, only dedupe within this run/assignment.
-                isDup = seededAssetIds.has(assetId);
-              } else {
-                isDup =
-                  seededAssetIds.has(assetId) ||
-                  catSets.nameBases.has(finalBase) ||
-                  catSets.typeBaseKeys.has(typeBaseKey) ||
-                  catSets.assetBaseKeys.has(assetBaseKey);
-              }
+              const isDup =
+                seededAssetIds.has(assetId) ||
+                catSets.nameBases.has(finalBase) ||
+                catSets.typeBaseKeys.has(typeBaseKey) ||
+                catSets.assetBaseKeys.has(assetBaseKey);
 
               if (!isDup) {
                 needSeeds.push(assetId);

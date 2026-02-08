@@ -7,7 +7,7 @@ import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-ty
 import {
   fetchAssetTypeMap,
   resolveCategoryFromMap,
-  resolveCategoryName,
+  type AssetTypeRecord,
 } from "@/lib/asset-types.server";
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
@@ -87,7 +87,7 @@ const CATEGORY_BY_ASSET_TYPE: Record<string, string> = {
 
 function resolveCategoryFromType(
   assetType: string | undefined | null,
-  assetTypeMap: Map<string, { categoryName?: string | null }>,
+  assetTypeMap: Map<string, AssetTypeRecord>,
   fallbackMap: Record<string, string>
 ): string {
   return resolveCategoryFromMap(
@@ -455,18 +455,33 @@ export async function POST(req: NextRequest) {
       ])
     );
 
-    console.log(`[MIGRATION-POSTING-DEDUPE] Checking ${namesToCheck.length} potential posting tasks`);
+    console.log(
+      `[MIGRATION-POSTING-DEDUPE] Checking ${namesToCheck.length} potential posting tasks`
+    );
 
-    // 🔥 CRITICAL: Pull ALL existing names from entire CLIENT (not just assignment)
-    // This prevents duplicates across all assignments for the client
+    // Only dedupe against posting categories (not creation tasks).
+    const POSTING_CATEGORY_NAMES = new Set([
+      CAT_SOCIAL_ACTIVITY,
+      CAT_BLOG_POSTING,
+      CAT_SOCIAL_COMMUNICATION,
+    ]);
+
+    // Pull existing posting tasks across the entire CLIENT (not just assignment)
     const existingCopies = await prisma.task.findMany({
-      where: { 
-        clientId: clientId, // 👈 Changed from assignmentId to clientId
+      where: {
+        clientId: clientId,
+        category: { is: { name: { in: Array.from(POSTING_CATEGORY_NAMES) } } },
       },
-      select: { name: true, templateSiteAssetId: true, category: { select: { name: true } } },
+      select: {
+        name: true,
+        templateSiteAssetId: true,
+        category: { select: { name: true } },
+      },
     });
 
-    console.log(`[MIGRATION-POSTING-DEDUPE] Found ${existingCopies.length} existing tasks in client`);
+    console.log(
+      `[MIGRATION-POSTING-DEDUPE] Found ${existingCopies.length} existing posting tasks in client`
+    );
 
     const skipNameBaseSet = new Set(
       existingCopies.map((t) => normalizeForDedupe(t.name || ""))
@@ -478,32 +493,14 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // 🔥 ADDITIONAL: Skip creation tasks by category and asset combination
-    const CREATION_CATEGORY_NAMES = new Set(
-      ["social_site", "web2_site", "other_asset"].map((slug) =>
-        resolveCategoryName(
-          slug,
-          assetTypeMap,
-          fallbackCategoryMap,
-          "Additional Asset Creation"
-        )
-      )
+    console.log(
+      `[MIGRATION-POSTING-DEDUPE] Skip name bases:`,
+      skipNameBaseSet.size
     );
-
-    const skipCreationAssetKeys = new Set(
-      existingCopies
-        .filter((t) => CREATION_CATEGORY_NAMES.has(t.category?.name || ""))
-        .map((t) => {
-          const base = normalizeForDedupe(t.name || "");
-          const assetId = t.templateSiteAssetId;
-          return `creation_${assetId}::${base}`;
-        })
-        .filter(key => !key.startsWith("creation_null::") && !key.startsWith("creation_undefined::"))
+    console.log(
+      `[MIGRATION-POSTING-DEDUPE] Skip pair bases:`,
+      skipPairBase.size
     );
-
-    console.log(`[MIGRATION-POSTING-DEDUPE] Skip name bases:`, skipNameBaseSet.size);
-    console.log(`[MIGRATION-POSTING-DEDUPE] Skip pair bases:`, skipPairBase.size);
-    console.log(`[MIGRATION-POSTING-DEDUPE] Skip creation asset keys:`, skipCreationAssetKeys.size);
 
     const overridePriority = body?.priority
       ? normalizeTaskPriority(body?.priority)
@@ -519,14 +516,7 @@ export async function POST(req: NextRequest) {
       const baseName = normalizeForDedupe(item.name);
       const pairKey = `${src.templateSiteAsset?.id ?? "none"}::${baseName}`;
       
-      // 🔥 ADDITIONAL: Check creation category duplicate
-      const creationAssetKey = `creation_${src.templateSiteAsset?.id ?? "none"}::${baseName}`;
-      
-      if (
-        skipNameBaseSet.has(baseName) || 
-        skipPairBase.has(pairKey) ||
-        skipCreationAssetKeys.has(creationAssetKey)
-      ) {
+      if (skipNameBaseSet.has(baseName) || skipPairBase.has(pairKey)) {
         console.log(`[MIGRATION-POSTING-DEDUPE] Skipping posting task: ${item.name} - duplicate found`);
         continue;
       }
@@ -568,13 +558,7 @@ export async function POST(req: NextRequest) {
       const scName = `${base} - ${CAT_SOCIAL_COMMUNICATION} Task`;
       const scBase = normalizeForDedupe(scName);
       const pairKey = `${src.templateSiteAsset?.id ?? "none"}::${scBase}`;
-      const creationAssetKey = `creation_${src.templateSiteAsset?.id ?? "none"}::${scBase}`;
-      
-      if (
-        skipNameBaseSet.has(scBase) || 
-        skipPairBase.has(pairKey) ||
-        skipCreationAssetKeys.has(creationAssetKey)
-      ) {
+      if (skipNameBaseSet.has(scBase) || skipPairBase.has(pairKey)) {
         console.log(`[MIGRATION-POSTING-DEDUPE] Skipping social communication task: ${scName} - duplicate found`);
         continue;
       }
@@ -623,10 +607,7 @@ export async function POST(req: NextRequest) {
       const scName = `${PLATFORM_META[p].label} - ${CAT_SOCIAL_COMMUNICATION} Task`;
       const scBase = normalizeForDedupe(scName);
       
-      if (
-        skipNameBaseSet.has(scBase) ||
-        skipCreationAssetKeys.has(`creation_none::${scBase}`)
-      ) {
+      if (skipNameBaseSet.has(scBase)) {
         console.log(`[MIGRATION-POSTING-DEDUPE] Skipping web2 social communication task: ${scName} - duplicate found`);
         continue;
       }
