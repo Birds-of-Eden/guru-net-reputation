@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
+import { calculateTaskDueDate } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -118,8 +118,10 @@ function buildMaxCycleMap(
     if (!allowedCategories.has(catName)) continue;
     const base = baseNameOf(t.name);
     if (!base) continue;
-    const cycle = extractCycleNumber(t.name);
-    if (!cycle || cycle <= 0) continue;
+    const match = String(t.name).match(/\s*-\s*(\d+)\s*$/i);
+    if (!match) continue; // only count explicit cycles like "Name -1"
+    const cycle = Number.parseInt(match[1], 10);
+    if (!Number.isFinite(cycle) || cycle <= 0) continue;
     const key = `${catName}::${base}`;
     const prev = map.get(key) ?? 0;
     if (cycle > prev) map.set(key, cycle);
@@ -279,6 +281,7 @@ export async function GET(req: NextRequest) {
       where: { id: clientId },
       select: {
         id: true,
+        packageId: true,
         package: { select: { totalMonths: true } },
       },
     });
@@ -298,17 +301,36 @@ export async function GET(req: NextRequest) {
 
     const templateId =
       templateIdRaw === "none" || templateIdRaw === "" ? null : templateIdRaw;
-    const assignment = await prisma.assignment.findFirst({
-      where: {
-        clientId,
-        ...(templateIdRaw !== undefined
-          ? { templateId: templateId ?? undefined }
-          : {}),
-      },
-      orderBy: { assignedAt: "desc" },
-      select: { id: true },
-    });
-    if (!assignment) {
+    const assignment =
+      templateIdRaw !== undefined
+        ? await prisma.assignment.findFirst({
+            where: {
+              clientId,
+              ...(templateIdRaw !== undefined
+                ? { templateId: templateId ?? undefined }
+                : {}),
+            },
+            orderBy: { assignedAt: "desc" },
+          select: { id: true, templateId: true },
+        })
+        : await prisma.assignment.findFirst({
+            where: {
+              clientId,
+              template: {
+                packageId: client.packageId ?? undefined,
+              },
+            },
+            orderBy: { assignedAt: "desc" },
+            select: { id: true, templateId: true },
+          });
+    const fallbackAssignment =
+      assignment ??
+      (await prisma.assignment.findFirst({
+        where: { clientId },
+        orderBy: { assignedAt: "desc" },
+        select: { id: true, templateId: true },
+      }));
+    if (!fallbackAssignment) {
       return NextResponse.json(
         {
           message:
@@ -342,7 +364,7 @@ export async function GET(req: NextRequest) {
 
     const sourceTasks = await prisma.task.findMany({
       where: {
-        assignmentId: assignment.id,
+        assignmentId: fallbackAssignment.id,
         templateSiteAsset: {
           is: {
             ...typeFilter,
@@ -371,8 +393,63 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const countsByStatus = countByStatus(sourceTasks as any);
-    const prereqTasks = sourceTasks.filter((t) => {
+    const templateAssets = fallbackAssignment.templateId
+      ? await prisma.templateSiteAsset.findMany({
+          where: { templateId: fallbackAssignment.templateId },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
+        })
+      : [];
+
+    const normalizeKey = (name: string, type: string) =>
+      `${normalizeAssetTypeSlug(type)}::${String(name)
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim()}`;
+
+    const sourceByKey = new Map(
+      sourceTasks.map((t) => {
+        const base = baseNameOf(t.name || "").replace(/\s*task\s*$/i, "").trim();
+        const type = t.templateSiteAsset?.type ?? "";
+        return [normalizeKey(base, type), t];
+      })
+    );
+
+    const syntheticTasks = templateAssets
+      .filter((a) => {
+        const base = String(a.name ?? "").trim();
+        const key = normalizeKey(base, a.type ?? "");
+        return base && !sourceByKey.has(key);
+      })
+      .map((a) => ({
+        id: `synthetic-${a.id}`,
+        name: `${String(a.name ?? "").trim()} Task`,
+        status: "qc_approved" as TaskStatus,
+        priority: "medium" as const,
+        idealDurationMinutes: a.defaultIdealDurationMinutesForPosting ?? null,
+        completionLink: null,
+        email: null,
+        password: null,
+        username: null,
+        notes: null,
+        templateSiteAsset: {
+          id: a.id,
+          type: a.type ?? null,
+          defaultPostingFrequency: a.defaultPostingFrequency ?? null,
+          defaultIdealDurationMinutesForPosting:
+            a.defaultIdealDurationMinutesForPosting ?? null,
+        },
+      }));
+
+    const augmentedSourceTasks = [...sourceTasks, ...syntheticTasks];
+
+    const countsByStatus = countByStatus(augmentedSourceTasks as any);
+    const prereqTasks = augmentedSourceTasks.filter((t) => {
       const type = normalizeAssetTypeSlug(t.templateSiteAsset?.type ?? "");
       return (PREREQ_ASSET_TYPES as readonly string[]).includes(type);
     });
@@ -382,7 +459,7 @@ export async function GET(req: NextRequest) {
 
     const assetIds = Array.from(
       new Set(
-        sourceTasks
+        augmentedSourceTasks
           .map((s) => s.templateSiteAsset?.id)
           .filter((v): v is number => typeof v === "number")
       )
@@ -390,7 +467,7 @@ export async function GET(req: NextRequest) {
     const settings = assetIds.length
       ? await prisma.assignmentSiteAssetSetting.findMany({
           where: {
-            assignmentId: assignment.id,
+            assignmentId: fallbackAssignment.id,
             templateSiteAssetId: { in: assetIds },
           },
           select: { templateSiteAssetId: true, requiredFrequency: true },
@@ -400,7 +477,7 @@ export async function GET(req: NextRequest) {
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
 
-    const tasks = sourceTasks.map((src) => {
+    const tasks = augmentedSourceTasks.map((src) => {
       const assetId = src.templateSiteAsset?.id;
       const freq = getFrequency({
         required: assetId ? requiredByAssetId.get(assetId) : undefined,
@@ -429,7 +506,7 @@ export async function GET(req: NextRequest) {
     // --- NEW: Build Social Communication previews ---
 
     // social_site + other_asset: প্রতি অ্যাসেটে ১টা করে SC
-    const scAssetSources = sourceTasks.filter((s) => {
+    const scAssetSources = augmentedSourceTasks.filter((s) => {
       const t = normalizeAssetTypeSlug(s.templateSiteAsset?.type ?? "");
       return t === "social_site" || t === "other_asset";
     });
@@ -479,7 +556,7 @@ export async function GET(req: NextRequest) {
     const dedupeCategories = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
     const existingCopies = await prisma.task.findMany({
       where: {
-        assignmentId: assignment.id,
+        clientId,
         category: { is: { name: { in: dedupeCategories } } },
       },
       select: { name: true, category: { select: { name: true } } },
@@ -525,7 +602,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       message: "Preview of source tasks for copying.",
-      assignmentId: assignment.id,
+      assignmentId: fallbackAssignment.id,
       tasks: tasksWithSC,
       countsByStatus,
       allApproved,
@@ -576,6 +653,7 @@ export async function POST(req: NextRequest) {
       where: { id: clientId },
       select: {
         id: true,
+        packageId: true,
         package: { select: { totalMonths: true } },
       },
     });
@@ -594,17 +672,36 @@ export async function POST(req: NextRequest) {
         : 1;
 
     const templateId = templateIdRaw === "none" ? null : templateIdRaw;
-    const assignment = await prisma.assignment.findFirst({
-      where: {
-        clientId,
-        ...(templateId !== undefined
-          ? { templateId: templateId ?? undefined }
-          : {}),
-      },
-      orderBy: { assignedAt: "desc" },
-      select: { id: true },
-    });
-    if (!assignment) {
+    const assignment =
+      templateIdRaw !== undefined
+        ? await prisma.assignment.findFirst({
+            where: {
+              clientId,
+              ...(templateId !== undefined
+                ? { templateId: templateId ?? undefined }
+                : {}),
+            },
+            orderBy: { assignedAt: "desc" },
+          select: { id: true, templateId: true },
+        })
+        : await prisma.assignment.findFirst({
+            where: {
+              clientId,
+              template: {
+                packageId: client.packageId ?? undefined,
+              },
+            },
+            orderBy: { assignedAt: "desc" },
+            select: { id: true, templateId: true },
+          });
+    const fallbackAssignment =
+      assignment ??
+      (await prisma.assignment.findFirst({
+        where: { clientId },
+        orderBy: { assignedAt: "desc" },
+        select: { id: true, templateId: true },
+      }));
+    if (!fallbackAssignment) {
       return NextResponse.json(
         {
           message:
@@ -638,7 +735,7 @@ export async function POST(req: NextRequest) {
 
     const sourceTasks = await prisma.task.findMany({
       where: {
-        assignmentId: assignment.id,
+        assignmentId: fallbackAssignment.id,
         templateSiteAsset: {
           is: {
             ...typeFilter,
@@ -675,7 +772,63 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!sourceTasks.length) {
+    const templateAssets = fallbackAssignment.templateId
+      ? await prisma.templateSiteAsset.findMany({
+          where: { templateId: fallbackAssignment.templateId },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            defaultPostingFrequency: true,
+            defaultIdealDurationMinutesForPosting: true,
+          },
+        })
+      : [];
+
+    const normalizeKey = (name: string, type: string) =>
+      `${normalizeAssetTypeSlug(type)}::${String(name)
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim()}`;
+
+    const sourceByKey = new Map(
+      sourceTasks.map((t) => {
+        const base = baseNameOf(t.name || "").replace(/\s*task\s*$/i, "").trim();
+        const type = t.templateSiteAsset?.type ?? "";
+        return [normalizeKey(base, type), t];
+      })
+    );
+
+    const syntheticTasks = templateAssets
+      .filter((a) => {
+        const base = String(a.name ?? "").trim();
+        const key = normalizeKey(base, a.type ?? "");
+        return base && !sourceByKey.has(key);
+      })
+      .map((a) => ({
+        id: `synthetic-${a.id}`,
+        name: `${String(a.name ?? "").trim()} Task`,
+        status: "qc_approved" as TaskStatus,
+        priority: "medium" as const,
+        idealDurationMinutes: a.defaultIdealDurationMinutesForPosting ?? null,
+        completionLink: null,
+        email: null,
+        password: null,
+        username: null,
+        notes: null,
+        createdAt: new Date(),
+        templateSiteAsset: {
+          id: a.id,
+          type: a.type ?? null,
+          defaultPostingFrequency: a.defaultPostingFrequency ?? null,
+          defaultIdealDurationMinutesForPosting:
+            a.defaultIdealDurationMinutesForPosting ?? null,
+        },
+      }));
+
+    const augmentedSourceTasks = [...sourceTasks, ...syntheticTasks];
+
+    if (!augmentedSourceTasks.length) {
       return NextResponse.json(
         { message: "No source tasks found to copy.", tasks: [] },
         { status: 200 }
@@ -683,7 +836,7 @@ export async function POST(req: NextRequest) {
     }
 
     // QC gate
-    const notApproved = sourceTasks.filter((t) => {
+    const notApproved = augmentedSourceTasks.filter((t) => {
       const type = normalizeAssetTypeSlug(t.templateSiteAsset?.type ?? "");
       if (!(PREREQ_ASSET_TYPES as readonly string[]).includes(type)) return false;
       return t.status !== "qc_approved";
@@ -701,12 +854,12 @@ export async function POST(req: NextRequest) {
     }
 
     // --- NEW: Build creds map for Medium/Tumblr/Wordpress strictly from web2 sources
-    const web2PlatformCreds = collectWeb2PlatformSources(sourceTasks as any);
+    const web2PlatformCreds = collectWeb2PlatformSources(augmentedSourceTasks as any);
 
     // per-asset frequency overrides
     const assetIds = Array.from(
       new Set(
-        sourceTasks
+        augmentedSourceTasks
           .map((s) => s.templateSiteAsset?.id)
           .filter((v): v is number => typeof v === "number")
       )
@@ -714,7 +867,7 @@ export async function POST(req: NextRequest) {
     const settings = assetIds.length
       ? await prisma.assignmentSiteAssetSetting.findMany({
           where: {
-            assignmentId: assignment.id,
+            assignmentId: fallbackAssignment.id,
             templateSiteAssetId: { in: assetIds },
           },
           select: { templateSiteAssetId: true, requiredFrequency: true },
@@ -748,7 +901,7 @@ export async function POST(req: NextRequest) {
 
     const postingCategories = Array.from(
       new Set(
-        sourceTasks.map((src) =>
+        augmentedSourceTasks.map((src) =>
           resolveCategoryFromType(
             src.templateSiteAsset?.type ?? "",
             assetTypeMap,
@@ -777,7 +930,7 @@ export async function POST(req: NextRequest) {
     // NEW: Social Activity সিরিজের প্রতিটি base-এর last cycle dueDate ক্যাশ
     const lastCycleDueByBase = new Map<string, Date>();
 
-    for (const src of sourceTasks) {
+    for (const src of augmentedSourceTasks) {
       const assetType = normalizeAssetTypeSlug(
         src.templateSiteAsset?.type ?? ""
       );
@@ -807,7 +960,7 @@ export async function POST(req: NextRequest) {
     const dedupeCategories = [...postingCategories, CAT_SOCIAL_COMMUNICATION];
     const existingCopies = await prisma.task.findMany({
       where: {
-        assignmentId: assignment.id,
+        clientId,
         category: {
           is: {
             name: { in: dedupeCategories },
@@ -899,7 +1052,7 @@ export async function POST(req: NextRequest) {
           password: src.password ?? undefined,
           username: src.username ?? undefined,
           notes: src.notes ?? undefined,
-          assignmentId: assignment.id,
+          assignmentId: fallbackAssignment.id,
           clientId: clientId,
           categoryId: catId,
         });
@@ -909,7 +1062,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Social Communication from assets (social_site + other_asset), 1 per asset
-    for (const src of sourceTasks) {
+    for (const src of augmentedSourceTasks) {
       const t = normalizeAssetTypeSlug(src.templateSiteAsset?.type ?? "");
       if (t !== "social_site" && t !== "other_asset") continue;
 
@@ -953,7 +1106,7 @@ export async function POST(req: NextRequest) {
         password: src.password ?? undefined,
         username: src.username ?? undefined,
         notes: src.notes ?? undefined,
-        assignmentId: assignment.id,
+        assignmentId: fallbackAssignment.id,
         clientId: clientId,
         categoryId: catId,
       });
@@ -996,7 +1149,7 @@ export async function POST(req: NextRequest) {
             getRuntimeTaskDurationConfig()
           ),
 
-        assignmentId: assignment.id,
+        assignmentId: fallbackAssignment.id,
         clientId: clientId,
         categoryId: catId,
       });
@@ -1011,7 +1164,7 @@ export async function POST(req: NextRequest) {
             "All copies already exist under 'Social Activity' / 'Blog Posting' / 'Social Communication'.",
           created: 0,
           skipped: existingNameSet.size,
-          assignmentId: assignment.id,
+          assignmentId: fallbackAssignment.id,
           tasks: [],
         },
         { status: 200 }
@@ -1063,7 +1216,7 @@ export async function POST(req: NextRequest) {
         message: `Created ${totalCreated} task(s) across Social Activity, Blog Posting, and Social Communication.`,
         created: totalCreated,
         skipped: Array.from(skipNameSet).length,
-        assignmentId: assignment.id,
+        assignmentId: fallbackAssignment.id,
         tasks: createdTasks,
         runtime: "nodejs",
       },
