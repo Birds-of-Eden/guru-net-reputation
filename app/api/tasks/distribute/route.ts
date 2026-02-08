@@ -226,10 +226,6 @@ export async function PUT(request: Request) {
       const fromAgentId = task.assignedToId;
       const toAgentId = newAgentId;
       const clientId = task.clientId;
-      const adminManagers = await prisma.user.findMany({
-        where: { role: { name: { in: ["admin", "manager"] } } },
-        select: { id: true },
-      });
       const [client, toUser] = await Promise.all([
         clientId
           ? prisma.client.findUnique({
@@ -353,22 +349,6 @@ export async function PUT(request: Request) {
           })
         );
       }
-      if (adminManagers.length) {
-        const message = toAgentId
-          ? "A task has been reassigned to a new agent."
-          : "A task has been unassigned.";
-        notifs.push(
-          prisma.notification.createMany({
-            data: adminManagers.map((u) => ({
-              userId: u.id,
-              taskId,
-              type: NotificationType.general,
-              message,
-              createdAt: new Date(),
-            })),
-          })
-        );
-      }
       await Promise.all(notifs);
 
       return NextResponse.json({
@@ -382,10 +362,10 @@ export async function PUT(request: Request) {
     // ---------- BULK SHAPE ----------
     if (Array.isArray(body.reassignments) && body.reassignments.length) {
       const { clientId, reassignments } = body as {
-        clientId: string;
+        clientId?: string;
         reassignments: {
           taskId: string;
-          toAgentId: string;
+          toAgentId: string | null;
           reassignNotes?: string;
         }[];
       };
@@ -394,9 +374,61 @@ export async function PUT(request: Request) {
       const taskIds = [...new Set(reassignments.map((r) => r.taskId))];
       const existingTasks = await prisma.task.findMany({
         where: { id: { in: taskIds } },
-        select: { id: true, assignedToId: true },
+        select: { id: true, assignedToId: true, name: true, clientId: true },
       });
       const map = new Map(existingTasks.map((t) => [t.id, t.assignedToId]));
+      const taskNameById = new Map(existingTasks.map((t) => [t.id, t.name]));
+      const taskClientIdById = new Map(
+        existingTasks.map((t) => [t.id, t.clientId ?? null])
+      );
+
+      const toAgentIds = Array.from(
+        new Set(
+          reassignments
+            .map((r) => r.toAgentId)
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+      const clientIds = Array.from(
+        new Set(
+          existingTasks
+            .map((t) => t.clientId)
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      const [toUsers, clients] = await Promise.all([
+        toAgentIds.length
+          ? prisma.user.findMany({
+              where: { id: { in: toAgentIds } },
+              select: {
+                id: true,
+                name: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            })
+          : Promise.resolve([]),
+        clientIds.length
+          ? prisma.client.findMany({
+              where: { id: { in: clientIds } },
+              select: { id: true, name: true },
+            })
+          : Promise.resolve([]),
+      ]);
+      const agentNameById = new Map(
+        toUsers.map((u) => [
+          u.id,
+          u.name ||
+            `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() ||
+            u.email ||
+            "Agent",
+        ])
+      );
+      const clientNameById = new Map(
+        clients.map((c) => [c.id, c.name || "Client"])
+      );
 
       await prisma.$transaction(async (tx) => {
         // update tasks
@@ -504,24 +536,50 @@ export async function PUT(request: Request) {
         }
       });
 
-      // Notify admins/managers about each reassignment
-      const adminManagers = await prisma.user.findMany({
-        where: { role: { name: { in: ["admin", "manager"] } } },
-        select: { id: true },
-      });
-      if (adminManagers.length) {
-        const data = reassignments.flatMap(({ taskId }) =>
-          adminManagers.map((u) => ({
-            userId: u.id,
+      const notificationData = reassignments.flatMap(({ taskId, toAgentId }) => {
+        const rows: {
+          userId: string;
+          taskId: string;
+          type: NotificationType;
+          message: string;
+          createdAt: Date;
+        }[] = [];
+        const previousAssigneeId = map.get(taskId) ?? null;
+
+        if (toAgentId && previousAssigneeId !== toAgentId) {
+          const assigneeName = agentNameById.get(toAgentId) || "Agent";
+          const taskName = taskNameById.get(taskId) || "task";
+          const taskClientId = taskClientIdById.get(taskId) ?? null;
+          const taskClientName = taskClientId
+            ? clientNameById.get(taskClientId) || "Client"
+            : "Client";
+
+          rows.push({
+            userId: toAgentId,
             taskId,
             type: NotificationType.general,
-            message: "A task has been reassigned to a new agent.",
+            message: `${assigneeName} has been reassigned ${taskName} for ${taskClientName}.`,
             createdAt: new Date(),
-          }))
-        );
-        if (data.length) {
-          await prisma.notification.createMany({ data });
+          });
         }
+
+        if (previousAssigneeId && previousAssigneeId !== toAgentId) {
+          rows.push({
+            userId: previousAssigneeId,
+            taskId,
+            type: NotificationType.general,
+            message: toAgentId
+              ? "A task previously assigned to you has been reassigned."
+              : "A task previously assigned to you has been unassigned.",
+            createdAt: new Date(),
+          });
+        }
+
+        return rows;
+      });
+
+      if (notificationData.length) {
+        await prisma.notification.createMany({ data: notificationData });
       }
 
       return NextResponse.json({
