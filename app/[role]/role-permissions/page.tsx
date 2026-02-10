@@ -720,7 +720,7 @@ export default function RolePermissionPage() {
         </section>
 
         {/* ---------- Right: Permission Manager ---------- */}
-        <section className="lg:col-span-3 rounded-xl border bg-white shadow-sm">
+        <section className="lg:col-span-3 rounded-xl border bg-white shadow-sm flex flex-col min-h-[70vh] max-h-[82vh] overflow-hidden">
           <div className="p-4 border-b flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -791,149 +791,154 @@ export default function RolePermissionPage() {
             </div>
           )}
 
-          <div className="p-4">
-            {!selectedRole && (
-              <div className="text-center py-12">
-                <Shield size={48} className="mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500">
-                  Select a role to manage its permissions
-                </p>
-              </div>
-            )}
+          <div className="relative flex-1 overflow-hidden">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-t from-white to-transparent" />
 
-            {permLoading && selectedRole && (
-              // Skeleton for permissions grid
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={`skeleton-cat-${index}`} className="border rounded-lg overflow-hidden">
-                    <div className="p-4 bg-gray-50 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-5 w-5 rounded-md" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-5 w-32" />
-                          <Skeleton className="h-4 w-48" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-5 w-5" />
-                    </div>
-                    <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {Array.from({ length: 4 }).map((_, idx) => (
-                        <div key={`skeleton-perm-${idx}`} className="flex items-start gap-3 rounded-lg border p-3">
-                          <Skeleton className="h-5 w-5 mt-0.5" />
-                          <div className="flex-1 space-y-2">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-3 w-48" />
+            <div className="h-full overflow-y-auto p-4 pr-3 md:p-5 md:pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-blue-300 [&::-webkit-scrollbar-thumb]:to-indigo-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-indigo-500">
+              {!selectedRole && (
+                <div className="text-center py-12">
+                  <Shield size={48} className="mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">
+                    Select a role to manage its permissions
+                  </p>
+                </div>
+              )}
+
+              {permLoading && selectedRole && (
+                // Skeleton for permissions grid
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={`skeleton-cat-${index}`} className="border rounded-lg overflow-hidden">
+                      <div className="p-4 bg-gray-50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-5 w-5 rounded-md" />
+                          <div className="space-y-2">
+                            <Skeleton className="h-5 w-32" />
+                            <Skeleton className="h-4 w-48" />
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {selectedRole && !permLoading && (
-              <div className="space-y-4">
-                {Object.entries(filteredPermissions).map(
-                  ([categoryId, perms]) => {
-                    if (perms.length === 0) return null;
-
-                    const category = permissionCategories.find(
-                      (c) => c.id === categoryId
-                    ) || {
-                      id: categoryId,
-                      name:
-                        categoryId === "uncategorized"
-                          ? "Other Permissions"
-                          : categoryId,
-                      description: "Uncategorized permissions",
-                      icon: <Shield size={14} />,
-                    };
-
-                    const isExpanded = expandedCategories[categoryId] ?? true;
-
-                    return (
-                      <div
-                        key={categoryId}
-                        className="border rounded-lg overflow-hidden"
-                      >
-                        <button
-                          className="w-full p-4 bg-gray-50 flex items-center justify-between text-left"
-                          onClick={() => toggleCategory(categoryId)}
-                        >
-                          <div className="flex items-center gap-3">
-                            {category.icon}
-                            <div>
-                              <h3 className="font-medium text-gray-800">
-                                {category.name}
-                              </h3>
-                              <p className="text-sm text-gray-500">
-                                {category.description}
-                              </p>
+                        <Skeleton className="h-5 w-5" />
+                      </div>
+                      <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {Array.from({ length: 4 }).map((_, idx) => (
+                          <div key={`skeleton-perm-${idx}`} className="flex items-start gap-3 rounded-lg border p-3">
+                            <Skeleton className="h-5 w-5 mt-0.5" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-48" />
                             </div>
                           </div>
-                          <div className="text-gray-400">
-                            {isExpanded ? (
-                              <ChevronUp size={20} />
-                            ) : (
-                              <ChevronDown size={20} />
-                            )}
-                          </div>
-                        </button>
-
-                        {isExpanded && (
-                          <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {perms.map((p) => {
-                              const checked = selectedRole.permissions.includes(
-                                p.id
-                              );
-                              return (
-                                <label
-                                  key={p.id}
-                                  className="flex items-start gap-3 rounded-lg border p-3 hover:bg-gray-50 transition-colors"
-                                >
-                                  <div className="mt-0.5">
-                                    {checked ? (
-                                      <CheckSquare
-                                        size={20}
-                                        className="text-blue-600"
-                                      />
-                                    ) : (
-                                      <Square
-                                        size={20}
-                                        className="text-gray-400"
-                                      />
-                                    )}
-                                    <input
-                                      type="checkbox"
-                                      className="hidden"
-                                      checked={checked}
-                                      onChange={(e) =>
-                                        togglePermission(p.id, e.target.checked)
-                                      }
-                                    />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium text-gray-800">
-                                      {p.name}
-                                    </div>
-                                    {p.description ? (
-                                      <div className="text-sm text-gray-600 mt-1">
-                                        {p.description}
-                                      </div>
-                                    ) : null}
-                                  </div>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        )}
+                        ))}
                       </div>
-                    );
-                  }
-                )}
-              </div>
-            )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {selectedRole && !permLoading && (
+                <div className="space-y-4">
+                  {Object.entries(filteredPermissions).map(
+                    ([categoryId, perms]) => {
+                      if (perms.length === 0) return null;
+
+                      const category = permissionCategories.find(
+                        (c) => c.id === categoryId
+                      ) || {
+                        id: categoryId,
+                        name:
+                          categoryId === "uncategorized"
+                            ? "Other Permissions"
+                            : categoryId,
+                        description: "Uncategorized permissions",
+                        icon: <Shield size={14} />,
+                      };
+
+                      const isExpanded = expandedCategories[categoryId] ?? true;
+
+                      return (
+                        <div
+                          key={categoryId}
+                          className="border rounded-lg overflow-hidden"
+                        >
+                          <button
+                            className="w-full p-4 bg-gray-50 flex items-center justify-between text-left"
+                            onClick={() => toggleCategory(categoryId)}
+                          >
+                            <div className="flex items-center gap-3">
+                              {category.icon}
+                              <div>
+                                <h3 className="font-medium text-gray-800">
+                                  {category.name}
+                                </h3>
+                                <p className="text-sm text-gray-500">
+                                  {category.description}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-gray-400">
+                              {isExpanded ? (
+                                <ChevronUp size={20} />
+                              ) : (
+                                <ChevronDown size={20} />
+                              )}
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {perms.map((p) => {
+                                const checked = selectedRole.permissions.includes(
+                                  p.id
+                                );
+                                return (
+                                  <label
+                                    key={p.id}
+                                    className="flex items-start gap-3 rounded-lg border p-3 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <div className="mt-0.5">
+                                      {checked ? (
+                                        <CheckSquare
+                                          size={20}
+                                          className="text-blue-600"
+                                        />
+                                      ) : (
+                                        <Square
+                                          size={20}
+                                          className="text-gray-400"
+                                        />
+                                      )}
+                                      <input
+                                        type="checkbox"
+                                        className="hidden"
+                                        checked={checked}
+                                        onChange={(e) =>
+                                          togglePermission(p.id, e.target.checked)
+                                        }
+                                      />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-800">
+                                        {p.name}
+                                      </div>
+                                      {p.description ? (
+                                        <div className="text-sm text-gray-600 mt-1">
+                                          {p.description}
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>
