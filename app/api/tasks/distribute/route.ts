@@ -333,22 +333,6 @@ export async function PUT(request: Request) {
         );
       }
       
-      // Always notify the previous assignee if they exist and are different from the new assignee
-      if (fromAgentId && fromAgentId !== toAgentId) {
-        notifs.push(
-          prisma.notification.create({
-            data: {
-              userId: fromAgentId,
-              taskId,
-              type: NotificationType.general,
-              message: toAgentId 
-                ? "A task previously assigned to you has been reassigned."
-                : "A task previously assigned to you has been unassigned.",
-              createdAt: new Date(),
-            },
-          })
-        );
-      }
       await Promise.all(notifs);
 
       return NextResponse.json({
@@ -544,9 +528,7 @@ export async function PUT(request: Request) {
           message: string;
           createdAt: Date;
         }[] = [];
-        const previousAssigneeId = map.get(taskId) ?? null;
-
-        if (toAgentId && previousAssigneeId !== toAgentId) {
+        if (toAgentId) {
           const assigneeName = agentNameById.get(toAgentId) || "Agent";
           const taskName = taskNameById.get(taskId) || "task";
           const taskClientId = taskClientIdById.get(taskId) ?? null;
@@ -559,18 +541,6 @@ export async function PUT(request: Request) {
             taskId,
             type: NotificationType.general,
             message: `${assigneeName} has been reassigned ${taskName} for ${taskClientName}.`,
-            createdAt: new Date(),
-          });
-        }
-
-        if (previousAssigneeId && previousAssigneeId !== toAgentId) {
-          rows.push({
-            userId: previousAssigneeId,
-            taskId,
-            type: NotificationType.general,
-            message: toAgentId
-              ? "A task previously assigned to you has been reassigned."
-              : "A task previously assigned to you has been unassigned.",
             createdAt: new Date(),
           });
         }
