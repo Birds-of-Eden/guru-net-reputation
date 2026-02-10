@@ -31,6 +31,7 @@ export async function PUT(
       where: { id: taskId },
       select: {
         id: true,
+        name: true,
         assignedToId: true,
         clientId: true,
         performanceRating: true, // audit only
@@ -167,6 +168,7 @@ export async function PUT(
         : Promise.resolve(null),
     ]);
     const clientName = client?.name || "Client";
+    const taskName = task?.name || "task";
     const assigneeName =
       toUser?.name ||
       `${toUser?.firstName ?? ""} ${toUser?.lastName ?? ""}`.trim() ||
@@ -199,8 +201,8 @@ export async function PUT(
     }
     if (adminManagers.length) {
       const message = toId
-        ? "A task has been reassigned to a new agent."
-        : "A task has been unassigned.";
+        ? `${assigneeName} has been reassigned ${taskName} for ${clientName}.`
+        : `${taskName} has been unassigned for ${clientName}.`;
       notifs.push(
         prisma.notification.createMany({
           data: adminManagers.map((u) => ({
