@@ -229,7 +229,11 @@ export default function TaskTimer({
               task.status === "completed" ||
               task.status === "cancelled" ||
               // 🚫 another task running
-              (timerState?.isRunning && timerState.taskId !== task.id)
+              (timerState?.isRunning && timerState.taskId !== task.id) ||
+              // 🚫 another task paused
+              (!!pausedTimer &&
+                !pausedTimer.isRunning &&
+                pausedTimer.taskId !== task.id)
             }
             title="Start timer"
           >

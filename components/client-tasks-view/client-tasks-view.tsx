@@ -338,6 +338,9 @@ const calculateRemainingSeconds = (
   return totalSeconds - spent;
 };
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
 const getOrCreateSessionId = () => {
   if (typeof window === "undefined") return "server";
   try {
@@ -815,16 +818,25 @@ export function ClientTasksView({
             ? p.savedAt
             : Date.now();
 
+        const totalSeconds = isFiniteNumber(p.totalSeconds) ? p.totalSeconds : 0;
+        const remainingSeconds = isFiniteNumber(p.remainingSeconds)
+          ? p.remainingSeconds
+          : 0;
+        const baseSpentSeconds = isFiniteNumber(p.baseSpentSeconds)
+          ? p.baseSpentSeconds
+          : Math.max(0, totalSeconds - remainingSeconds);
+
         setPausedTimer({
           taskId: p.taskId,
-          remainingSeconds: Math.max(0, p.remainingSeconds ?? 0),
+          remainingSeconds,
           isRunning: false,
-          totalSeconds: p.totalSeconds,
+          totalSeconds,
           isGloballyLocked: false,
           lockedByAgent: p.lockedByAgent,
           startedAt,
           pausedAt,
           ownerId: p.ownerId,
+          baseSpentSeconds,
         });
       } else {
         setPausedTimer(null);
@@ -1183,11 +1195,30 @@ export function ClientTasksView({
           !!timerData.ownerId && timerData.ownerId === sessionIdRef.current;
         const allowAutoPause = !timerData.ownerId || ownedByThisTab;
 
-        let remaining = timerData.remainingSeconds;
+        let remaining = isFiniteNumber(timerData.remainingSeconds)
+          ? timerData.remainingSeconds
+          : 0;
         if (timerData.isRunning) {
           const elapsed = Math.floor((Date.now() - savedAt) / 1000);
-          remaining = Math.max(0, remaining - elapsed);
+          remaining -= elapsed;
         }
+
+        const totalSeconds =
+          isFiniteNumber(timerData.totalSeconds) && timerData.totalSeconds > 0
+            ? timerData.totalSeconds
+            : Math.max(
+                0,
+                remaining +
+                  Math.max(
+                    0,
+                    isFiniteNumber(timerData.baseSpentSeconds)
+                      ? timerData.baseSpentSeconds
+                      : 0,
+                  ),
+              );
+        const baseSpentSeconds = isFiniteNumber(timerData.baseSpentSeconds)
+          ? timerData.baseSpentSeconds
+          : Math.max(0, totalSeconds - remaining);
 
         const pausedAt = timerData.isRunning
           ? undefined
@@ -1200,14 +1231,17 @@ export function ClientTasksView({
         ) {
           const baseTimer: TimerState = {
             taskId: timerData.taskId,
-            remainingSeconds: timerData.remainingSeconds,
+            remainingSeconds: isFiniteNumber(timerData.remainingSeconds)
+              ? timerData.remainingSeconds
+              : remaining,
             isRunning: false,
-            totalSeconds: timerData.totalSeconds,
+            totalSeconds,
             isGloballyLocked: false,
             lockedByAgent: timerData.lockedByAgent,
             startedAt: timerData.startedAt || savedAt,
             pausedAt: savedAt,
             ownerId: timerData.ownerId,
+            baseSpentSeconds,
           };
           const task = getTaskById(timerData.taskId);
           const autoPaused: TimerState = {
@@ -1237,12 +1271,13 @@ export function ClientTasksView({
           taskId: timerData.taskId,
           remainingSeconds: remaining,
           isRunning: !!timerData.isRunning,
-          totalSeconds: timerData.totalSeconds,
+          totalSeconds,
           isGloballyLocked: !!timerData.isGloballyLocked,
           lockedByAgent: timerData.lockedByAgent,
           startedAt: timerData.startedAt || Date.now(),
           pausedAt,
           ownerId: timerData.ownerId,
+          baseSpentSeconds,
         };
 
         setTimerState(restored);
@@ -1394,6 +1429,40 @@ export function ClientTasksView({
         return;
       }
 
+      if (
+        pausedTimer &&
+        !pausedTimer.isRunning &&
+        pausedTimer.taskId !== taskId
+      ) {
+        toast.error(
+          "Another task is already paused. Resume or complete it before starting a new task.",
+        );
+        return;
+      }
+
+      try {
+        const pausedRaw = localStorage.getItem(PAUSE_KEY);
+        if (pausedRaw) {
+          const paused = JSON.parse(pausedRaw) as StoredTimer;
+          const pausedTaskId =
+            typeof paused?.taskId === "string" ? paused.taskId : null;
+          const isPausedSnapshot =
+            !!pausedTaskId &&
+            (paused.isRunning === false || paused.isRunning === undefined);
+
+          if (!isPausedSnapshot) {
+            localStorage.removeItem(PAUSE_KEY);
+          } else if (pausedTaskId !== taskId) {
+            toast.error(
+              "Another task is already paused. Resume or complete it before starting a new task.",
+            );
+            return;
+          }
+        }
+      } catch {
+        localStorage.removeItem(PAUSE_KEY);
+      }
+
       try {
         await handleUpdateTask(taskId, { status: "in_progress" });
 
@@ -1403,16 +1472,34 @@ export function ClientTasksView({
           applyLocalTaskPatch(taskId, { pauseReasons: [] });
         }
 
-        const totalSeconds = (task.idealDurationMinutes ?? 0) * 60;
+        const pausedSnapshot =
+          pausedTimer?.taskId === taskId && !pausedTimer.isRunning
+            ? pausedTimer
+            : null;
+        const fallbackTotalSeconds = (task.idealDurationMinutes ?? 0) * 60;
+        const totalSeconds =
+          pausedSnapshot &&
+          isFiniteNumber(pausedSnapshot.totalSeconds) &&
+          pausedSnapshot.totalSeconds > 0
+            ? pausedSnapshot.totalSeconds
+            : fallbackTotalSeconds;
 
-        // ✅ Carry progress only from DB stored actualDurationMinutes (NO DATE)
+        // Prefer paused snapshot progress for resume, fallback to DB minutes.
+        const pausedBaseSpent =
+          pausedSnapshot && isFiniteNumber(pausedSnapshot.baseSpentSeconds)
+            ? pausedSnapshot.baseSpentSeconds
+            : pausedSnapshot && isFiniteNumber(pausedSnapshot.remainingSeconds)
+              ? Math.max(0, totalSeconds - pausedSnapshot.remainingSeconds)
+              : undefined;
         const baseSpentSeconds = Math.max(
           0,
-          (task.actualDurationMinutes ?? 0) * 60,
+          pausedBaseSpent ?? (task.actualDurationMinutes ?? 0) * 60,
         );
 
-        // ✅ Remaining = total - spent (NO DATE)
-        const remainingSeconds = Math.max(0, totalSeconds - baseSpentSeconds);
+        const remainingSeconds =
+          pausedSnapshot && isFiniteNumber(pausedSnapshot.remainingSeconds)
+            ? pausedSnapshot.remainingSeconds
+            : totalSeconds - baseSpentSeconds;
 
         const resumeAt = Date.now();
 
@@ -1420,7 +1507,8 @@ export function ClientTasksView({
           taskId,
           remainingSeconds,
           isRunning: true,
-          totalSeconds: totalSeconds > 0 ? totalSeconds : remainingSeconds,
+          totalSeconds:
+            totalSeconds > 0 ? totalSeconds : Math.max(1, Math.abs(remainingSeconds)),
           isGloballyLocked: true,
           lockedByAgent: agentId,
 
@@ -1431,6 +1519,7 @@ export function ClientTasksView({
           ownerId: sessionIdRef.current,
         };
 
+        setPausedTimer(null);
         setTimerState(newTimer);
         saveTimerToStorage(newTimer);
         lastTimerSaveRef.current = resumeAt;
@@ -1447,6 +1536,7 @@ export function ClientTasksView({
       tasks,
       timerState,
       globalTimerLock.isLocked,
+      pausedTimer,
       saveTimerToStorage,
       handleUpdateTask,
       agentId,
@@ -1458,40 +1548,64 @@ export function ClientTasksView({
   const handlePauseTimer = useCallback(
     (taskId: string, pausedAt?: number) => {
       if (!timerState || timerState.taskId !== taskId) return;
+      const taskInfo = tasks.find((t) => t.id === taskId);
 
       try {
         const existing = localStorage.getItem(PAUSE_KEY);
         if (existing) {
           const paused: StoredTimer = JSON.parse(existing);
-          if (paused.taskId !== taskId) {
+          const pausedTaskId =
+            typeof paused?.taskId === "string" ? paused.taskId : null;
+          const hasOtherPausedTask = !!(
+            pausedTaskId &&
+            pausedTaskId !== taskId &&
+            pausedTimer &&
+            !pausedTimer.isRunning &&
+            pausedTimer.taskId === pausedTaskId
+          );
+
+          if (hasOtherPausedTask) {
             toast.error(
               "Another task is already paused. Resume or complete it before pausing this task.",
             );
             return;
           }
+
+          if (pausedTaskId && pausedTaskId !== taskId) {
+            // Orphaned/stale pause key should not block valid pause actions.
+            localStorage.removeItem(PAUSE_KEY);
+          }
         }
       } catch {}
 
       const nowMs = pausedAt ?? Date.now();
+      const totalSeconds =
+        isFiniteNumber(timerState.totalSeconds) && timerState.totalSeconds > 0
+          ? timerState.totalSeconds
+          : (taskInfo?.idealDurationMinutes ?? 0) * 60;
+      const derivedBaseFromRemaining = Math.max(
+        0,
+        totalSeconds - (isFiniteNumber(timerState.remainingSeconds) ? timerState.remainingSeconds : 0),
+      );
 
       // ✅ Accumulate spent time WITHOUT DATE HISTORY
-      const prevBase = timerState.baseSpentSeconds ?? 0;
+      const prevBase = isFiniteNumber(timerState.baseSpentSeconds)
+        ? timerState.baseSpentSeconds
+        : derivedBaseFromRemaining;
       const sessionElapsed = timerState.startedAt
         ? Math.floor((nowMs - timerState.startedAt) / 1000)
         : 0;
 
       const nextBaseSpentSeconds = Math.max(0, prevBase + sessionElapsed);
 
-      const nextRemainingSeconds = Math.max(
-        0,
-        (timerState.totalSeconds ?? 0) - nextBaseSpentSeconds,
-      );
+      const nextRemainingSeconds = totalSeconds - nextBaseSpentSeconds;
 
       const updatedTimer: TimerState = {
         ...timerState,
         isRunning: false,
         isGloballyLocked: false,
         pausedAt: nowMs,
+        totalSeconds,
 
         // ✅ important
         baseSpentSeconds: nextBaseSpentSeconds,
@@ -1503,12 +1617,11 @@ export function ClientTasksView({
       setPausedTimer(updatedTimer);
       saveTimerToStorage(updatedTimer);
 
-      const taskInfo = tasks.find((t) => t.id === taskId);
       toast.info(
         `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`,
       );
     },
-    [timerState, tasks, saveTimerToStorage],
+    [timerState, tasks, pausedTimer, saveTimerToStorage],
   );
 
   const handleResetTimer = useCallback(
