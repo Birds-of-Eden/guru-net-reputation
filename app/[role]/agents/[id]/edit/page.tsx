@@ -20,6 +20,7 @@ export default async function EditAgentPage({
       address: true,
       biography: true,
       status: true,
+      qcId: true,
       image: true,
     },
   });
@@ -43,6 +44,7 @@ export default async function EditAgentPage({
     address: agent.address || "",
     bio: agent.biography || "",
     status: agent.status || "active",
+    qcId: agent.qcId || "",
     templateId: currentAssignment?.templateId || undefined,
   };
 

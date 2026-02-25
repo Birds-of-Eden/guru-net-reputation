@@ -364,6 +364,8 @@ export default async function AgentPerformancePage({
       status: true,
       image: true,
       createdAt: true,
+      qcId: true,
+      qc: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -623,6 +625,11 @@ function AgentProfileCard({ agent }: { agent: any }) {
                 </h2>
                 {userStatusBadge(agent.status)}
                 {categoryBadge(agent.category)}
+                {(agent.qc?.name || agent.qcId) && (
+                  <span className="px-3 py-1 bg-purple-500 to-pink-600 text-white text-xs font-medium rounded-full">
+                    QC Supervisor: {agent.qc?.name ?? agent.qcId}
+                  </span>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-lg backdrop-blur-sm">

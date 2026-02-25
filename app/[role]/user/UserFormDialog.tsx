@@ -102,10 +102,19 @@ export default function UserFormDialog({
       setLoadingTeams(true);
       const res = await fetch("/api/teams");
       const json = await res.json();
-      if (res.ok && Array.isArray(json)) setTeams(json);
-      else if (res.ok && json?.data && Array.isArray(json.data))
-        setTeams(json.data);
-      else setTeams([]);
+      const list = Array.isArray(json)
+        ? json
+        : Array.isArray(json?.data)
+        ? json.data
+        : [];
+
+      if (res.ok && Array.isArray(list)) {
+        setTeams(
+          list.map((t: any) => ({ id: String(t.id), name: String(t.name ?? "") }))
+        );
+      } else {
+        setTeams([]);
+      }
     } catch {
       setTeams([]);
     } finally {
@@ -218,7 +227,7 @@ export default function UserFormDialog({
         biography: initialUser.biography || "",
         category: initialUser.category || "",
         clientId: initialUser.clientId || "",
-        teamId: "",
+        teamId: (initialUser as any)?.teamId ? String((initialUser as any).teamId) : "",
         qcId: initialUser.qcId || "",
         status: initialUser.status || "active",
       });
@@ -245,6 +254,31 @@ export default function UserFormDialog({
       });
     }
   }, [open, mode, initialUser, fetchClients]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode !== "edit" || !initialUser) return;
+    if (!teams.length) return;
+    if (formData.teamId) return;
+
+    const incomingTeamId = (initialUser as any)?.teamId
+      ? String((initialUser as any).teamId)
+      : "";
+    const incomingTeamName = String(initialUser.category ?? "");
+
+    const match =
+      (incomingTeamId && teams.find((t) => t.id === incomingTeamId)) ||
+      (incomingTeamName && teams.find((t) => t.name === incomingTeamName)) ||
+      undefined;
+
+    if (match?.id) {
+      setFormData((prev) => ({
+        ...prev,
+        teamId: match.id,
+        category: match.name,
+      }));
+    }
+  }, [open, mode, initialUser, teams, formData.teamId]);
 
   // If user selects role = agent → load QCs
   useEffect(() => {

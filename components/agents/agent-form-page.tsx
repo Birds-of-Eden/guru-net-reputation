@@ -87,7 +87,7 @@ export default function AgentFormPage({
     address: initialData?.address || "",
     bio: initialData?.bio || "",
     status: initialData?.status || "active",
-    qcId: initialData?.qcId || "", // NEW
+    qcId: initialData?.qcId ? String(initialData.qcId) : "", // NEW
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -142,7 +142,7 @@ export default function AgentFormPage({
 
         setQcList(
           qcUsers.map((qc: any) => ({
-            id: qc.id,
+            id: String(qc.id),
             name: qc.name || `${qc.firstName} ${qc.lastName}`,
             email: qc.email,
           }))
@@ -727,7 +727,7 @@ export default function AgentFormPage({
                     </Label>
 
                     <Select
-                      value={formData.qcId}
+                      value={formData.qcId ? String(formData.qcId) : ""}
                       onValueChange={(value) =>
                         setFormData((prev) => ({ ...prev, qcId: value }))
                       }
