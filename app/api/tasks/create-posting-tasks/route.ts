@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { calculateTaskDueDate } from "@/utils/working-days";
+import { addWorkingDays, calculateTaskDueDate } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -622,6 +622,7 @@ export async function POST(req: NextRequest) {
     const clientId: string | undefined = body?.clientId;
     const templateIdRaw: string | undefined = body?.templateId;
     const onlyType: string | undefined = body?.onlyType;
+    const firstCycleDueDateRaw: unknown = body?.firstCycleDueDate;
     // NEW: allow filtering by TemplateSiteAsset ids
     const includeAssetIdsRaw = Array.isArray(body?.includeAssetIds)
       ? body?.includeAssetIds
@@ -641,6 +642,33 @@ export async function POST(req: NextRequest) {
         { message: "clientId is required" },
         { status: 400 }
       );
+
+    if (!firstCycleDueDateRaw) {
+      return NextResponse.json(
+        { message: "firstCycleDueDate is required" },
+        { status: 400 }
+      );
+    }
+
+    const firstCycleDueDate = new Date(String(firstCycleDueDateRaw));
+    if (!Number.isFinite(firstCycleDueDate.getTime())) {
+      return NextResponse.json(
+        { message: "Invalid firstCycleDueDate" },
+        { status: 400 }
+      );
+    }
+
+    // Treat the user-selected date as Cycle-1 due date.
+    // Next cycles follow your cadence: +5 working days per cycle.
+    const dueDateFromFirstCycleDueDate = (cycleNumber: number) => {
+      const n = Math.max(1, Math.floor(cycleNumber));
+      if (n === 1) return new Date(firstCycleDueDate);
+      let d = new Date(firstCycleDueDate);
+      for (let i = 2; i <= n; i++) {
+        d = addWorkingDays(d, 5);
+      }
+      return d;
+    };
 
     // DB preflight
     try {
@@ -984,11 +1012,7 @@ export async function POST(req: NextRequest) {
         item.totalCopies,
         maxCycleMap.get(key) ?? 0
       );
-      const anchor = item.src.createdAt || new Date();
-      const lastDue = calculateTaskDueDate(
-        anchor,
-        Math.max(1, effectiveCycles)
-      );
+      const lastDue = dueDateFromFirstCycleDueDate(Math.max(1, effectiveCycles));
       lastCycleDueByBase.set(item.base, lastDue);
     }
 
@@ -1027,9 +1051,7 @@ export async function POST(req: NextRequest) {
         const name = `${item.base} -${cycle}`;
         if (skipNameSet.has(name)) continue;
 
-        // Anchor to the creation moment of the new copy (not the source task time)
-        const anchor = new Date();
-        const dueDate = calculateTaskDueDate(anchor, cycle);
+        const dueDate = dueDateFromFirstCycleDueDate(cycle);
 
         payloads.push({
           id: makeId(),
@@ -1080,8 +1102,7 @@ export async function POST(req: NextRequest) {
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
         const totalCopies = Math.max(1, freq * months);
-        const anchor = src.createdAt || new Date();
-        dueDate = calculateTaskDueDate(anchor, totalCopies);
+        dueDate = dueDateFromFirstCycleDueDate(totalCopies);
       }
 
       const catId = categoryIdByName.get(CAT_SOCIAL_COMMUNICATION)!;
@@ -1118,7 +1139,7 @@ export async function POST(req: NextRequest) {
     const maxLastSocialDue =
       Array.from(lastCycleDueByBase.values())
         .sort((a, b) => a.getTime() - b.getTime())
-        .pop() ?? calculateTaskDueDate(new Date(), 1); // fallback = today + 15 days (cycle 1)
+        .pop() ?? new Date(firstCycleDueDate);
 
     // --- REPLACE: Fixed Web2 SC creation (creds optional; always create unless duplicate)
     for (const p of ["medium", "tumblr", "wordpress"] as const) {

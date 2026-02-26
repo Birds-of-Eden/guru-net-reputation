@@ -62,6 +62,15 @@ type TaskStats = {
   totalTasks: number;
   completedTasks: number;
 
+  createdTasks?: {
+    id: string;
+    name: string | null;
+    status: string;
+    dueDate: string | Date | null;
+    assignedTo?: { name: string | null; email: string | null };
+    category?: { name: string | null };
+  }[];
+
   posting?: {
     categories: Record<string, { total: number; completed: number }>;
     totalPostingTasks: number;
@@ -80,6 +89,9 @@ type Client = {
   socialMedias?: any[];
   taskStats?: TaskStats;
 
+  amId?: string | null;
+  accountManager?: { id: string; name: string | null; email: string | null } | null;
+
   postingTasksCreated?: boolean;
   existingPostingTasksCount?: number;
 };
@@ -87,12 +99,22 @@ type Client = {
 // OPTIMIZATION (virtual batching): hard-cap initial DOM work to small slices to keep Time To Interactive low.
 const CLIENT_BATCH_SIZE = 12;
 
+type DueDateFilterKey =
+  | "all"
+  | "today"
+  | "next_7"
+  | "next_15"
+  | "next_30"
+  | "last_7";
+
 export default function ClientUnifiedDashboard() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
   const distributionBasePath = `/${roleSegment}/distribution/client-agent`;
   const [search, setSearch] = useState("");
   const [packageFilter, setPackageFilter] = useState<string>("all");
+  const [dueDateFilter, setDueDateFilter] = useState<DueDateFilterKey>("all");
+  const [amFilter, setAmFilter] = useState<string>("all");
   // OPTIMIZATION (React useTransition): keep UI responsive while large client lists re-filter.
   const [isFilteringPending, startFilteringTransition] = useTransition();
   // OPTIMIZATION (virtual batching state): track how many slices of the grid are rendered.
@@ -104,11 +126,15 @@ export default function ClientUnifiedDashboard() {
     return res.json();
   };
 
-  const { data, isLoading, error } = useSWR("/api/tasks/clients", fetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 30000,
-    refreshInterval: 60000,
-  });
+  const { data, isLoading, error } = useSWR(
+    "/api/tasks/clients?includeTasks=true",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+      refreshInterval: 60000,
+    }
+  );
 
   const clients: Client[] = useMemo(() => {
     return Array.isArray((data as any)?.clients)
@@ -134,21 +160,196 @@ export default function ClientUnifiedDashboard() {
     return Array.from(s).sort((a, b) => a.localeCompare(b));
   }, [clients]);
 
+  const amOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of clients) {
+      const id = c.accountManager?.id ?? c.amId ?? null;
+      if (!id) continue;
+      const label = c.accountManager?.name?.trim() || c.accountManager?.email?.trim() || id;
+      map.set(id, label);
+    }
+    return Array.from(map.entries())
+      .map(([id, label]) => ({ id, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [clients]);
+
   const normalizedSearch = search.trim().toLowerCase();
   // OPTIMIZATION (React useDeferredValue): let React defer filter-heavy work while the user types quickly.
   const deferredSearch = useDeferredValue(normalizedSearch);
   const hasActiveFilters =
-    normalizedSearch.length > 0 || packageFilter !== "all";
+    normalizedSearch.length > 0 ||
+    packageFilter !== "all" ||
+    dueDateFilter !== "all" ||
+    amFilter !== "all";
   const isClearDisabled = !hasActiveFilters;
+
+  const dueDateRange = useMemo(() => {
+    if (dueDateFilter === "all") return null;
+
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+    const addDays = (d: Date, days: number) => {
+      const x = new Date(d);
+      x.setDate(x.getDate() + days);
+      return x;
+    };
+
+    switch (dueDateFilter) {
+      case "today":
+        return { start: startOfToday, end: endOfToday };
+      case "next_7":
+        return { start: startOfToday, end: addDays(endOfToday, 7) };
+      case "next_15":
+        return { start: startOfToday, end: addDays(endOfToday, 15) };
+      case "next_30":
+        return { start: startOfToday, end: addDays(endOfToday, 30) };
+      case "last_7":
+        return { start: addDays(startOfToday, -7), end: endOfToday };
+      default:
+        return null;
+    }
+  }, [dueDateFilter]);
+
+  const hasTaskInDueDateRange = useCallback(
+    (client: Client) => {
+      if (!dueDateRange) return true;
+      const tasks = client.taskStats?.createdTasks;
+      if (!Array.isArray(tasks) || tasks.length === 0) return false;
+
+      const startMs = dueDateRange.start.getTime();
+      const endMs = dueDateRange.end.getTime();
+
+      for (const t of tasks) {
+        if (!t?.dueDate) continue;
+        const d = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate);
+        const ms = d.getTime();
+        if (!Number.isFinite(ms)) continue;
+        if (ms >= startMs && ms <= endMs) return true;
+      }
+      return false;
+    },
+    [dueDateRange]
+  );
+
+  const postingDueMeta = useCallback((client: Client) => {
+    const tasks = client.taskStats?.createdTasks;
+    if (!Array.isArray(tasks) || tasks.length === 0) return null;
+
+    const postingTasks = tasks.filter((t) => {
+      const cat = t.category?.name ?? "";
+      return cat === "Social Activity" || cat === "Blog Posting";
+    });
+    if (postingTasks.length === 0) return null;
+
+    const parseCycle = (name: string | null) => {
+      const match = String(name ?? "").match(/\s*-\s*(\d+)\s*$/);
+      if (!match) return null;
+      const n = Number.parseInt(match[1], 10);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const toDate = (v: string | Date | null | undefined) => {
+      if (!v) return null;
+      const d = v instanceof Date ? v : new Date(v);
+      return Number.isFinite(d.getTime()) ? d : null;
+    };
+
+    const isAssigned = (t: NonNullable<(typeof postingTasks)[number]>) => {
+      const a = t.assignedTo;
+      return !!(a && (a.email || a.name));
+    };
+
+    const todayStart = (() => {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    })();
+
+    const assigned = postingTasks.filter(isAssigned);
+    const cycle1 = postingTasks.filter((t) => parseCycle(t.name) === 1);
+    const cycle1Unassigned = cycle1.length > 0 && cycle1.every((t) => !isAssigned(t));
+
+    const minDate = (arr: typeof postingTasks) => {
+      let best: Date | null = null;
+      for (const t of arr) {
+        const d = toDate(t.dueDate);
+        if (!d) continue;
+        if (!best || d.getTime() < best.getTime()) best = d;
+      }
+      return best;
+    };
+
+    const maxDate = (arr: typeof postingTasks) => {
+      let best: Date | null = null;
+      for (const t of arr) {
+        const d = toDate(t.dueDate);
+        if (!d) continue;
+        if (!best || d.getTime() > best.getTime()) best = d;
+      }
+      return best;
+    };
+
+    if (cycle1Unassigned) {
+      const d = minDate(cycle1);
+      if (!d) return null;
+      return {
+        label: "First Assignment Date:",
+        date: d,
+        isOverdue: d.getTime() < todayStart.getTime(),
+      };
+    }
+
+    if (assigned.length > 0) {
+      const d = maxDate(assigned);
+      if (!d) return null;
+      return {
+        label: "Last Assigned Date:",
+        date: d,
+        isOverdue: d.getTime() < todayStart.getTime(),
+      };
+    }
+
+    const d = minDate(postingTasks);
+    if (!d) return null;
+    return {
+      label: "Assignment Due Date:",
+      date: d,
+      isOverdue: d.getTime() < todayStart.getTime(),
+    };
+  }, []);
 
   // OPTIMIZATION (memoized filtering): ensure expensive filtering only reruns when clients/search/filter actually change.
   const filteredClients = useMemo(() => {
     if (!clients?.length) return [];
     return clients.filter((c) => {
+      if (amFilter !== "all") {
+        const currentAmId = c.accountManager?.id ?? c.amId ?? null;
+        if (!currentAmId || currentAmId !== amFilter) return false;
+      }
+
       if (packageFilter !== "all") {
         const p = c.package?.name?.trim() ?? "";
         if (p !== packageFilter) return false;
       }
+
+      if (!hasTaskInDueDateRange(c)) return false;
 
       if (!deferredSearch) return true;
       const target = deferredSearch;
@@ -158,7 +359,7 @@ export default function ClientUnifiedDashboard() {
         c.id.toLowerCase().includes(target)
       );
     });
-  }, [clients, packageFilter, deferredSearch]);
+  }, [clients, amFilter, packageFilter, deferredSearch, hasTaskInDueDateRange]);
 
   const visibleClients = useMemo(() => {
     return filteredClients.slice(0, visibleBatch * CLIENT_BATCH_SIZE);
@@ -172,7 +373,7 @@ export default function ClientUnifiedDashboard() {
 
   useEffect(() => {
     setVisibleBatch(1);
-  }, [deferredSearch, packageFilter, clients.length]);
+  }, [deferredSearch, packageFilter, dueDateFilter, amFilter, clients.length]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
@@ -189,11 +390,33 @@ export default function ClientUnifiedDashboard() {
     [startFilteringTransition]
   );
 
+  const handleDueDateChange = useCallback(
+    (value: string) => {
+      startFilteringTransition(() => {
+        setDueDateFilter(value as DueDateFilterKey);
+        setVisibleBatch(1);
+      });
+    },
+    [startFilteringTransition]
+  );
+
+  const handleAmChange = useCallback(
+    (value: string) => {
+      startFilteringTransition(() => {
+        setAmFilter(value);
+        setVisibleBatch(1);
+      });
+    },
+    [startFilteringTransition]
+  );
+
   const handleClearFilters = useCallback(() => {
     if (!hasActiveFilters) return;
     setSearch("");
     startFilteringTransition(() => {
       setPackageFilter("all");
+      setDueDateFilter("all");
+      setAmFilter("all");
       setVisibleBatch(1);
     });
   }, [hasActiveFilters, startFilteringTransition]);
@@ -355,10 +578,10 @@ export default function ClientUnifiedDashboard() {
           </CardHeader>
 
           <CardContent className="p-8">
-            {/* Search + Package Filter */}
+            {/* Search + Filters */}
             <div className="mb-8 grid grid-cols-12 gap-3 items-center">
-              {/* Search (7 cols) */}
-              <div className="relative col-span-12 md:col-span-7">
+              {/* Search */}
+              <div className="relative col-span-12 md:col-span-4">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   placeholder="Search clients by name, company, or ID..."
@@ -368,8 +591,8 @@ export default function ClientUnifiedDashboard() {
                 />
               </div>
 
-              {/* Package filter (3 cols) */}
-              <div className="relative col-span-12 md:col-span-3">
+              {/* Package filter (2 cols) */}
+              <div className="relative col-span-12 md:col-span-2">
                 {/* Floating label */}
                 <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
                   Package
@@ -398,7 +621,57 @@ export default function ClientUnifiedDashboard() {
                 </Select>
               </div>
 
-              {/* Clear button (2 cols, beside filter) */}
+              {/* Due date filter (2 cols) */}
+              <div className="relative col-span-12 md:col-span-2">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                  Due Date
+                </span>
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
+
+                <Select value={dueDateFilter} onValueChange={handleDueDateChange}>
+                  <SelectTrigger
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    aria-busy={isFilteringPending}
+                  >
+                    <SelectValue placeholder="Filter by due date" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="next_7">Next 7 Days</SelectItem>
+                    <SelectItem value="next_15">Next 15 Days</SelectItem>
+                    <SelectItem value="next_30">Next 30 Days</SelectItem>
+                    <SelectItem value="last_7">Last 7 Days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* AM filter (2 cols) */}
+              <div className="relative col-span-12 md:col-span-2">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                  AM
+                </span>
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
+
+                <Select value={amFilter} onValueChange={handleAmChange}>
+                  <SelectTrigger
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    aria-busy={isFilteringPending}
+                  >
+                    <SelectValue placeholder="Filter by AM" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                    <SelectItem value="all">All</SelectItem>
+                    {amOptions.map((am) => (
+                      <SelectItem key={am.id} value={am.id}>
+                        {am.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clear button (1 col, beside filter) */}
               <div className="col-span-12 md:col-span-2">
                 <Button
                   onClick={handleClearFilters}
@@ -409,7 +682,7 @@ export default function ClientUnifiedDashboard() {
                       ? "bg-slate-200 text-slate-500 cursor-not-allowed"
                       : "bg-linear-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg"
                   )}
-                  title="Clear search and package filter"
+                  title="Clear search and all filters"
                 >
                   Clear Filter
                 </Button>
@@ -488,6 +761,7 @@ export default function ClientUnifiedDashboard() {
                     const t = client.taskStats;
                     const postingCreated = client.postingTasksCreated;
                     const conditional = conditionalRouteAndLabel(client);
+                    const dueMeta = postingDueMeta(client);
 
                     return (
                       <Card
@@ -690,6 +964,21 @@ export default function ClientUnifiedDashboard() {
                                 <span className="text-slate-600 font-medium">
                                   Posting Tasks
                                 </span>
+                                {dueMeta ? (
+                                  <span
+                                    className={cn(
+                                      "font-medium",
+                                      dueMeta.isOverdue
+                                        ? "text-red-600"
+                                        : "text-slate-600"
+                                    )}
+                                    title={dueMeta.date.toLocaleString()}
+                                  >
+                                    {dueMeta.label} {dueMeta.date.toLocaleDateString()}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-600 font-medium"></span>
+                                )}
                                 <span className="text-slate-900 font-semibold">
                                   {t.posting.completedPostingTasks}/
                                   {t.posting.totalPostingTasks}

@@ -29,6 +29,8 @@ export async function GET(req: Request) {
       status: true,
       avatar: true,
       package: { select: { name: true } },
+      amId: true,
+      accountManager: { select: { id: true, name: true, email: true } },
     },
     orderBy: {
       createdAt: "desc",
@@ -108,6 +110,17 @@ export async function GET(req: Request) {
     const categoryName = task.category?.name ?? null;
     const assetType = task.templateSiteAsset?.type ?? null;
 
+    if (bucket.createdTasks) {
+      bucket.createdTasks.push({
+        id: task.id,
+        name: task.name,
+        status: task.status,
+        dueDate: task.dueDate,
+        assignedTo: (task as any).assignedTo ?? undefined,
+        category: task.category ? { name: task.category.name } : undefined,
+      });
+    }
+
     if (assetType && ASSET_CREATION_TYPES.has(assetType)) {
       bucket.totalAssetCreation += 1;
       if (task.status === "qc_approved") {
@@ -141,17 +154,6 @@ export async function GET(req: Request) {
       bucket.postingCategories[categoryName].total += 1;
       if (POSTING_COMPLETE_STATUSES.has(task.status)) {
         bucket.postingCategories[categoryName].completed += 1;
-      }
-
-      if (bucket.createdTasks) {
-        bucket.createdTasks.push({
-          id: task.id,
-          name: task.name,
-          status: task.status,
-          dueDate: task.dueDate,
-          assignedTo: (task as any).assignedTo ?? undefined,
-          category: task.category ? { name: task.category.name } : undefined,
-        });
       }
     }
   }
@@ -192,6 +194,14 @@ export async function GET(req: Request) {
       status: client.status ?? null,
       package: client.package ? { name: client.package.name } : null,
       avatar: client.avatar ?? null,
+      amId: client.amId ?? null,
+      accountManager: client.accountManager
+        ? {
+            id: client.accountManager.id,
+            name: client.accountManager.name,
+            email: client.accountManager.email,
+          }
+        : null,
       postingTasksCreated: bucket.totalPosting > 0,
       existingPostingTasksCount: bucket.totalPosting,
       taskStats: baseStats,

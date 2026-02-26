@@ -382,6 +382,7 @@ export default function CreatePostingTasksPage() {
   const [createdTasks, setCreatedTasks] = useState<CreatedTask[]>([]);
   const [search, setSearch] = useState("");
   const [openDurationModal, setOpenDurationModal] = useState(false);
+  const [firstCycleDueDate, setFirstCycleDueDate] = useState<string>("");
 
   const [existingTasks, setExistingTasks] = useState<CreatedTask[]>([]);
   const [loadingExistingTasks, setLoadingExistingTasks] = useState(false);
@@ -542,6 +543,11 @@ export default function CreatePostingTasksPage() {
       toast.warning("Client not found.");
       return;
     }
+
+    if (!firstCycleDueDate) {
+      toast.warning("Please select Cycle 1 due date.");
+      return;
+    }
     // client-side gate
     if (!preview.allApproved) {
       toast.warning("Please complete & QC-approve all source tasks first.");
@@ -562,6 +568,7 @@ export default function CreatePostingTasksPage() {
         clientId, // Use clientId instead of selectedClientId
         // priority override optional
         priority,
+        firstCycleDueDate,
       };
       if (templateId !== "auto") body.templateId = templateId;
 
@@ -1102,6 +1109,18 @@ export default function CreatePostingTasksPage() {
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <label className="text-sm font-semibold text-slate-700">
+              Cycle 1 Due Date
+            </label>
+            <Input
+              type="date"
+              value={firstCycleDueDate}
+              onChange={(e) => setFirstCycleDueDate(e.target.value)}
+              className="mt-2 h-12 rounded-xl border-slate-300 bg-white shadow-sm"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
