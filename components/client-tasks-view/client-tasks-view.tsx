@@ -107,6 +107,9 @@ export interface Task {
   // ✅ NEW: reassignment notes from agents endpoint
   reassignNotes?: string | null;
   notes?: string | null; // fallback if your DB uses notes field
+  
+  // Task type from Prisma schema
+  taskType?: "customjob" | "regularjob" | null;
 
   assignment: {
     id: string;
@@ -494,6 +497,7 @@ export function ClientTasksView({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [completionNotes, setCompletionNotes] = useState("");
+  const [customJobLinks, setCustomJobLinks] = useState<string[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isBulkCompletionOpen, setIsBulkCompletionOpen] = useState(false);
   const [bulkCompletionLink, setBulkCompletionLink] = useState("");
@@ -866,6 +870,7 @@ export function ClientTasksView({
         name: String(t?.name ?? ""),
         priority: String(t?.priority ?? "medium"),
         status: String(t?.status ?? "pending"),
+        taskType: t?.taskType ?? "customjob",
         templateSiteAsset: {
           ...t?.templateSiteAsset,
           type: String(t?.templateSiteAsset?.type ?? ""),
@@ -1295,8 +1300,8 @@ export function ClientTasksView({
         const taskName = task?.name || lock?.taskName || "Unknown Task";
         toast.info(
           restored.isRunning
-            ? `Timer restored for "${taskName}".`
-            : `Paused timer data available for "${taskName}".`,
+            ? `Timer restored`
+            : `Paused timer data available".`,
         );
         return restored;
       }
@@ -1527,7 +1532,7 @@ export function ClientTasksView({
         // optional log (ok)
         void logTimerEvent(taskId, TIMER_START_REASON, resumeAt);
 
-        toast.success(`Timer started for "${task.name}".`);
+        toast.success("Timer started");
       } catch {
         toast.error("Failed to start timer");
       }
@@ -1617,9 +1622,7 @@ export function ClientTasksView({
       setPausedTimer(updatedTimer);
       saveTimerToStorage(updatedTimer);
 
-      toast.info(
-        `Timer paused for "${taskInfo?.name}". All tasks are now unlocked.`,
-      );
+      toast.info("Timer paused, All tasks are now unlocked.");
     },
     [timerState, tasks, pausedTimer, saveTimerToStorage],
   );
@@ -1662,7 +1665,7 @@ export function ClientTasksView({
           } catch {}
         }
 
-        toast.info(`Timer reset for "${task?.name}".`);
+        toast.info("Timer reset.");
       }
     },
     [timerState, tasks, saveTimerToStorage, pausedTimer],
@@ -1903,7 +1906,132 @@ export function ClientTasksView({
     setTaskToComplete(null);
     setCompletionLink("");
     setCompletionNotes("");
+    setCustomJobLinks([]);
   }, []);
+
+  const completeCustomJobWithActualDuration = useCallback(
+    async (
+      actualDurationMinutes: number | undefined,
+      performanceRating: "Excellent" | "Good" | "Average" | "Poor" | "Lazy",
+    ) => {
+      const rollback = stopTimerNow(taskToComplete.id);
+
+      try {
+        const updates: any = {
+          status: "completed",
+          completedAt: new Date().toISOString(),
+        };
+
+        // Store links as comma-separated values in taskCompletionJson
+        const validLinks = customJobLinks.filter(link => link.trim());
+        if (validLinks.length > 0) {
+          updates.taskCompletionJson = {
+            links: validLinks.join(", "),
+            count: validLinks.length,
+          };
+        }
+
+        if (completionNotes.trim() || completionNotes === "") {
+          updates.notes = completionNotes.trim() || null;
+        }
+        if (typeof actualDurationMinutes === "number") {
+          updates.actualDurationMinutes = actualDurationMinutes;
+          updates.performanceRating = performanceRating;
+        }
+
+        await handleUpdateTask(taskToComplete.id, updates);
+
+        applyLocalTaskPatch(taskToComplete.id, updates);
+
+        setIsCompletionConfirmOpen(false);
+        setTaskToComplete(null);
+        setCustomJobLinks([]);
+        setCompletionNotes("");
+
+        // Refresh tasks to get real-time completion status
+        await refreshTasks();
+
+        toast.success(`Custom Job completed with ${validLinks.length} link(s)!`);
+      } catch (error) {
+        console.error("Failed to complete custom job:", error);
+        toast.error("Failed to complete custom job. Please try again.");
+      }
+    },
+    [
+      taskToComplete,
+      customJobLinks,
+      completionNotes,
+      stopTimerNow,
+      handleUpdateTask,
+      applyLocalTaskPatch,
+      refreshTasks,
+    ],
+  );
+
+  const handleCustomJobCompletionWithElapsed = useCallback(
+    async (elapsedMinutes?: number) => {
+      if (!taskToComplete) return;
+
+      let actualDurationMinutes: number | undefined;
+      let performanceRating:
+        | "Excellent"
+        | "Good"
+        | "Average"
+        | "Poor"
+        | "Lazy" = "Average";
+
+      if (elapsedMinutes !== undefined) {
+        // Use elapsed minutes from CustomJobCompletionDialog
+        actualDurationMinutes = elapsedMinutes;
+
+        // Calculate performance rating if we have ideal duration
+        if (taskToComplete.idealDurationMinutes) {
+          const ratio =
+            actualDurationMinutes / taskToComplete.idealDurationMinutes;
+          if (ratio <= 1.2) performanceRating = "Excellent";
+          else if (ratio <= 1.5) performanceRating = "Good";
+          else if (ratio <= 2.0) performanceRating = "Average";
+          else if (ratio <= 3.0) performanceRating = "Poor";
+          else performanceRating = "Lazy";
+        }
+      } else if (
+        timerState?.taskId === taskToComplete.id &&
+        taskToComplete.idealDurationMinutes
+      ) {
+        // Calculate from timer state
+        const nowMs = Date.now();
+        const taskForTimer = getTaskById(taskToComplete.id);
+        const effectiveRemaining = calculateRemainingSeconds(
+          taskForTimer,
+          timerState,
+          nowMs,
+        );
+        const totalTimeUsedSeconds =
+          (timerState.totalSeconds || 0) - (effectiveRemaining || 0);
+        const mins = Math.ceil(totalTimeUsedSeconds / 60);
+        actualDurationMinutes = Math.max(1, mins || 0);
+
+        const ratio =
+          actualDurationMinutes / taskToComplete.idealDurationMinutes;
+        if (ratio <= 1.2) performanceRating = "Excellent";
+        else if (ratio <= 1.5) performanceRating = "Good";
+        else if (ratio <= 2.0) performanceRating = "Average";
+        else if (ratio <= 3.0) performanceRating = "Poor";
+        else performanceRating = "Lazy";
+      }
+
+      await completeCustomJobWithActualDuration(
+        actualDurationMinutes,
+        performanceRating,
+      );
+    },
+    [
+      taskToComplete,
+      timerState,
+      completeCustomJobWithActualDuration,
+      getTaskById,
+    ],
+  );
 
   const handleUpdateSelectedTasks = useCallback(
     async (
@@ -2369,8 +2497,11 @@ export function ClientTasksView({
           setPassword={setPassword}
           completionNotes={completionNotes}
           setCompletionNotes={setCompletionNotes}
+          customJobLinks={customJobLinks}
+          setCustomJobLinks={setCustomJobLinks}
           timerState={timerState}
           handleTaskCompletion={handleTaskCompletionWithElapsed}
+          handleCustomJobCompletionWithElapsed={handleCustomJobCompletionWithElapsed}
           handleCompletionCancel={handleCompletionCancel}
           isBulkCompletionOpen={isBulkCompletionOpen}
           setIsBulkCompletionOpen={setIsBulkCompletionOpen}

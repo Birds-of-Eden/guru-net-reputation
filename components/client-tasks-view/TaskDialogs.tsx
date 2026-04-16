@@ -1,10 +1,8 @@
-//app/components/client-tasks-view/TaskDialogs.tsx
-//lint Fixed
-
 "use client";
 import { useState } from "react";
 import type { Task, TimerState } from "../client-tasks-view/client-tasks-view";
 import CompletionDialog from "./TaskCompleteDialogs/CompletionDialog";
+import CustomJobCompletionDialog from "./TaskCompleteDialogs/CustomJobCompletionDialog";
 import StatusUpdateDialog from "./TaskCompleteDialogs/StatusUpdateDialog";
 import ShortDurationConfirmDialog from "./TaskCompleteDialogs/ShortDurationConfirmDialog";
 import SummaryReportDialog from "./TaskCompleteDialogs/SummaryReportDialog";
@@ -34,8 +32,11 @@ export default function TaskDialogs({
   setPassword,
   completionNotes,
   setCompletionNotes,
+  customJobLinks,
+  setCustomJobLinks,
   timerState,
   handleTaskCompletion,
+  handleCustomJobCompletionWithElapsed,
   handleCompletionCancel,
   formatTimerDisplay,
   clientId,
@@ -67,8 +68,11 @@ export default function TaskDialogs({
   setPassword: (v: string) => void;
   completionNotes: string;
   setCompletionNotes: (v: string) => void;
+  customJobLinks: string[];
+  setCustomJobLinks: (links: string[]) => void;
   timerState: TimerState | null;
   handleTaskCompletion: (elapsedMinutes?: number) => void;
+  handleCustomJobCompletionWithElapsed: (elapsedMinutes?: number) => void;
   handleCompletionCancel: () => void;
   formatTimerDisplay: (seconds: number) => string;
   isBulkCompletionOpen: boolean;
@@ -192,6 +196,28 @@ export default function TaskDialogs({
         const isContent =
           cat.includes("content writing") || cat.includes("guest posting");
         const isReviewRemoval = cat.includes("review removal");
+        const isCustomJob =
+          taskToComplete?.taskType === "customjob" ||
+          cat.includes("custom job") ||
+          (taskToComplete?.name ?? "").toLowerCase().includes("custom job");
+
+        if (isCustomJob) {
+          return (
+            <CustomJobCompletionDialog
+              selected={taskToComplete}
+              open={isCompletionConfirmOpen}
+              links={customJobLinks}
+              notes={completionNotes}
+              setLinks={setCustomJobLinks}
+              setNotes={setCompletionNotes}
+              resetModal={resetAllCompletionModals}
+              submit={handleCustomJobCompletionWithElapsed}
+              timerState={timerState}
+              pausedTimer={pausedTimer}
+              formatTimerDisplay={formatTimerDisplay}
+            />
+          );
+        }
 
         if (isSummary) {
           return (

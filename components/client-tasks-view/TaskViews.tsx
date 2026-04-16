@@ -7,13 +7,13 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Copy,
-  Check,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  Calendar,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Copy, Check, Eye, EyeOff, CheckCircle, Calendar } from "lucide-react";
 
 import TaskTimer from "./TaskTimer";
 import { PerformanceBadge } from "./PerformanceBadge";
@@ -70,7 +70,7 @@ function VirtualizedList<T>({
 
   const startIndex = Math.max(
     0,
-    Math.floor(scrollTop / estimatedItemHeight) - overscan
+    Math.floor(scrollTop / estimatedItemHeight) - overscan,
   );
   const visibleCount =
     Math.ceil(viewportHeight / estimatedItemHeight) + overscan * 2;
@@ -87,9 +87,9 @@ function VirtualizedList<T>({
     >
       <div style={{ height: totalHeight, position: "relative" }}>
         <div style={{ transform: `translateY(${offsetY}px)` }}>
-          {items.slice(startIndex, endIndex).map((item, idx) =>
-            renderItem(item, startIndex + idx)
-          )}
+          {items
+            .slice(startIndex, endIndex)
+            .map((item, idx) => renderItem(item, startIndex + idx))}
         </div>
       </div>
     </div>
@@ -133,7 +133,14 @@ export default function TaskViews({
   focusTaskId,
   disableVirtualization,
 }: {
-  tab: "today" | "tomorrow" | "upcoming" | "reassigned" | "completed" | "overdue" | "qc_approved";
+  tab:
+    | "today"
+    | "tomorrow"
+    | "upcoming"
+    | "reassigned"
+    | "completed"
+    | "overdue"
+    | "qc_approved";
   currentTasks: Task[];
   viewMode: "grid" | "list";
   tasks: Task[];
@@ -154,12 +161,15 @@ export default function TaskViews({
   hideAssetSection: boolean;
   getDisplayUrl: (t: Task) => string | null;
 
-  copied: { id: string; type: "url" | "password" | "email" | "username" } | null;
+  copied: {
+    id: string;
+    type: "url" | "password" | "email" | "username";
+  } | null;
   handleCopy: (
     text: string,
     id: string,
     type: "url" | "password" | "email" | "username",
-    revealAllowed?: boolean
+    revealAllowed?: boolean,
   ) => void;
   mask: (s?: string | null) => string;
   isPasswordVisible: (id: string) => boolean;
@@ -174,6 +184,8 @@ export default function TaskViews({
   focusTaskId?: string | null;
   disableVirtualization?: boolean;
 }) {
+  const [selectedTaskName, setSelectedTaskName] = useState<string | null>(null);
+
   const uniqueCurrentTasks = useMemo(() => {
     const map = new Map<string, Task>();
     for (const t of currentTasks) {
@@ -229,11 +241,30 @@ export default function TaskViews({
     today: ["No tasks for today!", "You're all caught up for today."],
     tomorrow: ["No tasks for tomorrow!", "Enjoy your day off tomorrow."],
     upcoming: ["No upcoming tasks!", "All your tasks are well organized."],
-    reassigned: ["No reassigned tasks!", "Currently you have no tasks marked as reassigned."],
-    completed: ["No completed tasks yet!", "Complete some tasks to see them here."],
+    reassigned: [
+      "No reassigned tasks!",
+      "Currently you have no tasks marked as reassigned.",
+    ],
+    completed: [
+      "No completed tasks yet!",
+      "Complete some tasks to see them here.",
+    ],
     overdue: ["No overdue tasks!", "All your tasks are completed on time."],
-    qc_approved: ["No QC approved tasks!", "No tasks have been QC approved yet."],
+    qc_approved: [
+      "No QC approved tasks!",
+      "No tasks have been QC approved yet.",
+    ],
   }[tab];
+
+  const shouldUseTaskNameModal = (name?: string | null) =>
+    Boolean(name && name.trim().length > 60);
+
+  const getTruncatedTaskName = (name?: string | null, wordLimit = 12) => {
+    if (!name) return "";
+    const words = name.trim().split(/\s+/);
+    if (words.length <= wordLimit) return name;
+    return `${words.slice(0, wordLimit).join(" ")}...`;
+  };
 
   const renderTaskCard = (task: Task) => {
     const isTimerActive =
@@ -258,373 +289,417 @@ export default function TaskViews({
           isThisTaskDisabled ? "opacity-70" : ""
         } ${isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""}`}
       >
-            <div className="p-6 w-full">
-              <div className="flex flex-col lg:flex-row gap-10 items-start lg:items-center w-full">
-                <div className="flex items-start gap-4 min-w-0">
-                  <div className="flex-1 min-w-0 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <PerformanceBadge rating={task.performanceRating as any} />
-                      {task.status === "qc_approved" && (
-                        <TooltipProvider delayDuration={100}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-linear-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
-                                🎯 Total Score:{" "}
-                                <span className="text-emerald-700 dark:text-emerald-300 font-bold">
-                                  {task.qcTotalScore ?? "-"}
-                                </span>
-                              </span>
-                            </TooltipTrigger>
+        <div className="p-6 w-full">
+          <div className="flex flex-col xl:flex-row gap-6 items-start w-full">
+            <div className="min-w-0 w-full flex-1 xl:max-w-[calc(100%-35rem)]">
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="flex items-center gap-3">
+                  <PerformanceBadge rating={task.performanceRating as any} />
+                  {task.status === "qc_approved" && (
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-block px-3 py-1 text-sm font-semibold rounded-full bg-linear-to-r from-indigo-100 via-purple-100 to-pink-100 text-indigo-700 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 dark:text-pink-300 shadow-sm cursor-pointer">
+                            🎯 Total Score:{" "}
+                            <span className="text-emerald-700 dark:text-emerald-300 font-bold">
+                              {task.qcTotalScore ?? "-"}
+                            </span>
+                          </span>
+                        </TooltipTrigger>
 
-                            <TooltipContent
-                              side="top"
-                              align="start"
-                              className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
-                            >
-                              {(() => {
-                                const r = (task?.qcReview as any) || {};
-                                const total = Number(r.total ?? task.qcTotalScore ?? 0);
+                        <TooltipContent
+                          side="top"
+                          align="start"
+                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
+                        >
+                          {(() => {
+                            const r = (task?.qcReview as any) || {};
+                            const total = Number(
+                              r.total ?? task.qcTotalScore ?? 0,
+                            );
 
-                                return (
-                                  <div className="p-4 space-y-3">
-                                    <div className="flex items-center justify-between border-b border-gray-600 pb-2">
-                                      <div className="text-xs font-semibold uppercase tracking-wide text-gray-100">
-                                        QC Review
-                                      </div>
-                                      <div className="text-xs text-gray-100">
-                                        {fmt(r.reviewedAt)}
-                                      </div>
+                            return (
+                              <div className="p-4 space-y-3">
+                                <div className="flex items-center justify-between border-b border-gray-600 pb-2">
+                                  <div className="text-xs font-semibold uppercase tracking-wide text-gray-100">
+                                    QC Review
+                                  </div>
+                                  <div className="text-xs text-gray-100">
+                                    {fmt(r.reviewedAt)}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-sm font-semibold">
+                                      Total Score
+                                    </span>
+                                    <span className="text-sm font-bold text-blue-400">
+                                      {total}/100
+                                    </span>
+                                  </div>
+                                  <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-linear-to-r from-blue-500 to-indigo-600"
+                                      style={{
+                                        width: `${Math.max(0, Math.min(100, total))}%`,
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                  <ScorePill
+                                    label="Timer"
+                                    value={r.timerScore}
+                                  />
+                                  <ScorePill label="SEO" value={r.seo} />
+                                  <ScorePill label="Image" value={r.image} />
+                                  <ScorePill
+                                    label="Grammar"
+                                    value={r.grammar}
+                                  />
+                                  <ScorePill
+                                    label="Keyword"
+                                    value={r.keyword}
+                                  />
+                                  <ScorePill
+                                    label="Humanization"
+                                    value={r.humanization}
+                                  />
+                                  <ScorePill
+                                    label="Content"
+                                    value={r.contentQuality}
+                                  />
+                                </div>
+
+                                {r.notes && (
+                                  <div className="rounded-lg bg-gray-700 p-3 border border-gray-600">
+                                    <div className="text-xs font-semibold text-gray-300 mb-1">
+                                      Notes
                                     </div>
-
-                                    <div>
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="text-sm font-semibold">
-                                          Total Score
-                                        </span>
-                                        <span className="text-sm font-bold text-blue-400">
-                                          {total}/100
-                                        </span>
-                                      </div>
-                                      <div className="h-2 rounded-full bg-gray-700 overflow-hidden">
-                                        <div
-                                          className="h-full rounded-full bg-linear-to-r from-blue-500 to-indigo-600"
-                                          style={{ width: `${Math.max(0, Math.min(100, total))}%` }}
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
-                                      <ScorePill label="Timer" value={r.timerScore} />
-                                      <ScorePill label="SEO" value={r.seo} />
-                                      <ScorePill label="Image" value={r.image} />
-                                      <ScorePill label="Grammar" value={r.grammar} />
-                                      <ScorePill label="Keyword" value={r.keyword} />
-                                      <ScorePill label="Humanization" value={r.humanization} />
-                                      <ScorePill label="Content" value={r.contentQuality} />
-                                    </div>
-
-                                    {r.notes && (
-                                      <div className="rounded-lg bg-gray-700 p-3 border border-gray-600">
-                                        <div className="text-xs font-semibold text-gray-300 mb-1">
-                                          Notes
-                                        </div>
-                                        <div className="text-xs leading-relaxed text-gray-200">
-                                          {String(r.notes)}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    <div className="text-xs text-gray-200 border-t border-gray-600 pt-2">
-                                      Reviewer ID:{" "}
-                                      <span className="font-mono text-gray-300">
-                                        {r.reviewerId ?? "—"}
-                                      </span>
+                                    <div className="text-xs leading-relaxed text-gray-200">
+                                      {String(r.notes)}
                                     </div>
                                   </div>
-                                );
-                              })()}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
+                                )}
 
-                    <div className="flex items-center gap-3 mb-3">
-                      <h3 className="font-bold text-gray-900 dark:text-gray-50 text-lg truncate">
-                        {task.name}
-                      </h3>
-                      {isTimerActive && !locked && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                          <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
-                            ACTIVE
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                                <div className="text-xs text-gray-200 border-t border-gray-600 pt-2">
+                                  Reviewer ID:{" "}
+                                  <span className="font-mono text-gray-300">
+                                    {r.reviewerId ?? "—"}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
 
-                    <div className="flex flex-wrap items-center gap-2 mb-4">
-                      <div className="flex items-center gap-1">
-                        {getStatusBadge(task.status)}
-                      </div>
-                      {getPriorityBadge(task.priority)}
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-semibold border-2 border-gray-300 dark:border-gray-600"
-                      >
-                        {task.category?.name || "N/A"}
-                      </Badge>
-                    </div>
-
-                    {isReassignedLike(task) && (
-                      <div className="flex items-center gap-2 mb-4 text-xs font-medium text-gray-600 dark:text-gray-400">
-                        <p>Reassign Note:</p>
-                        {task.reassignNotes && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 rounded-full hover:bg-violet-100 dark:hover:bg-violet-800/50 transition-colors"
-                            onClick={() => showReassignNote(task.reassignNotes || "")}
-                            title="View reassign note"
-                          >
-                            <Eye className="h-3 w-3 text-violet-600" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-
-                    {!hideAssetSection && task.templateSiteAsset?.name && (
-                      <div className="mb-4 p-3 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
-                        <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300">
-                          <span className="text-gray-700 dark:text-gray-300">
-                            Asset:
-                          </span>{" "}
-                          {task.templateSiteAsset?.name}
-                        </p>
+                <div className="mb-3 space-y-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <h3
+                      className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg"
+                      title={task.name}
+                    >
+                      {getTruncatedTaskName(task.name)}
+                    </h3>
+                    {isTimerActive && !locked && (
+                      <div className="flex shrink-0 items-center gap-2 px-3 py-1 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                          ACTIVE
+                        </span>
                       </div>
                     )}
                   </div>
+                  {shouldUseTaskNameModal(task.name) && (
+                    <div className="flex">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 rounded-xl border-violet-200 bg-violet-700 text-white hover:text-white hover:bg-violet-500 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/30"
+                        onClick={() => setSelectedTaskName(task.name)}
+                      >
+                        View full Details
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex-1 min-w-0 w-full lg:w-auto">
-                  <div className="space-y-3 bg-linear-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
-                    {/* Email */}
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Email:
-                      </span>
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {reveal ? task.email || "N/A" : mask(task.email)}
-                      </span>
-                      {!!task.email && !locked && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() =>
-                            handleCopy(task.email!, task.id, "email", reveal)
-                          }
-                          disabled={!reveal}
-                          aria-label="Copy email"
-                          title={reveal ? "Copy email" : "Start timer to view"}
-                        >
-                          {emailCopied ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <div className="flex items-center gap-1">
+                    {getStatusBadge(task.status)}
+                  </div>
+                  {getPriorityBadge(task.priority)}
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-semibold border-2 border-gray-300 dark:border-gray-600"
+                  >
+                    {task.category?.name || "N/A"}
+                  </Badge>
+                </div>
 
-                    {/* Username */}
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Username:
-                      </span>
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {reveal ? task.username || "N/A" : mask(task.username)}
-                      </span>
-                      {!!task.username && !locked && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 rounded-xl transition-colors ${
-                            reveal
-                              ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              : "opacity-50 cursor-not-allowed"
-                          }`}
-                          onClick={() =>
-                            handleCopy(task.username!, task.id, "username", reveal)
-                          }
-                          disabled={!reveal}
-                          aria-label="Copy username"
-                          title={reveal ? "Copy username" : "Start timer to view"}
-                        >
-                          {usernameCopied ? (
-                            <Check className="h-3 w-3 text-emerald-600" />
-                          ) : (
-                            <Copy className="h-3 w-3 text-gray-600" />
-                          )}
-                        </Button>
-                      )}
-                    </div>
+                {isReassignedLike(task) && (
+                  <div className="flex items-center gap-2 mb-4 text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <p>Reassign Note:</p>
+                    {task.reassignNotes && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full hover:bg-violet-100 dark:hover:bg-violet-800/50 transition-colors"
+                        onClick={() =>
+                          showReassignNote(task.reassignNotes || "")
+                        }
+                        title="View reassign note"
+                      >
+                        <Eye className="h-3 w-3 text-violet-600" />
+                      </Button>
+                    )}
+                  </div>
+                )}
 
-                    {/* Password */}
-                    <div className="text-sm flex items-center gap-2">
-                      <span className="font-bold text-gray-800 dark:text-gray-200">
-                        Password:
-                      </span>
-                      <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                        {task.password
-                          ? locked
-                            ? "••••••••"
-                            : reveal
+                {!hideAssetSection && task.templateSiteAsset?.name && (
+                  <div className="mb-4 p-3 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
+                    <p className="text-xs font-semibold text-indigo-800 dark:text-indigo-300">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Asset:
+                      </span>{" "}
+                      {task.templateSiteAsset?.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="w-full xl:w-88 xl:min-w-88 space-y-4">
+              <div className="space-y-3 bg-linear-to-r from-gray-50 to-slate-50 dark:from-gray-800/50 dark:to-slate-800/50 rounded-xl p-4 border-2 border-gray-200 dark:border-gray-700">
+                {/* Email */}
+                <div className="text-sm flex items-center gap-2">
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    Email:
+                  </span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                    {reveal ? task.email || "N/A" : mask(task.email)}
+                  </span>
+                  {!!task.email && !locked && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={`h-6 w-6 rounded-xl transition-colors ${
+                        reveal
+                          ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
+                      onClick={() =>
+                        handleCopy(task.email!, task.id, "email", reveal)
+                      }
+                      disabled={!reveal}
+                      aria-label="Copy email"
+                      title={reveal ? "Copy email" : "Start timer to view"}
+                    >
+                      {emailCopied ? (
+                        <Check className="h-3 w-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-3 w-3 text-gray-600" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Username */}
+                <div className="text-sm flex items-center gap-2">
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    Username:
+                  </span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                    {reveal ? task.username || "N/A" : mask(task.username)}
+                  </span>
+                  {!!task.username && !locked && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={`h-6 w-6 rounded-xl transition-colors ${
+                        reveal
+                          ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
+                      onClick={() =>
+                        handleCopy(task.username!, task.id, "username", reveal)
+                      }
+                      disabled={!reveal}
+                      aria-label="Copy username"
+                      title={reveal ? "Copy username" : "Start timer to view"}
+                    >
+                      {usernameCopied ? (
+                        <Check className="h-3 w-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-3 w-3 text-gray-600" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="text-sm flex items-center gap-2">
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    Password:
+                  </span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                    {task.password
+                      ? locked
+                        ? "••••••••"
+                        : reveal
+                          ? isPasswordVisible(task.id)
+                            ? task.password
+                            : "••••••••"
+                          : mask(task.password)
+                      : "N/A"}
+                  </span>
+
+                  {task.password && !locked && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={`h-6 w-6 rounded-xl transition-colors ${
+                          reveal
+                            ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                            : "opacity-50 cursor-not-allowed"
+                        }`}
+                        onClick={() => reveal && togglePassword(task.id)}
+                        disabled={!reveal}
+                        aria-label={
+                          isPasswordVisible(task.id)
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                        title={
+                          reveal
                             ? isPasswordVisible(task.id)
-                              ? task.password
-                              : "••••••••"
-                            : mask(task.password)
-                          : "N/A"}
+                              ? "Hide password"
+                              : "Show password"
+                            : "Start timer to view"
+                        }
+                      >
+                        {isPasswordVisible(task.id) ? (
+                          <EyeOff className="h-3 w-3 text-gray-600" />
+                        ) : (
+                          <Eye className="h-3 w-3 text-gray-600" />
+                        )}
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={`h-6 w-6 rounded-xl transition-colors ${
+                          reveal
+                            ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                            : "opacity-50 cursor-not-allowed"
+                        }`}
+                        onClick={() =>
+                          handleCopy(
+                            task.password!,
+                            task.id,
+                            "password",
+                            reveal,
+                          )
+                        }
+                        disabled={!reveal}
+                        aria-label="Copy password"
+                        title={reveal ? "Copy password" : "Start timer to view"}
+                      >
+                        {passwordCopied ? (
+                          <Check className="h-3 w-3 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-3 w-3 text-gray-600" />
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
+
+                {/* URL */}
+                {displayUrl && (
+                  <div className="mt-3 p-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                    <div className="text-sm flex items-start gap-2">
+                      <span className="font-bold text-blue-800 dark:text-blue-300 shrink-0">
+                        URL:
                       </span>
-
-                      {task.password && !locked && (
-                        <>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className={`h-6 w-6 rounded-xl transition-colors ${
-                              reveal
-                                ? "hover:bg-gray-100 dark:hover:bg-gray-700"
-                                : "opacity-50 cursor-not-allowed"
-                            }`}
-                            onClick={() => reveal && togglePassword(task.id)}
-                            disabled={!reveal}
-                            aria-label={
-                              isPasswordVisible(task.id)
-                                ? "Hide password"
-                                : "Show password"
-                            }
-                            title={
-                              reveal
-                                ? isPasswordVisible(task.id)
-                                  ? "Hide password"
-                                  : "Show password"
-                                : "Start timer to view"
-                            }
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {reveal ? (
+                          <a
+                            href={displayUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 truncate underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                            title={displayUrl}
                           >
-                            {isPasswordVisible(task.id) ? (
-                              <EyeOff className="h-3 w-3 text-gray-600" />
-                            ) : (
-                              <Eye className="h-3 w-3 text-gray-600" />
-                            )}
-                          </Button>
+                            <span className="truncate break-all inline-block max-w-full">
+                              {displayUrl}
+                            </span>
+                          </a>
+                        ) : (
+                          <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white/70 dark:bg-gray-800/70 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+                            {mask(displayUrl)}
+                          </span>
+                        )}
 
+                        {!locked && (
                           <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className={`h-6 w-6 rounded-xl transition-colors ${
+                            className={`h-6 w-6 rounded-xl transition-colors shrink-0 ${
                               reveal
-                                ? "hover:bg-gray-100 dark:hover:bg-gray-700"
+                                ? "hover:bg-blue-100 dark:hover:bg-blue-800/50"
                                 : "opacity-50 cursor-not-allowed"
                             }`}
                             onClick={() =>
-                              handleCopy(task.password!, task.id, "password", reveal)
+                              handleCopy(displayUrl, task.id, "url", reveal)
                             }
                             disabled={!reveal}
-                            aria-label="Copy password"
-                            title={reveal ? "Copy password" : "Start timer to view"}
+                            aria-label="Copy URL"
+                            title={reveal ? "Copy URL" : "Start timer to view"}
                           >
-                            {passwordCopied ? (
+                            {urlCopied ? (
                               <Check className="h-3 w-3 text-emerald-600" />
                             ) : (
-                              <Copy className="h-3 w-3 text-gray-600" />
+                              <Copy className="h-3 w-3 text-blue-600" />
                             )}
                           </Button>
-                        </>
-                      )}
-                    </div>
-
-                    {/* URL */}
-                    {displayUrl && (
-                      <div className="mt-3 p-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700">
-                        <div className="text-sm flex items-start gap-2">
-                          <span className="font-bold text-blue-800 dark:text-blue-300 shrink-0">
-                            URL:
-                          </span>
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            {reveal ? (
-                              <a
-                                href={displayUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 dark:text-blue-400 truncate underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
-                                title={displayUrl}
-                              >
-                                <span className="truncate break-all inline-block max-w-full">
-                                  {displayUrl}
-                                </span>
-                              </a>
-                            ) : (
-                              <span className="font-mono text-gray-700 dark:text-gray-300 break-all bg-white/70 dark:bg-gray-800/70 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
-                                {mask(displayUrl)}
-                              </span>
-                            )}
-
-                            {!locked && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className={`h-6 w-6 rounded-xl transition-colors shrink-0 ${
-                                  reveal
-                                    ? "hover:bg-blue-100 dark:hover:bg-blue-800/50"
-                                    : "opacity-50 cursor-not-allowed"
-                                }`}
-                                onClick={() =>
-                                  handleCopy(displayUrl, task.id, "url", reveal)
-                                }
-                                disabled={!reveal}
-                                aria-label="Copy URL"
-                                title={reveal ? "Copy URL" : "Start timer to view"}
-                              >
-                                {urlCopied ? (
-                                  <Check className="h-3 w-3 text-emerald-600" />
-                                ) : (
-                                  <Copy className="h-3 w-3 text-blue-600" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-
-                {/* Timer */}
-                <div className="w-full lg:w-auto lg:min-w-[120px]">
-                  <TaskTimer
-                    task={task}
-                    timerState={timerState}
-                    pausedTimer={pausedTimer}
-                    onStartTimer={locked ? () => {} : handleStartTimer}
-                    onPauseTimer={locked ? () => {} : handlePauseTimer}
-                    onRequestComplete={onRequestComplete}
-                    formatTimerDisplay={formatTimerDisplay}
-                  />
-                </div>
+                )}
               </div>
             </div>
+
+            {/* Timer */}
+            <div className="w-full self-start xl:w-[120px] xl:min-w-[120px]">
+              <TaskTimer
+                task={task}
+                timerState={timerState}
+                pausedTimer={pausedTimer}
+                onStartTimer={locked ? () => {} : handleStartTimer}
+                onPauseTimer={locked ? () => {} : handlePauseTimer}
+                onRequestComplete={onRequestComplete}
+                formatTimerDisplay={formatTimerDisplay}
+              />
+            </div>
           </div>
-        );
+        </div>
+      </div>
+    );
 
     return (
       <div className="mb-4 last:mb-0" key={task.id}>
@@ -633,7 +708,8 @@ export default function TaskViews({
     );
   };
 
-  const shouldVirtualize = !disableVirtualization && uniqueCurrentTasks.length > 40;
+  const shouldVirtualize =
+    !disableVirtualization && uniqueCurrentTasks.length > 40;
   const listView = shouldVirtualize ? (
     <VirtualizedList
       items={uniqueCurrentTasks}
@@ -655,8 +731,10 @@ export default function TaskViews({
         const displayUrl = getDisplayUrl(task);
         const urlCopied = copied?.id === task.id && copied?.type === "url";
         const emailCopied = copied?.id === task.id && copied?.type === "email";
-        const usernameCopied = copied?.id === task.id && copied?.type === "username";
-        const passwordCopied = copied?.id === task.id && copied?.type === "password";
+        const usernameCopied =
+          copied?.id === task.id && copied?.type === "username";
+        const passwordCopied =
+          copied?.id === task.id && copied?.type === "password";
         const locked = isLocked(task);
         const isThisTaskDisabled = locked || isTaskDisabled(task.id);
         const isFocused = focusTaskId === task.id;
@@ -675,10 +753,26 @@ export default function TaskViews({
               <div className="flex-1 flex flex-col space-y-6">
                 <div className="flex items-start gap-4 w-full">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3 mb-4">
-                      <h3 className="font-bold text-gray-900 dark:text-gray-50 text-xl truncate">
-                        {task.name}
-                      </h3>
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <h3
+                          className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl"
+                          title={task.name}
+                        >
+                          {getTruncatedTaskName(task.name)}
+                        </h3>
+                        {shouldUseTaskNameModal(task.name) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-9 shrink-0 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/30"
+                            onClick={() => setSelectedTaskName(task.name)}
+                          >
+                            View full name
+                          </Button>
+                        )}
+                      </div>
                       {isTimerActive && !locked && (
                         <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
                           <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
@@ -857,10 +951,10 @@ export default function TaskViews({
                         ? locked
                           ? "••••••••"
                           : reveal
-                          ? isPasswordVisible(task.id)
-                            ? task.password
-                            : "••••••••"
-                          : mask(task.password)
+                            ? isPasswordVisible(task.id)
+                              ? task.password
+                              : "••••••••"
+                            : mask(task.password)
                         : "N/A"}
                     </span>
                     {task.password && !locked && (
@@ -901,7 +995,9 @@ export default function TaskViews({
                             handleCopy(task.password!, task.id, "password")
                           }
                           aria-label="Copy password"
-                          title={reveal ? "Copy password" : "Start timer to view"}
+                          title={
+                            reveal ? "Copy password" : "Start timer to view"
+                          }
                         >
                           {passwordCopied ? (
                             <Check className="h-4 w-4 text-emerald-600" />
@@ -946,7 +1042,9 @@ export default function TaskViews({
                         >
                           {(() => {
                             const r = (task?.qcReview as any) || {};
-                            const total = Number(r.total ?? task.qcTotalScore ?? 0);
+                            const total = Number(
+                              r.total ?? task.qcTotalScore ?? 0,
+                            );
 
                             return (
                               <div className="p-4 space-y-3">
@@ -979,13 +1077,28 @@ export default function TaskViews({
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2">
-                                  <ScorePill label="Timer" value={r.timerScore} />
+                                  <ScorePill
+                                    label="Timer"
+                                    value={r.timerScore}
+                                  />
                                   <ScorePill label="SEO" value={r.seo} />
                                   <ScorePill label="Image" value={r.image} />
-                                  <ScorePill label="Grammar" value={r.grammar} />
-                                  <ScorePill label="Keyword" value={r.keyword} />
-                                  <ScorePill label="Humanization" value={r.humanization} />
-                                  <ScorePill label="Content" value={r.contentQuality} />
+                                  <ScorePill
+                                    label="Grammar"
+                                    value={r.grammar}
+                                  />
+                                  <ScorePill
+                                    label="Keyword"
+                                    value={r.keyword}
+                                  />
+                                  <ScorePill
+                                    label="Humanization"
+                                    value={r.humanization}
+                                  />
+                                  <ScorePill
+                                    label="Content"
+                                    value={r.contentQuality}
+                                  />
                                 </div>
 
                                 {r.notes && (
@@ -1031,12 +1144,38 @@ export default function TaskViews({
         <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
           {emptyText[0]}
         </p>
-        <p className="text-gray-500 dark:text-gray-400">
-          {emptyText[1]}
-        </p>
+        <p className="text-gray-500 dark:text-gray-400">{emptyText[1]}</p>
       </div>
     );
   }
 
-  return viewMode === "list" ? listView : gridView;
+  return (
+    <>
+      {viewMode === "list" ? listView : gridView}
+
+      <Dialog
+        open={Boolean(selectedTaskName)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedTaskName(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl rounded-2xl border border-violet-100 bg-white shadow-2xl dark:border-violet-900/40 dark:bg-gray-900">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-50">
+              Full Task Details
+            </DialogTitle>
+            <DialogDescription>
+              Full task Details shown here for long names.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-2xl border border-violet-100 bg-linear-to-br from-violet-50 to-purple-50 p-4 dark:border-violet-900/40 dark:from-violet-950/30 dark:to-purple-950/20">
+            <p className="breaktext-base font-semibold leading-7 text-gray-800 dark:text-gray-100">
+              {selectedTaskName}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
