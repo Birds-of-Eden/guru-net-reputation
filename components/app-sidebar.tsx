@@ -308,6 +308,11 @@ function buildNav(role: Role): NavItem[] {
           url: p(r, "/distribution/client-agent"),
           permission: "view_distribution_client_agent",
         },
+        {
+          title: "Custom Jobs",
+          url: p(r, "/distribution/custom_jobs"),
+          permission: "view_distribution_custom_jobs",
+        },
       ],
     },
 
@@ -695,7 +700,7 @@ export function AppSidebar({ className }: { className?: string }) {
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-tr from-cyan-500 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-8 h-8 bg-linear-to-tr from-cyan-500 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <GalleryVerticalEnd className="h-5 w-5 text-white" />
               </div>
             </div>
@@ -787,7 +792,7 @@ export function AppSidebar({ className }: { className?: string }) {
         <div className="p-5 border-b border-gray-200/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-tr from-cyan-500 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-9 h-9 bg-linear-to-tr from-cyan-500 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <GalleryVerticalEnd className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -1159,7 +1164,7 @@ function SidebarFooter({
           >
             <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
               <AvatarImage src={userImage} alt={userName} />
-              <AvatarFallback className="bg-gradient-to-tr from-cyan-500 to-blue-500 text-white font-semibold">
+              <AvatarFallback className="bg-linear-to-tr from-cyan-500 to-blue-500 text-white font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>

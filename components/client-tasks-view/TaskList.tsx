@@ -504,7 +504,7 @@ export default function TaskList({
                   <Calendar className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-3xl font-bold bg-linear-to-r from-violet-900 via-purple-900 to-pink-900 dark:from-violet-100 dark:via-purple-100 dark:to-pink-100 bg-clip-text text-transparent break-words">
+                  <CardTitle className="text-3xl font-bold bg-linear-to-r from-violet-900 via-purple-900 to-pink-900 dark:from-violet-100 dark:via-purple-100 dark:to-pink-100 bg-clip-text text-transparent">
                     Task Management
                   </CardTitle>
                   <CardDescription className="text-gray-700 dark:text-gray-300 text-lg mt-1 font-medium">

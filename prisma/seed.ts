@@ -77,6 +77,11 @@ const PERMS = [
     name: "view_distribution_client_agent",
     description: "Distribution → Clients to Agents",
   },
+  {
+    id: "view_distribution_custom_jobs",
+    name: "view_distribution_custom_jobs",
+    description: "Distribution → Custom Jobs",
+  },
 
   // Tasks
   { id: "view_tasks_list", name: "view_tasks_list", description: "Tasks → All Tasks" },
@@ -167,6 +172,7 @@ const ADMIN_PERMS: string[] = [
   "view_clients_list",
   "view_dashboard",
   "view_distribution_client_agent",
+  "view_distribution_custom_jobs",
   "view_notifications",
   "view_packages_list",
   "view_role_permissions",
