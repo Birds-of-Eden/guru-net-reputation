@@ -110,7 +110,12 @@ export default function CustomJobsDashboard() {
     try {
       const res = await fetch("/api/custom-jobs");
       const result = await res.json();
-      setJobs(Array.isArray(result.data) ? result.data : []);
+      const list = Array.isArray(result.data) ? result.data : [];
+      setJobs(
+        isAM && userId
+          ? list.filter((job: CustomJob) => job.amId === userId)
+          : list,
+      );
     } catch (error) {
       console.error(error);
       setJobs([]);
@@ -123,10 +128,14 @@ export default function CustomJobsDashboard() {
     try {
       const res = await fetch("/api/clients");
       const result = await res.json();
-      const list = result?.clients || [];
-      setAllClients(list);
+      const list = Array.isArray(result?.clients) ? result.clients : [];
+      const scopedList =
+        isAM && userId
+          ? list.filter((item: any) => item.amId === userId)
+          : list;
+      setAllClients(scopedList);
       // API now handles AM filtering, so just use all clients
-      setClients(list.map((item: any) => ({ id: item.id, name: item.name })));
+      setClients(scopedList.map((item: any) => ({ id: item.id, name: item.name })));
     } catch (error) {
       console.error(error);
     }
@@ -135,7 +144,7 @@ export default function CustomJobsDashboard() {
   useEffect(() => {
     fetchJobs();
     fetchClients();
-  }, []);
+  }, [isAM, userId]);
 
   const filteredJobs = useMemo(() => {
     if (!Array.isArray(jobs)) return [];

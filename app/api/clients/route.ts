@@ -261,6 +261,12 @@ export async function GET(req: Request) {
         },
       });
       if (!client) return NextResponse.json(null);
+      if (isAM && userId && client.amId !== userId) {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 },
+        );
+      }
 
       const templateName =
         client.assignments?.find((a) => a?.template?.name)?.template?.name ??

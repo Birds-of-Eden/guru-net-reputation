@@ -166,14 +166,19 @@ export default function CustomJobsTable({
   const [searchInput, setSearchInput] = useState("");
   const { user } = useAuth();
   const userRole = typeof user?.role === "string" ? user?.role : (user?.role as any)?.name;
+  const userId = user?.id;
   const isAM = userRole === "am";
 
   const fetchClients = async () => {
     try {
       const res = await fetch("/api/clients");
       const result = await res.json();
-      const list = result?.clients || [];
-      setClients(list.map((item: any) => ({ id: item.id, name: item.name })));
+      const list = Array.isArray(result?.clients) ? result.clients : [];
+      const scopedList =
+        isAM && userId
+          ? list.filter((item: any) => item.amId === userId)
+          : list;
+      setClients(scopedList.map((item: any) => ({ id: item.id, name: item.name })));
     } catch (error) {
       console.error(error);
     }
@@ -199,10 +204,14 @@ export default function CustomJobsTable({
   };
 
   useEffect(() => {
-    setJobs(initialJobs);
+    setJobs(
+      isAM && userId
+        ? initialJobs.filter((job) => job.amId === userId)
+        : initialJobs,
+    );
     fetchClients();
     fetchAgents();
-  }, [initialJobs]);
+  }, [initialJobs, isAM, userId]);
 
   const filteredJobs = useMemo(() => {
     const ranked = jobs

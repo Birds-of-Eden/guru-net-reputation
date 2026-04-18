@@ -243,8 +243,8 @@ export default function CustomJobFormModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
-          <div className="col-span-2 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="date" className="text-indigo-700 font-semibold">
                 Date
@@ -366,7 +366,7 @@ export default function CustomJobFormModal({
             </div>
           </div>
 
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="task" className="text-emerald-700 font-semibold">
               Task
             </Label>
@@ -377,12 +377,12 @@ export default function CustomJobFormModal({
                 setForm((prev) => ({ ...prev, name: e.target.value }))
               }
               placeholder="Write custom task details"
-              className="min-h-[120px] border-emerald-200 bg-white/70 focus:border-emerald-500 focus:ring-emerald-500"
+              className="min-h-[140px] resize-y overflow-auto [field-sizing:fixed] border-emerald-200 bg-white/70 focus:border-emerald-500 focus:ring-emerald-500"
               required
             />
           </div>
 
-          <div className="space-y-2 md:col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="notes" className="text-orange-700 font-semibold">
               Notes
             </Label>
@@ -392,11 +392,11 @@ export default function CustomJobFormModal({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, notes: e.target.value }))
               }
-              className="min-h-[80px] border-orange-200 bg-white/70 focus:border-orange-500 focus:ring-orange-500"
+              className="min-h-[100px] resize-y overflow-auto [field-sizing:fixed] border-orange-200 bg-white/70 focus:border-orange-500 focus:ring-orange-500"
             />
           </div>
 
-          <DialogFooter className="md:col-span-2 gap-3">
+          <DialogFooter className="gap-3 pt-2">
             <Button
               type="button"
               onClick={onClose}

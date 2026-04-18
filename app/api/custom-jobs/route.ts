@@ -56,6 +56,13 @@ export async function GET(req: NextRequest) {
       category: {
         name: "Custom Job",
       },
+      ...(isAM && userId
+        ? {
+            client: {
+              amId: userId,
+            },
+          }
+        : {}),
     };
 
     const tasks = await prisma.task.findMany({
@@ -106,6 +113,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CustomJobPayload;
+    const currentUser = await getAuthUser();
+    const userRole = currentUser?.role;
+    const userId = currentUser?.id;
+    const isAM = userRole === "am";
 
     if (!body.clientId) {
       return NextResponse.json(
@@ -119,6 +130,23 @@ export async function POST(req: NextRequest) {
         { success: false, message: "Task name is required" },
         { status: 400 }
       );
+    }
+
+    if (isAM && userId) {
+      const allowedClient = await prisma.client.findFirst({
+        where: {
+          id: body.clientId,
+          amId: userId,
+        },
+        select: { id: true },
+      });
+
+      if (!allowedClient) {
+        return NextResponse.json(
+          { success: false, message: "You can only create custom jobs for your assigned clients" },
+          { status: 403 }
+        );
+      }
     }
 
     let category = await prisma.taskCategory.findUnique({

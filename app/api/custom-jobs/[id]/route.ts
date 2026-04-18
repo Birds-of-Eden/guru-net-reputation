@@ -4,8 +4,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, TaskPriority, TaskStatus } from "@prisma/client";
 import { mapTaskToCustomJob, parseJsonSafe } from "../../utils/custom-jobs";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 const prismaById = new PrismaClient();
+
+async function getScopedTask(id: string) {
+  const currentUser = await getAuthUser();
+  const userRole = currentUser?.role;
+  const userId = currentUser?.id;
+  const isAM = userRole === "am";
+
+  const task = await prismaById.task.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      priority: true,
+      dueDate: true,
+      createdAt: true,
+      updatedAt: true,
+      notes: true,
+      idealDurationMinutes: true,
+      actualDurationMinutes: true,
+      performanceRating: true,
+      completionLink: true,
+      completedAt: true,
+      taskCompletionJson: true,
+      taskType: true,
+      clientId: true,
+      assignedToId: true,
+      category: true,
+      client: {
+        select: {
+          id: true,
+          name: true,
+          amId: true,
+          accountManager: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
+      assignedTo: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  if (!task) {
+    return { task: null, denied: false };
+  }
+
+  if (isAM && userId && task.client?.amId !== userId) {
+    return { task: null, denied: true };
+  }
+
+  return { task, denied: false };
+}
 
 type UpdatePayload = {
   date?: string;
@@ -25,29 +78,14 @@ type UpdatePayload = {
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const task = await prismaById.task.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        status: true,
-        priority: true,
-        dueDate: true,
-        createdAt: true,
-        updatedAt: true,
-        notes: true,
-        idealDurationMinutes: true,
-        actualDurationMinutes: true,
-        performanceRating: true,
-        completionLink: true,
-        completedAt: true,
-        taskCompletionJson: true,
-        taskType: true,
-        client: { select: { id: true, name: true } },
-        assignedTo: { select: { id: true, name: true, email: true } },
-        category: true,
-      },
-    });
+    const { task, denied } = await getScopedTask(id);
+
+    if (denied) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     if (!task) {
       return NextResponse.json(
@@ -70,7 +108,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
     const body = (await req.json()) as UpdatePayload;
-    const existing = await prismaById.task.findUnique({ where: { id } });
+    const { task: existing, denied } = await getScopedTask(id);
+
+    if (denied) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     if (!existing) {
       return NextResponse.json(
@@ -158,7 +203,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const existing = await prismaById.task.findUnique({ where: { id } });
+    const { task: existing, denied } = await getScopedTask(id);
+
+    if (denied) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     if (!existing) {
       return NextResponse.json(
