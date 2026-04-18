@@ -113,6 +113,7 @@ export async function PATCH(
       password,
       actualDurationMinutes,
       notes,
+      taskCompletionJson,
     }: {
       taskId: string;
       status: "pending" | "in_progress" | "completed" | "overdue" | "cancelled";
@@ -122,6 +123,7 @@ export async function PATCH(
       password?: string;
       actualDurationMinutes?: number;
       notes?: string | null;
+      taskCompletionJson?: any;
     } = body;
 
     if (!taskId || !status) {
@@ -198,6 +200,7 @@ export async function PATCH(
           : notes === null
           ? { notes: null }
           : {}),
+        ...(taskCompletionJson !== undefined && { taskCompletionJson }),
       },
       select: {
         id: true,

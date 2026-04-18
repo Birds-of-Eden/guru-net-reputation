@@ -9,15 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
   Link as LinkIcon,
   X,
   Clock,
-  Plus,
-  Trash2,
 } from "lucide-react";
 
 interface CustomJobCompletionDialogProps {

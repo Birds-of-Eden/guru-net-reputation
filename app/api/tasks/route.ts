@@ -169,6 +169,7 @@ export async function GET(req: Request) {
         completedAt: true,
         qcTotalScore: true,
         qcReview: true,
+        taskCompletionJson: true,
         client: { select: { id: true, name: true, packageId: true } },
         category: { select: { id: true, name: true } },
         assignedTo: { select: { id: true, name: true, email: true } },

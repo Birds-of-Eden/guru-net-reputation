@@ -167,6 +167,14 @@ const priorityBadge = (p: string) => {
   );
 };
 
+// Truncate task name to 12 words
+const truncateTaskName = (name: string | null | undefined, maxWords = 12): string => {
+  if (!name) return "";
+  const words = name.trim().split(/\s+/);
+  if (words.length <= maxWords) return name;
+  return `${words.slice(0, maxWords).join(" ")}....`;
+};
+
 /* =========================
    StarRating (local copy)
 ========================= */
@@ -343,7 +351,7 @@ export function TaskCard({
               {/* Left: title + badges */}
               <div className="space-y-2">
                 <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                  {task.name}
+                  {truncateTaskName(task.name)}
                 </h3>
                 <div className="flex items-center gap-2 flex-wrap">
                   {priorityBadge(task.priority)}
@@ -569,6 +577,7 @@ export function TaskCard({
               </div>
 
               <div className="flex flex-col items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+                {/* Regular Task Completion Link */}
                 {task.completionLink && (
                   <Button
                     onClick={() => {
@@ -576,11 +585,7 @@ export function TaskCard({
                         onOpenCompletionLink(task);
                         return;
                       }
-                      window.open(
-                        task.completionLink,
-                        "_blank",
-                        "noopener,noreferrer",
-                      );
+                      window.open(task.completionLink, "_blank", "noopener,noreferrer");
                     }}
                     className={`bg-linear-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
                       isQCApprovedTab ? "cursor-not-allowed" : ""
@@ -588,6 +593,35 @@ export function TaskCard({
                   >
                     <ExternalLink className="h-3 w-3 mr-2" />
                     View Completion
+                  </Button>
+                )}
+                {/* Custom Job Completion Links */}
+                {(task.taskType === "customjob" || task.category?.name === "Custom Job") && (
+                  <Button
+                    onClick={() => {
+                      // Directly handle custom job links
+                      if (task.taskCompletionJson?.links) {
+                        const links = task.taskCompletionJson.links
+                          .split(",")
+                          .map((l: string) => l.trim())
+                          .filter((l: string) => l !== "");
+                        if (links.length > 0) {
+                          links.forEach((link: string, index: number) => {
+                            setTimeout(() => {
+                              window.open(link, "_blank", "noopener,noreferrer");
+                            }, index * 300); // 300ms delay between each link
+                          });
+                        }
+                      } else if (task.taskCompletionJson?.link) {
+                        window.open(task.taskCompletionJson.link, "_blank", "noopener,noreferrer");
+                      }
+                    }}
+                    className={`bg-linear-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 mt-2 ${
+                      isQCApprovedTab ? "cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    View Custom Job Completion
                   </Button>
                 )}
                 {task.notes && (

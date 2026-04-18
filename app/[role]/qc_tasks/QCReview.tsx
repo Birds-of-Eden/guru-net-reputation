@@ -126,6 +126,8 @@ type TaskRow = {
   category: CategoryLite | null;
   assignment?: { template?: { name: string; package?: { name: string } } };
   templateSiteAsset?: { name: string; type: string };
+  taskType?: string;
+  taskCompletionJson?: string | null;
 
   qcTotalScore?: number | null;
   qcReview?: QCReviewBlob;
@@ -560,10 +562,37 @@ export const QCReview = memo(function QCReview({
     return false;
   };
 
-  const openCompletionLink = (task: TaskRow) => {
-    if (!task.completionLink) return;
-    markCompletionViewed(task.id);
-    window.open(task.completionLink, "_blank", "noopener,noreferrer");
+  const handleOpenCompletionLink = (task: any) => {
+    // 1) Handle Custom Job with multiple links in taskCompletionJson
+    if (task.taskType === "customjob" || task.category?.name === "Custom Job") {
+      const completionData = task.taskCompletionJson as any;
+      if (completionData?.links) {
+        const links = completionData.links
+          .split(",")
+          .map((l: string) => l.trim())
+          .filter((l: string) => l !== "");
+
+        if (links.length > 0) {
+          links.forEach((link: string, index: number) => {
+            setTimeout(() => {
+              window.open(link, "_blank", "noopener,noreferrer");
+            }, index * 200); // 200ms delay between each link
+          });
+          setCompletionViewedMap((prev) => ({ ...prev, [task.id]: true }));
+          return;
+        }
+      } else if (completionData?.link) {
+        window.open(completionData.link, "_blank", "noopener,noreferrer");
+        setCompletionViewedMap((prev) => ({ ...prev, [task.id]: true }));
+        return;
+      }
+    }
+
+    // 2) Regular flow for completionLink
+    if (task.completionLink) {
+      window.open(task.completionLink, "_blank", "noopener,noreferrer");
+      setCompletionViewedMap((prev) => ({ ...prev, [task.id]: true }));
+    }
   };
 
   const handleBulkOpenCompletionLinks = () => {
@@ -923,7 +952,7 @@ export const QCReview = memo(function QCReview({
                   }
                   defaultScores={defaultScores}
                   setNotePreview={setNotePreview}
-                  onOpenCompletionLink={openCompletionLink}
+                  onOpenCompletionLink={handleOpenCompletionLink}
                   completionViewedMap={completionViewedMap}
                 />
               )}
@@ -982,7 +1011,7 @@ export const QCReview = memo(function QCReview({
                   }
                   defaultScores={defaultScores}
                   setNotePreview={setNotePreview}
-                  onOpenCompletionLink={openCompletionLink}
+                  onOpenCompletionLink={handleOpenCompletionLink}
                   completionViewedMap={completionViewedMap}
                 />
               )}
@@ -1053,7 +1082,7 @@ export const QCReview = memo(function QCReview({
                     }
                     defaultScores={defaultScores}
                     setNotePreview={setNotePreview}
-                    onOpenCompletionLink={openCompletionLink}
+                    onOpenCompletionLink={handleOpenCompletionLink}
                     completionViewedMap={completionViewedMap}
                   />
                 </div>
@@ -1108,7 +1137,7 @@ export const QCReview = memo(function QCReview({
                     {approveDialog.task.completionLink && (
                       <div className="mt-2">
                         <Button
-                          onClick={() => openCompletionLink(approveDialog.task!)}
+                          onClick={() => handleOpenCompletionLink(approveDialog.task!)}
                           variant="outline"
                           size="sm"
                           className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200"

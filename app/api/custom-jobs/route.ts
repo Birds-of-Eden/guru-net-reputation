@@ -125,13 +125,7 @@ export async function POST(req: NextRequest) {
         taskType: TaskType.customjob,
         notes: body.notes || null,
         completionLink: body.link || null,
-        taskCompletionJson: {
-          issueStatus: body.issueStatus || "",
-          qcStatus: body.qcStatus || "requested",
-          clientNotificationUpdate: body.clientNotificationUpdate || "",
-          link: body.link || "",
-          source: "custom-job",
-        },
+        taskCompletionJson: null,
       },
       include: {
         client: { select: { id: true, name: true } },
