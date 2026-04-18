@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 export const dynamic = "force-dynamic";
 
@@ -221,11 +222,22 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
 
+    // Get current user for AM filtering
+    const currentUser = await getAuthUser();
+    const userRole = currentUser?.role;
+    const userId = currentUser?.id;
+    const isAM = userRole === "am";
+
     const id = searchParams.get("id");
     const packageId = searchParams.get("packageId") || undefined;
-    const amId = searchParams.get("amId") || undefined;
+    let amId = searchParams.get("amId") || undefined;
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
+
+    // If user is AM, override amId with their own ID (unless explicitly requesting a different AM's clients)
+    if (isAM && userId && !amId) {
+      amId = userId;
+    }
 
     const page = Number(searchParams.get("page") || "1");
     const pageSize = Number(searchParams.get("pageSize") || "30");
@@ -270,7 +282,12 @@ export async function GET(req: Request) {
     }
 
     // ---------- TOTAL COUNT ----------
-    const whereClause: any = { packageId, amId };
+    const whereClause: any = {
+      packageId,
+      amId,
+      // AM filtering: if user is AM, only show their assigned clients
+      ...(isAM && userId ? { amId: userId } : {}),
+    };
 
     if (status && status !== "all") {
       whereClause.status = status;

@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient, Prisma, TaskPriority, TaskStatus, TaskType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { mapTaskToCustomJob } from "../utils/custom-jobs";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 const prisma = new PrismaClient();
 
@@ -30,6 +31,12 @@ export async function GET(req: NextRequest) {
     const priority = (searchParams.get("priority") as TaskPriority | null) || undefined;
     const status = (searchParams.get("status") as TaskStatus | null) || undefined;
     const search = searchParams.get("search") || "";
+
+    // Get current user for AM filtering
+    const currentUser = await getAuthUser();
+    const userRole = currentUser?.role;
+    const userId = currentUser?.id;
+    const isAM = userRole === "am";
 
     const where: Prisma.TaskWhereInput = {
       ...(clientId ? { clientId } : {}),
@@ -69,6 +76,7 @@ export async function GET(req: NextRequest) {
         completedAt: true,
         taskCompletionJson: true,
         taskType: true,
+        clientId: true,
         client: {
           select: {
             id: true,

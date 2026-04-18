@@ -93,10 +93,6 @@ export default function JobDetailsModal({
               </DialogTitle>
             </DialogHeader>
 
-            <p className="mt-2 wrap-break-word text-sm text-white/85">
-              {job.name || "No task title"}
-            </p>
-
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge
                 className={`border ${getStatusColor(job.status)} bg-white/95`}
@@ -221,7 +217,7 @@ export default function JobDetailsModal({
 
               <div className="rounded-2xl border bg-white p-4 shadow-sm md:col-span-2 xl:col-span-1">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Client Update
+                  AM Update
                 </p>
                 <p className="text-sm text-slate-800 whitespace-pre-wrap wrap-break-word">
                   {job.clientNotificationUpdate || "-"}

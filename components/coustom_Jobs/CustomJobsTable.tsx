@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, CheckIcon, ChevronsUpDown } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -34,6 +34,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BackgroundGradient } from "../ui/background-gradient";
+import { useAuth } from "@/context/auth-context";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 function priorityBadgeClass(priority: string) {
   switch (priority) {
@@ -46,6 +61,64 @@ function priorityBadgeClass(priority: string) {
     default:
       return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20";
   }
+}
+
+function normalizeText(value: string | undefined | null) {
+  return (value || "").trim().toLowerCase();
+}
+
+function getJobSearchRank(job: CustomJob, search: string): { matched: boolean; rank: number } {
+  const q = normalizeText(search);
+  const name = normalizeText(job.name);
+  const clientName = normalizeText(job.clientName);
+  const amName = normalizeText(job.amName);
+
+  if (!q) {
+    return { matched: true, rank: 0 };
+  }
+
+  let rank: number = 0;
+  let matched = false;
+
+  // Exact match on task name
+  if (name === q) {
+    rank = 100;
+    matched = true;
+  }
+  // Task name starts with query
+  else if (name.startsWith(q)) {
+    rank = 80;
+    matched = true;
+  }
+  // Task name contains query
+  else if (name.includes(q)) {
+    rank = 60;
+    matched = true;
+  }
+
+  // Exact match on client name
+  if (clientName === q) {
+    rank = Math.max(rank, 90);
+    matched = true;
+  }
+  // Client name starts with query
+  else if (clientName.startsWith(q)) {
+    rank = Math.max(rank, 70);
+    matched = true;
+  }
+  // Client name contains query
+  else if (clientName.includes(q)) {
+    rank = Math.max(rank, 50);
+    matched = true;
+  }
+
+  // AM name contains query
+  if (amName.includes(q)) {
+    rank = Math.max(rank, 40);
+    matched = true;
+  }
+
+  return { matched, rank };
 }
 
 function statusBadgeClass(status: string) {
@@ -70,24 +143,18 @@ function statusBadgeClass(status: string) {
 }
 
 interface CustomJobsTableProps {
-  dateFilter?: "today" | "this_month" | "previous_month" | "date_range";
-  startDate?: string;
-  endDate?: string;
-  statusFilter?: string;
-  priorityFilter?: string;
+  jobs?: CustomJob[];
+  onRefresh?: () => void;
 }
 
 export default function CustomJobsTable({
-  dateFilter = "today",
-  startDate = "",
-  endDate = "",
-  statusFilter = "all",
-  priorityFilter = "all",
+  jobs: initialJobs = [],
+  onRefresh,
 }: CustomJobsTableProps) {
-  const [jobs, setJobs] = useState<CustomJob[]>([]);
+  const [jobs, setJobs] = useState<CustomJob[]>(initialJobs);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [agents, setAgents] = useState<UserOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<CustomJob | null>(null);
   const [search, setSearch] = useState("");
@@ -95,21 +162,11 @@ export default function CustomJobsTable({
   const [assigningJobId, setAssigningJobId] = useState<string | null>(null);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<CustomJob | null>(null);
-
-  const fetchJobs = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/custom-jobs?search=${encodeURIComponent(search)}`,
-      );
-      const result = await res.json();
-      setJobs(result.data || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [searchPopoverOpen, setSearchPopoverOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const { user } = useAuth();
+  const userRole = typeof user?.role === "string" ? user?.role : (user?.role as any)?.name;
+  const isAM = userRole === "am";
 
   const fetchClients = async () => {
     try {
@@ -142,74 +199,29 @@ export default function CustomJobsTable({
   };
 
   useEffect(() => {
-    fetchJobs();
+    setJobs(initialJobs);
     fetchClients();
     fetchAgents();
-  }, []);
+  }, [initialJobs]);
+
+  const filteredJobs = useMemo(() => {
+    const ranked = jobs
+      .map((job) => {
+        const rank = getJobSearchRank(job, searchInput);
+        return { job, rank };
+      })
+      .filter((item) => item.rank.matched);
+
+    ranked.sort((a, b) => b.rank.rank - a.rank.rank);
+
+    return ranked.map((item) => item.job);
+  }, [jobs, searchInput]);
 
   const filtered = useMemo(() => {
-    let result = jobs;
-
-    // Apply date filter
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    if (dateFilter === "today") {
-      result = result.filter((job) => {
-        if (!job.date) return false;
-        const jobDate = new Date(job.date);
-        return jobDate >= today;
-      });
-    } else if (dateFilter === "this_month") {
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      result = result.filter((job) => {
-        if (!job.date) return false;
-        const jobDate = new Date(job.date);
-        return jobDate >= firstDayOfMonth;
-      });
-    } else if (dateFilter === "previous_month") {
-      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const firstDayOfPreviousMonth = new Date(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth(),
-        1,
-      );
-      const lastDayOfPreviousMonth = new Date(
-        previousMonth.getFullYear(),
-        previousMonth.getMonth() + 1,
-        0,
-      );
-      result = result.filter((job) => {
-        if (!job.date) return false;
-        const jobDate = new Date(job.date);
-        return (
-          jobDate >= firstDayOfPreviousMonth &&
-          jobDate <= lastDayOfPreviousMonth
-        );
-      });
-    } else if (dateFilter === "date_range" && startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59);
-      result = result.filter((job) => {
-        if (!job.date) return false;
-        const jobDate = new Date(job.date);
-        return jobDate >= start && jobDate <= end;
-      });
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      result = result.filter((job) => job.status === statusFilter);
-    }
-
-    // Apply priority filter
-    if (priorityFilter !== "all") {
-      result = result.filter((job) => job.priority === priorityFilter);
-    }
-
-    return result;
-  }, [jobs, dateFilter, startDate, endDate, statusFilter, priorityFilter]);
+    // Dashboard already filtered by date, status, priority, client
+    // Table only needs to handle search filtering
+    return filteredJobs;
+  }, [filteredJobs]);
 
   const handleDelete = async (id: string) => {
     const ok = window.confirm(
@@ -222,7 +234,7 @@ export default function CustomJobsTable({
       const result = await res.json();
       if (!res.ok || !result.success)
         throw new Error(result.message || "Delete failed");
-      await fetchJobs();
+      onRefresh?.();
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "Delete failed");
@@ -248,7 +260,7 @@ export default function CustomJobsTable({
       const result = await res.json();
       if (!res.ok || !result.success)
         throw new Error(result.message || "Assign failed");
-      await fetchJobs();
+      onRefresh?.();
     } catch (error) {
       console.error(error);
       throw error;
@@ -268,7 +280,7 @@ export default function CustomJobsTable({
       const result = await res.json();
       if (!res.ok || !result.success)
         throw new Error(result.message || "Status update failed");
-      await fetchJobs();
+      onRefresh?.();
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "Status update failed");
@@ -289,23 +301,55 @@ export default function CustomJobsTable({
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
-            <div className="relative w-full sm:w-[280px]">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by task or client..."
-                className="h-10 rounded-xl border-slate-200 bg-white pl-10 pr-4 shadow-sm focus-visible:ring-2 focus-visible:ring-amber-500"
-              />
-            </div>
-
-            <Button
-              onClick={fetchJobs}
-              className="h-10 rounded-xl bg-amber-500 px-4 text-white shadow-sm transition hover:bg-amber-600"
-            >
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
+            <Popover open={searchPopoverOpen} onOpenChange={setSearchPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={searchPopoverOpen}
+                  className="w-full justify-between sm:w-[280px] h-10 rounded-xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  <span className="truncate">
+                    {searchInput || "Search by task or client..."}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[320px] p-0">
+                <Command shouldFilter={false}>
+                  <CommandInput
+                    placeholder="Search task or client..."
+                    value={searchInput}
+                    onValueChange={setSearchInput}
+                  />
+                  <CommandList>
+                    <CommandEmpty>No jobs found.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredJobs.slice(0, 10).map((job) => (
+                        <CommandItem
+                          key={job.id}
+                          value={job.id}
+                          onSelect={() => {
+                            setSearchInput(job.name);
+                            setSearchPopoverOpen(false);
+                          }}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              searchInput === job.name ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          <span className="truncate">
+                            {job.name} - {job.clientName}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardHeader>
@@ -409,7 +453,7 @@ export default function CustomJobsTable({
                       </Badge>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {job.status === "requested" ? (
+                      {job.status === "requested" && !isAM ? (
                         <select
                           value={job.status}
                           onChange={(e) =>
@@ -437,7 +481,7 @@ export default function CustomJobsTable({
                           <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
                           {job.assignedToName}
                         </span>
-                      ) : job.status === "approved" ? (
+                      ) : job.status === "approved" && !isAM ? (
                         <Button
                           size="sm"
                           onClick={() => {
@@ -498,7 +542,7 @@ export default function CustomJobsTable({
                             setEditingJob(job);
                             setOpen(true);
                           }}
-                          disabled={job.status === "qc_approved"}
+                          disabled={job.status === "qc_approved" || job.status === "completed"}
                           className="h-8 w-8 rounded-md hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -508,7 +552,7 @@ export default function CustomJobsTable({
                           size="icon"
                           onClick={() => handleDelete(job.id)}
                           className="h-8 w-8 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed"
-                          disabled={job.status === "qc_approved"}
+                          disabled={job.status === "qc_approved" || job.status === "completed"}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -525,7 +569,7 @@ export default function CustomJobsTable({
       <CustomJobFormModal
         open={open}
         onClose={() => setOpen(false)}
-        onSuccess={fetchJobs}
+        onSuccess={onRefresh}
         editingJob={editingJob}
         clients={clients}
       />

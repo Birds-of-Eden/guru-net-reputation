@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/auth-context";
 import {
   BarChart,
   Bar,
@@ -35,9 +36,26 @@ import {
   Download,
   RefreshCw,
   Plus,
+  Search,
+  CheckIcon,
+  ChevronsUpDown,
 } from "lucide-react";
 import CustomJobsTable from "./CustomJobsTable";
 import CustomJobFormModal from "./CustomJobFormModal";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface CustomJob {
   id: string;
@@ -70,14 +88,22 @@ const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function CustomJobsDashboard() {
   const [jobs, setJobs] = useState<CustomJob[]>([]);
+  const [allClients, setAllClients] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState<"today" | "this_month" | "previous_month" | "date_range">("today");
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "this_month" | "previous_month" | "date_range">("this_month");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"all" | string>("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | string>("all");
+  const [clientFilter, setClientFilter] = useState<"all" | string>("all");
+  const [clientSearchPopoverOpen, setClientSearchPopoverOpen] = useState(false);
+  const [clientSearchInput, setClientSearchInput] = useState("");
   const [showAddJobModal, setShowAddJobModal] = useState(false);
+  const { user } = useAuth();
+  const userRole = typeof user?.role === "string" ? user?.role : (user?.role as any)?.name;
+  const userId = user?.id;
+  const isAM = userRole === "am";
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -98,6 +124,8 @@ export default function CustomJobsDashboard() {
       const res = await fetch("/api/clients");
       const result = await res.json();
       const list = result?.clients || [];
+      setAllClients(list);
+      // API now handles AM filtering, so just use all clients
       setClients(list.map((item: any) => ({ id: item.id, name: item.name })));
     } catch (error) {
       console.error(error);
@@ -118,7 +146,9 @@ export default function CustomJobsDashboard() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (dateFilter === "today") {
+    if (dateFilter === "all") {
+      // Show all jobs, no date filtering
+    } else if (dateFilter === "today") {
       filtered = filtered.filter((job) => {
         if (!job.createdAt) return false;
         const jobDate = new Date(job.createdAt);
@@ -161,8 +191,13 @@ export default function CustomJobsDashboard() {
       filtered = filtered.filter((job) => job.priority === priorityFilter);
     }
 
+    // Client filter
+    if (clientFilter !== "all") {
+      filtered = filtered.filter((job) => job.clientId === clientFilter);
+    }
+
     return filtered;
-  }, [jobs, dateFilter, startDate, endDate, statusFilter, priorityFilter]);
+  }, [jobs, dateFilter, startDate, endDate, statusFilter, priorityFilter, clientFilter]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -301,6 +336,7 @@ export default function CustomJobsDashboard() {
                   <SelectValue placeholder="Select date range" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="this_month">This Month</SelectItem>
                   <SelectItem value="previous_month">Previous Month</SelectItem>
@@ -359,6 +395,77 @@ export default function CustomJobsDashboard() {
                   <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex-1">
+              <label className="text-sm font-bold text-slate-700 mb-2 block">Client</label>
+              <Popover open={clientSearchPopoverOpen} onOpenChange={setClientSearchPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={clientSearchPopoverOpen}
+                    className="w-full justify-between"
+                  >
+                    <span className="truncate">
+                      {clientFilter === "all" ? "All clients" : clients.find((c) => c.id === clientFilter)?.name || "All clients"}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-[320px] p-0">
+                  <Command shouldFilter={false}>
+                    <CommandInput
+                      placeholder="Search client..."
+                      value={clientSearchInput}
+                      onValueChange={setClientSearchInput}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No client found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          onSelect={() => {
+                            setClientFilter("all");
+                            setClientSearchPopoverOpen(false);
+                            setClientSearchInput("");
+                          }}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              clientFilter === "all" ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          All Clients
+                        </CommandItem>
+                        {clients
+                          .filter((client) =>
+                            client.name.toLowerCase().includes(clientSearchInput.toLowerCase()),
+                          )
+                          .map((client) => (
+                            <CommandItem
+                              key={client.id}
+                              value={client.id}
+                              onSelect={() => {
+                                setClientFilter(client.id);
+                                setClientSearchPopoverOpen(false);
+                                setClientSearchInput("");
+                              }}
+                            >
+                              <CheckIcon
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  clientFilter === client.id ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              {client.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </CardContent>
@@ -499,11 +606,8 @@ export default function CustomJobsDashboard() {
 
       {/* Jobs Table */}
       <CustomJobsTable
-        dateFilter={dateFilter}
-        startDate={startDate}
-        endDate={endDate}
-        statusFilter={statusFilter}
-        priorityFilter={priorityFilter}
+        jobs={filteredJobs as any}
+        onRefresh={fetchJobs}
       />
 
       <CustomJobFormModal
@@ -515,6 +619,7 @@ export default function CustomJobsDashboard() {
         }}
         editingJob={null}
         clients={clients}
+        isAM={isAM}
       />
     </div>
   );

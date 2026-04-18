@@ -48,6 +48,7 @@ type Props = {
   onSuccess: () => void;
   editingJob?: CustomJob | null;
   clients: ClientOption[];
+  isAM?: boolean;
 };
 
 function normalizeText(value: string | undefined | null) {
@@ -120,6 +121,7 @@ export default function CustomJobFormModal({
   onSuccess,
   editingJob,
   clients,
+  isAM,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [clientSearch, setClientSearch] = useState("");
