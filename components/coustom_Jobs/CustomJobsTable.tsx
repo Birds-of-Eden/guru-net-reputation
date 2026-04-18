@@ -7,7 +7,13 @@ import { useEffect, useMemo, useState } from "react";
 import CustomJobFormModal from "./CustomJobFormModal";
 import AssignmentModal from "./AssignmentModal";
 import { ClientOption, CustomJob, UserOption } from "./customJobsTypes";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -20,7 +26,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function priorityBadgeClass(priority: string) {
   switch (priority) {
@@ -56,7 +67,21 @@ function statusBadgeClass(status: string) {
   }
 }
 
-export default function CustomJobsTable() {
+interface CustomJobsTableProps {
+  dateFilter?: "today" | "this_month" | "previous_month" | "date_range";
+  startDate?: string;
+  endDate?: string;
+  statusFilter?: string;
+  priorityFilter?: string;
+}
+
+export default function CustomJobsTable({
+  dateFilter = "today",
+  startDate = "",
+  endDate = "",
+  statusFilter = "all",
+  priorityFilter = "all",
+}: CustomJobsTableProps) {
   const [jobs, setJobs] = useState<CustomJob[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [agents, setAgents] = useState<UserOption[]>([]);
@@ -70,7 +95,9 @@ export default function CustomJobsTable() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/custom-jobs?search=${encodeURIComponent(search)}`);
+      const res = await fetch(
+        `/api/custom-jobs?search=${encodeURIComponent(search)}`,
+      );
       const result = await res.json();
       setJobs(result.data || []);
     } catch (error) {
@@ -96,13 +123,15 @@ export default function CustomJobsTable() {
       const res = await fetch("/api/agents");
       const result = await res.json();
       const list = Array.isArray(result) ? result : [];
-      setAgents(list.map((item: any) => ({ 
-        id: item.id, 
-        name: `${item.firstName} ${item.lastName}`, 
-        email: item.email,
-        category: item.category,
-        image: item.image,
-      })));
+      setAgents(
+        list.map((item: any) => ({
+          id: item.id,
+          name: `${item.firstName} ${item.lastName}`,
+          email: item.email,
+          category: item.category,
+          image: item.image,
+        })),
+      );
     } catch (error) {
       console.error(error);
     }
@@ -114,16 +143,70 @@ export default function CustomJobsTable() {
     fetchAgents();
   }, []);
 
-  const filtered = useMemo(() => jobs, [jobs]);
+  const filtered = useMemo(() => {
+    let result = jobs;
+
+    // Apply date filter
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (dateFilter === "today") {
+      result = result.filter((job) => {
+        if (!job.date) return false;
+        const jobDate = new Date(job.date);
+        return jobDate >= today;
+      });
+    } else if (dateFilter === "this_month") {
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      result = result.filter((job) => {
+        if (!job.date) return false;
+        const jobDate = new Date(job.date);
+        return jobDate >= firstDayOfMonth;
+      });
+    } else if (dateFilter === "previous_month") {
+      const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const firstDayOfPreviousMonth = new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1);
+      const lastDayOfPreviousMonth = new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0);
+      result = result.filter((job) => {
+        if (!job.date) return false;
+        const jobDate = new Date(job.date);
+        return jobDate >= firstDayOfPreviousMonth && jobDate <= lastDayOfPreviousMonth;
+      });
+    } else if (dateFilter === "date_range" && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59);
+      result = result.filter((job) => {
+        if (!job.date) return false;
+        const jobDate = new Date(job.date);
+        return jobDate >= start && jobDate <= end;
+      });
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      result = result.filter((job) => job.status === statusFilter);
+    }
+
+    // Apply priority filter
+    if (priorityFilter !== "all") {
+      result = result.filter((job) => job.priority === priorityFilter);
+    }
+
+    return result;
+  }, [jobs, dateFilter, startDate, endDate, statusFilter, priorityFilter]);
 
   const handleDelete = async (id: string) => {
-    const ok = window.confirm("Are you sure you want to delete this custom job?");
+    const ok = window.confirm(
+      "Are you sure you want to delete this custom job?",
+    );
     if (!ok) return;
 
     try {
       const res = await fetch(`/api/custom-jobs/${id}`, { method: "DELETE" });
       const result = await res.json();
-      if (!res.ok || !result.success) throw new Error(result.message || "Delete failed");
+      if (!res.ok || !result.success)
+        throw new Error(result.message || "Delete failed");
       await fetchJobs();
     } catch (error) {
       console.error(error);
@@ -131,21 +214,25 @@ export default function CustomJobsTable() {
     }
   };
 
-  const handleAssign = async (agentId: string, idealDurationMinutes?: number) => {
+  const handleAssign = async (
+    agentId: string,
+    idealDurationMinutes?: number,
+  ) => {
     if (!assigningJobId) return;
 
     try {
       const res = await fetch(`/api/custom-jobs/${assigningJobId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           assignedToId: agentId,
           status: "pending",
           idealDurationMinutes: idealDurationMinutes || 30,
         }),
       });
       const result = await res.json();
-      if (!res.ok || !result.success) throw new Error(result.message || "Assign failed");
+      if (!res.ok || !result.success)
+        throw new Error(result.message || "Assign failed");
       await fetchJobs();
     } catch (error) {
       console.error(error);
@@ -153,7 +240,10 @@ export default function CustomJobsTable() {
     }
   };
 
-  const handleStatusChange = async (jobId: string, status: CustomJob["status"]) => {
+  const handleStatusChange = async (
+    jobId: string,
+    status: CustomJob["status"],
+  ) => {
     try {
       const res = await fetch(`/api/custom-jobs/${jobId}`, {
         method: "PATCH",
@@ -161,7 +251,8 @@ export default function CustomJobsTable() {
         body: JSON.stringify({ status }),
       });
       const result = await res.json();
-      if (!res.ok || !result.success) throw new Error(result.message || "Status update failed");
+      if (!res.ok || !result.success)
+        throw new Error(result.message || "Status update failed");
       await fetchJobs();
     } catch (error) {
       console.error(error);
@@ -190,18 +281,11 @@ export default function CustomJobsTable() {
                 className="pl-9 w-[220px]"
               />
             </div>
-            <Button className="border border-amber-600 bg-transparent text-amber-600 hover:bg-amber-500 hover:text-white" onClick={fetchJobs}>
-              <Search className="h-4 w-4" />
-            </Button>
             <Button
-              onClick={() => {
-                setEditingJob(null);
-                setOpen(true);
-              }}
-              className="bg-green-600 hover:bg-green-700"
+              className="border border-amber-600 bg-transparent text-amber-600 hover:bg-amber-500 hover:text-white"
+              onClick={fetchJobs}
             >
-              <Plus className="h-4 w-4" />
-              Add Job
+              <Search className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -224,13 +308,19 @@ export default function CustomJobsTable() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={9}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={9}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No custom jobs found
                 </TableCell>
               </TableRow>
@@ -240,22 +330,33 @@ export default function CustomJobsTable() {
                   <TableCell className="whitespace-nowrap">
                     {job.date ? new Date(job.date).toLocaleDateString() : "-"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap font-medium">{job.clientName || "-"}</TableCell>
-                  <TableCell className="whitespace-nowrap">{job.amName || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap font-medium">
+                    {job.clientName || "-"}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {job.amName || "-"}
+                  </TableCell>
                   <TableCell className="min-w-[280px] max-w-[400px]">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <p className="line-clamp-3 text-sm">{job.name}</p>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-md max-h-[400px] overflow-auto">
-                          <p className="text-sm whitespace-pre-wrap">{job.name}</p>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-md max-h-[400px] overflow-auto"
+                        >
+                          <p className="text-sm whitespace-pre-wrap">
+                            {job.name}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    <Badge className={`${priorityBadgeClass(job.priority)} rounded-full text-xs`}>
+                    <Badge
+                      className={`${priorityBadgeClass(job.priority)} rounded-full text-xs`}
+                    >
                       {job.priority}
                     </Badge>
                   </TableCell>
@@ -264,7 +365,10 @@ export default function CustomJobsTable() {
                       <select
                         value={job.status}
                         onChange={(e) =>
-                          handleStatusChange(job.id, e.target.value as CustomJob["status"])
+                          handleStatusChange(
+                            job.id,
+                            e.target.value as CustomJob["status"],
+                          )
                         }
                         className="h-7 rounded-md border bg-background px-2 text-xs"
                       >
@@ -272,7 +376,9 @@ export default function CustomJobsTable() {
                         <option value="approved">Approved</option>
                       </select>
                     ) : (
-                      <Badge className={`${statusBadgeClass(job.status)} text-xs`}>
+                      <Badge
+                        className={`${statusBadgeClass(job.status)} text-xs`}
+                      >
                         {job.status?.replace(/_/g, " ")}
                       </Badge>
                     )}
@@ -300,10 +406,17 @@ export default function CustomJobsTable() {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <p className="line-clamp-2 text-sm">{job.clientNotificationUpdate}</p>
+                            <p className="line-clamp-2 text-sm">
+                              {job.clientNotificationUpdate}
+                            </p>
                           </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-md max-h-[400px] overflow-auto">
-                            <p className="text-sm whitespace-pre-wrap">{job.clientNotificationUpdate}</p>
+                          <TooltipContent
+                            side="top"
+                            className="max-w-md max-h-[400px] overflow-auto"
+                          >
+                            <p className="text-sm whitespace-pre-wrap">
+                              {job.clientNotificationUpdate}
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -357,8 +470,8 @@ export default function CustomJobsTable() {
         }}
         onAssign={handleAssign}
         agents={agents}
-        taskName={jobs.find(j => j.id === assigningJobId)?.name}
-        taskPriority={jobs.find(j => j.id === assigningJobId)?.priority}
+        taskName={jobs.find((j) => j.id === assigningJobId)?.name}
+        taskPriority={jobs.find((j) => j.id === assigningJobId)?.priority}
       />
     </Card>
   );

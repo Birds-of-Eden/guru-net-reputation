@@ -27,7 +27,22 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const task = await prismaById.task.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        createdAt: true,
+        updatedAt: true,
+        notes: true,
+        idealDurationMinutes: true,
+        actualDurationMinutes: true,
+        performanceRating: true,
+        completionLink: true,
+        completedAt: true,
+        taskCompletionJson: true,
+        taskType: true,
         client: { select: { id: true, name: true } },
         assignedTo: { select: { id: true, name: true, email: true } },
         category: true,

@@ -53,16 +53,31 @@ export async function GET(req: NextRequest) {
 
     const tasks = await prisma.task.findMany({
       where,
-      include: {
-        client: { 
-          select: { 
-            id: true, 
-            name: true, 
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        createdAt: true,
+        updatedAt: true,
+        notes: true,
+        idealDurationMinutes: true,
+        actualDurationMinutes: true,
+        performanceRating: true,
+        completionLink: true,
+        completedAt: true,
+        taskCompletionJson: true,
+        taskType: true,
+        client: {
+          select: {
+            id: true,
+            name: true,
             amId: true,
             accountManager: {
               select: { id: true, name: true, email: true }
             }
-          } 
+          }
         },
         assignedTo: { select: { id: true, name: true, email: true } },
         category: true,
