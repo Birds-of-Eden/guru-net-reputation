@@ -22,6 +22,8 @@ import {
   ClipboardList,
   ListChecks,
   Copy,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +42,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
+import type { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
+import { BackgroundGradient } from "@/components/ui/background-gradient";
 
 // ---------- Small UI Helpers ----------
 const Pill = ({ children }: { children: React.ReactNode }) => (
@@ -86,6 +91,11 @@ export function Tasks({ clientData }: TasksProps) {
     url?: string;
   }>({ open: false });
 
+  const [jobDetailsModal, setJobDetailsModal] = useState<{
+    open: boolean;
+    job: CustomJob | null;
+  }>({ open: false, job: null });
+
   // ---------- Aggregates ----------
   const normalizeStatus = (raw?: string | null) => {
     const s = (raw ?? "")
@@ -121,6 +131,113 @@ export function Tasks({ clientData }: TasksProps) {
     )
       return "pending";
     return s || "pending";
+  };
+
+  const RenderCustomJob = (task: TaskItem) => {
+    const status = normalizeStatus((task as any).status);
+    const data = (task as any)?.taskCompletionJson || {};
+    const linksRaw = data?.links || "";
+    const links: string[] = linksRaw
+      .toString()
+      .split(",")
+      .map((l: string) => l.trim())
+      .filter(Boolean);
+
+    const openAllLinks = () => {
+      links.forEach((link) => {
+        window.open(link, "_blank");
+      });
+    };
+
+    const openJobDetails = () => {
+      // Map task data to CustomJob format
+      const customJob: CustomJob = {
+        id: task.id,
+        date: task.createdAt || new Date().toISOString(),
+        clientId: clientData.id,
+        clientName: clientData.name,
+        amName: (clientData as any).accountManager?.name,
+        name: task.name,
+        assignedToName: (task as any)?.assignedTo?.name,
+        priority: task.priority as any,
+        status: (task as any).status as any,
+        notes: (task as any)?.notes,
+        taskCompletionJson: data,
+      };
+      setJobDetailsModal({ open: true, job: customJob });
+    };
+
+    return (
+      <div className="space-y-3">
+        {links.length > 0 && (
+          <>
+            <div className="flex items-center justify-between">
+              <SectionTitle
+                icon={<LinkIcon className="h-4 w-4" />}
+                title={`Links (${links.length})`}
+              />
+              <div className="flex gap-2">
+                <BackgroundGradient>
+                  <Button
+                    onClick={openAllLinks}
+                    className="gap-2 text-xs bg-transparent hover:bg-transparent"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Open All
+                  </Button>
+                </BackgroundGradient>
+
+                <BackgroundGradient>
+                  <Button
+                    onClick={openJobDetails}
+                    className="gap-2 text-xs bg-transparent hover:bg-transparent"
+                  >
+                    <Eye className="h-3 w-3" />
+                    View Details
+                  </Button>
+                </BackgroundGradient>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {links.map((link, i) => (
+                <a
+                  key={i}
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-lg border border-blue-100 bg-blue-50 p-3 transition hover:border-blue-200 hover:bg-blue-100/70"
+                >
+                  <div className="flex items-start gap-2 overflow-hidden">
+                    <div className="mt-0.5 rounded bg-white p-1.5 text-blue-600 shadow-sm">
+                      <LinkIcon className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-blue-700 truncate">
+                        {link}
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+        {links.length === 0 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-500">No links provided.</p>
+            <BackgroundGradient>
+            <Button
+              onClick={openJobDetails}
+              className="gap-2 text-xs bg-transparent hover:bg-transparent"
+            >
+              <Eye className="h-3 w-3" />
+              View Details
+            </Button>
+            </BackgroundGradient>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const RenderMonitoring = (task: TaskItem) => {
@@ -195,19 +312,19 @@ export function Tasks({ clientData }: TasksProps) {
   const totalTasks = clientData.tasks?.length || 0;
   const completedTasks =
     clientData.tasks?.filter(
-      (t) => normalizeStatus((t as any).status) === "completed"
+      (t) => normalizeStatus((t as any).status) === "completed",
     ).length || 0;
   const inProgressTasks =
     clientData.tasks?.filter(
-      (t) => normalizeStatus((t as any).status) === "in_progress"
+      (t) => normalizeStatus((t as any).status) === "in_progress",
     ).length || 0;
   const pendingTasks =
     clientData.tasks?.filter(
-      (t) => normalizeStatus((t as any).status) === "pending"
+      (t) => normalizeStatus((t as any).status) === "pending",
     ).length || 0;
   const overdueTasks =
     clientData.tasks?.filter(
-      (t) => normalizeStatus((t as any).status) === "overdue"
+      (t) => normalizeStatus((t as any).status) === "overdue",
     ).length || 0;
 
   // QC helpers
@@ -372,12 +489,22 @@ export function Tasks({ clientData }: TasksProps) {
 
   // Build groups
   const grouped: Record<string, TaskItem[]> =
-    clientData.tasks?.reduce((acc, task) => {
-      const key = canonicalCategory(task?.category?.name);
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(task as TaskItem);
-      return acc;
-    }, {} as Record<string, TaskItem[]>) || {};
+    clientData.tasks?.reduce(
+      (acc, task) => {
+        // Check if taskType is customjob, if so group under Custom Job
+        if ((task as any)?.taskType === "customjob") {
+          const key = "Custom Job";
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(task as TaskItem);
+          return acc;
+        }
+        const key = canonicalCategory(task?.category?.name);
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(task as TaskItem);
+        return acc;
+      },
+      {} as Record<string, TaskItem[]>,
+    ) || {};
 
   // Sort tasks: Completed → In Progress → Pending → Overdue, then priority, then due date
   const STATUS_ORDER = ["completed", "in_progress", "pending", "overdue"];
@@ -397,6 +524,7 @@ export function Tasks({ clientData }: TasksProps) {
 
   // Category flow (yours) + others alphabetical
   const CATEGORY_FLOW = [
+    "Custom Job",
     "Graphics Design",
     "Social Asset Creation",
     "Web 2.0 Creation",
@@ -513,11 +641,11 @@ export function Tasks({ clientData }: TasksProps) {
     const links: string[] = Array.isArray(backlinkRaw)
       ? backlinkRaw
       : backlinkText
-      ? backlinkText
-          .split(/[\n,]+/)
-          .map((l) => l.trim())
-          .filter(Boolean)
-      : [];
+        ? backlinkText
+            .split(/[\n,]+/)
+            .map((l) => l.trim())
+            .filter(Boolean)
+        : [];
 
     const copyToClipboard = async (text: string) => {
       if (!text) return;
@@ -541,7 +669,10 @@ export function Tasks({ clientData }: TasksProps) {
         </div>
 
         <div className="space-y-2">
-          <SectionTitle icon={<LinkIcon className="h-4 w-4" />} title="Anchor Text" />
+          <SectionTitle
+            icon={<LinkIcon className="h-4 w-4" />}
+            title="Anchor Text"
+          />
           <div className="flex items-center gap-3">
             <textarea
               readOnly
@@ -562,7 +693,10 @@ export function Tasks({ clientData }: TasksProps) {
         </div>
 
         <div className="space-y-2">
-          <SectionTitle icon={<ListChecks className="h-4 w-4" />} title="Backlink URLs/Text" />
+          <SectionTitle
+            icon={<ListChecks className="h-4 w-4" />}
+            title="Backlink URLs/Text"
+          />
           <div className="flex items-start gap-3">
             <textarea
               readOnly
@@ -679,6 +813,10 @@ export function Tasks({ clientData }: TasksProps) {
 
   // Map functional type to renderer
   const renderSpecialByType = (task: TaskItem) => {
+    // Check if it's a custom job task
+    if ((task as any)?.taskType === "customjob") {
+      return <RenderCustomJob {...(task as any)} />;
+    }
     const t = getFunctionalType(task);
     if (t.includes("content_writing"))
       return <RenderContentWriting {...(task as any)} />;
@@ -696,6 +834,8 @@ export function Tasks({ clientData }: TasksProps) {
 
   // Header color
   const headerGradient = (category: string) => {
+    if (category === "Custom Job")
+      return "from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20";
     if (category === "Graphics Design")
       return "from-fuchsia-500/10 to-rose-500/10 dark:from-fuchsia-500/20 dark:to-rose-500/20";
     if (category === "Social Asset Creation")
@@ -741,7 +881,7 @@ export function Tasks({ clientData }: TasksProps) {
                 </p>
                 <p
                   className={`text-2xl font-bold ${getProgressColor(
-                    derivedProgress
+                    derivedProgress,
                   )}`}
                 >
                   {derivedProgress}%
@@ -961,7 +1101,7 @@ export function Tasks({ clientData }: TasksProps) {
                   <AccordionTrigger className="px-4 py-3 rounded-md hover:no-underline group">
                     <div
                       className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 bg-linear-to-r ${headerGradient(
-                        categoryName
+                        categoryName,
                       )}`}
                     >
                       <div className="flex items-center gap-2">
@@ -974,7 +1114,7 @@ export function Tasks({ clientData }: TasksProps) {
                             tasks.filter(
                               (t) =>
                                 normalizeStatus((t as any).status) ===
-                                "completed"
+                                "completed",
                             ).length
                           }{" "}
                           done
@@ -984,7 +1124,7 @@ export function Tasks({ clientData }: TasksProps) {
                             tasks.filter(
                               (t) =>
                                 normalizeStatus((t as any).status) ===
-                                "in_progress"
+                                "in_progress",
                             ).length
                           }{" "}
                           doing
@@ -1008,7 +1148,7 @@ export function Tasks({ clientData }: TasksProps) {
                         return (
                           <div
                             key={task.id}
-                            className="flex flex-col gap-3 p-4 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-200/70 dark:border-slate-700/70"
+                            className="flex flex-col gap-4 p-5 bg-linear-to-br from-white via-white to-slate-50/50 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-900/80 rounded-2xl border-2 border-amber-200/60 dark:border-slate-700/50 shadow-lg shadow-slate-200/50 dark:shadow-black/20 backdrop-blur-sm hover:shadow-xl hover:shadow-slate-300/50 dark:hover:shadow-black/30 transition-all duration-300"
                           >
                             {/* Top line */}
                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
@@ -1044,7 +1184,7 @@ export function Tasks({ clientData }: TasksProps) {
                                 </Badge>
                                 <Badge
                                   className={getStatusColor(
-                                    (task as any).status
+                                    (task as any).status,
                                   )}
                                 >
                                   {status.replace(/_/g, " ")}
@@ -1155,6 +1295,12 @@ export function Tasks({ clientData }: TasksProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      <JobDetailsModal
+        open={jobDetailsModal.open}
+        onClose={() => setJobDetailsModal({ open: false, job: null })}
+        job={jobDetailsModal.job}
+      />
     </div>
   );
 }

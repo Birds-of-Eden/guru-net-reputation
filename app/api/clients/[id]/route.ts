@@ -62,6 +62,8 @@ async function computeClientProgress(clientId: string) {
 
   // স্কিমার সব স্ট্যাটাস জিরো-ইনিশিয়ালাইজ
   const base: Record<TaskStatus, number> = {
+    requested: 0,
+    approved: 0,
     pending: 0,
     in_progress: 0,
     paused: 0,
@@ -217,6 +219,7 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
         categoryId: true,
         templateSiteAssetId: true,
         assignedToId: true,
+        taskType: true,
         category: {
           select: {
             id: true,
@@ -1183,14 +1186,16 @@ export async function POST(
         });
 
         const baseCounts: Record<TaskStatus, number> = {
+          requested: 0,
+          approved: 0,
           pending: 0,
           in_progress: 0,
+          paused: 0,
           completed: 0,
           overdue: 0,
           cancelled: 0,
           reassigned: 0,
           qc_approved: 0,
-          paused: 0,
           data_entered: 0,
         };
         for (const row of grouped) baseCounts[row.status] = row._count._all;
