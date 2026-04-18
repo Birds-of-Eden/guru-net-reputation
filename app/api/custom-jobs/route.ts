@@ -56,13 +56,8 @@ export async function GET(req: NextRequest) {
       category: {
         name: "Custom Job",
       },
-      ...(isAM && userId
-        ? {
-            client: {
-              amId: userId,
-            },
-          }
-        : {}),
+      // AM filtering: only show jobs for assigned clients
+      ...(isAM && userId ? { client: { amId: userId } } : {}),
     };
 
     const tasks = await prisma.task.findMany({

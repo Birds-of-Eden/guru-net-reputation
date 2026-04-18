@@ -290,9 +290,10 @@ export async function GET(req: Request) {
     // ---------- TOTAL COUNT ----------
     const whereClause: any = {
       packageId,
-      amId,
       // AM filtering: if user is AM, only show their assigned clients
       ...(isAM && userId ? { amId: userId } : {}),
+      // If not AM, use amId from search params if provided
+      ...(!isAM && amId ? { amId } : {}),
     };
 
     if (status && status !== "all") {

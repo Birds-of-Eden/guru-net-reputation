@@ -308,13 +308,20 @@ function buildNav(role: Role): NavItem[] {
           url: p(r, "/distribution/client-agent"),
           permission: "view_distribution_client_agent",
         },
-        {
+        ...(r !== "am" && r !== "am_ceo" ? [{
           title: "Custom Jobs",
           url: p(r, "/distribution/custom_jobs"),
           permission: "view_distribution_custom_jobs",
-        },
+        }] : []),
       ],
     },
+
+    // Custom Jobs - separate for AM users
+    ...(r === "am" || r === "am_ceo" ? [{
+      title: "Custom Jobs",
+      url: p(r, "/distribution/custom_jobs"),
+      permission: "view_distribution_custom_jobs",
+    }] : []),
 
     // Tasks
     {
