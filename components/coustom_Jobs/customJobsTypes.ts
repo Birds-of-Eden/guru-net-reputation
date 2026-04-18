@@ -31,6 +31,11 @@ export type CustomJob = {
   link?: string;
   createdAt?: string;
   updatedAt?: string;
+  taskCompletionJson?: {
+    count?: number;
+    links?: string;
+    link?: string;
+  };
 };
 
 export type ClientOption = {

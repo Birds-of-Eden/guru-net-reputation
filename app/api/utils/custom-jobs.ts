@@ -41,6 +41,7 @@ export function mapTaskToCustomJob(task: any) {
     notes: task.notes ?? "",
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
+    taskCompletionJson: task.taskCompletionJson,
   };
 }
 
