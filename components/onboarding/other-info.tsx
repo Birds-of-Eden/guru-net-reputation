@@ -39,43 +39,65 @@ export function OtherInfo({
     const saved = formData.otherField;
     if (saved && Array.isArray(saved) && saved.length > 0) {
       // Try to parse as new spreadsheet format (multiple sheets with id)
-      if (saved[0] && typeof saved[0] === 'object' && 'id' in saved[0] && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+      if (
+        saved[0] &&
+        typeof saved[0] === "object" &&
+        "id" in saved[0] &&
+        "columns" in saved[0] &&
+        "rows" in saved[0] &&
+        "name" in saved[0]
+      ) {
         return saved as unknown as SpreadsheetData;
       }
       // Try to parse as old spreadsheet format (without id)
-      if (saved[0] && typeof saved[0] === 'object' && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+      if (
+        saved[0] &&
+        typeof saved[0] === "object" &&
+        "columns" in saved[0] &&
+        "rows" in saved[0] &&
+        "name" in saved[0]
+      ) {
         // Add IDs to existing sheets
-        return (saved as unknown as Omit<SheetData, 'id'>[]).map((sheet, idx) => ({
-          ...sheet,
-          id: `sheet_${Date.now()}_${idx}`,
-        }));
+        return (saved as unknown as Omit<SheetData, "id">[]).map(
+          (sheet, idx) => ({
+            ...sheet,
+            id: `sheet_${Date.now()}_${idx}`,
+          }),
+        );
       }
       // Convert old format to new format (single sheet)
       const columns = ["Category", "Title", "Data"];
       const rows = (saved as any[]).map((item: any) => [
         item.category || "",
         item.title || "",
-        Array.isArray(item.data) ? item.data.join(", ") : (item.data || ""),
+        Array.isArray(item.data) ? item.data.join(", ") : item.data || "",
       ]);
       return [{ id: `sheet_${Date.now()}_0`, name: "Sheet 1", columns, rows }];
     }
     // Default empty spreadsheet with one sheet
-    return [{
-      id: `sheet_${Date.now()}_0`,
-      name: "Sheet 1",
-      columns: ["Field 1", "Field 2", "Field 3"],
-      rows: [["", "", ""]],
-    }];
+    return [
+      {
+        id: `sheet_${Date.now()}_0`,
+        name: "Sheet 1",
+        columns: ["Field 1", "Field 2", "Field 3"],
+        rows: [["", "", ""]],
+      },
+    ];
   });
 
   const [activeSheetIndex, setActiveSheetIndex] = useState(0);
   const activeSheet = sheets[activeSheetIndex];
 
-  const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{
+    row: number;
+    col: number;
+  } | null>(null);
   const [editingColumn, setEditingColumn] = useState<number | null>(null);
   const [showAddSheetDialog, setShowAddSheetDialog] = useState(false);
   const [newSheetName, setNewSheetName] = useState("");
-  const [editingSheetIndex, setEditingSheetIndex] = useState<number | null>(null);
+  const [editingSheetIndex, setEditingSheetIndex] = useState<number | null>(
+    null,
+  );
   const columnInputRef = useRef<HTMLInputElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -88,23 +110,31 @@ export function OtherInfo({
   }, [editingColumn]);
 
   // Handle paste from Excel
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, rowIndex: number, colIndex: number) => {
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    colIndex: number,
+  ) => {
     e.preventDefault();
-    
-    const pastedText = e.clipboardData.getData('text');
-    
+
+    const pastedText = e.clipboardData.getData("text");
+
     if (!pastedText) return;
 
     // Parse tab-separated values (Excel format)
-    const rows = pastedText.split('\n').filter(row => row.trim() !== '');
-    const parsedData = rows.map(row => row.split('\t').map(cell => cell.trim()));
+    const rows = pastedText.split("\n").filter((row) => row.trim() !== "");
+    const parsedData = rows.map((row) =>
+      row.split("\t").map((cell) => cell.trim()),
+    );
 
     if (parsedData.length === 0) return;
 
     // Check if first row contains headers (all uppercase or mixed case)
-    const firstRowHasHeaders = parsedData.length > 0 && parsedData[0].every(cell => 
-      /^[A-Z_]+$/.test(cell) || /^[A-Za-z\s]+$/.test(cell)
-    );
+    const firstRowHasHeaders =
+      parsedData.length > 0 &&
+      parsedData[0].every(
+        (cell) => /^[A-Z_]+$/.test(cell) || /^[A-Za-z\s]+$/.test(cell),
+      );
 
     let dataToPaste = parsedData;
     let newColumns = [...activeSheet.columns];
@@ -117,8 +147,8 @@ export function OtherInfo({
 
     // Calculate max columns needed
     const maxCols = Math.max(
-      ...dataToPaste.map(row => row.length),
-      newColumns.length
+      ...dataToPaste.map((row) => row.length),
+      newColumns.length,
     );
 
     // Update column headers if needed
@@ -132,22 +162,26 @@ export function OtherInfo({
     const newRows = [...activeSheet.rows];
     dataToPaste.forEach((pastedRow, i) => {
       const targetRowIndex = rowIndex + i;
-      
+
       if (targetRowIndex < newRows.length) {
         // Update existing row
-        newRows[targetRowIndex] = newRows[targetRowIndex].map((cell, c) => 
-          c < pastedRow.length ? pastedRow[c] : cell
+        newRows[targetRowIndex] = newRows[targetRowIndex].map((cell, c) =>
+          c < pastedRow.length ? pastedRow[c] : cell,
         );
-        
+
         // Add extra columns if pasted data has more columns
         if (pastedRow.length > newRows[targetRowIndex].length) {
-          for (let c = newRows[targetRowIndex].length; c < pastedRow.length; c++) {
+          for (
+            let c = newRows[targetRowIndex].length;
+            c < pastedRow.length;
+            c++
+          ) {
             newRows[targetRowIndex].push(pastedRow[c]);
           }
         }
       } else {
         // Add new row
-        const newRow = Array(newColumns.length).fill('');
+        const newRow = Array(newColumns.length).fill("");
         pastedRow.forEach((cell, c) => {
           if (c < newRow.length) {
             newRow[c] = cell;
@@ -157,11 +191,13 @@ export function OtherInfo({
       }
     });
 
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex 
-        ? { ...sheet, columns: newColumns, rows: newRows }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? { ...sheet, columns: newColumns, rows: newRows }
+          : sheet,
+      ),
+    );
   };
 
   // ---------- Handlers ----------
@@ -196,77 +232,102 @@ export function OtherInfo({
   };
 
   const handleRenameSheet = (index: number, newName: string) => {
-    setSheets(prev => prev.map((sheet, idx) =>
-      idx === index ? { ...sheet, name: newName } : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === index ? { ...sheet, name: newName } : sheet,
+      ),
+    );
     setEditingSheetIndex(null);
   };
 
-  const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? {
-            ...sheet,
-            rows: sheet.rows.map((row, r) =>
-              r === rowIndex
-                ? row.map((cell, c) => (c === colIndex ? value : cell))
-                : row
-            ),
-          }
-        : sheet
-    ));
+  const handleCellChange = (
+    rowIndex: number,
+    colIndex: number,
+    value: string,
+  ) => {
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? {
+              ...sheet,
+              rows: sheet.rows.map((row, r) =>
+                r === rowIndex
+                  ? row.map((cell, c) => (c === colIndex ? value : cell))
+                  : row,
+              ),
+            }
+          : sheet,
+      ),
+    );
   };
 
   const handleAddRow = () => {
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? { ...sheet, rows: [...sheet.rows, Array(sheet.columns.length).fill("")] }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? {
+              ...sheet,
+              rows: [...sheet.rows, Array(sheet.columns.length).fill("")],
+            }
+          : sheet,
+      ),
+    );
   };
 
   const handleDeleteRow = (rowIndex: number) => {
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? { ...sheet, rows: sheet.rows.filter((_, i) => i !== rowIndex) }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? { ...sheet, rows: sheet.rows.filter((_, i) => i !== rowIndex) }
+          : sheet,
+      ),
+    );
   };
 
   const handleAddColumn = () => {
     const newColumnName = `Field ${activeSheet.columns.length + 1}`;
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? {
-            ...sheet,
-            columns: [...sheet.columns, newColumnName],
-            rows: sheet.rows.map((row) => [...row, ""]),
-          }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? {
+              ...sheet,
+              columns: [...sheet.columns, newColumnName],
+              rows: sheet.rows.map((row) => [...row, ""]),
+            }
+          : sheet,
+      ),
+    );
   };
 
   const handleDeleteColumn = (colIndex: number) => {
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? {
-            ...sheet,
-            columns: sheet.columns.filter((_, i) => i !== colIndex),
-            rows: sheet.rows.map((row) => row.filter((_, i) => i !== colIndex)),
-          }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? {
+              ...sheet,
+              columns: sheet.columns.filter((_, i) => i !== colIndex),
+              rows: sheet.rows.map((row) =>
+                row.filter((_, i) => i !== colIndex),
+              ),
+            }
+          : sheet,
+      ),
+    );
   };
 
   const handleColumnRename = (colIndex: number, newName: string) => {
-    setSheets(prev => prev.map((sheet, idx) => 
-      idx === activeSheetIndex
-        ? {
-            ...sheet,
-            columns: sheet.columns.map((col, i) => (i === colIndex ? newName : col)),
-          }
-        : sheet
-    ));
+    setSheets((prev) =>
+      prev.map((sheet, idx) =>
+        idx === activeSheetIndex
+          ? {
+              ...sheet,
+              columns: sheet.columns.map((col, i) =>
+                i === colIndex ? newName : col,
+              ),
+            }
+          : sheet,
+      ),
+    );
     setEditingColumn(null);
   };
 
@@ -278,31 +339,36 @@ export function OtherInfo({
       return;
     }
 
-    setSheets(prev => prev.map((sheet, idx) => {
-      if (idx !== activeSheetIndex) return sheet;
-      
-      const newColIndex = direction === "up" ? colIndex - 1 : colIndex + 1;
-      const newColumns = [...sheet.columns];
-      [newColumns[colIndex], newColumns[newColIndex]] = [
-        newColumns[newColIndex],
-        newColumns[colIndex],
-      ];
+    setSheets((prev) =>
+      prev.map((sheet, idx) => {
+        if (idx !== activeSheetIndex) return sheet;
 
-      const newRows = sheet.rows.map((row) => {
-        const newRow = [...row];
-        [newRow[colIndex], newRow[newColIndex]] = [newRow[newColIndex], newRow[colIndex]];
-        return newRow;
-      });
+        const newColIndex = direction === "up" ? colIndex - 1 : colIndex + 1;
+        const newColumns = [...sheet.columns];
+        [newColumns[colIndex], newColumns[newColIndex]] = [
+          newColumns[newColIndex],
+          newColumns[colIndex],
+        ];
 
-      return { ...sheet, columns: newColumns, rows: newRows };
-    }));
+        const newRows = sheet.rows.map((row) => {
+          const newRow = [...row];
+          [newRow[colIndex], newRow[newColIndex]] = [
+            newRow[newColIndex],
+            newRow[colIndex],
+          ];
+          return newRow;
+        });
+
+        return { ...sheet, columns: newColumns, rows: newRows };
+      }),
+    );
   };
 
   // Keyboard navigation
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     rowIndex: number,
-    colIndex: number
+    colIndex: number,
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -382,7 +448,8 @@ export function OtherInfo({
             </Button>
             <div className="flex-1" />
             <span className="text-xs text-gray-500">
-              {activeSheet.rows.length} rows × {activeSheet.columns.length} columns
+              {activeSheet.rows.length} rows × {activeSheet.columns.length}{" "}
+              columns
             </span>
           </div>
 
@@ -401,10 +468,18 @@ export function OtherInfo({
                 {editingSheetIndex === index ? (
                   <Input
                     defaultValue={sheet.name}
-                    onBlur={(e) => handleRenameSheet(index, (e.target as HTMLInputElement).value)}
+                    onBlur={(e) =>
+                      handleRenameSheet(
+                        index,
+                        (e.target as HTMLInputElement).value,
+                      )
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        handleRenameSheet(index, (e.target as HTMLInputElement).value);
+                        handleRenameSheet(
+                          index,
+                          (e.target as HTMLInputElement).value,
+                        );
                       } else if (e.key === "Escape") {
                         setEditingSheetIndex(null);
                       }
@@ -414,8 +489,8 @@ export function OtherInfo({
                     autoFocus
                   />
                 ) : (
-                  <span 
-                    className="truncate max-w-[120px]" 
+                  <span
+                    className="truncate max-w-[120px]"
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       setEditingSheetIndex(index);
@@ -462,11 +537,17 @@ export function OtherInfo({
                             ref={columnInputRef}
                             defaultValue={col}
                             onBlur={(e) =>
-                              handleColumnRename(colIndex, (e.target as HTMLInputElement).value)
+                              handleColumnRename(
+                                colIndex,
+                                (e.target as HTMLInputElement).value,
+                              )
                             }
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
-                                handleColumnRename(colIndex, (e.target as HTMLInputElement).value);
+                                handleColumnRename(
+                                  colIndex,
+                                  (e.target as HTMLInputElement).value,
+                                );
                               } else if (e.key === "Escape") {
                                 setEditingColumn(null);
                               }
@@ -500,7 +581,9 @@ export function OtherInfo({
                             size="icon"
                             className="h-5 w-5 text-gray-400 hover:text-gray-600"
                             onClick={() => handleMoveColumn(colIndex, "down")}
-                            disabled={colIndex === activeSheet.columns.length - 1}
+                            disabled={
+                              colIndex === activeSheet.columns.length - 1
+                            }
                           >
                             <ChevronDown className="h-3 w-3" />
                           </Button>
@@ -540,7 +623,9 @@ export function OtherInfo({
                           onChange={(e) =>
                             handleCellChange(rowIndex, colIndex, e.target.value)
                           }
-                          onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                          onKeyDown={(e) =>
+                            handleKeyDown(e, rowIndex, colIndex)
+                          }
                           onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
                           className="h-8 text-sm border-0 focus:ring-1 focus:ring-emerald-500 bg-transparent"
                           placeholder="..."
@@ -570,8 +655,8 @@ export function OtherInfo({
             <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
               <p className="text-sm text-gray-600">
                 No data yet. Click{" "}
-                <span className="font-medium text-gray-900">Add Row</span> to get
-                started.
+                <span className="font-medium text-gray-900">Add Row</span> to
+                get started.
               </p>
             </div>
           )}
@@ -605,7 +690,7 @@ export function OtherInfo({
         <Button
           type="button"
           onClick={handleNext}
-          className="h-12 rounded-xl bg-gray-900 text-white shadow-lg transition-all hover:-translate-y-px hover:bg-black hover:shadow-xl"
+          className="h-12 rounded-xl bg-linear-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg ring-1 ring-black/5 transition-all duration-200 hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl hover:-translate-y-px"
         >
           Continue to Next Step
           <svg
