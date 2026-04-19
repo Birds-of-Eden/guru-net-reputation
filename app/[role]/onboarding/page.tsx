@@ -26,8 +26,7 @@ const steps = [
   { id: 5, title: "Social Media", component: SocialMediaInfo },
   { id: 6, title: "Package", component: PackageInfo },
   { id: 7, title: "Template", component: TemplateSelection },
-  { id: 8, title: "Articles Selection", component: ArticlesSelection },
-  { id: 9, title: "Review", component: ReviewInfo },
+  { id: 8, title: "Review", component: ReviewInfo },
 ];
 
 export default function OnboardingPage() {

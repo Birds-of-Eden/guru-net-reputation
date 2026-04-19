@@ -33,8 +33,7 @@ const steps = [
   { id: 7, title: "Other Info", component: OtherInfo },
   { id: 8, title: "Package", component: PackageInfo },
   { id: 9, title: "Template", component: TemplateSelection },
-  { id: 10, title: "Articles", component: ArticlesSelection },
-  { id: 11, title: "Review", component: ReviewInfo },
+  { id: 10, title: "Review", component: ReviewInfo },
 ];
 
 export default function OnboardingPage() {
@@ -186,7 +185,7 @@ export default function OnboardingPage() {
             <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8 md:p-12 lg:p-16 animate-in fade-in slide-in-from-bottom duration-700">
               {/* Decorative Corner Elements */}
               <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-violet-500/10 to-transparent rounded-tl-3xl" />
-              <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-fuchsia-500/10 to-transparent rounded-br-3xl" />
+              <div className="absolute bottom-0 right-0 w-20 h-20 bg-linear-to-tl from-fuchsia-500/10 to-transparent rounded-br-3xl" />
 
               {/* ⚡ OPTIMIZED: Suspense wrapper for lazy-loaded components with skeleton */}
               <Suspense fallback={

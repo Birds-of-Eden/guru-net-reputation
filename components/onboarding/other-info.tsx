@@ -519,7 +519,7 @@ export function OtherInfo({
           </div>
 
           {/* Spreadsheet */}
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-[1490px]">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b-2 border-gray-200">

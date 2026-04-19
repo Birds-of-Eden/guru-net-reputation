@@ -451,6 +451,20 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
 
   const groupedOther = useMemo(() => {
     const raw = formData.otherField || [];
+    
+    // Check if it's the new spreadsheet format (has sheets with id, name, columns, rows)
+    if (raw.length > 0 && raw[0] && typeof raw[0] === 'object' && 'id' in raw[0] && 'columns' in raw[0] && 'rows' in raw[0]) {
+      // New format: SpreadsheetData - display as sheets
+      return (raw as any[]).map((sheet: any) => [
+        sheet.name || "Sheet",
+        sheet.rows.map((row: string[], idx: number) => ({
+          title: `Row ${idx + 1}`,
+          data: row,
+        })) as OtherField[]
+      ] as const);
+    }
+    
+    // Old format: OtherField[] - group by category
     const map = new Map<string, OtherField[]>();
     for (const it of raw) {
       const cat = (it?.category || "General").trim() || "General";
@@ -462,7 +476,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
       .sort(([a], [b]) => a.localeCompare(b))
       .map(
         ([cat, items]) =>
-          [cat, items.sort((x, y) => x.title.localeCompare(y.title))] as const
+          [cat, items.sort((x, y) => (x.title || "").localeCompare(y.title || ""))] as const
       );
   }, [formData.otherField]);
 
