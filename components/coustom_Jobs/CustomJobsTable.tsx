@@ -389,9 +389,6 @@ export default function CustomJobsTable({
                   Assigned To
                 </TableHead>
                 <TableHead className="font-semibold text-slate-700">
-                  AM Update
-                </TableHead>
-                <TableHead className="font-semibold text-slate-700">
                   View Details
                 </TableHead>
                 <TableHead className="font-semibold text-slate-700 text-right">
@@ -403,7 +400,7 @@ export default function CustomJobsTable({
               {loading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     className="h-24 text-center text-muted-foreground"
                   >
                     Loading...
@@ -412,7 +409,7 @@ export default function CustomJobsTable({
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No custom jobs found
@@ -501,29 +498,6 @@ export default function CustomJobsTable({
                         >
                           Assign
                         </Button>
-                      ) : (
-                        <span className="text-sm text-slate-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="min-w-[220px] max-w-[300px]">
-                      {job.clientNotificationUpdate ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <p className="line-clamp-2 text-sm text-slate-600 leading-relaxed">
-                                {job.clientNotificationUpdate}
-                              </p>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="top"
-                              className="max-w-md max-h-[400px] overflow-auto"
-                            >
-                              <p className="text-sm whitespace-pre-wrap">
-                                {job.clientNotificationUpdate}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
                       ) : (
                         <span className="text-sm text-slate-400">-</span>
                       )}

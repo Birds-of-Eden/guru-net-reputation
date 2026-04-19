@@ -30,11 +30,6 @@ export function mapTaskToCustomJob(task: any) {
     assignedToName: task.assignedTo?.name ?? "",
     issueStatus: (extra.issueStatus as string) ?? task.notes ?? "",
     qcStatus: (extra.qcStatus as string) ?? "pending",
-    clientNotificationUpdate:
-      (extra.clientNotificationUpdate as string) ??
-      (Array.isArray((social as any)?.items)
-        ? (social as any).items.join(", ")
-        : ""),
     priority: task.priority,
     status: task.status,
     link: (extra.link as string) ?? task.completionLink ?? "",

@@ -13,7 +13,6 @@ export type CustomJob = {
   assignedToName?: string;
   issueStatus?: string;
   qcStatus?: string;
-  clientNotificationUpdate?: string;
   priority: "low" | "medium" | "high" | "urgent";
   status:
     | "requested"

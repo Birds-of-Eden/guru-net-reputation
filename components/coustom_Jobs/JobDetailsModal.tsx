@@ -205,22 +205,13 @@ export default function JobDetailsModal({
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-2xl border bg-white p-4 shadow-sm">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Assigned To
                 </p>
                 <p className="wrap-break-word text-sm font-medium text-slate-900">
                   {job.assignedToName || "-"}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border bg-white p-4 shadow-sm md:col-span-2 xl:col-span-1">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  AM Update
-                </p>
-                <p className="text-sm text-slate-800 whitespace-pre-wrap wrap-break-word">
-                  {job.clientNotificationUpdate || "-"}
                 </p>
               </div>
 
