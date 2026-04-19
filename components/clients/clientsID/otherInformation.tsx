@@ -1,620 +1,731 @@
 // components/clients/OtherInformation.tsx
-//lint error fixed
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  FileText,
-  Link as LinkIcon,
-  AtSign,
-  Phone as PhoneIcon,
-  Copy,
-  Check,
-  Braces,
-  List as ListIcon,
-  FolderTree,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Plus,
+  Trash2,
+  Table as TableIcon,
+  X,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Save,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface OtherInformationProps {
   clientData: {
+    id: string;
     otherField?: any;
   };
+  onRefreshClient?: () => Promise<any> | void;
 }
 
-/* ---------- utils ---------- */
-
-const prettyTitle = (s: string) =>
-  String(s || "")
-    .replace(/[_-]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-
-const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const isPhone = (v: string) => /^\+?\d[\d\s\-()]{6,}$/.test(v);
-const isLikelyUrl = (v: string) => {
-  if (!v) return false;
-  const str = v.trim();
-  if (/^https?:\/\//i.test(str)) return true;
-  // naked domain like example.com/path
-  return /^[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i.test(str);
+// Excel-like data structure for a single sheet
+type SheetData = {
+  id: string; // Unique sheet identifier
+  name: string; // Sheet name
+  columns: string[]; // Column headers
+  rows: string[][]; // 2D array of cell values
 };
 
-type Token =
-  | { type: "text"; value: string }
-  | { type: "link"; value: string; href: string }
-  | { type: "email"; value: string; href: string }
-  | { type: "phone"; value: string; href: string };
+// Multiple sheets structure
+type SpreadsheetData = SheetData[];
 
-/** split text into clickable tokens (url/email/phone + plain text) */
-function tokenizeText(input: string): Token[] {
-  if (!input) return [{ type: "text", value: "" }];
-  const text = String(input);
-
-  const url =
-    /((https?:\/\/|www\.)[^\s)]+|[a-z0-9.-]+\.[a-z]{2,}(\/[^\s)]*)?)/gi;
-  const email = /([^\s@]+@[^\s@]+\.[^\s@]+)/gi;
-  const phone = /(\+?\d[\d\s\-()]{6,}\d)/g;
-
-  type Match = {
-    start: number;
-    end: number;
-    type: "link" | "email" | "phone";
-    text: string;
-  };
-  const matches: Match[] = [];
-
-  const pushMatches = (re: RegExp, type: Match["type"]) => {
-    re.lastIndex = 0;
-    let m;
-    while ((m = re.exec(text)) !== null) {
-      matches.push({
-        start: m.index,
-        end: m.index + m[0].length,
-        type,
-        text: m[0],
-      });
+export function OtherInformation({ clientData, onRefreshClient }: OtherInformationProps) {
+  // ---------- State ----------
+  const [sheets, setSheets] = useState<SpreadsheetData>(() => {
+    const saved = clientData.otherField;
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      // Try to parse as new spreadsheet format (multiple sheets with id)
+      if (saved[0] && typeof saved[0] === 'object' && 'id' in saved[0] && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+        return saved as unknown as SpreadsheetData;
+      }
+      // Try to parse as old spreadsheet format (without id)
+      if (saved[0] && typeof saved[0] === 'object' && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+        // Add IDs to existing sheets
+        return (saved as unknown as Omit<SheetData, 'id'>[]).map((sheet, idx) => ({
+          ...sheet,
+          id: `sheet_${Date.now()}_${idx}`,
+        }));
+      }
+      // Convert old format to new format (single sheet)
+      const columns = ["Category", "Title", "Data"];
+      const rows = (saved as any[]).map((item: any) => [
+        item.category || "",
+        item.title || "",
+        Array.isArray(item.data) ? item.data.join(", ") : (item.data || ""),
+      ]);
+      return [{ id: `sheet_${Date.now()}_0`, name: "Sheet 1", columns, rows }];
     }
-  };
+    // Default empty spreadsheet with one sheet
+    return [{
+      id: `sheet_${Date.now()}_0`,
+      name: "Sheet 1",
+      columns: ["Field 1", "Field 2", "Field 3"],
+      rows: [["", "", ""]],
+    }];
+  });
 
-  pushMatches(url, "link");
-  pushMatches(email, "email");
-  pushMatches(phone, "phone");
+  const [activeSheetIndex, setActiveSheetIndex] = useState(0);
+  const activeSheet = sheets[activeSheetIndex];
+  const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+  const [editingColumn, setEditingColumn] = useState<number | null>(null);
+  const [showAddSheetDialog, setShowAddSheetDialog] = useState(false);
+  const [newSheetName, setNewSheetName] = useState("");
+  const [editingSheetIndex, setEditingSheetIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteSheetDialog, setShowDeleteSheetDialog] = useState(false);
+  const [sheetToDeleteIndex, setSheetToDeleteIndex] = useState<number | null>(null);
+  const [deleteWarningStep, setDeleteWarningStep] = useState(1);
+  const columnInputRef = useRef<HTMLInputElement>(null);
 
-  // de-dupe overlaps by preferring earlier + longer spans
-  matches.sort((a, b) => a.start - b.start || b.end - a.end);
-  const filtered: Match[] = [];
-  let lastEnd = -1;
-  for (const m of matches) {
-    if (m.start >= lastEnd) {
-      filtered.push(m);
-      lastEnd = m.end;
+  // Focus on column input when editing starts
+  useEffect(() => {
+    if (editingColumn !== null && columnInputRef.current) {
+      columnInputRef.current.focus();
+      columnInputRef.current.select();
     }
-  }
+  }, [editingColumn]);
 
-  if (!filtered.length) return [{ type: "text", value: text }];
+  // Handle paste from Excel
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, rowIndex: number, colIndex: number) => {
+    e.preventDefault();
+    
+    const pastedText = e.clipboardData.getData('text');
+    
+    if (!pastedText) return;
 
-  const tokens: Token[] = [];
-  let idx = 0;
-  for (const m of filtered) {
-    if (m.start > idx)
-      tokens.push({ type: "text", value: text.slice(idx, m.start) });
+    // Parse tab-separated values (Excel format)
+    const rows = pastedText.split('\n').filter(row => row.trim() !== '');
+    const parsedData = rows.map(row => row.split('\t').map(cell => cell.trim()));
 
-    if (m.type === "link") {
-      const raw = m.text;
-      const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-      tokens.push({ type: "link", value: raw, href });
-    } else if (m.type === "email") {
-      tokens.push({ type: "email", value: m.text, href: `mailto:${m.text}` });
-    } else {
-      tokens.push({
-        type: "phone",
-        value: m.text,
-        href: `tel:${m.text.replace(/\s+/g, "")}`,
-      });
+    if (parsedData.length === 0) return;
+
+    // Check if first row contains headers (all uppercase or mixed case)
+    const firstRowHasHeaders = parsedData.length > 0 && parsedData[0].every(cell => 
+      /^[A-Z_]+$/.test(cell) || /^[A-Za-z\s]+$/.test(cell)
+    );
+
+    let dataToPaste = parsedData;
+    let newColumns = [...activeSheet.columns];
+
+    // If first row looks like headers, use them as column names
+    if (firstRowHasHeaders && parsedData.length > 1) {
+      newColumns = parsedData[0];
+      dataToPaste = parsedData.slice(1);
     }
-    idx = m.end;
-  }
-  if (idx < text.length) tokens.push({ type: "text", value: text.slice(idx) });
-  return tokens;
-}
 
-function CopyButton({ value }: { value: string }) {
-  const [ok, setOk] = useState(false);
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      className="h-8 px-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(value);
-          setOk(true);
-          toast.success("Copied to clipboard");
-          setTimeout(() => setOk(false), 900);
-        } catch {
-          toast.error("Failed to copy");
-        }
-      }}
-      title="Copy"
-    >
-      {ok ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-    </Button>
-  );
-}
+    // Calculate max columns needed
+    const maxCols = Math.max(
+      ...dataToPaste.map(row => row.length),
+      newColumns.length
+    );
 
-function AutoLinkText({ text }: { text: string }) {
-  const tokens = useMemo(() => tokenizeText(text), [text]);
-  return (
-    <span className="whitespace-pre-wrap break-words">
-      {tokens.map((t, i) => {
-        if (t.type === "text") return <span key={i}>{t.value}</span>;
-        if (t.type === "link")
-          return (
-            <a
-              key={i}
-              href={t.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-              title={t.value}
-            >
-              <LinkIcon className="h-3.5 w-3.5" />
-              {t.value}
-            </a>
-          );
-        if (t.type === "email")
-          return (
-            <a
-              key={i}
-              href={t.href}
-              className="underline text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
-            >
-              <AtSign className="h-3.5 w-3.5" />
-              {t.value}
-            </a>
-          );
-        return (
-          <a
-            key={i}
-            href={t.href}
-            className="underline text-emerald-600 hover:text-emerald-800 inline-flex items-center gap-1"
-          >
-            <PhoneIcon className="h-3.5 w-3.5" />
-            {t.value}
-          </a>
+    // Update column headers if needed
+    if (maxCols > newColumns.length) {
+      for (let i = newColumns.length; i < maxCols; i++) {
+        newColumns.push(`Field ${i + 1}`);
+      }
+    }
+
+    // Update rows
+    const newRows = [...activeSheet.rows];
+    dataToPaste.forEach((pastedRow, i) => {
+      const targetRowIndex = rowIndex + i;
+      
+      if (targetRowIndex < newRows.length) {
+        // Update existing row
+        newRows[targetRowIndex] = newRows[targetRowIndex].map((cell, c) => 
+          c < pastedRow.length ? pastedRow[c] : cell
         );
-      })}
-    </span>
-  );
-}
+        
+        // Add extra columns if pasted data has more columns
+        if (pastedRow.length > newRows[targetRowIndex].length) {
+          for (let c = newRows[targetRowIndex].length; c < pastedRow.length; c++) {
+            newRows[targetRowIndex].push(pastedRow[c]);
+          }
+        }
+      } else {
+        // Add new row
+        const newRow = Array(newColumns.length).fill('');
+        pastedRow.forEach((cell, c) => {
+          if (c < newRow.length) {
+            newRow[c] = cell;
+          }
+        });
+        newRows.push(newRow);
+      }
+    });
 
-/* collapse long blocks (e.g., notes) */
-function CollapsibleText({
-  text,
-  previewChars = 240,
-}: {
-  text: string;
-  previewChars?: number;
-}) {
-  const [open, setOpen] = useState(false);
-  if (text.length <= previewChars) return <AutoLinkText text={text} />;
-  const head = text.slice(0, previewChars);
-  return (
-    <div>
-      <AutoLinkText text={open ? text : head} />
-      {!open && <span className="text-slate-500">…</span>}
-      <button
-        className="ml-2 text-blue-600 underline hover:text-blue-800"
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? "Show less" : "Show more"}
-      </button>
-    </div>
-  );
-}
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex 
+        ? { ...sheet, columns: newColumns, rows: newRows }
+        : sheet
+    ));
+  };
 
-/* generic renderers used for legacy shapes */
-function ValueRenderer({ value }: { value: unknown }) {
-  if (value === null || value === undefined)
-    return <span className="text-slate-400">—</span>;
+  // ---------- Handlers ----------
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Save in new format with sheets containing id, name, columns, rows
+      const response = await fetch(`/api/clients/${clientData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otherField: sheets }),
+      });
 
-  if (typeof value === "number" || typeof value === "boolean") {
-    return (
-      <div className="inline-flex items-center gap-2">
-        <Badge variant="secondary" className="font-mono">
-          {String(value)}
-        </Badge>
-        <CopyButton value={String(value)} />
-      </div>
-    );
-  }
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (isEmail(trimmed) || isPhone(trimmed) || isLikelyUrl(trimmed)) {
-      const href = isEmail(trimmed)
-        ? `mailto:${trimmed}`
-        : isPhone(trimmed)
-        ? `tel:${trimmed.replace(/\s+/g, "")}`
-        : /^https?:\/\//i.test(trimmed)
-        ? trimmed
-        : `https://${trimmed}`;
-
-      const Icon = isEmail(trimmed)
-        ? AtSign
-        : isPhone(trimmed)
-        ? PhoneIcon
-        : LinkIcon;
-      return (
-        <div className="w-full">
-          <a
-            href={href}
-            target={isEmail(trimmed) || isPhone(trimmed) ? "_self" : "_blank"}
-            rel="noopener noreferrer"
-            className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
-            title={trimmed}
-          >
-            <Icon className="h-4 w-4 shrink-0 mt-0.5" />
-            <span className="font-medium break-words overflow-hidden text-ellipsis line-clamp-2">
-              {trimmed}
-            </span>
-          </a>
-        </div>
-      );
+      if (response.ok) {
+        toast.success("Other information saved successfully");
+        if (onRefreshClient) {
+          await onRefreshClient();
+        }
+      } else {
+        toast.error("Failed to save other information");
+      }
+    } catch (error) {
+      console.error("Error saving other information:", error);
+      toast.error("Failed to save other information");
+    } finally {
+      setIsSaving(false);
     }
+  };
 
-    return (
-      <div className="text-slate-900 dark:text-slate-100">
-        <CollapsibleText text={trimmed} />
-      </div>
-    );
-  }
+  const handleAddSheet = () => {
+    const newSheet: SheetData = {
+      id: `sheet_${Date.now()}_${sheets.length}`,
+      name: newSheetName || `Sheet ${sheets.length + 1}`,
+      columns: ["Field 1", "Field 2", "Field 3"],
+      rows: [["", "", ""]],
+    };
+    setSheets([...sheets, newSheet]);
+    setActiveSheetIndex(sheets.length);
+    setShowAddSheetDialog(false);
+    setNewSheetName("");
+  };
 
-  if (Array.isArray(value)) {
-    if (value.length === 0) return <span className="text-slate-400">—</span>;
+  const handleDeleteSheet = (index: number) => {
+    if (sheets.length <= 1) return;
+    setSheetToDeleteIndex(index);
+    setDeleteWarningStep(1);
+    setShowDeleteSheetDialog(true);
+  };
 
-    if (
-      value.every((v) => ["string", "number", "boolean"].includes(typeof v))
-    ) {
-      const allAreLinks = value.every(
-        (v) => typeof v === "string" && isLikelyUrl(v)
-      );
-      return (
-        <div className="flex flex-col gap-2">
-          {value.map((v, i) => {
-            const str = String(v);
-            if (allAreLinks) {
-              const href = /^https?:\/\//i.test(str) ? str : `https://${str}`;
-              return (
-                <a
-                  key={i}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
-                  title={str}
-                >
-                  <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span className="break-words overflow-hidden text-ellipsis line-clamp-2">
-                    {str}
-                  </span>
-                </a>
-              );
-            }
-            return (
-              <Badge
-                key={i}
-                variant="secondary"
-                className="font-mono max-w-full"
-              >
-                <span className="truncate block max-w-full">{str}</span>
-              </Badge>
-            );
-          })}
-        </div>
-      );
+  const confirmDeleteSheet = () => {
+    if (sheetToDeleteIndex === null) return;
+    const newSheets = sheets.filter((_, i) => i !== sheetToDeleteIndex);
+    setSheets(newSheets);
+    if (activeSheetIndex >= newSheets.length) {
+      setActiveSheetIndex(newSheets.length - 1);
+    } else if (activeSheetIndex === sheetToDeleteIndex) {
+      setActiveSheetIndex(0);
     }
+    setShowDeleteSheetDialog(false);
+    setSheetToDeleteIndex(null);
+    setDeleteWarningStep(1);
+  };
 
-    // array of objects -> list style
-    return (
-      <div className="space-y-2">
-        {value.map((obj, i) => (
-          <div
-            key={i}
-            className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50/60 dark:bg-slate-800/40"
-          >
-            <div className="mb-2 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 inline-flex items-center gap-2">
-              <ListIcon className="h-4 w-4" />
-              Item {i + 1}
-            </div>
-            <KeyValueGrid value={obj} compact />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const handleRenameSheet = (index: number, newName: string) => {
+    setSheets(prev => prev.map((sheet, idx) =>
+      idx === index ? { ...sheet, name: newName } : sheet
+    ));
+    setEditingSheetIndex(null);
+  };
 
-  // object -> key/value grid
-  return <KeyValueGrid value={value} />;
-}
-
-function KeyValueGrid({
-  value,
-  compact = false,
-}: {
-  value: unknown;
-  compact?: boolean;
-}) {
-  if (!value || typeof value !== "object")
-    return <span className="text-slate-400">—</span>;
-  const entries = Object.entries(value as Record<string, unknown>);
-  if (!entries.length) return <span className="text-slate-400">—</span>;
-
-  return (
-    <div
-      className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${
-        compact ? "text-sm" : ""
-      }`}
-    >
-      {entries.map(([k, v]) => (
-        <div
-          key={k}
-          className="rounded-lg bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-3"
-        >
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
-            {prettyTitle(k)}
-          </div>
-          <div className="text-slate-900 dark:text-slate-100">
-            {typeof v === "string" ? (
-              <AutoLinkText text={v} />
-            ) : (
-              <ValueRenderer value={v} />
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ---------- normalization for Option-1 + legacy fallback ---------- */
-
-type NormalizedItem = {
-  category: string;
-  title: string;
-  items: string[]; // links/texts
-};
-
-function normalizeOtherField(raw: any): NormalizedItem[] {
-  // New shape: [{ category, title, data: string[] }]
-  if (Array.isArray(raw) && raw.some((x) => typeof x?.category === "string")) {
-    return raw
-      .filter((item) => !(item.title === "name_keywords" && item.category === "system"))
-      .map((r) => ({
-        category: String(r?.category ?? "").trim() || "Uncategorized",
-        title: String(r?.title ?? "").trim() || "(Untitled)",
-        items: Array.isArray(r?.data)
-          ? r.data.map((d: any) => String(d ?? "").trim()).filter(Boolean)
-          : (r?.data ?? r?.value ?? r?.content ?? "")
-              .toString()
-              .split(/\r?\n|,/) // graceful fallback if single string with separators
-              .map((s: string) => s.trim())
-              .filter(Boolean),
-      }))
-      .filter((x) => x.title || x.items.length);
-  }
-
-  // Legacy array of { title, data }
-  if (Array.isArray(raw)) {
-    return raw
-      .map((r) => ({
-        category: "General",
-        title:
-          String(r?.title ?? r?.key ?? r?.name ?? "").trim() || "(Untitled)",
-        items: Array.isArray(r?.data)
-          ? r.data.map((d: any) => String(d ?? "").trim()).filter(Boolean)
-          : [String(r?.data ?? r?.value ?? r?.content ?? "").trim()].filter(
-              Boolean
+  const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            rows: sheet.rows.map((row, r) =>
+              r === rowIndex
+                ? row.map((cell, c) => (c === colIndex ? value : cell))
+                : row
             ),
-      }))
-      .filter((x) => x.title || x.items.length);
-  }
+          }
+        : sheet
+    ));
+  };
 
-  // Object map fallback
-  if (raw && typeof raw === "object") {
-    return Object.entries(raw).map(([k, v]) => ({
-      category: "General",
-      title: prettyTitle(k),
-      items: Array.isArray(v)
-        ? (v as any[]).map((d) => String(d ?? "").trim()).filter(Boolean)
-        : [String(v ?? "").trim()].filter(Boolean),
-    }));
-  }
+  const handleAddRow = () => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? { ...sheet, rows: [...sheet.rows, Array(sheet.columns.length).fill("")] }
+        : sheet
+    ));
+  };
 
-  return [];
-}
+  const handleDeleteRow = (rowIndex: number) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? { ...sheet, rows: sheet.rows.filter((_, i) => i !== rowIndex) }
+        : sheet
+    ));
+  };
 
-/* ---------- main component (grouped by category) ---------- */
+  const handleAddColumn = () => {
+    const newColumnName = `Field ${activeSheet.columns.length + 1}`;
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: [...sheet.columns, newColumnName],
+            rows: sheet.rows.map((row) => [...row, ""]),
+          }
+        : sheet
+    ));
+  };
 
-export function OtherInformation({ clientData }: OtherInformationProps) {
-  const normalized = useMemo(
-    () => normalizeOtherField(clientData?.otherField),
-    [clientData]
-  );
+  const handleDeleteColumn = (colIndex: number) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: sheet.columns.filter((_, i) => i !== colIndex),
+            rows: sheet.rows.map((row) => row.filter((_, i) => i !== colIndex)),
+          }
+        : sheet
+    ));
+  };
 
-  // group by category
-  const categories = useMemo(() => {
-    const map = new Map<string, NormalizedItem[]>();
-    for (const it of normalized) {
-      const key = it.category || "Uncategorized";
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(it);
+  const handleColumnRename = (colIndex: number, newName: string) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: sheet.columns.map((col, i) => (i === colIndex ? newName : col)),
+          }
+        : sheet
+    ));
+    setEditingColumn(null);
+  };
+
+  const handleMoveColumn = (colIndex: number, direction: "up" | "down") => {
+    if (
+      (direction === "up" && colIndex === 0) ||
+      (direction === "down" && colIndex === activeSheet.columns.length - 1)
+    ) {
+      return;
     }
-    // sort categories A→Z and each category’s items by title
-    return Array.from(map.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(
-        ([cat, items]) =>
-          [cat, items.sort((x, y) => x.title.localeCompare(y.title))] as const
-      );
-  }, [normalized]);
 
-  const totalItems = normalized.reduce(
-    (sum, n) => sum + (n.items?.length || 0),
-    0
-  );
+    setSheets(prev => prev.map((sheet, idx) => {
+      if (idx !== activeSheetIndex) return sheet;
+      
+      const newColIndex = direction === "up" ? colIndex - 1 : colIndex + 1;
+      const newColumns = [...sheet.columns];
+      [newColumns[colIndex], newColumns[newColIndex]] = [
+        newColumns[newColIndex],
+        newColumns[colIndex],
+      ];
 
+      const newRows = sheet.rows.map((row) => {
+        const newRow = [...row];
+        [newRow[colIndex], newRow[newColIndex]] = [newRow[newColIndex], newRow[colIndex]];
+        return newRow;
+      });
+
+      return { ...sheet, columns: newColumns, rows: newRows };
+    }));
+  };
+
+  // Keyboard navigation
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    colIndex: number
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Move to next row
+      const nextRow = rowIndex + 1;
+      if (nextRow < activeSheet.rows.length) {
+        setSelectedCell({ row: nextRow, col: colIndex });
+        setTimeout(() => {
+          const input = document.getElementById(`cell-${nextRow}-${colIndex}`);
+          input?.focus();
+        }, 0);
+      }
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      // Move to next column
+      const nextCol = colIndex + 1;
+      if (nextCol < activeSheet.columns.length) {
+        setSelectedCell({ row: rowIndex, col: nextCol });
+        setTimeout(() => {
+          const input = document.getElementById(`cell-${rowIndex}-${nextCol}`);
+          input?.focus();
+        }, 0);
+      }
+    }
+  };
+
+  // ---------- UI ----------
   return (
-    <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
+    <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
       <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
-        <CardTitle className="flex items-center gap-2 flex-wrap">
-          <FileText className="h-5 w-5 text-indigo-600" />
-          <span>Other Information</span>
-          {!!normalized.length && (
-            <>
-              <Badge variant="secondary">{normalized.length} sections</Badge>
-              <Badge
-                variant="outline"
-                className="border-indigo-300 text-indigo-700 dark:text-indigo-200"
-              >
-                {totalItems} items
-              </Badge>
-            </>
-          )}
+        <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-indigo-600" />
+            <span>Other Information</span>
+          </div>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            size="sm"
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="p-6">
-        {categories.length ? (
-          <div className="space-y-6">
-            {categories.map(([category, items]) => (
-              <div
-                key={category}
-                className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
-              >
-                {/* Category Header */}
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900/40">
-                  <div className="flex items-center gap-2">
-                    <FolderTree className="h-4 w-4 text-indigo-600" />
-                    <span className="font-semibold text-slate-800 dark:text-slate-100">
-                      {prettyTitle(category)}
-                    </span>
-                  </div>
-                  <Badge variant="secondary">
-                    {items.reduce((n, it) => n + it.items.length, 0)} items
-                  </Badge>
-                </div>
+        {/* Toolbar */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            onClick={handleAddRow}
+            size="sm"
+            className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Row
+          </Button>
+          <Button
+            type="button"
+            onClick={handleAddColumn}
+            size="sm"
+            variant="outline"
+            className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Column
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setShowAddSheetDialog(true)}
+            size="sm"
+            variant="outline"
+            className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Add Sheet
+          </Button>
+          <div className="flex-1" />
+          <span className="text-xs text-gray-500">
+            {activeSheet.rows.length} rows × {activeSheet.columns.length} columns
+          </span>
+        </div>
 
-                {/* Category Body */}
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {items.map((sec, i) => (
-                      <div
-                        key={`${category}-${i}`}
-                        className="p-4 rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700"
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <div className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
-                            {sec.title || "(Untitled)"}
-                          </div>
-                          <Badge variant="outline">{sec.items.length}</Badge>
-                        </div>
+        {/* Sheet Tabs */}
+        <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+          {sheets.map((sheet, index) => (
+            <div
+              key={index}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm font-medium cursor-pointer transition-colors ${
+                index === activeSheetIndex
+                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0"
+              }`}
+              onClick={() => setActiveSheetIndex(index)}
+            >
+              {editingSheetIndex === index ? (
+                <Input
+                  defaultValue={sheet.name}
+                  onBlur={(e) => handleRenameSheet(index, (e.target as HTMLInputElement).value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleRenameSheet(index, (e.target as HTMLInputElement).value);
+                    } else if (e.key === "Escape") {
+                      setEditingSheetIndex(null);
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-6 text-xs px-1 py-0 w-24"
+                  autoFocus
+                />
+              ) : (
+                <span 
+                  className="truncate max-w-[120px]" 
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    setEditingSheetIndex(index);
+                  }}
+                  title="Double-click to rename"
+                >
+                  {sheet.name}
+                </span>
+              )}
+              {sheets.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteSheet(index);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
 
-                        {/* Items list */}
-                        <ul className="space-y-2">
-                          {sec.items.map((val, idx) => {
-                            const v = String(val || "").trim();
-                            if (!v) return null;
-
-                            if (isEmail(v)) {
-                              return (
-                                <li
-                                  key={idx}
-                                  className="flex items-start justify-between gap-2"
-                                >
-                                  <a
-                                    href={`mailto:${v}`}
-                                    className="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 underline"
-                                  >
-                                    <AtSign className="h-4 w-4" />
-                                    <span className="break-words">{v}</span>
-                                  </a>
-                                  <CopyButton value={v} />
-                                </li>
-                              );
+        {/* Spreadsheet */}
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b-2 border-gray-200">
+                <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200">
+                  #
+                </th>
+                {activeSheet.columns.map((col, colIndex) => (
+                  <th
+                    key={colIndex}
+                    className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group"
+                  >
+                    <div className="flex items-center gap-1">
+                      {editingColumn === colIndex ? (
+                        <Input
+                          ref={columnInputRef}
+                          defaultValue={col}
+                          onBlur={(e) =>
+                            handleColumnRename(colIndex, (e.target as HTMLInputElement).value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleColumnRename(colIndex, (e.target as HTMLInputElement).value);
+                            } else if (e.key === "Escape") {
+                              setEditingColumn(null);
                             }
-                            if (isPhone(v)) {
-                              return (
-                                <li
-                                  key={idx}
-                                  className="flex items-start justify-between gap-2"
-                                >
-                                  <a
-                                    href={`tel:${v.replace(/\s+/g, "")}`}
-                                    className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-900 underline"
-                                  >
-                                    <PhoneIcon className="h-4 w-4" />
-                                    <span className="break-words">{v}</span>
-                                  </a>
-                                  <CopyButton value={v} />
-                                </li>
-                              );
-                            }
-                            if (isLikelyUrl(v)) {
-                              const href = /^https?:\/\//i.test(v)
-                                ? v
-                                : `https://${v}`;
-                              return (
-                                <li
-                                  key={idx}
-                                  className="flex items-start justify-between gap-2"
-                                >
-                                  <a
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/50 break-all"
-                                    title={v}
-                                  >
-                                    <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
-                                    <span className="break-words">{v}</span>
-                                  </a>
-                                  <CopyButton value={v} />
-                                </li>
-                              );
-                            }
-                            // plain text (auto-link & collapse if long)
-                            return (
-                              <li
-                                key={idx}
-                                className="text-slate-900 dark:text-slate-100"
-                              >
-                                <CollapsibleText text={v} />
-                              </li>
-                            );
-                          })}
-                        </ul>
+                          }}
+                          className="h-6 text-xs px-2 py-1"
+                          autoFocus
+                        />
+                      ) : (
+                        <span
+                          onClick={() => setEditingColumn(colIndex)}
+                          className="cursor-pointer hover:text-emerald-600 truncate"
+                          title="Click to rename"
+                        >
+                          {col}
+                        </span>
+                      )}
+                      <div className="hidden group-hover:flex items-center gap-0.5 ml-auto">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          onClick={() => handleMoveColumn(colIndex, "up")}
+                          disabled={colIndex === 0}
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          onClick={() => handleMoveColumn(colIndex, "down")}
+                          disabled={colIndex === activeSheet.columns.length - 1}
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-red-400 hover:text-red-600"
+                          onClick={() => handleDeleteColumn(colIndex)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 italic">
-            <Braces className="h-4 w-4" />
-            No additional information
+                    </div>
+                  </th>
+                ))}
+                <th className="w-12 px-3 py-2 border-l border-gray-200" />
+              </tr>
+            </thead>
+            <tbody>
+              {activeSheet.rows.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center">
+                    {rowIndex + 1}
+                  </td>
+                  {row.map((cell, colIndex) => (
+                    <td
+                      key={colIndex}
+                      className="border-r border-gray-200 px-1 py-1"
+                    >
+                      <Input
+                        id={`cell-${rowIndex}-${colIndex}`}
+                        value={cell}
+                        onChange={(e) =>
+                          handleCellChange(rowIndex, colIndex, e.target.value)
+                        }
+                        onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                        onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
+                        className="h-8 text-sm border-0 focus:ring-1 focus:ring-emerald-500 bg-transparent"
+                        placeholder="..."
+                      />
+                    </td>
+                  ))}
+                  <td className="px-2 py-1 border-l border-gray-200 text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => handleDeleteRow(rowIndex)}
+                      disabled={activeSheet.rows.length <= 1}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Empty State */}
+        {activeSheet.rows.length === 0 && (
+          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+            <p className="text-sm text-gray-600">
+              No data yet. Click{" "}
+              <span className="font-medium text-gray-900">Add Row</span> to get
+              started.
+            </p>
           </div>
         )}
       </CardContent>
+
+      {/* Add Sheet Dialog */}
+      {showAddSheetDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Add New Sheet</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sheet Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter sheet name..."
+                    value={newSheetName}
+                    onChange={(e) => setNewSheetName(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowAddSheetDialog(false);
+                      setNewSheetName("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleAddSheet}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    Create Sheet
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Sheet Confirmation Dialog */}
+      {showDeleteSheetDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-red-600">
+                {deleteWarningStep === 1 ? "Warning: Delete Sheet" : "Final Warning"}
+              </h3>
+              <div className="space-y-4">
+                {deleteWarningStep === 1 ? (
+                  <>
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Warning 1 of 2:</strong> You are about to delete the sheet "{sheetToDeleteIndex !== null ? sheets[sheetToDeleteIndex].name : ''}".
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      This action cannot be undone. All data in this sheet will be permanently lost.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                      <p className="text-sm text-red-800">
+                        <strong>Warning 2 of 2 (Final):</strong> Are you absolutely sure you want to delete "{sheetToDeleteIndex !== null ? sheets[sheetToDeleteIndex].name : ''}"?
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      This is your last chance to cancel. Once deleted, the data cannot be recovered.
+                    </p>
+                  </>
+                )}
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowDeleteSheetDialog(false);
+                      setSheetToDeleteIndex(null);
+                      setDeleteWarningStep(1);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  {deleteWarningStep === 1 ? (
+                    <Button
+                      type="button"
+                      onClick={() => setDeleteWarningStep(2)}
+                      className="bg-yellow-600 text-white hover:bg-yellow-700"
+                    >
+                      Continue
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={confirmDeleteSheet}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Delete Sheet
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </Card>
   );
 }

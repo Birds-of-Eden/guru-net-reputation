@@ -2,20 +2,31 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  Info,
   Plus,
   Trash2,
+  Table as TableIcon,
+  X,
+  ChevronDown,
+  ChevronUp,
   FileText,
-  AlignLeft,
-  ListChecks,
 } from "lucide-react";
 import type { StepProps } from "@/types/onboarding";
+
+// Excel-like data structure for a single sheet
+type SheetData = {
+  id: string; // Unique sheet identifier
+  name: string; // Sheet name
+  columns: string[]; // Column headers
+  rows: string[][]; // 2D array of cell values
+};
+
+// Multiple sheets structure
+type SpreadsheetData = SheetData[];
 
 export function OtherInfo({
   formData,
@@ -23,89 +34,299 @@ export function OtherInfo({
   onNext,
   onPrevious,
 }: StepProps) {
-  type KV = {
-    category: string;
-    title: string;
-    data: string[]; // multiple items (links / texts)
-  };
-
   // ---------- State ----------
-  const [rows, setRows] = useState<KV[]>(() =>
-    (formData.otherField || []).map((r) => ({
-      category: r.category ?? "",
-      title: r.title ?? "",
-      data: Array.isArray(r.data) ? r.data : r.data ? [String(r.data)] : [""],
-    }))
-  );
+  const [sheets, setSheets] = useState<SpreadsheetData>(() => {
+    const saved = formData.otherField;
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      // Try to parse as new spreadsheet format (multiple sheets with id)
+      if (saved[0] && typeof saved[0] === 'object' && 'id' in saved[0] && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+        return saved as unknown as SpreadsheetData;
+      }
+      // Try to parse as old spreadsheet format (without id)
+      if (saved[0] && typeof saved[0] === 'object' && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+        // Add IDs to existing sheets
+        return (saved as unknown as Omit<SheetData, 'id'>[]).map((sheet, idx) => ({
+          ...sheet,
+          id: `sheet_${Date.now()}_${idx}`,
+        }));
+      }
+      // Convert old format to new format (single sheet)
+      const columns = ["Category", "Title", "Data"];
+      const rows = (saved as any[]).map((item: any) => [
+        item.category || "",
+        item.title || "",
+        Array.isArray(item.data) ? item.data.join(", ") : (item.data || ""),
+      ]);
+      return [{ id: `sheet_${Date.now()}_0`, name: "Sheet 1", columns, rows }];
+    }
+    // Default empty spreadsheet with one sheet
+    return [{
+      id: `sheet_${Date.now()}_0`,
+      name: "Sheet 1",
+      columns: ["Field 1", "Field 2", "Field 3"],
+      rows: [["", "", ""]],
+    }];
+  });
 
-  // Keep in sync with parent updates (if parent can change while mounted)
+  const [activeSheetIndex, setActiveSheetIndex] = useState(0);
+  const activeSheet = sheets[activeSheetIndex];
+
+  const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
+  const [editingColumn, setEditingColumn] = useState<number | null>(null);
+  const [showAddSheetDialog, setShowAddSheetDialog] = useState(false);
+  const [newSheetName, setNewSheetName] = useState("");
+  const [editingSheetIndex, setEditingSheetIndex] = useState<number | null>(null);
+  const columnInputRef = useRef<HTMLInputElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  // Focus on column input when editing starts
   useEffect(() => {
-    setRows(
-      (formData.otherField || []).map((r) => ({
-        category: r.category ?? "",
-        title: r.title ?? "",
-        data: Array.isArray(r.data) ? r.data : r.data ? [String(r.data)] : [""],
-      }))
+    if (editingColumn !== null && columnInputRef.current) {
+      columnInputRef.current.focus();
+      columnInputRef.current.select();
+    }
+  }, [editingColumn]);
+
+  // Handle paste from Excel
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, rowIndex: number, colIndex: number) => {
+    e.preventDefault();
+    
+    const pastedText = e.clipboardData.getData('text');
+    
+    if (!pastedText) return;
+
+    // Parse tab-separated values (Excel format)
+    const rows = pastedText.split('\n').filter(row => row.trim() !== '');
+    const parsedData = rows.map(row => row.split('\t').map(cell => cell.trim()));
+
+    if (parsedData.length === 0) return;
+
+    // Check if first row contains headers (all uppercase or mixed case)
+    const firstRowHasHeaders = parsedData.length > 0 && parsedData[0].every(cell => 
+      /^[A-Z_]+$/.test(cell) || /^[A-Za-z\s]+$/.test(cell)
     );
-  }, [formData.otherField]);
+
+    let dataToPaste = parsedData;
+    let newColumns = [...activeSheet.columns];
+
+    // If first row looks like headers, use them as column names
+    if (firstRowHasHeaders && parsedData.length > 1) {
+      newColumns = parsedData[0];
+      dataToPaste = parsedData.slice(1);
+    }
+
+    // Calculate max columns needed
+    const maxCols = Math.max(
+      ...dataToPaste.map(row => row.length),
+      newColumns.length
+    );
+
+    // Update column headers if needed
+    if (maxCols > newColumns.length) {
+      for (let i = newColumns.length; i < maxCols; i++) {
+        newColumns.push(`Field ${i + 1}`);
+      }
+    }
+
+    // Update rows
+    const newRows = [...activeSheet.rows];
+    dataToPaste.forEach((pastedRow, i) => {
+      const targetRowIndex = rowIndex + i;
+      
+      if (targetRowIndex < newRows.length) {
+        // Update existing row
+        newRows[targetRowIndex] = newRows[targetRowIndex].map((cell, c) => 
+          c < pastedRow.length ? pastedRow[c] : cell
+        );
+        
+        // Add extra columns if pasted data has more columns
+        if (pastedRow.length > newRows[targetRowIndex].length) {
+          for (let c = newRows[targetRowIndex].length; c < pastedRow.length; c++) {
+            newRows[targetRowIndex].push(pastedRow[c]);
+          }
+        }
+      } else {
+        // Add new row
+        const newRow = Array(newColumns.length).fill('');
+        pastedRow.forEach((cell, c) => {
+          if (c < newRow.length) {
+            newRow[c] = cell;
+          }
+        });
+        newRows.push(newRow);
+      }
+    });
+
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex 
+        ? { ...sheet, columns: newColumns, rows: newRows }
+        : sheet
+    ));
+  };
 
   // ---------- Handlers ----------
   const handleNext = () => {
-    const cleaned = rows
-      .map((r) => ({
-        category: r.category.trim(),
-        title: r.title.trim(),
-        data: r.data.map((d) => d.trim()).filter(Boolean),
-      }))
-      .filter((r) => r.title || r.data.length);
-
-    updateFormData({ otherField: cleaned });
+    // Save in new format with sheets containing id, name, columns, rows
+    updateFormData({ otherField: sheets });
     onNext();
   };
 
-  const handleUpdateRow = (index: number, field: keyof KV, value: string) => {
-    setRows((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
-    );
+  const handleAddSheet = () => {
+    const newSheet: SheetData = {
+      id: `sheet_${Date.now()}_${sheets.length}`,
+      name: newSheetName || `Sheet ${sheets.length + 1}`,
+      columns: ["Field 1", "Field 2", "Field 3"],
+      rows: [["", "", ""]],
+    };
+    setSheets([...sheets, newSheet]);
+    setActiveSheetIndex(sheets.length);
+    setShowAddSheetDialog(false);
+    setNewSheetName("");
   };
 
-  const handleAddDataItem = (rowIndex: number) => {
-    setRows((prev) =>
-      prev.map((row, i) =>
-        i === rowIndex ? { ...row, data: [...row.data, ""] } : row
-      )
-    );
+  const handleDeleteSheet = (index: number) => {
+    if (sheets.length <= 1) return;
+    const newSheets = sheets.filter((_, i) => i !== index);
+    setSheets(newSheets);
+    if (activeSheetIndex >= newSheets.length) {
+      setActiveSheetIndex(newSheets.length - 1);
+    } else if (activeSheetIndex === index) {
+      setActiveSheetIndex(0);
+    }
   };
 
-  const handleUpdateDataItem = (
-    rowIndex: number,
-    dataIndex: number,
-    value: string
-  ) => {
-    setRows((prev) =>
-      prev.map((row, i) =>
-        i === rowIndex
-          ? {
-              ...row,
-              data: row.data.map((d, di) => (di === dataIndex ? value : d)),
-            }
-          : row
-      )
-    );
+  const handleRenameSheet = (index: number, newName: string) => {
+    setSheets(prev => prev.map((sheet, idx) =>
+      idx === index ? { ...sheet, name: newName } : sheet
+    ));
+    setEditingSheetIndex(null);
   };
 
-  const handleRemoveDataItem = (rowIndex: number, dataIndex: number) => {
-    setRows((prev) =>
-      prev.map((row, i) =>
-        i === rowIndex
-          ? { ...row, data: row.data.filter((_, di) => di !== dataIndex) }
-          : row
-      )
-    );
+  const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            rows: sheet.rows.map((row, r) =>
+              r === rowIndex
+                ? row.map((cell, c) => (c === colIndex ? value : cell))
+                : row
+            ),
+          }
+        : sheet
+    ));
   };
 
   const handleAddRow = () => {
-    setRows((prev) => [...prev, { category: "", title: "", data: [""] }]);
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? { ...sheet, rows: [...sheet.rows, Array(sheet.columns.length).fill("")] }
+        : sheet
+    ));
+  };
+
+  const handleDeleteRow = (rowIndex: number) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? { ...sheet, rows: sheet.rows.filter((_, i) => i !== rowIndex) }
+        : sheet
+    ));
+  };
+
+  const handleAddColumn = () => {
+    const newColumnName = `Field ${activeSheet.columns.length + 1}`;
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: [...sheet.columns, newColumnName],
+            rows: sheet.rows.map((row) => [...row, ""]),
+          }
+        : sheet
+    ));
+  };
+
+  const handleDeleteColumn = (colIndex: number) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: sheet.columns.filter((_, i) => i !== colIndex),
+            rows: sheet.rows.map((row) => row.filter((_, i) => i !== colIndex)),
+          }
+        : sheet
+    ));
+  };
+
+  const handleColumnRename = (colIndex: number, newName: string) => {
+    setSheets(prev => prev.map((sheet, idx) => 
+      idx === activeSheetIndex
+        ? {
+            ...sheet,
+            columns: sheet.columns.map((col, i) => (i === colIndex ? newName : col)),
+          }
+        : sheet
+    ));
+    setEditingColumn(null);
+  };
+
+  const handleMoveColumn = (colIndex: number, direction: "up" | "down") => {
+    if (
+      (direction === "up" && colIndex === 0) ||
+      (direction === "down" && colIndex === activeSheet.columns.length - 1)
+    ) {
+      return;
+    }
+
+    setSheets(prev => prev.map((sheet, idx) => {
+      if (idx !== activeSheetIndex) return sheet;
+      
+      const newColIndex = direction === "up" ? colIndex - 1 : colIndex + 1;
+      const newColumns = [...sheet.columns];
+      [newColumns[colIndex], newColumns[newColIndex]] = [
+        newColumns[newColIndex],
+        newColumns[colIndex],
+      ];
+
+      const newRows = sheet.rows.map((row) => {
+        const newRow = [...row];
+        [newRow[colIndex], newRow[newColIndex]] = [newRow[newColIndex], newRow[colIndex]];
+        return newRow;
+      });
+
+      return { ...sheet, columns: newColumns, rows: newRows };
+    }));
+  };
+
+  // Keyboard navigation
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    rowIndex: number,
+    colIndex: number
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Move to next row
+      const nextRow = rowIndex + 1;
+      if (nextRow < activeSheet.rows.length) {
+        setSelectedCell({ row: nextRow, col: colIndex });
+        setTimeout(() => {
+          const input = document.getElementById(`cell-${nextRow}-${colIndex}`);
+          input?.focus();
+        }, 0);
+      }
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      // Move to next column
+      const nextCol = colIndex + 1;
+      if (nextCol < activeSheet.columns.length) {
+        setSelectedCell({ row: rowIndex, col: nextCol });
+        setTimeout(() => {
+          const input = document.getElementById(`cell-${rowIndex}-${nextCol}`);
+          input?.focus();
+        }, 0);
+      }
+    }
   };
 
   // ---------- UI ----------
@@ -113,182 +334,247 @@ export function OtherInfo({
     <div className="space-y-8 animate-in fade-in-50 duration-300">
       {/* Header */}
       <div className="text-center space-y-3">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-purple-600 shadow-lg ring-1 ring-black/5">
-          <ListChecks className="h-7 w-7 text-white" />
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg ring-1 ring-black/5">
+          <TableIcon className="h-7 w-7 text-white" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Additional Information
+          Data Spreadsheet
         </h1>
         <p className="mx-auto max-w-2xl text-balance text-sm text-gray-600">
-          Create professional, structured custom fields. Use a{" "}
-          <span className="rounded-md bg-indigo-50 px-1.5 py-0.5 text-indigo-700 ring-1 ring-inset ring-indigo-200">
-            Category
-          </span>{" "}
-          and a{" "}
-          <span className="rounded-md bg-purple-50 px-1.5 py-0.5 text-purple-700 ring-1 ring-inset ring-purple-200">
-            Title
-          </span>{" "}
-          and then add one or more{" "}
-          <span className="rounded-md bg-gray-50 px-1.5 py-0.5 text-gray-700 ring-1 ring-inset ring-gray-200">
-            Data Items
-          </span>
-          .
+          Add and manage your data in an Excel-like spreadsheet. Add columns,
+          rows, and edit cells directly.
         </p>
       </div>
 
       {/* Main Card */}
       <Card className="border-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] ring-1 ring-black/5 backdrop-blur bg-white">
         <CardContent className="p-6 md:p-8">
-          {/* Card Header */}
-          <div className="mb-6 flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 text-white shadow-sm ring-1 ring-black/5">
-              <Info className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Custom Fields
-              </h2>
-              <p className="text-sm text-gray-600">
-                Add as many fields as you need. You can remove individual data
-                items anytime.
-              </p>
-            </div>
+          {/* Toolbar */}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleAddRow}
+              size="sm"
+              className="rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Row
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddColumn}
+              size="sm"
+              variant="outline"
+              className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Column
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setShowAddSheetDialog(true)}
+              size="sm"
+              variant="outline"
+              className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Add Sheet
+            </Button>
+            <div className="flex-1" />
+            <span className="text-xs text-gray-500">
+              {activeSheet.rows.length} rows × {activeSheet.columns.length} columns
+            </span>
           </div>
 
-          {/* Rows */}
-          <div className="space-y-6">
-            {rows.length === 0 && (
-              <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
-                <p className="text-sm text-gray-600">
-                  No custom fields yet. Click{" "}
-                  <span className="font-medium text-gray-900">
-                    “Add Another Field”
-                  </span>{" "}
-                  to get started.
-                </p>
-              </div>
-            )}
-
-            {rows.map((row, idx) => (
+          {/* Sheet Tabs */}
+          <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+            {sheets.map((sheet, index) => (
               <div
-                key={idx}
-                className="rounded-2xl border border-gray-200/80 bg-white/70 p-5 shadow-sm transition-shadow hover:shadow-md"
+                key={index}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm font-medium cursor-pointer transition-colors ${
+                  index === activeSheetIndex
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0"
+                }`}
+                onClick={() => setActiveSheetIndex(index)}
               >
-                {/* Grid Labels (desktop) */}
-                <div className="hidden grid-cols-12 gap-4 pb-2 text-xs font-medium text-gray-500 md:grid">
-                  <div className="col-span-3 flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5 text-indigo-500" />
-                    Category
-                  </div>
-                  <div className="col-span-3 flex items-center gap-1.5">
-                    <AlignLeft className="h-3.5 w-3.5 text-indigo-500" />
-                    Title
-                  </div>
-                  <div className="col-span-6 flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5 text-indigo-500" />
-                    Data Items
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-                  {/* Category */}
-                  <div className="md:col-span-3">
-                    <Label
-                      htmlFor={`category-${idx}`}
-                      className="mb-1 block text-[13px] font-medium text-gray-700 md:hidden"
-                    >
-                      Category
-                    </Label>
-                    <Textarea
-                      id={`category-${idx}`}
-                      value={row.category}
-                      onChange={(e) =>
-                        handleUpdateRow(idx, "category", e.target.value)
+                {editingSheetIndex === index ? (
+                  <Input
+                    defaultValue={sheet.name}
+                    onBlur={(e) => handleRenameSheet(index, (e.target as HTMLInputElement).value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleRenameSheet(index, (e.target as HTMLInputElement).value);
+                      } else if (e.key === "Escape") {
+                        setEditingSheetIndex(null);
                       }
-                      placeholder="e.g., Publications"
-                      className="resize-none rounded-xl border-2 border-gray-200 bg-white/80 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                      rows={1}
-                    />
-                  </div>
-
-                  {/* Title */}
-                  <div className="md:col-span-3">
-                    <Label
-                      htmlFor={`title-${idx}`}
-                      className="mb-1 block text-[13px] font-medium text-gray-700 md:hidden"
-                    >
-                      Title
-                    </Label>
-                    <Textarea
-                      id={`title-${idx}`}
-                      value={row.title}
-                      onChange={(e) =>
-                        handleUpdateRow(idx, "title", e.target.value)
-                      }
-                      placeholder="Field title"
-                      className="resize-none rounded-xl border-2 border-gray-200 bg-white/80 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                      rows={1}
-                    />
-                  </div>
-
-                  {/* Data Items */}
-                  <div className="md:col-span-6">
-                    <Label className="mb-1 block text-[13px] font-medium text-gray-700 md:hidden">
-                      Data Items
-                    </Label>
-
-                    <div className="space-y-2">
-                      {row.data.map((d, di) => (
-                        <div key={di} className="flex items-start gap-2">
-                          <Textarea
-                            value={d}
-                            onChange={(e) =>
-                              handleUpdateDataItem(idx, di, e.target.value)
-                            }
-                            placeholder="Enter link or text"
-                            className="flex-1 resize-none rounded-xl border-2 border-gray-200 bg-white/80 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                            rows={1}
-                          />
-                          <Button
-                            type="button"
-                            aria-label="Remove data item"
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 rounded-xl border-2 border-red-200 text-red-600 transition-colors hover:bg-red-600 hover:text-white"
-                            onClick={() => handleRemoveDataItem(idx, di)}
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </div>
-                      ))}
-
-                      <Button
-                        type="button"
-                        onClick={() => handleAddDataItem(idx)}
-                        variant="outline"
-                        className="mt-2 w-full rounded-xl border-2 border-dashed border-indigo-300 text-indigo-700 hover:bg-indigo-50"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Data Item
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-6 text-xs px-1 py-0 w-24"
+                    autoFocus
+                  />
+                ) : (
+                  <span 
+                    className="truncate max-w-[120px]" 
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setEditingSheetIndex(index);
+                    }}
+                    title="Double-click to rename"
+                  >
+                    {sheet.name}
+                  </span>
+                )}
+                {sheets.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSheet(index);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             ))}
-
-            {/* Add Row Button */}
-            <div className="pt-2">
-              <Button
-                type="button"
-                onClick={handleAddRow}
-                className="h-12 w-full rounded-xl bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 font-semibold text-white shadow-lg transition-all hover:translate-y-[-1px] hover:shadow-xl"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                Add Another Field
-              </Button>
-            </div>
           </div>
+
+          {/* Spreadsheet */}
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b-2 border-gray-200">
+                  <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200">
+                    #
+                  </th>
+                  {activeSheet.columns.map((col, colIndex) => (
+                    <th
+                      key={colIndex}
+                      className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group"
+                    >
+                      <div className="flex items-center gap-1">
+                        {editingColumn === colIndex ? (
+                          <Input
+                            ref={columnInputRef}
+                            defaultValue={col}
+                            onBlur={(e) =>
+                              handleColumnRename(colIndex, (e.target as HTMLInputElement).value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleColumnRename(colIndex, (e.target as HTMLInputElement).value);
+                              } else if (e.key === "Escape") {
+                                setEditingColumn(null);
+                              }
+                            }}
+                            className="h-6 text-xs px-2 py-1"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            onClick={() => setEditingColumn(colIndex)}
+                            className="cursor-pointer hover:text-emerald-600 truncate"
+                            title="Click to rename"
+                          >
+                            {col}
+                          </span>
+                        )}
+                        <div className="hidden group-hover:flex items-center gap-0.5 ml-auto">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                            onClick={() => handleMoveColumn(colIndex, "up")}
+                            disabled={colIndex === 0}
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                            onClick={() => handleMoveColumn(colIndex, "down")}
+                            disabled={colIndex === activeSheet.columns.length - 1}
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-red-400 hover:text-red-600"
+                            onClick={() => handleDeleteColumn(colIndex)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </th>
+                  ))}
+                  <th className="w-12 px-3 py-2 border-l border-gray-200" />
+                </tr>
+              </thead>
+              <tbody>
+                {activeSheet.rows.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center">
+                      {rowIndex + 1}
+                    </td>
+                    {row.map((cell, colIndex) => (
+                      <td
+                        key={colIndex}
+                        className="border-r border-gray-200 px-1 py-1"
+                      >
+                        <Input
+                          id={`cell-${rowIndex}-${colIndex}`}
+                          value={cell}
+                          onChange={(e) =>
+                            handleCellChange(rowIndex, colIndex, e.target.value)
+                          }
+                          onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
+                          onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
+                          className="h-8 text-sm border-0 focus:ring-1 focus:ring-emerald-500 bg-transparent"
+                          placeholder="..."
+                        />
+                      </td>
+                    ))}
+                    <td className="px-2 py-1 border-l border-gray-200 text-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => handleDeleteRow(rowIndex)}
+                        disabled={activeSheet.rows.length <= 1}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Empty State */}
+          {activeSheet.rows.length === 0 && (
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
+              <p className="text-sm text-gray-600">
+                No data yet. Click{" "}
+                <span className="font-medium text-gray-900">Add Row</span> to get
+                started.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -298,7 +584,7 @@ export function OtherInfo({
           type="button"
           variant="outline"
           onClick={onPrevious}
-          className="h-12 rounded-xl border-2 transition-all hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:shadow-sm"
+          className="h-12 rounded-xl border-2 transition-all hover:bg-linear-to-r hover:from-emerald-50 hover:to-teal-50 hover:text-emerald-700 hover:shadow-sm"
         >
           <svg
             className="mr-2 h-5 w-5"
@@ -319,7 +605,7 @@ export function OtherInfo({
         <Button
           type="button"
           onClick={handleNext}
-          className="h-12 rounded-xl bg-gray-900 text-white shadow-lg transition-all hover:translate-y-[-1px] hover:bg-black hover:shadow-xl"
+          className="h-12 rounded-xl bg-gray-900 text-white shadow-lg transition-all hover:-translate-y-px hover:bg-black hover:shadow-xl"
         >
           Continue to Next Step
           <svg
@@ -337,6 +623,50 @@ export function OtherInfo({
           </svg>
         </Button>
       </div>
+
+      {/* Add Sheet Dialog */}
+      {showAddSheetDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Add New Sheet</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sheet Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter sheet name..."
+                    value={newSheetName}
+                    onChange={(e) => setNewSheetName(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowAddSheetDialog(false);
+                      setNewSheetName("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleAddSheet}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    Create Sheet
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

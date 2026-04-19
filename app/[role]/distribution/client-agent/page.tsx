@@ -107,6 +107,18 @@ type DueDateFilterKey =
   | "next_30"
   | "last_7";
 
+type PostingSortBucket = "overdue" | "today" | "upcoming" | "none";
+
+type PostingSortMeta = {
+  date: Date | null;
+  bucket: PostingSortBucket;
+  daysFromToday: number;
+  label: string;
+};
+
+const POSTING_CATEGORY_NAMES = new Set(["Social Activity", "Blog Posting"]);
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 export default function ClientUnifiedDashboard() {
   const router = useRouter();
   const roleSegment = useRoleSegment();
@@ -335,6 +347,112 @@ export default function ClientUnifiedDashboard() {
     };
   }, []);
 
+  const getPostingSortMeta = useCallback((client: Client): PostingSortMeta => {
+    const tasks = client.taskStats?.createdTasks;
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      return {
+        date: null,
+        bucket: "none",
+        daysFromToday: Number.POSITIVE_INFINITY,
+        label: "No actionable posting date",
+      };
+    }
+
+    const postingTasks = tasks.filter((t) =>
+      POSTING_CATEGORY_NAMES.has(t.category?.name ?? "")
+    );
+    if (postingTasks.length === 0) {
+      return {
+        date: null,
+        bucket: "none",
+        daysFromToday: Number.POSITIVE_INFINITY,
+        label: "No actionable posting date",
+      };
+    }
+
+    const parseCycle = (name: string | null) => {
+      const match = String(name ?? "").match(/\s*-\s*(\d+)\s*$/);
+      if (!match) return null;
+      const n = Number.parseInt(match[1], 10);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const toDate = (value: string | Date | null | undefined) => {
+      if (!value) return null;
+      const date = value instanceof Date ? value : new Date(value);
+      return Number.isFinite(date.getTime()) ? date : null;
+    };
+
+    const isAssigned = (task: NonNullable<(typeof postingTasks)[number]>) => {
+      const assigned = task.assignedTo;
+      return !!(assigned && (assigned.email || assigned.name));
+    };
+
+    const minDate = (items: typeof postingTasks) => {
+      let best: Date | null = null;
+      for (const task of items) {
+        const date = toDate(task.dueDate);
+        if (!date) continue;
+        if (!best || date.getTime() < best.getTime()) best = date;
+      }
+      return best;
+    };
+
+    const cycle1Tasks = postingTasks.filter((task) => parseCycle(task.name) === 1);
+    const cycle1Unassigned =
+      cycle1Tasks.length > 0 && cycle1Tasks.every((task) => !isAssigned(task));
+    const unassignedPostingTasks = postingTasks.filter((task) => !isAssigned(task));
+
+    const actionableDate = cycle1Unassigned
+      ? minDate(cycle1Tasks)
+      : minDate(unassignedPostingTasks);
+
+    if (!actionableDate) {
+      return {
+        date: null,
+        bucket: "none",
+        daysFromToday: Number.POSITIVE_INFINITY,
+        label: "No actionable posting date",
+      };
+    }
+
+    const actionableStart = new Date(
+      actionableDate.getFullYear(),
+      actionableDate.getMonth(),
+      actionableDate.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const today = new Date();
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const daysFromToday = Math.floor(
+      (actionableStart.getTime() - todayStart.getTime()) / MS_PER_DAY
+    );
+
+    let bucket: PostingSortBucket = "upcoming";
+    if (daysFromToday < 0) bucket = "overdue";
+    else if (daysFromToday === 0) bucket = "today";
+
+    return {
+      date: actionableDate,
+      bucket,
+      daysFromToday,
+      label: cycle1Unassigned
+        ? "First Assignment Date:"
+        : "Assignment Due Date:",
+    };
+  }, []);
+
   // OPTIMIZATION (memoized filtering): ensure expensive filtering only reruns when clients/search/filter actually change.
   const filteredClients = useMemo(() => {
     if (!clients?.length) return [];
@@ -361,11 +479,35 @@ export default function ClientUnifiedDashboard() {
     });
   }, [clients, amFilter, packageFilter, deferredSearch, hasTaskInDueDateRange]);
 
+  const sortedFilteredClients = useMemo(() => {
+    const bucketRank: Record<PostingSortBucket, number> = {
+      overdue: 0,
+      today: 1,
+      upcoming: 2,
+      none: 3,
+    };
+
+    return [...filteredClients].sort((a, b) => {
+      const aMeta = getPostingSortMeta(a);
+      const bMeta = getPostingSortMeta(b);
+      const bucketDiff = bucketRank[aMeta.bucket] - bucketRank[bMeta.bucket];
+      if (bucketDiff !== 0) return bucketDiff;
+
+      const aTime = aMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
+      const bTime = bMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
+      if (aTime !== bTime) return aTime - bTime;
+
+      const aName = (a.name ?? a.company ?? a.id).toLowerCase();
+      const bName = (b.name ?? b.company ?? b.id).toLowerCase();
+      return aName.localeCompare(bName);
+    });
+  }, [filteredClients, getPostingSortMeta]);
+
   const visibleClients = useMemo(() => {
-    return filteredClients.slice(0, visibleBatch * CLIENT_BATCH_SIZE);
-  }, [filteredClients, visibleBatch]);
+    return sortedFilteredClients.slice(0, visibleBatch * CLIENT_BATCH_SIZE);
+  }, [sortedFilteredClients, visibleBatch]);
   const remainingClients = Math.max(
-    filteredClients.length - visibleClients.length,
+    sortedFilteredClients.length - visibleClients.length,
     0
   );
   const hasMoreClients = remainingClients > 0;
@@ -742,7 +884,7 @@ export default function ClientUnifiedDashboard() {
                   </Card>
                 ))}
               </div>
-            ) : filteredClients.length === 0 ? (
+            ) : sortedFilteredClients.length === 0 ? (
               <div className="text-center py-16">
                 <Users className="h-16 w-16 mx-auto mb-6 text-slate-400" />
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">

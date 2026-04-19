@@ -311,14 +311,7 @@ export async function GET(
       taskCounts: fresh?.taskCounts ?? null,
     };
 
-    // OPTIMIZATION (conditional payload + cache): keep CDN caching but shrink response when distribution view only needs summary.
-    return NextResponse.json(response, {
-      headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
-        "CDN-Cache-Control": "public, s-maxage=60",
-        "Vercel-CDN-Cache-Control": "public, s-maxage=60",
-      },
-    });
+    return NextResponse.json(response);
   } catch (error) {
     console.error(`Error fetching client ${id}:`, error);
     return NextResponse.json(

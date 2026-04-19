@@ -443,7 +443,7 @@ export function ClientDashboard({
           onValueChange={handleTabChange}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-8 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
+          <TabsList className="grid w-full grid-cols-7 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700">
             <TabsTrigger
               value="profile"
               className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -454,7 +454,7 @@ export function ClientDashboard({
               value="other-information"
               className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
             >
-              Other Information
+              All Other Information
             </TabsTrigger>
             <TabsTrigger
               value="bio"
@@ -467,12 +467,6 @@ export function ClientDashboard({
               className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
             >
               Drive Image
-            </TabsTrigger>
-            <TabsTrigger
-              value="article-topics"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-            >
-              Article Topics
             </TabsTrigger>
             <TabsTrigger
               value="social-profile"

@@ -57,11 +57,12 @@ export interface OnboardingFormData {
   }>;
 
   // Arbitrary additional info (will be saved to Client.otherField as JSON)
-  // Arbitrary additional info (will be saved to Client.otherField as JSON)
+  // Multi-sheet spreadsheet structure with id, name, columns, rows
   otherField?: Array<{
-    category: string;
-    title: string;
-    data: string[]; // multiple items (links / texts)
+    id: string; // Unique sheet identifier
+    name: string; // Sheet name
+    columns: string[]; // Column headers
+    rows: string[][]; // 2D array of cell values
   }>;
 
   // Package & Template
