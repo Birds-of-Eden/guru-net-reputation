@@ -42,9 +42,26 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import DOMPurify from "dompurify";
 import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
 import type { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
+};
+
+// Truncate text to 10 words
+const truncateToWords = (text: string, maxWords = 10): string => {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}....`;
+};
 
 // ---------- Small UI Helpers ----------
 const Pill = ({ children }: { children: React.ReactNode }) => (
@@ -1157,9 +1174,10 @@ export function Tasks({ clientData }: TasksProps) {
                                   {getStatusIcon(task.status)}
                                 </div>
                                 <div>
-                                  <h4 className="font-medium text-slate-900 dark:text-slate-100">
-                                    {task.name}
-                                  </h4>
+                                  <h4 
+                                    className="font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(task.name)) }}
+                                  />
                                   <p className="text-sm text-slate-500 dark:text-slate-300">
                                     {platform} • {duration} min
                                   </p>

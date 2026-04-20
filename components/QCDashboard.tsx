@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 import useSWR from "swr";
 import { motion } from "motion/react";
 import { useAuth } from "@/context/auth-context";
+import DOMPurify from "dompurify";
 import {
   Card,
   CardContent,
@@ -60,6 +61,22 @@ const titleCase = (s: string) =>
   String(s || "")
     .replace(/_/g, " ")
     .replace(/\b\w/g, (m) => m.toUpperCase());
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
+};
+
+// Truncate text to 10 words
+const truncateToWords = (text: string, maxWords = 10): string => {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}....`;
+};
 
 const STATUS_COLOR: Record<string, string> = {
   completed: "bg-emerald-500",
@@ -242,7 +259,7 @@ export default function QCDashboardPro({
   const [range, setRange] = useState<RangeType>("today");
   const [customStart, setCustomStart] = useState<string>(toISODate(now));
   const [customEnd, setCustomEnd] = useState<string>(toISODate(now));
-  
+
   // --- QC detection (match QCReview logic; dashboard always QC-scoped on backend)
   const rawRoleName = (user as any)?.role?.name ?? (user as any)?.roleId ?? "";
   const roleName = String(rawRoleName).toLowerCase?.() || "";
@@ -282,12 +299,12 @@ export default function QCDashboardPro({
       startDate: toISODate(start),
       endDate: toISODate(end),
     });
-    
+
     // 🔐 HARD QC SCOPING (NO TOGGLE)
     if (isQC && user?.id) {
       params.set("qcSupervisorId", user.id);
     }
-    
+
     return `/api/tasks?${params.toString()}`;
   }, [start.getTime(), end.getTime(), isQC, user?.id]);
 
@@ -424,7 +441,7 @@ export default function QCDashboardPro({
           </h1>
           <p className="text-muted-foreground mt-1">
             Real-time overview of QC throughput & task health
-              {isQC && user?.name && (
+            {isQC && user?.name && (
               <span className="ml-2 text-sm font-medium text-blue-600">
                 • Supervised by {user.name}
               </span>
@@ -723,7 +740,10 @@ export default function QCDashboardPro({
                   <TableBody>
                     {rows.map((r) => (
                       <TableRow key={r.id} className="hover:bg-slate-100/60">
-                        <TableCell className="font-medium">{r.name}</TableCell>
+                        <TableCell
+                          className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
+                        />
                         <TableCell>{r.client}</TableCell>
                         <TableCell>{r.category}</TableCell>
                         <TableCell>{r.assignee}</TableCell>
@@ -787,9 +807,10 @@ export default function QCDashboardPro({
                       .filter((r) => r.status === "qc_approved")
                       .map((r) => (
                         <TableRow key={r.id} className="hover:bg-slate-100/60">
-                          <TableCell className="font-medium">
-                            {r.name}
-                          </TableCell>
+                          <TableCell
+                            className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
+                          />
                           <TableCell>{r.client}</TableCell>
                           <TableCell>{r.category}</TableCell>
                           <TableCell>{r.assignee}</TableCell>
@@ -845,7 +866,10 @@ export default function QCDashboardPro({
                         <TableCell className="font-mono text-[11px]">
                           {String(r.id).slice(0, 8)}…
                         </TableCell>
-                        <TableCell className="font-medium">{r.name}</TableCell>
+                        <TableCell
+                          className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
+                        />
                         <TableCell>{r.client}</TableCell>
                         <TableCell>{r.category}</TableCell>
                         <TableCell>{r.assignee}</TableCell>

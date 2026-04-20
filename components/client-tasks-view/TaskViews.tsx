@@ -6,6 +6,7 @@ import * as React from "react";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Copy, Check, Eye, EyeOff, CheckCircle, Calendar } from "lucide-react";
+
+import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
+import { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 
 import TaskTimer from "./TaskTimer";
 import { PerformanceBadge } from "./PerformanceBadge";
@@ -26,6 +30,39 @@ import {
 import type { TimerState } from "../client-tasks-view/client-tasks-view";
 
 type Task = any;
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
+};
+
+// Helper function to convert task to CustomJob format
+function taskToCustomJob(task: any): CustomJob | null {
+  if (!task) return null;
+  return {
+    id: task.id,
+    date: task.createdAt || new Date().toISOString(),
+    clientId: task.client?.id || "",
+    clientName: task.client?.name || "-",
+    amId: task.amId,
+    amName: task.amName || task.assignedTo?.name || "-",
+    name: task.name || "",
+    assignedToId: task.assignedTo?.id,
+    assignedToName: task.assignedTo?.name || task.assignedTo?.firstName && task.assignedTo?.lastName
+      ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
+      : "-",
+    priority: task.priority || "medium",
+    status: task.status || "pending",
+    notes: task.notes,
+    link: task.link,
+    createdAt: task.createdAt,
+    updatedAt: task.updatedAt,
+    taskCompletionJson: task.taskCompletionJson,
+  };
+}
 
 function VirtualizedList<T>({
   items,
@@ -185,6 +222,8 @@ export default function TaskViews({
   disableVirtualization?: boolean;
 }) {
   const [selectedTaskName, setSelectedTaskName] = useState<string | null>(null);
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<CustomJob | null>(null);
 
   const uniqueCurrentTasks = useMemo(() => {
     const map = new Map<string, Task>();
@@ -402,11 +441,10 @@ export default function TaskViews({
                 <div className="mb-3 space-y-3">
                   <div className="flex min-w-0 items-start gap-3">
                     <h3
-                      className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg"
+                      className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
                       title={task.name}
-                    >
-                      {getTruncatedTaskName(task.name)}
-                    </h3>
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
+                    />
                     {isTimerActive && !locked && (
                       <div className="flex shrink-0 items-center gap-2 px-3 py-1 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
@@ -423,7 +461,10 @@ export default function TaskViews({
                         variant="outline"
                         size="sm"
                         className="h-8 rounded-xl border-violet-200 bg-violet-700 text-white hover:text-white hover:bg-violet-500 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/30"
-                        onClick={() => setSelectedTaskName(task.name)}
+                        onClick={() => {
+                          setSelectedJob(taskToCustomJob(task));
+                          setIsJobDetailsModalOpen(true);
+                        }}
                       >
                         View full Details
                       </Button>
@@ -756,18 +797,20 @@ export default function TaskViews({
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-center gap-3">
                         <h3
-                          className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl"
+                          className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
                           title={task.name}
-                        >
-                          {getTruncatedTaskName(task.name)}
-                        </h3>
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
+                        />
                         {shouldUseTaskNameModal(task.name) && (
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             className="h-9 shrink-0 rounded-xl border-violet-200 text-violet-700 hover:bg-violet-50 dark:border-violet-700 dark:text-violet-300 dark:hover:bg-violet-900/30"
-                            onClick={() => setSelectedTaskName(task.name)}
+                            onClick={() => {
+                          setSelectedJob(taskToCustomJob(task));
+                          setIsJobDetailsModalOpen(true);
+                        }}
                           >
                             View full name
                           </Button>
@@ -1176,6 +1219,12 @@ export default function TaskViews({
           </div>
         </DialogContent>
       </Dialog>
+
+      <JobDetailsModal
+        open={isJobDetailsModalOpen}
+        onClose={() => setIsJobDetailsModalOpen(false)}
+        job={selectedJob}
+      />
     </>
   );
 }

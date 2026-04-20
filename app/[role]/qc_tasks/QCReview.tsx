@@ -37,12 +37,29 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
+import DOMPurify from "dompurify";
 
 const TaskCard = lazy(() =>
   import("@/components/qc-review/task-card").then((m) => ({
     default: m.TaskCard,
   })),
 );
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
+};
+
+// Truncate text to 10 words
+const truncateToWords = (text: string, maxWords = 10): string => {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}....`;
+};
 
 /* =========================
    Skeletons
@@ -1114,9 +1131,10 @@ export const QCReview = memo(function QCReview({
               <div className="rounded-2xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                      {approveDialog.task.name}
-                    </h3>
+                    <h3 
+                      className="text-lg font-semibold text-slate-900 mb-2 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(approveDialog.task.name)) }}
+                    />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full" />

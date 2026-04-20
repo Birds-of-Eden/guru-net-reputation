@@ -48,10 +48,27 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import DOMPurify from "dompurify";
 
 /* -------------------- Helpers -------------------- */
 const numberFmt = (n: number) =>
   Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
+};
+
+// Truncate text to 10 words
+const truncateToWords = (text: string, maxWords = 10): string => {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}....`;
+};
 
 const STATUS_COLOR: Record<string, string> = {
   completed: "bg-emerald-500",
@@ -534,9 +551,10 @@ export function AdminDashboard() {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-slate-800">
-                              {task.name}
-                            </p>
+                            <p 
+                              className="font-medium text-slate-800 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(task.name)) }}
+                            />
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                               {task.clientName && (
                                 <span>{task.clientName}</span>
@@ -930,9 +948,10 @@ export function AdminDashboard() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-800">
-                          {n.message}
-                        </p>
+                        <p 
+                          className="text-sm font-medium text-slate-800 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(n.message)) }}
+                        />
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
                           <span className="capitalize">
                             {titleCase(n.type)}
