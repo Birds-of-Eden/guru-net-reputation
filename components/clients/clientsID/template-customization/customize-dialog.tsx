@@ -463,21 +463,20 @@ export function CustomizeTemplateDialog({
                         <div className="flex gap-2 items-center">
                           <Input
                             type="number"
-                            min="1"
+                            min="0"
                             max="30"
                             value={asset.defaultPostingFrequency}
                             onChange={(e) =>
                               handleUpdateAsset(
                                 index,
                                 "defaultPostingFrequency",
-                                parseInt(e.target.value) || 3
+                                parseInt(e.target.value) ?? 3
                               )
                             }
                             className="w-24"
                           />
                           <span className="text-sm text-slate-600">tasks/month</span>
                         </div>
-                        <p className="text-xs text-slate-500">Recommended: 3-7 tasks per month</p>
                       </div>
 
                       <div className="space-y-2">
