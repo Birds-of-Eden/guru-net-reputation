@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 const TinyMCEEditor = dynamic(
@@ -23,6 +23,31 @@ const TinymceEditor: React.FC<TinymceEditorProps> = ({
 }) => {
   const [content, setContent] = useState(initialValue);
 
+  useEffect(() => {
+    setContent(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    const allowTinyMceDialogs = (event: FocusEvent) => {
+      const target = event.target;
+
+      if (
+        target instanceof HTMLElement &&
+        target.closest(
+          ".tox-tinymce-aux, .moxman-window, .tam-assetmanager-root"
+        )
+      ) {
+        event.stopImmediatePropagation();
+      }
+    };
+
+    document.addEventListener("focusin", allowTinyMceDialogs, true);
+
+    return () => {
+      document.removeEventListener("focusin", allowTinyMceDialogs, true);
+    };
+  }, []);
+
   const handleChange = (value: string) => {
     setContent(value);
     onContentChange?.(value);
@@ -31,7 +56,7 @@ const TinymceEditor: React.FC<TinymceEditorProps> = ({
   return (
     <div style={{ height }}>
       <TinyMCEEditor
-        apiKey="ojfr13shvq71zrs8u3y10vyx0ddwz1od1vozyjtcfcl17ylt"
+        apiKey="1d2imqlpa6a5au7mxorkaasoa4b9c24wm0pzzxbua1rdpg7y"
         value={content}
         onEditorChange={handleChange}
         init={{

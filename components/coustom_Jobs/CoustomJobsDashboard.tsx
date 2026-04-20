@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,6 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import CustomJobsTable from "./CustomJobsTable";
-import CustomJobFormModal from "./CustomJobFormModal";
 import {
   Command,
   CommandEmpty,
@@ -99,11 +99,13 @@ export default function CustomJobsDashboard() {
   const [clientFilter, setClientFilter] = useState<"all" | string>("all");
   const [clientSearchPopoverOpen, setClientSearchPopoverOpen] = useState(false);
   const [clientSearchInput, setClientSearchInput] = useState("");
-  const [showAddJobModal, setShowAddJobModal] = useState(false);
+  const router = useRouter();
+  const params = useParams<{ role: string }>();
   const { user } = useAuth();
   const userRole = typeof user?.role === "string" ? user?.role : (user?.role as any)?.name;
   const userId = user?.id;
   const isAM = userRole === "am";
+  const role = typeof params?.role === "string" ? params.role : "";
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -325,7 +327,7 @@ export default function CustomJobsDashboard() {
             Export
           </Button>
           <Button
-            onClick={() => setShowAddJobModal(true)}
+            onClick={() => router.push(`/${role}/distribution/custom_jobs/create`)}
             className="bg-green-600 hover:bg-green-700 gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -617,18 +619,6 @@ export default function CustomJobsDashboard() {
       <CustomJobsTable
         jobs={filteredJobs as any}
         onRefresh={fetchJobs}
-      />
-
-      <CustomJobFormModal
-        open={showAddJobModal}
-        onClose={() => setShowAddJobModal(false)}
-        onSuccess={() => {
-          fetchJobs();
-          setShowAddJobModal(false);
-        }}
-        editingJob={null}
-        clients={clients}
-        isAM={isAM}
       />
     </div>
   );

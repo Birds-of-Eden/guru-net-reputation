@@ -4,7 +4,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import CustomJobFormModal from "./CustomJobFormModal";
+import { useParams, useRouter } from "next/navigation";
 import AssignmentModal from "./AssignmentModal";
 import JobDetailsModal from "./JobDetailsModal";
 import { ClientOption, CustomJob, UserOption } from "./customJobsTypes";
@@ -67,9 +67,16 @@ function normalizeText(value: string | undefined | null) {
   return (value || "").trim().toLowerCase();
 }
 
+function stripHtml(html: string | undefined | null): string {
+  if (!html) return "";
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
+
 function getJobSearchRank(job: CustomJob, search: string): { matched: boolean; rank: number } {
   const q = normalizeText(search);
-  const name = normalizeText(job.name);
+  const name = normalizeText(stripHtml(job.name));
   const clientName = normalizeText(job.clientName);
   const amName = normalizeText(job.amName);
 
@@ -155,8 +162,6 @@ export default function CustomJobsTable({
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [agents, setAgents] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [editingJob, setEditingJob] = useState<CustomJob | null>(null);
   const [search, setSearch] = useState("");
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [assigningJobId, setAssigningJobId] = useState<string | null>(null);
@@ -164,10 +169,13 @@ export default function CustomJobsTable({
   const [selectedJob, setSelectedJob] = useState<CustomJob | null>(null);
   const [searchPopoverOpen, setSearchPopoverOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const router = useRouter();
+  const params = useParams<{ role: string }>();
   const { user } = useAuth();
   const userRole = typeof user?.role === "string" ? user?.role : (user?.role as any)?.name;
   const userId = user?.id;
   const isAM = userRole === "am";
+  const role = typeof params?.role === "string" ? params.role : "";
 
   const fetchClients = async () => {
     try {
@@ -339,18 +347,18 @@ export default function CustomJobsTable({
                           key={job.id}
                           value={job.id}
                           onSelect={() => {
-                            setSearchInput(job.name);
+                            setSearchInput(stripHtml(job.name));
                             setSearchPopoverOpen(false);
                           }}
                         >
                           <CheckIcon
                             className={cn(
                               "mr-2 h-4 w-4",
-                              searchInput === job.name ? "opacity-100" : "opacity-0",
+                              searchInput === stripHtml(job.name) ? "opacity-100" : "opacity-0",
                             )}
                           />
                           <span className="truncate">
-                            {job.name} - {job.clientName}
+                            {stripHtml(job.name)} - {job.clientName}
                           </span>
                         </CommandItem>
                       ))}
@@ -436,17 +444,19 @@ export default function CustomJobsTable({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <p className="line-clamp-2 text-sm text-slate-700 leading-relaxed">
-                              {job.name}
-                            </p>
+                            <div 
+                              className="line-clamp-2 text-sm text-slate-700 leading-relaxed"
+                              dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+                            />
                           </TooltipTrigger>
                           <TooltipContent
                             side="top"
                             className="max-w-md max-h-[400px] overflow-auto"
                           >
-                            <p className="text-sm whitespace-pre-wrap">
-                              {job.name}
-                            </p>
+                            <div 
+                              className="text-sm whitespace-pre-wrap [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                              dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+                            />
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -521,10 +531,11 @@ export default function CustomJobsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            setEditingJob(job);
-                            setOpen(true);
-                          }}
+                          onClick={() =>
+                            router.push(
+                              `/${role}/distribution/custom_jobs/${job.id}/edit`,
+                            )
+                          }
                           disabled={job.status === "qc_approved" || job.status === "completed"}
                           className="h-8 w-8 rounded-md hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
@@ -548,14 +559,6 @@ export default function CustomJobsTable({
           </Table>
         </div>
       </CardContent>
-
-      <CustomJobFormModal
-        open={open}
-        onClose={() => setOpen(false)}
-        onSuccess={onRefresh}
-        editingJob={editingJob}
-        clients={clients}
-      />
       <AssignmentModal
         open={assignModalOpen}
         onClose={() => {
@@ -564,7 +567,7 @@ export default function CustomJobsTable({
         }}
         onAssign={handleAssign}
         agents={agents}
-        taskName={jobs.find((j) => j.id === assigningJobId)?.name}
+        taskName={jobs.find((j) => j.id === assigningJobId)?.name ? stripHtml(jobs.find((j) => j.id === assigningJobId)?.name) : undefined}
         taskPriority={jobs.find((j) => j.id === assigningJobId)?.priority}
       />
       <JobDetailsModal

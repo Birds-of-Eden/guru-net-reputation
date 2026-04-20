@@ -1,9 +1,6 @@
-// ================================
-// FILE: components/custom-jobs/AssignmentModal.tsx
-// ================================
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -24,7 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserCheck, Clock } from "lucide-react";
+import {
+  UserCheck,
+  Clock,
+  Sparkles,
+  Mail,
+  ShieldCheck,
+  TimerReset,
+} from "lucide-react";
 
 type UserOption = {
   id: string;
@@ -55,10 +58,15 @@ export default function AssignmentModal({
   const [idealDurationMinutes, setIdealDurationMinutes] = useState(30);
   const [loading, setLoading] = useState(false);
 
+  const selectedAgent = useMemo(
+    () => agents.find((a) => a.id === selectedAgentId),
+    [agents, selectedAgentId]
+  );
+
   if (!open) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!selectedAgentId) return;
 
     setLoading(true);
@@ -92,141 +100,215 @@ export default function AssignmentModal({
       .slice(0, 2);
   };
 
-  const getPriorityBadgeClass = (priority?: string) => {
+  const getPriorityStyles = (priority?: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-500 text-white hover:bg-red-500";
+        return "border-red-200 bg-red-500/10 text-red-700 dark:border-red-800 dark:bg-red-500/20 dark:text-red-300";
       case "high":
-        return "bg-orange-500 text-white hover:bg-orange-500";
+        return "border-orange-200 bg-orange-500/10 text-orange-700 dark:border-orange-800 dark:bg-orange-500/20 dark:text-orange-300";
       case "medium":
-        return "bg-amber-500 text-white hover:bg-amber-500";
+        return "border-yellow-200 bg-yellow-500/10 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300";
       default:
-        return "bg-emerald-500 text-white hover:bg-emerald-500";
+        return "border-emerald-200 bg-emerald-500/10 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300";
     }
   };
 
-  const selectedAgent = agents.find((a) => a.id === selectedAgentId);
-
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5" />
-            Assign Task to Agent
-          </DialogTitle>
-          <DialogDescription>
-            Select an agent to assign this custom job
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl overflow-hidden border-0 bg-transparent p-0 shadow-none">
+        <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-white shadow-2xl dark:bg-slate-950">
+          <div className="absolute inset-0 bg-[radial-linear(circle_at_top_left,rgba(59,130,246,0.18),transparent_30%),radial-linear(circle_at_top_right,rgba(236,72,153,0.18),transparent_30%),radial-linear(circle_at_bottom,rgba(34,197,94,0.18),transparent_35%)]" />
+          <div className="absolute -left-20 top-10 h-40 w-40 rounded-full bg-pink-500/20 blur-3xl" />
+          <div className="absolute -right-16 top-0 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-emerald-500/20 blur-3xl" />
 
-        <div className="space-y-6">
-          {/* Task Summary */}
-          <div className="rounded-lg border bg-muted/50 p-4">
-            <h4 className="font-semibold mb-3">Task Details</h4>
-            <div className="rounded-md border bg-background p-3">
-              <p className="text-sm font-medium">{taskName || "Custom Job"}</p>
-              {taskPriority && (
-                <Badge
-                  className={`mt-2 rounded-full text-xs ${getPriorityBadgeClass(taskPriority)}`}
-                >
-                  {taskPriority}
-                </Badge>
-              )}
-            </div>
-          </div>
+          <div className="relative z-10 max-h-[85vh] overflow-y-auto p-6 md:p-8">
+            <DialogHeader className="mb-6 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-700 dark:border-violet-800 dark:bg-violet-500/20 dark:text-violet-300">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Smart Assignment Panel
+                  </div>
 
-          {/* Agent Selection */}
-          <div className="space-y-2">
-            <Label>Select Agent</Label>
-            <Select
-              value={selectedAgentId}
-              onValueChange={(v) => setSelectedAgentId(v)}
-            >
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Choose an agent to assign task to..." />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={agent.image || undefined} />
-                        <AvatarFallback className="text-[10px]">
-                          {getInitials(agent.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{agent.name}</span>
-                      {agent.category && (
-                        <span className="text-muted-foreground">
-                          ({agent.category})
-                        </span>
-                      )}
+                  <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-slate-900 dark:text-white">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-white shadow-lg">
+                      <UserCheck className="h-5 w-5" />
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                    Assign Task to Agent
+                  </DialogTitle>
 
-            {/* Selected Agent Details */}
-            {selectedAgent && (
-              <div className="rounded-lg border bg-muted/30 p-3 flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={selectedAgent.image || undefined} />
-                  <AvatarFallback>
-                    {getInitials(selectedAgent.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{selectedAgent.name}</p>
-                  {selectedAgent.category && (
-                    <p className="text-xs text-muted-foreground">
-                      {selectedAgent.category}
-                    </p>
-                  )}
-                  {selectedAgent.email && (
-                    <p className="text-xs text-muted-foreground">
-                      {selectedAgent.email}
-                    </p>
-                  )}
+                  <DialogDescription className="text-sm text-slate-600 dark:text-slate-300">
+                    Choose the best agent and set an ideal completion duration for
+                    this task.
+                  </DialogDescription>
+                </div>
+
+                {taskPriority && (
+                  <div
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${getPriorityStyles(
+                      taskPriority
+                    )}`}
+                  >
+                    {taskPriority} priority
+                  </div>
+                )}
+              </div>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-sky-500 to-cyan-500 text-white">
+                    <UserCheck className="h-4 w-4" />
+                  </div>
+                  <Label className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    Select Agent
+                  </Label>
+                </div>
+
+                <Select
+                  value={selectedAgentId}
+                  onValueChange={(v) => setSelectedAgentId(v)}
+                >
+                  <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-white text-left shadow-sm transition focus:ring-2 focus:ring-violet-500 dark:border-slate-700 dark:bg-slate-950">
+                    <SelectValue placeholder="Choose an agent to assign task to..." />
+                  </SelectTrigger>
+
+                  <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700">
+                    {agents.map((agent) => (
+                      <SelectItem
+                        key={agent.id}
+                        value={agent.id}
+                        className="rounded-xl py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                            <AvatarImage src={agent.image || undefined} />
+                            <AvatarFallback className="bg-linear-to-br from-violet-500 to-pink-500 text-xs font-bold text-white">
+                              {getInitials(agent.name)}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                              {agent.name}
+                            </span>
+                            {agent.category && (
+                              <span className="text-xs text-slate-500">
+                                {agent.category}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedAgent && (
+                <div className="relative overflow-hidden rounded-2xl border border-violet-200 bg-linear-to-r from-violet-500/10 via-fuchsia-500/10 to-sky-500/10 p-5 shadow-sm dark:border-violet-900">
+                  <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-violet-500/10 blur-2xl" />
+                  <div className="relative flex items-start gap-4">
+                    <Avatar className="h-14 w-14 border-4 border-white shadow-md dark:border-slate-900">
+                      <AvatarImage src={selectedAgent.image || undefined} />
+                      <AvatarFallback className="bg-linear-to-br from-violet-500 via-fuchsia-500 to-pink-500 font-bold text-white">
+                        {getInitials(selectedAgent.name)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        {selectedAgent.name}
+                      </h3>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedAgent.category && (
+                          <div className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:bg-slate-900/70 dark:text-slate-200">
+                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                            {selectedAgent.category}
+                          </div>
+                        )}
+
+                        {selectedAgent.email && (
+                          <div className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:bg-slate-900/70 dark:text-slate-200">
+                            <Mail className="h-3.5 w-3.5 text-sky-500" />
+                            {selectedAgent.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-br from-amber-500 to-orange-500 text-white">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <Label
+                    htmlFor="duration"
+                    className="text-sm font-semibold text-slate-800 dark:text-slate-100"
+                  >
+                    Ideal Duration (minutes)
+                  </Label>
+                </div>
+
+                <Input
+                  id="duration"
+                  type="number"
+                  value={idealDurationMinutes}
+                  onChange={(e) =>
+                    setIdealDurationMinutes(Number(e.target.value))
+                  }
+                  min="1"
+                  required
+                  className="h-14 rounded-2xl border-slate-200 bg-white text-base shadow-sm focus:ring-2 focus:ring-amber-500 dark:border-slate-700 dark:bg-slate-950"
+                />
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[15, 30, 45, 60, 90].map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => setIdealDurationMinutes(time)}
+                      className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                        idealDurationMinutes === time
+                          ? "bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-md"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {time} min
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
 
-            {/* Ideal Duration */}
-            <div className="space-y-2">
-              <Label htmlFor="duration" className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                Ideal Duration (minutes)
-              </Label>
-              <Input
-                id="duration"
-                type="number"
-                value={idealDurationMinutes}
-                onChange={(e) =>
-                  setIdealDurationMinutes(Number(e.target.value))
-                }
-                min="1"
-                required
-              />
-            </div>
+              <DialogFooter className="mt-2 flex-col gap-3 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={loading}
+                  className="h-12 rounded-2xl border-slate-300 bg-white px-6 font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <TimerReset className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  disabled={!selectedAgentId || loading}
+                  className="h-12 rounded-2xl bg-linear-to-r from-violet-600 via-fuchsia-600 to-pink-600 px-6 font-semibold text-white shadow-lg transition hover:from-violet-700 hover:via-fuchsia-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Assigning..." : "Assign Task"}
+                </Button>
+              </DialogFooter>
+            </form>
           </div>
-
-
-        <DialogFooter>
-          <Button
-            type="button"
-           className="bg-red-600 hover:bg-red-700"
-            onClick={handleClose}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={!selectedAgentId || loading} className="bg-green-600 hover:bg-green-700">
-            {loading ? "Assigning..." : "Assign Task"}
-          </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

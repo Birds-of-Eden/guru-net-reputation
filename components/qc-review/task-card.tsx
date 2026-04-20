@@ -27,6 +27,8 @@ import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QCScores } from "@/app/qc/tasks/QCReview";
 import { Client } from "@/types/client";
+import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
+import { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 
 const ClientDashboard = lazy(() =>
   import("@/components/clients/clientsID/client-dashboard").then((m) => ({
@@ -167,8 +169,11 @@ const priorityBadge = (p: string) => {
   );
 };
 
-// Truncate task name to 12 words
-const truncateTaskName = (name: string | null | undefined, maxWords = 12): string => {
+// Truncate task name to 10 words
+const truncateTaskName = (
+  name: string | null | undefined,
+  maxWords = 10,
+): string => {
   if (!name) return "";
   const words = name.trim().split(/\s+/);
   if (words.length <= maxWords) return name;
@@ -193,9 +198,11 @@ function StarRating({
   disabled?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 transition-colors ${
-      disabled ? "opacity-70 cursor-not-allowed" : "hover:bg-slate-50"
-    }`}>
+    <div
+      className={`flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 transition-colors ${
+        disabled ? "opacity-70 cursor-not-allowed" : "hover:bg-slate-50"
+      }`}
+    >
       <label
         htmlFor={id}
         className="text-xs font-medium text-slate-600 select-none truncate"
@@ -214,7 +221,9 @@ function StarRating({
             <button
               key={i}
               type="button"
-              onClick={() => disabled ? null : onChange(i === value ? i - 1 : i)}
+              onClick={() =>
+                disabled ? null : onChange(i === value ? i - 1 : i)
+              }
               disabled={disabled}
               className="p-0.5 outline-none focus:ring-1 focus:ring-amber-400 rounded transition-all duration-100 hover:scale-105 disabled:hover:scale-100"
               role="radio"
@@ -225,7 +234,9 @@ function StarRating({
                 className={`h-3 w-3 transition-colors ${
                   active
                     ? "text-amber-400"
-                    : disabled ? "text-slate-300" : "text-slate-300 hover:text-amber-300"
+                    : disabled
+                      ? "text-slate-300"
+                      : "text-slate-300 hover:text-amber-300"
                 }`}
                 fill={active ? "currentColor" : "none"}
               />
@@ -254,6 +265,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [clientData, setClientData] = useState<Client | null>(null);
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
 
   const efficiency = getDurationEfficiency(
     task.idealDurationMinutes,
@@ -333,26 +345,30 @@ export function TaskCard({
   }, [isClientModalOpen, fetchClientData]);
 
   return (
-    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group ${
-      isQCApprovedTab ? "opacity-60 cursor-not-allowed" : ""
-    }`}>
-      <div
-        className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${cardGradient}`}
-      />
-      <div
-        className={`absolute inset-0 bg-linear-to-br ${cardGradient} opacity-2 group-hover:opacity-4 transition-opacity duration-300`}
-      />
+    <>
+      <Card
+        className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.005] bg-white dark:bg-slate-900 border-0 shadow-md group ${
+          isQCApprovedTab ? "opacity-60 cursor-not-allowed" : ""
+        }`}
+      >
+        <div
+          className={`absolute inset-x-0 top-0 h-1 bg-linear-to-r ${cardGradient}`}
+        />
+        <div
+          className={`absolute inset-0 bg-linear-to-br ${cardGradient} opacity-2 group-hover:opacity-4 transition-opacity duration-300`}
+        />
 
-      <CardContent className="relative p-5">
+        <CardContent className="relative p-5">
         <div className="flex flex-col xl:flex-row xl:items-start gap-5">
           <div className="flex-1">
             {/* ===== Header row ===== */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-5">
               {/* Left: title + badges */}
               <div className="space-y-2">
-                <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                  {truncateTaskName(task.name)}
-                </h3>
+                <h3 
+                  className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                  dangerouslySetInnerHTML={{ __html: truncateTaskName(task.name) }}
+                />
                 <div className="flex items-center gap-2 flex-wrap">
                   {priorityBadge(task.priority)}
                   {task.category && (
@@ -462,9 +478,11 @@ export function TaskCard({
                       onOpenChange={setIsClientModalOpen}
                     >
                       <DialogTrigger asChild>
-                        <Button 
+                        <Button
                           className={`relative rounded-xl p-0 bg-transparent hover:bg-transparent overflow-hidden isolate mt-2 h-8 ${
-                            isQCApprovedTab ? "opacity-50 cursor-not-allowed" : ""
+                            isQCApprovedTab
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
                           }`}
                           disabled={isQCApprovedTab}
                           onClick={() => {
@@ -585,7 +603,11 @@ export function TaskCard({
                         onOpenCompletionLink(task);
                         return;
                       }
-                      window.open(task.completionLink, "_blank", "noopener,noreferrer");
+                      window.open(
+                        task.completionLink,
+                        "_blank",
+                        "noopener,noreferrer",
+                      );
                     }}
                     className={`bg-linear-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-600 hover:via-teal-600 hover:to-emerald-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
                       isQCApprovedTab ? "cursor-not-allowed" : ""
@@ -596,7 +618,8 @@ export function TaskCard({
                   </Button>
                 )}
                 {/* Custom Job Completion Links */}
-                {(task.taskType === "customjob" || task.category?.name === "Custom Job") && (
+                {(task.taskType === "customjob" ||
+                  task.category?.name === "Custom Job") && (
                   <Button
                     onClick={() => {
                       // Directly handle custom job links
@@ -608,12 +631,20 @@ export function TaskCard({
                         if (links.length > 0) {
                           links.forEach((link: string, index: number) => {
                             setTimeout(() => {
-                              window.open(link, "_blank", "noopener,noreferrer");
+                              window.open(
+                                link,
+                                "_blank",
+                                "noopener,noreferrer",
+                              );
                             }, index * 300); // 300ms delay between each link
                           });
                         }
                       } else if (task.taskCompletionJson?.link) {
-                        window.open(task.taskCompletionJson.link, "_blank", "noopener,noreferrer");
+                        window.open(
+                          task.taskCompletionJson.link,
+                          "_blank",
+                          "noopener,noreferrer",
+                        );
                       }
                     }}
                     className={`bg-linear-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 mt-2 ${
@@ -624,29 +655,24 @@ export function TaskCard({
                     View Custom Job Completion
                   </Button>
                 )}
-                {task.notes && (
-                  <div className="mt-3">
-                    <Button
-                      onClick={() => {
-                        if (isQCApprovedTab) return; // Disable for QC-approved tasks
-                        setNotePreview({
-                          open: true,
-                          note: task.notes || "",
-                          taskName: task.name || "",
-                        });
-                      }}
-                      disabled={isQCApprovedTab}
-                      variant="outline"
-                      size="sm"
-                      className={`bg-linear-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
-                        isQCApprovedTab ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <Eye className="h-4 w-4 text-white" />
-                      View Notes
-                    </Button>
-                  </div>
-                )}
+
+                <div className="mt-3">
+                  <Button
+                    onClick={() => {
+                      if (isQCApprovedTab) return; // Disable for QC-approved tasks
+                      setIsJobDetailsModalOpen(true);
+                    }}
+                    disabled={isQCApprovedTab}
+                    variant="outline"
+                    size="sm"
+                    className={`bg-linear-to-r from-teal-500 via-teal-500 to-emerald-500 hover:from-teal-600 hover:via-teal-600 hover:to-emerald-600 text-white hover:text-white font-bold text-xs border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 px-3 py-2 ${
+                      isQCApprovedTab ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <Eye className="h-4 w-4 text-white" />
+                    View Details
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -730,19 +756,23 @@ export function TaskCard({
 
               <div className="flex gap-2">
                 <Button
-                  onClick={() => isQCApprovedTab ? null : onApprove(task)}
+                  onClick={() => (isQCApprovedTab ? null : onApprove(task))}
                   disabled={isApproved || !canReview || isQCApprovedTab}
                   size="sm"
                   className={`flex-1 font-bold text-xs py-2 ${
                     isQCApprovedTab
                       ? "bg-green-600 text-white hover:bg-green-600 shadow-md cursor-not-allowed"
                       : isApproved
-                      ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md cursor-not-allowed"
-                      : `bg-linear-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
+                        ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md cursor-not-allowed"
+                        : `bg-linear-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
                   }`}
                 >
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  {isQCApprovedTab ? "QC Approved" : isApproved ? "QC Approved" : "Approve"}
+                  {isQCApprovedTab
+                    ? "QC Approved"
+                    : isApproved
+                      ? "QC Approved"
+                      : "Approve"}
                 </Button>
 
                 <Button
@@ -751,7 +781,7 @@ export function TaskCard({
                   size="sm"
                   disabled={isQCApprovedTab || !canReview}
                   className={`flex-1 border font-bold text-xs py-2 shadow-md hover:shadow-lg transition-all duration-200 ${
-                    isQCApprovedTab 
+                    isQCApprovedTab
                       ? "border-orange-300 text-orange-600 opacity-60 cursor-not-allowed"
                       : "border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30"
                   }`}
@@ -765,6 +795,38 @@ export function TaskCard({
         </div>
       </CardContent>
     </Card>
+
+    <JobDetailsModal
+      open={isJobDetailsModalOpen}
+      onClose={() => setIsJobDetailsModalOpen(false)}
+      job={taskToCustomJob(task)}
+    />
+    </>
   );
+}
+
+// Helper function to convert task to CustomJob format
+function taskToCustomJob(task: any): CustomJob | null {
+  if (!task) return null;
+  return {
+    id: task.id,
+    date: task.createdAt || new Date().toISOString(),
+    clientId: task.client?.id || "",
+    clientName: task.client?.name || "-",
+    amId: task.amId,
+    amName: task.amName || task.assignedTo?.name || "-",
+    name: task.name || "",
+    assignedToId: task.assignedTo?.id,
+    assignedToName: task.assignedTo?.name || task.assignedTo?.firstName && task.assignedTo?.lastName
+      ? `${task.assignedTo.firstName} ${task.assignedTo.lastName}`
+      : "-",
+    priority: task.priority || "medium",
+    status: task.status || "pending",
+    notes: task.notes,
+    link: task.link,
+    createdAt: task.createdAt,
+    updatedAt: task.updatedAt,
+    taskCompletionJson: task.taskCompletionJson,
+  };
 }
 // @ts-nocheck

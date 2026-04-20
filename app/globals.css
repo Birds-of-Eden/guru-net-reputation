@@ -121,3 +121,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+.tox-tinymce-aux,
+.moxman-window,
+.tam-assetmanager-root {
+  z-index: 50 !important;
+}

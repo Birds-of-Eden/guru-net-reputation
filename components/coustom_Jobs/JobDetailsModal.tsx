@@ -150,9 +150,10 @@ export default function JobDetailsModal({
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
                 Task
               </h3>
-              <div className="rounded-xl bg-indigo-50 p-4 text-sm leading-7 text-slate-800 whitespace-pre-wrap wrap-break-word">
-                {job.name || "-"}
-              </div>
+              <div 
+                className="rounded-xl bg-indigo-50 p-4 text-sm leading-7 text-slate-800 whitespace-pre-wrap wrap-break-word [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+              />
             </div>
 
             {links.length > 0 && (
