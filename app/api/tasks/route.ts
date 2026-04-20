@@ -134,7 +134,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // ⭐⭐⭐ NEW: QC SUPERVISOR FILTER ⭐⭐⭐
+    // ⭐⭐⭐ QC SUPERVISOR FILTER ⭐⭐⭐
     if (qcSupervisorId) {
       const agents = await prisma.user.findMany({
         where: { qcId: qcSupervisorId },
@@ -147,7 +147,18 @@ export async function GET(req: Request) {
         return NextResponse.json([]); // No agents → no tasks
       }
 
-      where.assignedToId = { in: agentIds };
+      const existingAssignedTo = where.assignedToId;
+
+      if (existingAssignedTo) {
+        where.AND = [
+          ...(where.AND || []),
+          { assignedToId: existingAssignedTo },
+          { assignedToId: { in: agentIds } },
+        ];
+        delete where.assignedToId;
+      } else {
+        where.assignedToId = { in: agentIds };
+      }
     }
 
     // ----- Fetch tasks -----

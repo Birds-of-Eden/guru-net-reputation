@@ -131,19 +131,17 @@ export default function AgentFormPage({
   useEffect(() => {
     const fetchQCs = async () => {
       try {
-        const res = await fetch("/api/users?qc=list");
+        const res = await fetch("/api/users?qc=list&limit=200");
         const json = await res.json();
-
-        // Filter QC role from all users
-        const qcUsers =
-          json.users?.filter(
-            (u: any) => u.role?.name?.toLowerCase() === "qc"
-          ) ?? [];
+        const qcUsers = json.users ?? [];
 
         setQcList(
           qcUsers.map((qc: any) => ({
             id: String(qc.id),
-            name: qc.name || `${qc.firstName} ${qc.lastName}`,
+            name:
+              qc.name ||
+              [qc.firstName, qc.lastName].filter(Boolean).join(" ") ||
+              qc.email,
             email: qc.email,
           }))
         );

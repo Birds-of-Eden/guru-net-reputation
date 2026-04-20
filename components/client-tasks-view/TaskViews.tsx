@@ -42,6 +42,16 @@ const sanitizeHtml = (html: string) => {
 // Helper function to convert task to CustomJob format
 function taskToCustomJob(task: any): CustomJob | null {
   if (!task) return null;
+  
+  // Handle taskCompletionJson - if missing but completionLink exists, construct it
+  let taskCompletionJson = task.taskCompletionJson;
+  if (!taskCompletionJson && task.completionLink) {
+    taskCompletionJson = {
+      link: task.completionLink,
+      links: task.completionLink,
+    };
+  }
+  
   return {
     id: task.id,
     date: task.createdAt || new Date().toISOString(),
@@ -60,7 +70,7 @@ function taskToCustomJob(task: any): CustomJob | null {
     link: task.link,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
-    taskCompletionJson: task.taskCompletionJson,
+    taskCompletionJson: taskCompletionJson,
   };
 }
 
@@ -440,11 +450,24 @@ export default function TaskViews({
 
                 <div className="mb-3 space-y-3">
                   <div className="flex min-w-0 items-start gap-3">
-                    <h3
-                      className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
-                      title={task.name}
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
-                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <h3
+                            className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          className="max-w-md p-4 rounded-xl shadow-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+                        >
+                          <p 
+                            className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.name) }}
+                          />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {isTimerActive && !locked && (
                       <div className="flex shrink-0 items-center gap-2 px-3 py-1 bg-linear-to-r from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-900/40 dark:via-cyan-900/40 dark:to-teal-900/40 rounded-full border-2 border-blue-200 dark:border-blue-700">
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
@@ -796,11 +819,24 @@ export default function TaskViews({
                   <div className="flex-1 min-w-0">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <h3
-                          className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
-                          title={task.name}
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
-                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <h3
+                                className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer"
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent
+                              className="max-w-md p-4 rounded-xl shadow-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+                            >
+                              <p 
+                                className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.name) }}
+                              />
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {shouldUseTaskNameModal(task.name) && (
                           <Button
                             type="button"

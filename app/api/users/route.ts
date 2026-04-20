@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || "";
     const category = searchParams.get("category") || "";
     const role = searchParams.get("role") || "";
+    const qcMode = searchParams.get("qc") || "";
 
     const where: any = {};
 
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
     // Role filter
     if (role && role !== "all") {
       where.role = { name: role };
+    }
+
+    if (qcMode === "list") {
+      where.role = { name: { equals: "qc", mode: "insensitive" } };
     }
 
     const roleName = (me as any)?.role?.name?.toLowerCase?.() || "";

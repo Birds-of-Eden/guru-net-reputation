@@ -168,14 +168,17 @@ export default function UserFormDialog({
   const fetchQcs = useCallback(async () => {
     try {
       setLoadingQcs(true);
-      const res = await fetch("/api/users?role=qc");
+      const res = await fetch("/api/users?qc=list&limit=200");
       const json = await res.json();
 
       if (res.ok && Array.isArray(json.users)) {
         setQcs(
           json.users.map((u: any) => ({
             id: u.id,
-            name: u.name || `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim(),
+            name:
+              u.name ||
+              [u.firstName, u.lastName].filter(Boolean).join(" ") ||
+              u.email,
           }))
         );
       } else {
