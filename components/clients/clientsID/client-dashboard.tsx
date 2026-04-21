@@ -64,6 +64,7 @@ export function ClientDashboard({
   refreshClient,
 }: ClientDashboardProps) {
   const [client, setClient] = useState<Client>(clientData);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(
@@ -71,7 +72,9 @@ export function ClientDashboard({
   );
   const [editOpen, setEditOpen] = useState(false);
   const { user } = useUserSession();
-  const roleName = (user as any)?.role?.name ?? (user as any)?.role ?? "";
+  const roleName = isHydrated
+    ? ((user as any)?.role?.name ?? (user as any)?.role ?? "")
+    : "";
   const isClient = String(roleName).toLowerCase() === "client";
   const isAgent = String(roleName).toLowerCase() === "agent";
   const isAdmin = String(roleName).toLowerCase().includes("admin");
@@ -81,6 +84,10 @@ export function ClientDashboard({
     if (clientData) setClient(clientData);
   }, [clientData]);
 
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   // Basic derived fields (lightweight)
   const packageMonths =
     Number((client as any)?.package?.totalMonths) &&
@@ -88,11 +95,39 @@ export function ClientDashboard({
       ? Math.floor(Number((client as any)?.package?.totalMonths))
       : 1;
 
-  const isDueOver = (() => {
-    const due = client.dueDate ? new Date(client.dueDate) : null;
-    if (!due || isNaN(due.getTime())) return false;
+  const parseUtcDate = (v?: string | Date | null) => {
+    if (!v) return null;
+
+    if (typeof v === "string") {
+      const m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        const y = Number(m[1]);
+        const mm = Number(m[2]) - 1;
+        const dd = Number(m[3]);
+        return new Date(Date.UTC(y, mm, dd));
+      }
+    }
+
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return null;
+
+    return new Date(
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+    );
+  };
+
+  const getTodayUtc = () => {
     const now = new Date();
-    return due.getTime() < now.getTime();
+    return new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    );
+  };
+
+  const isDueOver = (() => {
+    const due = parseUtcDate(client.dueDate);
+    if (!due) return false;
+    const today = getTodayUtc();
+    return due.getTime() < today.getTime();
   })();
 
   const getInitials = (name: string) => {
@@ -104,18 +139,18 @@ export function ClientDashboard({
   };
 
   const getDaysRemaining = () => {
-    if (!client.dueDate) return 0;
-    const dueDate = new Date(client.dueDate);
-    const today = new Date();
+    const dueDate = parseUtcDate(client.dueDate);
+    if (!dueDate) return 0;
+    const today = getTodayUtc();
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   };
 
   const getTotalDays = () => {
-    if (!client.startDate || !client.dueDate) return 0;
-    const startDate = new Date(client.startDate);
-    const dueDate = new Date(client.dueDate);
+    const startDate = parseUtcDate(client.startDate);
+    const dueDate = parseUtcDate(client.dueDate);
+    if (!startDate || !dueDate) return 0;
     const diffTime = dueDate.getTime() - startDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -215,21 +250,19 @@ export function ClientDashboard({
   // This Month stats
   // ---------------------------
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1); // exclusive
-
-  const parseDate = (v?: string | Date | null) => {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  };
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  );
+  const monthEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+  ); // exclusive
 
   // Prefer createdAt; fallback to startDate; then dueDate
   const getBestDate = (task: any): Date | null => {
     return (
-      parseDate(task?.createdAt) ||
-      parseDate(task?.startDate) ||
-      parseDate(task?.dueDate)
+      parseUtcDate(task?.createdAt) ||
+      parseUtcDate(task?.startDate) ||
+      parseUtcDate(task?.dueDate)
     );
   };
 
@@ -259,8 +292,8 @@ export function ClientDashboard({
   for (const t of tasksThisMonth) {
     const sRaw = rawStatus(t?.status);
     const sNorm = normalizeStatus(t?.status);
-    const completedAt = parseDate(t?.completedAt);
-    const dueDate = parseDate(t?.dueDate);
+    const completedAt = parseUtcDate(t?.completedAt);
+    const dueDate = parseUtcDate(t?.dueDate);
 
     // Completed if completedAt is in this month OR status says completed
     const isCompleted =

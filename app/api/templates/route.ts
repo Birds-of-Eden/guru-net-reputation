@@ -53,6 +53,55 @@ const dedupeByTypeAndName = <T extends { type: string; name: string }>(items: T[
 
 // --- Route: POST /api/templates ----------------------------------------------
 
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const packageId = searchParams.get("packageId")?.trim() || undefined;
+    const status = searchParams.get("status")?.trim() || undefined;
+
+    const templates = await prisma.template.findMany({
+      where: {
+        ...(packageId ? { packageId } : {}),
+        ...(status ? { status } : {}),
+      },
+      include: {
+        package: { select: { id: true, name: true } },
+        sitesAssets: {
+          include: { assetType: { select: { slug: true, label: true } } },
+        },
+        templateTeamMembers: {
+          include: {
+            agent: { select: { id: true, name: true, email: true } },
+            team: { select: { id: true, name: true } },
+          },
+        },
+        _count: {
+          select: {
+            sitesAssets: true,
+            templateTeamMembers: true,
+            assignments: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return NextResponse.json(templates);
+  } catch (error) {
+    console.error("Error fetching templates:", error);
+    return NextResponse.json(
+      {
+        message: "Failed to fetch templates",
+        error:
+          process.env.NODE_ENV === "development"
+            ? (error as any)?.message
+            : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

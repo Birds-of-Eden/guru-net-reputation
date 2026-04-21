@@ -30,18 +30,24 @@ export function CustomizationHistory({
       const response = await fetch(
         `/api/activity-logs?entityType=Assignment&entityId=${assignmentId}&limit=10`
       );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch history (${response.status})`);
+      }
+
       const data = await response.json();
-      
-      if (response.ok) {
+      if (Array.isArray(data)) {
         const relevant = data.filter((activity: any) =>
           ["customize_template", "sync_template", "create_assignment"].includes(
             activity.action
           )
         );
         setActivities(relevant);
+      } else {
+        setActivities([]);
       }
     } catch (error) {
       console.error("Error fetching history:", error);
+      setActivities([]);
     } finally {
       setLoading(false);
     }

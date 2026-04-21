@@ -2,7 +2,7 @@
 "use client";
 
 import useSWR from "swr";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Client } from "@/types/client";
 
 const clientDashboardFetcher = async (url: string): Promise<any> => {
@@ -48,12 +48,6 @@ export function useClientDashboard(options: UseClientDashboardOptions) {
     refreshIntervalMs,
   } = options;
 
-  // Reuse last-seen data from sessionStorage to make repeat visits instant
-  const fallbackData = useMemo(
-    () => (enableCache ? readPersistedClient(clientId) : undefined),
-    [clientId, enableCache]
-  );
-
   // SWR with aggressive caching configuration
   const {
     data: rawData,
@@ -72,8 +66,6 @@ export function useClientDashboard(options: UseClientDashboardOptions) {
       revalidateOnFocus: realtime,
       revalidateOnReconnect: realtime,
       refreshInterval: realtime ? Math.max(800, refreshIntervalMs ?? 1000) : 0,
-      // Seed with last cached data for instant direct visits
-      fallbackData,
       // Error retry with exponential backoff
       errorRetryCount: 3,
       errorRetryInterval: 1000,
@@ -81,6 +73,25 @@ export function useClientDashboard(options: UseClientDashboardOptions) {
       suspense: false,
     }
   );
+
+  const hydratedCacheKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!clientId || !enableCache) return;
+
+    const cacheKey = buildStorageKey(clientId);
+    if (hydratedCacheKeyRef.current === cacheKey) return;
+
+    hydratedCacheKeyRef.current = cacheKey;
+    const persisted = readPersistedClient(clientId);
+
+    if (persisted) {
+      void mutate((current) => current ?? persisted, {
+        revalidate: false,
+        populateCache: true,
+      });
+    }
+  }, [clientId, enableCache, mutate]);
 
   useEffect(() => {
     if (!clientId || !rawData) return;
