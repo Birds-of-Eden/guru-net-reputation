@@ -703,7 +703,7 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <div className="relative">
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-50 bg-white/70 backdrop-blur border-b border-gray-200">
+      <div className="md:hidden sticky top-0 z-0 bg-white/70 backdrop-blur border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -788,7 +788,7 @@ export function AppSidebar({ className }: { className?: string }) {
         animate={{ x: open ? 0 : -300 }}
         transition={{ type: "spring", damping: 22, stiffness: 220 }}
         className={cn(
-          "hidden md:flex fixed top-0 left-0 h-screen w-64 z-40 flex-col",
+          "hidden md:flex fixed top-0 left-0 h-screen w-64 z-0 flex-col",
           "bg-linear-to-b from-slate-50 via-white to-slate-50",
           "border-r border-gray-200/80 shadow-xl",
           className

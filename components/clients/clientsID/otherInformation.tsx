@@ -61,7 +61,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
       ) {
         return (saved as unknown as Omit<SheetData, "id">[]).map((sheet, idx) => ({
           ...sheet,
-          id: `sheet_${Date.now()}_${idx}`,
+          id: `sheet_init_${idx}`,
         }));
       }
 
@@ -71,12 +71,12 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
         item.title || "",
         Array.isArray(item.data) ? item.data.join(", ") : item.data || "",
       ]);
-      return [{ id: `sheet_${Date.now()}_0`, name: "Sheet 1", columns, rows }];
+      return [{ id: `sheet_init_0`, name: "Sheet 1", columns, rows }];
     }
 
     return [
       {
-        id: `sheet_${Date.now()}_0`,
+        id: `sheet_init_0`,
         name: "Sheet 1",
         columns: ["Field 1", "Field 2", "Field 3"],
         rows: [["", "", ""]],

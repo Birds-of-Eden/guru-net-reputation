@@ -120,6 +120,8 @@ export function CreateTemplateModal({
     user?.permissions,
     "asset_type_manage"
   );
+  const userRole = (user?.role as any)?.toLowerCase?.() || (user?.role as any)?.name?.toLowerCase();
+  const shouldHideDurationFields = userRole === "am" || userRole === "am_ceo";
   const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([]);
 
   // Basic fields
@@ -808,20 +810,24 @@ export function CreateTemplateModal({
 
       {/* Compact table-like layout */}
       <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
-        <div className="grid grid-cols-13 gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700">
+        <div className={`grid gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700 ${shouldHideDurationFields ? 'grid-cols-11' : 'grid-cols-13'}`}>
           <div className="col-span-2">Site Name</div>
           <div className="col-span-3">URL</div>
           <div className="col-span-2">Description</div>
           <div className="col-span-1 text-center">Required</div>
           <div className="col-span-1 text-center">Posts/Month</div>
-          <div className="col-span-1 text-center">Duration (min)</div>
-          <div className="col-span-1 text-center">Posting Duration (min)</div>
-          <div className="col-span-2"></div>
+          {!shouldHideDurationFields && (
+            <>
+              <div className="col-span-1 text-center">Duration (min)</div>
+              <div className="col-span-1 text-center">Posting Duration (min)</div>
+            </>
+          )}
+          <div className={`${shouldHideDurationFields ? 'col-span-2' : 'col-span-2'}`}></div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
           {sites.map((site, index) => (
-            <div key={index} className="grid grid-cols-13 gap-2 p-2 border-b hover:bg-gray-50 items-center">
+            <div key={index} className={`grid gap-2 p-2 border-b hover:bg-gray-50 items-center ${shouldHideDurationFields ? 'grid-cols-11' : 'grid-cols-13'}`}>
               <div className="col-span-2">
                 <Input
                   value={site.name}
@@ -886,38 +892,42 @@ export function CreateTemplateModal({
                   className="text-sm h-8 bg-white w-full"
                 />
               </div>
-              <div className="col-span-1">
-                <Input
-                  type="number"
-                  min={1}
-                  value={site.defaultIdealDurationMinutes}
-                  onChange={(e) =>
-                    updateSiteAsset(
-                      type,
-                      index,
-                      "defaultIdealDurationMinutes",
-                      Number.parseInt(e.target.value || "30", 10) || 30,
-                    )
-                  }
-                  className="text-sm h-8 bg-white w-full"
-                />
-              </div>
-              <div className="col-span-1">
-                <Input
-                  type="number"
-                  min={1}
-                  value={site.defaultIdealDurationMinutesForPosting ?? 30}
-                  onChange={(e) =>
-                    updateSiteAsset(
-                      type,
-                      index,
-                      "defaultIdealDurationMinutesForPosting",
-                      Number.parseInt(e.target.value || "30", 10) || 30,
-                    )
-                  }
-                  className="text-sm h-8 bg-white w-full"
-                />
-              </div>
+              {!shouldHideDurationFields && (
+                <>
+                  <div className="col-span-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={site.defaultIdealDurationMinutes}
+                      onChange={(e) =>
+                        updateSiteAsset(
+                          type,
+                          index,
+                          "defaultIdealDurationMinutes",
+                          Number.parseInt(e.target.value || "30", 10) || 30,
+                        )
+                      }
+                      className="text-sm h-8 bg-white w-full"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={site.defaultIdealDurationMinutesForPosting ?? 30}
+                      onChange={(e) =>
+                        updateSiteAsset(
+                          type,
+                          index,
+                          "defaultIdealDurationMinutesForPosting",
+                          Number.parseInt(e.target.value || "30", 10) || 30,
+                        )
+                      }
+                      className="text-sm h-8 bg-white w-full"
+                    />
+                  </div>
+                </>
+              )}
               <div className="col-span-2 flex justify-end">
                 <Button
                   type="button"
@@ -948,7 +958,7 @@ export function CreateTemplateModal({
             <div>
               <h2 className="text-lg font-semibold">Basic Information</h2>
               <p className="text-sm text-gray-500">
-                Set up your template details fcvfg
+                Set up your template details
               </p>
             </div>
           </div>

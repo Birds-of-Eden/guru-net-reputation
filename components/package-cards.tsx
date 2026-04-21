@@ -146,12 +146,8 @@ export function PackageCards() {
 
   const handleSeeTemplates = (pkg: Package) => {
     const role = user?.role?.toLowerCase();
-    const basePath =
-      role === "admin"
-        ? "admin"
-        : role === "manager"
-        ? "manager"
-        : "data_entry";
+    // Use the role directly as the base path, fallback to data_entry if not set
+    const basePath = role || "data_entry";
     router.push(`/${basePath}/packages/${pkg.id}/templates`);
   };
 
