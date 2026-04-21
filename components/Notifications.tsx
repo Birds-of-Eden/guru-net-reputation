@@ -35,6 +35,25 @@ function formatDateHeader(iso: string) {
   return d.toLocaleDateString();
 }
 
+function htmlToText(input: unknown): string {
+  const html = String(input ?? "");
+  if (!html) return "";
+  if (typeof window === "undefined") {
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+function truncateWords(text: string, maxWords: number): string {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}…`;
+}
+
 // ⚡ OPTIMIZED: Debounce hook
 function useDebounced<T>(val: T, delay = 400) {
   const [v, setV] = useState(val);
@@ -413,7 +432,7 @@ export default function Notifications({
                     }`}
                   >
                     <div className="pr-3">
-                      <div className="text-sm">{n.message}</div>
+                      <div className="text-sm">{truncateWords(htmlToText(n.message), 20)}</div>
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(n.createdAt).toLocaleString()}
                       </div>
@@ -425,6 +444,7 @@ export default function Notifications({
                           </Badge>
                         )}
                       </div>
+                      
                     </div>
                     <div className="flex gap-2">
                       {!n.isRead && (

@@ -21,6 +21,25 @@ type NotificationBellProps = {
   apiBase?: string; // defaults to "/api/notifications"
 };
 
+function htmlToText(input: unknown): string {
+  const html = String(input ?? "");
+  if (!html) return "";
+  if (typeof window === "undefined") {
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+function truncateWords(text: string, maxWords: number): string {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}…`;
+}
+
 export function NotificationBell({ apiBase = "/api/notifications" }: NotificationBellProps) {
   const router = useRouter();
 
@@ -183,7 +202,7 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
                       n.isRead ? "text-gray-700" : "font-medium"
                     }`}
                   >
-                    {n.message}
+                    {truncateWords(htmlToText(n.message), 10)}
                   </div>
                   <div className="text-xs text-gray-500">
                     {new Date(n.createdAt).toLocaleString()}
