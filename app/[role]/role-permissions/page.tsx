@@ -792,10 +792,10 @@ export default function RolePermissionPage() {
           )}
 
           <div className="relative flex-1 overflow-hidden">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-white to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-t from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-linear-to-b from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-linear-to-t from-white to-transparent" />
 
-            <div className="h-full overflow-y-auto p-4 pr-3 md:p-5 md:pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-blue-300 [&::-webkit-scrollbar-thumb]:to-indigo-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-indigo-500">
+            <div className="h-full overflow-y-auto p-4 pr-3 md:p-5 md:pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-linear-to-b [&::-webkit-scrollbar-thumb]:from-blue-300 [&::-webkit-scrollbar-thumb]:to-indigo-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-indigo-500">
               {!selectedRole && (
                 <div className="text-center py-12">
                   <Shield size={48} className="mx-auto text-gray-300 mb-3" />

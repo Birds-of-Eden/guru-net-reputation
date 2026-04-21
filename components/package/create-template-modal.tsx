@@ -78,11 +78,11 @@ type SiteAssetTypeTS = string; // allow predefined and custom types
 interface SiteAsset {
   type: SiteAssetTypeTS;
   name: string;
-  url: string;
-  description: string;
+  url?: string;
+  description?: string;
   isRequired: boolean;
-  defaultPostingFrequency: number; // per month
-  defaultIdealDurationMinutes: number;
+  defaultPostingFrequency?: number; // per month
+  defaultIdealDurationMinutes?: number;
   defaultIdealDurationMinutesForPosting?: number | null;
 }
 

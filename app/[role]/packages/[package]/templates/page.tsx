@@ -49,7 +49,21 @@ import { formatAssetTypeLabel, normalizeAssetTypeSlug } from "@/lib/asset-types"
 
 interface TemplateSiteAsset {
   id: number;
-  type: string;
+  type:
+    | "social_site"
+    | "web2_site"
+    | "other_asset"
+    | "graphics_design"
+    | "image_optimization"
+    | "content_studio"
+    | "content_writing"
+    | "backlinks"
+    | "completed_com"
+    | "youtube_video_optimization"
+    | "monitoring"
+    | "review_removal"
+    | "summary_report"
+    | "guest_posting";
   name: string;
   url?: string;
   description?: string;
@@ -841,7 +855,7 @@ export default function TemplateListPage() {
                         </Button>
                       )}
 
-                      {canEditTemplate && (
+                      {canEditTemplate && (template.assignedClientsCount ?? 0) === 0 && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -853,7 +867,8 @@ export default function TemplateListPage() {
                         </Button>
                       )}
 
-                      {canDeleteTemplate && (
+                      {/* Delete button hidden */}
+                      {/* {canDeleteTemplate && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -865,7 +880,7 @@ export default function TemplateListPage() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      )}
+                      )} */}
                       {canDuplicateTemplate && (
                         <Button
                           variant="outline"
