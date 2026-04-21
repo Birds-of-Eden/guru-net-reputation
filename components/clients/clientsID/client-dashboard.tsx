@@ -1,7 +1,7 @@
 // components/clients/clientsID/client-dashboard.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +23,7 @@ const OtherInformation = dynamic(
   () => import("./otherInformation").then((mod) => mod.OtherInformation),
   {
     loading: () => <Skeleton className="h-32 w-full" />,
+    ssr: false,
   },
 );
 
@@ -71,6 +72,8 @@ export function ClientDashboard({
     () => new Set(["profile"]),
   );
   const [editOpen, setEditOpen] = useState(false);
+  const [checkOtherInfoUnsaved, setCheckOtherInfoUnsaved] = useState<(() => boolean) | null>(null);
+  const [handleOtherInfoNavigation, setHandleOtherInfoNavigation] = useState<((callback: () => void) => void) | null>(null);
   const { user } = useUserSession();
   const roleName = isHydrated
     ? ((user as any)?.role?.name ?? (user as any)?.role ?? "")
@@ -354,14 +357,32 @@ export function ClientDashboard({
 
   const totalAssets = totalTasks;
 
+  const handleRegisterCheck = useCallback((checkFn: () => boolean, handleNavFn: (callback: () => void) => void) => {
+    setCheckOtherInfoUnsaved(() => checkFn);
+    setHandleOtherInfoNavigation(() => handleNavFn);
+  }, []);
+
   const handleTabChange = (val: string) => {
-    setActiveTab(val);
-    setMountedTabs((prev) => {
-      if (prev.has(val)) return prev;
-      const next = new Set(prev);
-      next.add(val);
-      return next;
-    });
+    // Check for unsaved changes in Other Information before switching tabs
+    if (activeTab === "other-information" && checkOtherInfoUnsaved?.()) {
+      handleOtherInfoNavigation?.(() => {
+        setActiveTab(val);
+        setMountedTabs((prev) => {
+          if (prev.has(val)) return prev;
+          const next = new Set(prev);
+          next.add(val);
+          return next;
+        });
+      });
+    } else {
+      setActiveTab(val);
+      setMountedTabs((prev) => {
+        if (prev.has(val)) return prev;
+        const next = new Set(prev);
+        next.add(val);
+        return next;
+      });
+    }
   };
 
   return (
@@ -563,7 +584,11 @@ export function ClientDashboard({
 
           {mountedTabs.has("other-information") && (
             <TabsContent value="other-information">
-              <OtherInformation clientData={client} />
+              <OtherInformation 
+                clientData={client} 
+                onRefreshClient={triggerRefresh}
+                onRegisterCheck={handleRegisterCheck}
+              />
             </TabsContent>
           )}
 

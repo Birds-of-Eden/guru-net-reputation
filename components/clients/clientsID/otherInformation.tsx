@@ -14,6 +14,7 @@ import {
   ChevronUp,
   FileText,
   Save,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ interface OtherInformationProps {
     otherField?: any;
   };
   onRefreshClient?: () => Promise<any> | void;
+  onRegisterCheck?: (checkFn: () => boolean, handleNavFn: (callback: () => void) => void) => void;
 }
 
 // Excel-like data structure for a single sheet
@@ -36,40 +38,56 @@ type SheetData = {
 // Multiple sheets structure
 type SpreadsheetData = SheetData[];
 
-export function OtherInformation({ clientData, onRefreshClient }: OtherInformationProps) {
-  // ---------- State ----------
-  const [sheets, setSheets] = useState<SpreadsheetData>(() => {
-    const saved = clientData.otherField;
+export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck }: OtherInformationProps) {
+  const parseOtherField = (saved: any): SpreadsheetData => {
     if (saved && Array.isArray(saved) && saved.length > 0) {
-      // Try to parse as new spreadsheet format (multiple sheets with id)
-      if (saved[0] && typeof saved[0] === 'object' && 'id' in saved[0] && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
+      if (
+        saved[0] &&
+        typeof saved[0] === "object" &&
+        "id" in saved[0] &&
+        "columns" in saved[0] &&
+        "rows" in saved[0] &&
+        "name" in saved[0]
+      ) {
         return saved as unknown as SpreadsheetData;
       }
-      // Try to parse as old spreadsheet format (without id)
-      if (saved[0] && typeof saved[0] === 'object' && 'columns' in saved[0] && 'rows' in saved[0] && 'name' in saved[0]) {
-        // Add IDs to existing sheets
-        return (saved as unknown as Omit<SheetData, 'id'>[]).map((sheet, idx) => ({
+
+      if (
+        saved[0] &&
+        typeof saved[0] === "object" &&
+        "columns" in saved[0] &&
+        "rows" in saved[0] &&
+        "name" in saved[0]
+      ) {
+        return (saved as unknown as Omit<SheetData, "id">[]).map((sheet, idx) => ({
           ...sheet,
           id: `sheet_${Date.now()}_${idx}`,
         }));
       }
-      // Convert old format to new format (single sheet)
+
       const columns = ["Category", "Title", "Data"];
       const rows = (saved as any[]).map((item: any) => [
         item.category || "",
         item.title || "",
-        Array.isArray(item.data) ? item.data.join(", ") : (item.data || ""),
+        Array.isArray(item.data) ? item.data.join(", ") : item.data || "",
       ]);
       return [{ id: `sheet_${Date.now()}_0`, name: "Sheet 1", columns, rows }];
     }
-    // Default empty spreadsheet with one sheet
-    return [{
-      id: `sheet_${Date.now()}_0`,
-      name: "Sheet 1",
-      columns: ["Field 1", "Field 2", "Field 3"],
-      rows: [["", "", ""]],
-    }];
-  });
+
+    return [
+      {
+        id: `sheet_${Date.now()}_0`,
+        name: "Sheet 1",
+        columns: ["Field 1", "Field 2", "Field 3"],
+        rows: [["", "", ""]],
+      },
+    ];
+  };
+
+  // ---------- State ----------
+  const [sheets, setSheets] = useState<SpreadsheetData>(() =>
+    parseOtherField(clientData.otherField),
+  );
 
   const [activeSheetIndex, setActiveSheetIndex] = useState(0);
   const activeSheet = sheets[activeSheetIndex];
@@ -83,6 +101,15 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
   const [sheetToDeleteIndex, setSheetToDeleteIndex] = useState<number | null>(null);
   const [deleteWarningStep, setDeleteWarningStep] = useState(1);
   const columnInputRef = useRef<HTMLInputElement>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    setSheets(parseOtherField(clientData.otherField));
+    setActiveSheetIndex(0);
+    setHasUnsavedChanges(false);
+  }, [clientData.id, clientData.otherField]);
 
   // Focus on column input when editing starts
   useEffect(() => {
@@ -167,6 +194,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
         ? { ...sheet, columns: newColumns, rows: newRows }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   // ---------- Handlers ----------
@@ -182,6 +210,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
 
       if (response.ok) {
         toast.success("Other information saved successfully");
+        setHasUnsavedChanges(false);
         if (onRefreshClient) {
           await onRefreshClient();
         }
@@ -207,6 +236,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
     setActiveSheetIndex(sheets.length);
     setShowAddSheetDialog(false);
     setNewSheetName("");
+    setHasUnsavedChanges(true);
   };
 
   const handleDeleteSheet = (index: number) => {
@@ -228,6 +258,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
     setShowDeleteSheetDialog(false);
     setSheetToDeleteIndex(null);
     setDeleteWarningStep(1);
+    setHasUnsavedChanges(true);
   };
 
   const handleRenameSheet = (index: number, newName: string) => {
@@ -235,6 +266,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
       idx === index ? { ...sheet, name: newName } : sheet
     ));
     setEditingSheetIndex(null);
+    setHasUnsavedChanges(true);
   };
 
   const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
@@ -250,6 +282,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
           }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleAddRow = () => {
@@ -258,6 +291,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
         ? { ...sheet, rows: [...sheet.rows, Array(sheet.columns.length).fill("")] }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleDeleteRow = (rowIndex: number) => {
@@ -266,6 +300,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
         ? { ...sheet, rows: sheet.rows.filter((_, i) => i !== rowIndex) }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleAddColumn = () => {
@@ -279,6 +314,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
           }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleDeleteColumn = (colIndex: number) => {
@@ -291,6 +327,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
           }
         : sheet
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleColumnRename = (colIndex: number, newName: string) => {
@@ -303,6 +340,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
         : sheet
     ));
     setEditingColumn(null);
+    setHasUnsavedChanges(true);
   };
 
   const handleMoveColumn = (colIndex: number, direction: "up" | "down") => {
@@ -331,6 +369,7 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
 
       return { ...sheet, columns: newColumns, rows: newRows };
     }));
+    setHasUnsavedChanges(true);
   };
 
   // Keyboard navigation
@@ -363,6 +402,48 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
       }
     }
   };
+
+  // Handle unsaved changes warning
+  const handleBeforeNavigation = (callback: () => void) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(() => callback);
+      setShowUnsavedWarning(true);
+    } else {
+      callback();
+    }
+  };
+
+  const handleStayAndSave = async () => {
+    setShowUnsavedWarning(false);
+    await handleSave();
+    if (!hasUnsavedChanges && pendingNavigation) {
+      pendingNavigation();
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedWarning(false);
+    if (pendingNavigation) {
+      pendingNavigation();
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setShowUnsavedWarning(false);
+    setPendingNavigation(null);
+  };
+
+  // Register check functions with parent
+  useEffect(() => {
+    if (onRegisterCheck) {
+      onRegisterCheck(
+        () => hasUnsavedChanges,
+        handleBeforeNavigation
+      );
+    }
+  }, [hasUnsavedChanges]);
 
   // ---------- UI ----------
   return (
@@ -721,6 +802,52 @@ export function OtherInformation({ clientData, onRefreshClient }: OtherInformati
                     </Button>
                   )}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Unsaved Changes Warning Dialog */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Unsaved Changes
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    You have unsaved changes in Other Information. If you navigate away without saving, all your changes will be lost.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancelNavigation}
+                >
+                  Stay Here
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDiscardChanges}
+                  className="border-red-300 text-red-700 hover:bg-red-50"
+                >
+                  Discard Changes
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleStayAndSave}
+                  disabled={isSaving}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  {isSaving ? "Saving..." : "Save & Continue"}
+                </Button>
               </div>
             </CardContent>
           </Card>
