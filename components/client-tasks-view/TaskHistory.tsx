@@ -30,6 +30,19 @@ function formatDate(iso: string) {
   }
 }
 
+function sanitizeHtml(html: string): string {
+  if (!html) return "";
+  // Create a temporary DOM element to strip HTML tags
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+}
+
+function truncateText(text: string, maxLength: number = 50): string {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}
+
 function formatMinutes(m: number | null | undefined) {
   if (m == null) return "—";
   const h = Math.floor(m / 60);
@@ -537,7 +550,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                 <tr key={r.id} className="hover:bg-gray-50 transition-colors duration-150">
                   {/* Task & Client */}
                   <td className="px-6 py-3">
-                    <div className="font-semibold text-gray-900">{r.name}</div>
+                    <div className="font-semibold text-gray-900">{truncateText(sanitizeHtml(r.name))}</div>
                     <div className="text-xs text-gray-500 mt-0.5 sm:hidden">{r.clientName}</div>
                   </td>
                   {/* Client (Desktop) */}
