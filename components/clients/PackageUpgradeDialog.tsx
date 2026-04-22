@@ -38,6 +38,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
+  getTemplateStatusLabel,
+  normalizeTemplateStatus,
+} from "@/lib/template-status";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -226,6 +230,7 @@ export default function PackageUpgradeDialog({
         setFetchingTpls(true);
         const url = new URL(`/api/packages/templates`, window.location.origin);
         url.searchParams.set("packageId", selectedPackageId);
+        url.searchParams.set("status", "approved");
         const res = await fetch(url.toString(), { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch templates");
         const data: Template[] = await res.json();
@@ -672,7 +677,7 @@ export default function PackageUpgradeDialog({
                                           <div className="flex items-center gap-2">
                                             <Zap className="h-4 w-4 text-slate-400" />
                                             <span className="text-sm text-slate-600">
-                                              {p.stats.activeTemplates} active
+                                              {p.stats.activeTemplates} approved
                                             </span>
                                           </div>
                                           <div className="flex items-center gap-2">
@@ -791,17 +796,13 @@ export default function PackageUpgradeDialog({
 
                                   <div className="flex items-center gap-4">
                                     <Badge
-                                      variant={
-                                        t.status === "active"
-                                          ? "default"
-                                          : "secondary"
-                                      }
+                                      variant="secondary"
                                       className={cn(
-                                        t.status === "active" &&
+                                        normalizeTemplateStatus(t.status) === "approved" &&
                                           "bg-emerald-100 text-emerald-700"
                                       )}
                                     >
-                                      {t.status ?? "—"}
+                                      {getTemplateStatusLabel(t.status)}
                                     </Badge>
                                     <div className="flex items-center gap-2 text-slate-500">
                                       <FileText className="h-4 w-4" />

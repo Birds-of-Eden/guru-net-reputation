@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { diffChanges } from "@/utils/audit"; // না থাকলে নিচের লোকাল fallback ব্যবহার করো
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";
+import { getAuthUser } from "@/lib/getAuthUser";
+import { normalizeTemplateStatus } from "@/lib/template-status";
 
 const sanitizeTemplate = (t: any) => {
   if (!t) return t;
@@ -31,6 +33,11 @@ export async function PUT(
   try {
     const { id: templateId } = await params;
     const body = await request.json();
+    const currentUser = await getAuthUser();
+    const currentUserRole =
+      typeof currentUser?.role === "string"
+        ? currentUser.role
+        : currentUser?.role?.name;
     const {
       name,
       description,
@@ -40,6 +47,17 @@ export async function PUT(
       teamMembers = [],
       actorId: actorIdInBody,
     } = body;
+
+    const normalizedStatus = normalizeTemplateStatus(status);
+    if (
+      (currentUserRole === "am" || currentUserRole === "am_ceo") &&
+      (normalizedStatus === "approved" || normalizedStatus === "rejected")
+    ) {
+      return NextResponse.json(
+        { message: "AM users cannot mark templates as approved or rejected." },
+        { status: 403 },
+      );
+    }
 
     const actorId =
       actorIdInBody || (request.headers.get("x-actor-id") as string) || null;
@@ -146,7 +164,7 @@ export async function PUT(
         data: {
           name: name.trim(),
           description: description?.trim() || null,
-          status,
+          status: normalizedStatus,
           packageId,
           sitesAssets: {
             deleteMany: {}, // Clear old ones

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Edit3, Loader2, Save } from "lucide-react";
+import { normalizeTemplateStatus } from "@/lib/template-status";
 
 interface Template {
   id: string;
@@ -50,7 +51,7 @@ export function EditTemplateModal({
   useEffect(() => {
     setName(initialData.name || "");
     setDescription(initialData.description || "");
-    setStatus(initialData.status || "draft");
+    setStatus(normalizeTemplateStatus(initialData.status));
   }, [initialData]);
 
   const handleSubmit = async () => {
@@ -163,8 +164,9 @@ export function EditTemplateModal({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="requested">Requested</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>

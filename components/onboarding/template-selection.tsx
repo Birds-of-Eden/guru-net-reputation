@@ -28,6 +28,10 @@ import {
 import type { StepProps } from "@/types/onboarding";
 import { toast } from "sonner";
 import { TemplateViewModal } from "@/components/package/Template-View-Modal";
+import {
+  getTemplateStatusLabel,
+  normalizeTemplateStatus,
+} from "@/lib/template-status";
 
 interface Template {
   id: string;
@@ -95,16 +99,26 @@ export function TemplateSelection({
     toast.success("Template selected successfully!");
   };
 
+  const approvedTemplates = useMemo(
+    () =>
+      templates.filter(
+        (template) => normalizeTemplateStatus(template.status) === "approved",
+      ),
+    [templates],
+  );
+
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
+    switch (normalizeTemplateStatus(status)) {
+      case "approved":
         return "bg-green-100 text-green-800 border-green-200";
       case "draft":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "archived":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
+      case "requested":
         return "bg-blue-100 text-blue-800 border-blue-200";
+      case "rejected":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -160,7 +174,7 @@ export function TemplateSelection({
         </p>
       </div>
 
-      {templates.length === 0 ? (
+      {approvedTemplates.length === 0 ? (
         <div className="text-center py-16">
           <div className="mx-auto w-32 h-32 bg-linear-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
             <FileText className="w-16 h-16 text-purple-600" />
@@ -175,7 +189,7 @@ export function TemplateSelection({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {templates.map((template, index) => {
+          {approvedTemplates.map((template, index) => {
             const isCustomized = template.description?.includes(
               "Custom template for client:"
             );
@@ -256,7 +270,7 @@ export function TemplateSelection({
                           template.status
                         )}`}
                       >
-                        {template.status || "Active"}
+                        {getTemplateStatusLabel(template.status)}
                       </Badge>
                     </div>
                   </div>

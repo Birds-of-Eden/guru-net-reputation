@@ -53,6 +53,7 @@ import {
   normalizeAssetTypeSlug,
   slugifyAssetType,
 } from "@/lib/asset-types";
+import { normalizeTemplateStatus } from "@/lib/template-status";
 import type { AssetTypeOption } from "@/types/asset-types";
 import {
   DEFAULT_SOCIAL_SITES,
@@ -122,6 +123,8 @@ export function CreateTemplateModal({
   );
   const userRole = (user?.role as any)?.toLowerCase?.() || (user?.role as any)?.name?.toLowerCase();
   const shouldHideDurationFields = userRole === "am" || userRole === "am_ceo";
+  const canReviewTemplateStatus =
+    userRole !== "am" && userRole !== "am_ceo";
   const [assetTypes, setAssetTypes] = useState<AssetTypeOption[]>([]);
 
   // Basic fields
@@ -332,7 +335,7 @@ export function CreateTemplateModal({
       if (isEditMode && initialData) {
         setName(initialData.name);
         setDescription(initialData.description || "");
-        setStatus(initialData.status || "draft");
+        setStatus(normalizeTemplateStatus(initialData.status));
 
         const assets = initialData.sitesAssets ?? [];
         const pick = (t: SiteAssetTypeTS) =>
@@ -485,7 +488,7 @@ export function CreateTemplateModal({
   const initializeDefaultAssets = () => {
     setName("");
     setDescription("");
-    setStatus("active");
+    setStatus("draft");
 
     setSocialSites(DEFAULT_SOCIAL_SITES.map(mapDefaults("social_site")));
     setBioOptimization(
@@ -993,18 +996,28 @@ export function CreateTemplateModal({
                           Draft
                         </div>
                       </SelectItem>
-                      <SelectItem value="active">
+                      <SelectItem value="requested">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
-                          Active
+                          <RotateCw className="w-4 h-4 text-blue-500" />
+                          Requested
                         </div>
                       </SelectItem>
-                      <SelectItem value="inactive">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-gray-500" />
-                          Inactive
-                        </div>
-                      </SelectItem>
+                      {canReviewTemplateStatus ? (
+                        <>
+                          <SelectItem value="approved">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              Approved
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="rejected">
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 text-red-500" />
+                              Rejected
+                            </div>
+                          </SelectItem>
+                        </>
+                      ) : null}
                     </SelectContent>
                   </Select>
                 </div>

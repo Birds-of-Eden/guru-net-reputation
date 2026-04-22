@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { TaskPriority, TaskStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
 import prisma from "@/lib/prisma";
+import { isApprovedTemplateStatus } from "@/lib/template-status";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,6 +14,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (!templateId || !clientId || !Array.isArray(teamMembers) || teamMembers.length === 0) {
       return NextResponse.json({ message: "Missing templateId, clientId, or team members" }, { status: 400 });
+    }
+
+    const template = await prisma.template.findUnique({
+      where: { id: templateId },
+      select: { id: true, status: true },
+    });
+    if (!template) {
+      return NextResponse.json({ message: "Template not found" }, { status: 404 });
+    }
+    if (!isApprovedTemplateStatus(template.status)) {
+      return NextResponse.json(
+        { message: "Only approved templates can be assigned." },
+        { status: 400 },
+      );
     }
 
     // 1. ✅ Create TemplateTeamMembers

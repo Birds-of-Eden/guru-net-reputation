@@ -27,6 +27,7 @@ import { Plus, Trash, Save, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { AssetTypeOption } from '@/types/asset-types'
 import { toast } from 'sonner'
+import { normalizeTemplateStatus } from '@/lib/template-status'
 
 interface Template {
   id: string
@@ -80,6 +81,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
       try {
         const response = await fetch(`/api/templates/${templateId}`)
         const data = await response.json()
+        data.status = normalizeTemplateStatus(data.status)
         setTemplate(data)
       } catch (error) {
         console.error('Error fetching template:', error)
@@ -246,7 +248,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                 <Label htmlFor="status">Status</Label>
                 {editing ? (
                   <Select
-                    value={template.status || 'active'}
+                    value={template.status || 'draft'}
                     onValueChange={(value) =>
                       setTemplate({ ...template, status: value })
                     }
@@ -255,14 +257,15 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
                       <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="requested">Requested</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
                   <div className="text-sm py-2 px-3 border rounded-md">
-                    {template.status || 'active'}
+                    {template.status || 'draft'}
                   </div>
                 )}
               </div>

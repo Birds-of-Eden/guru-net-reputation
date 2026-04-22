@@ -50,7 +50,7 @@ export function TemplateSelectionModal({
 
       try {
         setLoading(true)
-        const response = await fetch("/api/templates")
+        const response = await fetch("/api/templates?status=approved")
         if (!response.ok) {
           throw new Error("Failed to fetch templates")
         }

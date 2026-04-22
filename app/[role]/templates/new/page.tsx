@@ -36,7 +36,7 @@ export default function NewTemplatePage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [packageId, setPackageId] = useState('')
-  const [status, setStatus] = useState('active')
+  const [status, setStatus] = useState('draft')
   const [assets, setAssets] = useState<NewAsset[]>([])
   const [newAsset, setNewAsset] = useState<NewAsset>({
     type: 'social_site',
@@ -156,9 +156,10 @@ export default function NewTemplatePage() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
                     <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="requested">Requested</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

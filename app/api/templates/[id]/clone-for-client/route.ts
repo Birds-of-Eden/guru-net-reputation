@@ -78,7 +78,7 @@ export async function POST(
           name: uniqueName,
           description: `Custom template for client: ${client.name}. Cloned from: ${source.name}`,
           packageId: source.packageId || client.packageId || null,
-          status: "active",
+          status: "draft",
         },
       });
 

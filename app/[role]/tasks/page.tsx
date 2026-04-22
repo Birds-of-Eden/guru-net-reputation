@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import {
   Search,
   Users,
@@ -74,6 +75,21 @@ type DashboardStats = {
   inProgressTasks: number;
   pendingTasks: number;
   overdueTasks: number;
+};
+
+// Sanitize HTML to prevent XSS attacks
+const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span', 'p', 'br'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+  });
+};
+
+// Strip HTML tags for plain text display
+const stripHtml = (html: string) => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
 };
 
 export default function TasksPage() {
@@ -742,7 +758,7 @@ function TaskMiniCard({
       onClick={handleClick}
       role={clickable ? "button" : undefined}
       aria-label={clickable ? `Open ${task.name}` : undefined}
-      className={`relative border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition-all 
+      className={`relative h-full flex flex-col border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition-all 
         ${
           clickable
             ? "cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
@@ -752,33 +768,37 @@ function TaskMiniCard({
           isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""
         }`}
     >
-      <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between">
-        {/* Header text ONLY, in capitals */}
-        <h4 className="font-semibold leading-snug pr-8 uppercase tracking-wide">
-          {task.name}
+      <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between gap-2">
+        {/* Header text with line clamping */}
+        <h4 className="font-semibold leading-tight text-sm uppercase tracking-wide line-clamp-3 flex-1">
+          {stripHtml(task.name)}
         </h4>
-        {priorityBadge}
+        <div className="shrink-0">
+          {priorityBadge}
+        </div>
       </CardHeader>
 
-      <CardContent className="px-4 pb-4 text-sm text-slate-600 dark:text-slate-300">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-slate-400" />
-          {due}
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <Users className="h-4 w-4 text-slate-400" />
-          <span>{task.assignedTo?.name || "Unassigned"}</span>
+      <CardContent className="px-4 pb-4 mt-auto text-xs text-slate-600 dark:text-slate-300">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+            {due}
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-slate-400" />
+            <span className="truncate">{task.assignedTo?.name || "Unassigned"}</span>
+          </div>
         </div>
 
         {/* Raw ("nude") completion link below */}
         {href && (
-          <div className="mt-2">
-            <span className="text-xs font-bold">Link: </span>
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Completion Link</span>
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 break-all hover:underline"
+              className="text-xs text-blue-600 break-all hover:underline line-clamp-1"
               onClick={(e) => e.stopPropagation()}
               title="Open completion link"
             >

@@ -2,17 +2,23 @@
 
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { isTemplateStatus } from "@/lib/template-status";
 
 export async function GET(
-  _: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: packageId } = await params;
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
 
     // 1) Load templates with _count and sitesAssets (with their own _count)
     const templates = await prisma.template.findMany({
-      where: { packageId },
+      where: {
+        packageId,
+        ...(status && isTemplateStatus(status) ? { status } : {}),
+      },
       include: {
         package: true,
         templateTeamMembers: { include: { agent: true } },

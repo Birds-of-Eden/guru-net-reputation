@@ -2,11 +2,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isTemplateStatus } from "@/lib/template-status";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const packageId = searchParams.get("packageId");
+    const status = searchParams.get("status");
 
     if (!packageId) {
       return NextResponse.json(
@@ -18,6 +20,7 @@ export async function GET(request: NextRequest) {
     const templates = await prisma.template.findMany({
       where: {
         packageId: packageId,
+        ...(status && isTemplateStatus(status) ? { status } : {}),
       },
       include: {
         _count: {

@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getTemplateStatusLabel, normalizeTemplateStatus } from "@/lib/template-status"
 
 type AssetTypeSlug = string
 
@@ -347,16 +348,17 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                       <Label htmlFor="status">Status</Label>
                       {editing ? (
                         <Select
-                          value={template.status || "active"}
+                          value={normalizeTemplateStatus(template.status)}
                           onValueChange={(value) => setTemplate({ ...template, status: value })}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
                             <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="requested">Requested</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
@@ -364,12 +366,16 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                           <Badge
                             variant="outline"
                             className={
-                              template.status === 'active'
+                              normalizeTemplateStatus(template.status) === 'approved'
                                 ? 'text-green-600 border-green-600 bg-green-100'
-                                : 'text-red-600 border-red-600 bg-red-100'
+                                : normalizeTemplateStatus(template.status) === 'rejected'
+                                  ? 'text-red-600 border-red-600 bg-red-100'
+                                  : normalizeTemplateStatus(template.status) === 'requested'
+                                    ? 'text-blue-600 border-blue-600 bg-blue-100'
+                                    : 'text-amber-700 border-amber-300 bg-amber-100'
                             }
                           >
-                            {template.status || 'active'}
+                            {getTemplateStatusLabel(template.status)}
                           </Badge>
                         </div>
                       )}

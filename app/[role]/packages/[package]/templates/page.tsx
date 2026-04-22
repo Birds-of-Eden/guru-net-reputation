@@ -46,6 +46,7 @@ import { toast } from "sonner";
 import DangerDeleteTemplateModal from "@/components/package/DangerDeleteTemplateModal";
 import type { AssetTypeOption } from "@/types/asset-types";
 import { formatAssetTypeLabel, normalizeAssetTypeSlug } from "@/lib/asset-types";
+import { getTemplateStatusLabel, normalizeTemplateStatus } from "@/lib/template-status";
 
 interface TemplateSiteAsset {
   id: number;
@@ -116,7 +117,7 @@ interface Template {
   tasksCount: number;
 }
 
-type FilterStatus = "all" | "active" | "draft" | "inactive";
+type FilterStatus = "all" | "draft" | "requested" | "approved" | "rejected";
 
 export default function TemplateListPage() {
   const { package: slug } = useParams();
@@ -245,7 +246,7 @@ export default function TemplateListPage() {
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(
-        (template) => template.status?.toLowerCase() === statusFilter
+        (template) => normalizeTemplateStatus(template.status) === statusFilter
       );
     }
 
@@ -328,12 +329,19 @@ export default function TemplateListPage() {
 
   const getStatusBadge = (status: string | null | undefined) => {
     if (!status) return null;
-    const statusLower = status.toLowerCase();
-    if (statusLower === "active") {
+    const statusLower = normalizeTemplateStatus(status);
+    if (statusLower === "approved") {
       return (
         <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">
           <CheckCircle2 className="w-3 h-3 mr-1" />
-          Active
+          Approved
+        </Badge>
+      );
+    } else if (statusLower === "requested") {
+      return (
+        <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">
+          <Clock className="w-3 h-3 mr-1" />
+          Requested
         </Badge>
       );
     } else if (statusLower === "draft") {
@@ -343,18 +351,17 @@ export default function TemplateListPage() {
           Draft
         </Badge>
       );
-    } else if (statusLower === "inactive") {
+    } else if (statusLower === "rejected") {
       return (
         <Badge
-          variant="outline"
-          className="bg-slate-100 text-slate-600 border-slate-200"
+          className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
         >
           <AlertCircle className="w-3 h-3 mr-1" />
-          Inactive
+          Rejected
         </Badge>
       );
     }
-    return <Badge variant="outline">{status}</Badge>;
+    return <Badge variant="outline">{getTemplateStatusLabel(status)}</Badge>;
   };
 
   const getFilterButtonClass = (filter: FilterStatus) => {
@@ -516,13 +523,13 @@ export default function TemplateListPage() {
                     All ({currentPackageTemplates.length})
                   </button>
                   <button
-                    onClick={() => setStatusFilter("active")}
-                    className={getFilterButtonClass("active")}
+                    onClick={() => setStatusFilter("requested")}
+                    className={getFilterButtonClass("requested")}
                   >
-                    Active (
+                    Requested (
                     {
                       currentPackageTemplates.filter(
-                        (t) => t.status?.toLowerCase() === "active"
+                        (t) => normalizeTemplateStatus(t.status) === "requested"
                       ).length
                     }
                     )
@@ -534,19 +541,31 @@ export default function TemplateListPage() {
                     Draft (
                     {
                       currentPackageTemplates.filter(
-                        (t) => t.status?.toLowerCase() === "draft"
+                        (t) => normalizeTemplateStatus(t.status) === "draft"
                       ).length
                     }
                     )
                   </button>
                   <button
-                    onClick={() => setStatusFilter("inactive")}
-                    className={getFilterButtonClass("inactive")}
+                    onClick={() => setStatusFilter("approved")}
+                    className={getFilterButtonClass("approved")}
                   >
-                    Inactive (
+                    Approved (
                     {
                       currentPackageTemplates.filter(
-                        (t) => t.status?.toLowerCase() === "inactive"
+                        (t) => normalizeTemplateStatus(t.status) === "approved"
+                      ).length
+                    }
+                    )
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("rejected")}
+                    className={getFilterButtonClass("rejected")}
+                  >
+                    Rejected (
+                    {
+                      currentPackageTemplates.filter(
+                        (t) => normalizeTemplateStatus(t.status) === "rejected"
                       ).length
                     }
                     )

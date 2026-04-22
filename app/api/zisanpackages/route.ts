@@ -3,6 +3,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isApprovedTemplateStatus } from "@/lib/template-status";
 
 // ============================ GET Packages ============================
 export async function GET(request: Request) {
@@ -96,8 +97,8 @@ export async function GET(request: Request) {
 
     const enriched = pkgs.map((p, i) => {
       const activeTemplates =
-        p.templates?.filter((t) => t.status?.toLowerCase() === "active")
-          .length || 0;
+        p.templates?.filter((t) => isApprovedTemplateStatus(t.status)).length ||
+        0;
 
       const sitesAssets =
         p.templates?.reduce(

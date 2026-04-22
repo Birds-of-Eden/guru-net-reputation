@@ -9,6 +9,7 @@ import {
   fetchAssetTypeMap,
   resolveCategoryFromMap,
 } from "@/lib/asset-types.server";
+import { isApprovedTemplateStatus } from "@/lib/template-status";
 
 // --- helpers ---
 function coerceSocialMedia(input: any): any[] | undefined {
@@ -692,6 +693,25 @@ export async function POST(
         { status: 404 },
       );
 
+    if (selectedTemplateId) {
+      const selectedTemplate = await prisma.template.findUnique({
+        where: { id: selectedTemplateId },
+        select: { id: true, packageId: true, status: true },
+      });
+      if (!selectedTemplate || selectedTemplate.packageId !== newPackageId) {
+        return NextResponse.json(
+          { message: "Selected template is invalid for the target package." },
+          { status: 400 },
+        );
+      }
+      if (!isApprovedTemplateStatus(selectedTemplate.status)) {
+        return NextResponse.json(
+          { message: "Only approved templates can be used for upgrades." },
+          { status: 400 },
+        );
+      }
+    }
+
     // 1) update client → new package; optionally create assignments for all templates
     await prisma.$transaction(async (tx) => {
       await tx.client.update({
@@ -706,6 +726,7 @@ export async function POST(
           SELECT gen_random_uuid(), t."id", ${clientId}, now(), 'active'
           FROM "Template" t
           WHERE t."packageId" = ${newPackageId}
+          AND t."status" = 'approved'
           AND NOT EXISTS (
             SELECT 1 FROM "Assignment" a
             WHERE a."templateId" = t."id" AND a."clientId" = ${clientId}

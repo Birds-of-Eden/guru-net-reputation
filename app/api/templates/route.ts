@@ -4,6 +4,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";
+import { getAuthUser } from "@/lib/getAuthUser";
+import {
+  isTemplateStatus,
+  normalizeTemplateStatus,
+} from "@/lib/template-status";
 
 // --- Helpers -----------------------------------------------------------------
 
@@ -62,7 +67,7 @@ export async function GET(request: NextRequest) {
     const templates = await prisma.template.findMany({
       where: {
         ...(packageId ? { packageId } : {}),
-        ...(status ? { status } : {}),
+        ...(status && isTemplateStatus(status) ? { status } : {}),
       },
       include: {
         package: { select: { id: true, name: true } },
@@ -105,6 +110,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const currentUser = await getAuthUser();
+    const currentUserRole =
+      typeof currentUser?.role === "string"
+        ? currentUser.role
+        : currentUser?.role?.name;
     const {
       name,
       description,
@@ -137,6 +147,17 @@ export async function POST(request: NextRequest) {
       assetTypeMap.has("other_asset")
         ? "other_asset"
         : assetTypeMap.keys().next().value;
+
+    const normalizedStatus = normalizeTemplateStatus(status);
+    if (
+      (currentUserRole === "am" || currentUserRole === "am_ceo") &&
+      (normalizedStatus === "approved" || normalizedStatus === "rejected")
+    ) {
+      return NextResponse.json(
+        { message: "AM users cannot mark templates as approved or rejected." },
+        { status: 403 },
+      );
+    }
 
     const normalizedAssets = dedupeByTypeAndName(
       (sitesAssets as any[]).filter((a) => a?.name && String(a.name).trim())
@@ -192,7 +213,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: name.trim(),
           description: description?.trim() || null,
-          status,
+          status: normalizedStatus,
           packageId,
           sitesAssets: { create: validSitesAssets },
           templateTeamMembers: { create: validTeamMembers },

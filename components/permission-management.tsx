@@ -168,9 +168,8 @@ export default function AssignmentManagement() {
       const data: Template[] = await response.json()
       console.log("Templates fetched:", data)
 
-      // Filter only active templates for assignment creation
-      const activeTemplates = data.filter((template) => template.status === "active")
-      setTemplates(activeTemplates)
+      const approvedTemplates = data.filter((template) => template.status === "approved")
+      setTemplates(approvedTemplates)
     } catch (error) {
       console.error("Error fetching templates:", error)
       toast.error("Failed to load templates: " + error.message)

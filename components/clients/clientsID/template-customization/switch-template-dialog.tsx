@@ -49,7 +49,7 @@ export function SwitchTemplateDialog({
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch("/api/templates");
+      const response = await fetch("/api/templates?status=approved");
       const data = await response.json();
       
       if (response.ok) {
