@@ -16,11 +16,20 @@ import {
   Flag,
   Calendar,
   ExternalLink,
+  Filter,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -80,16 +89,16 @@ type DashboardStats = {
 // Sanitize HTML to prevent XSS attacks
 const sanitizeHtml = (html: string) => {
   return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span', 'p', 'br'],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOWED_TAGS: ["a", "b", "i", "u", "strong", "em", "span", "p", "br"],
+    ALLOWED_ATTR: ["href", "target", "rel", "class"],
   });
 };
 
 // Strip HTML tags for plain text display
 const stripHtml = (html: string) => {
-  const tmp = document.createElement('div');
+  const tmp = document.createElement("div");
   tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+  return tmp.textContent || tmp.innerText || "";
 };
 
 export default function TasksPage() {
@@ -114,10 +123,13 @@ export default function TasksPage() {
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [startDate, setStartDate] = useState(
-    format(subDays(new Date(), 7), "yyyy-MM-dd")
-  );
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [dateQuickFilter, setDateQuickFilter] = useState<string>("today");
 
   // ---------- helpers
   const calculateStats = (tasks: Task[]) => {
@@ -167,24 +179,27 @@ export default function TasksPage() {
     setClients(Object.values(clientMap));
   };
 
-  const fetchAllTasks = useCallback(async () => {
-    try {
-      setLoading(true);
-      const url = `/api/tasks?${startDate ? `startDate=${startDate}&` : ""}${
-        endDate ? `endDate=${endDate}` : ""
-      }`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch tasks");
-      const data: Task[] = await res.json();
-      setAllTasks(data);
-      calculateStats(data);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load tasks");
-    } finally {
-      setLoading(false);
-    }
-  }, [startDate, endDate]);
+  const fetchAllTasks = useCallback(
+    async (startDateParam?: string, endDateParam?: string) => {
+      const s = startDateParam ?? startDate;
+      const e = endDateParam ?? endDate;
+      try {
+        setLoading(true);
+        const url = `/api/tasks?${s ? `startDate=${s}&` : ""}${e ? `endDate=${e}` : ""}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch tasks");
+        const data: Task[] = await res.json();
+        setAllTasks(data);
+        calculateStats(data);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load tasks");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [startDate, endDate],
+  );
 
   const fetchTasksForClient = useCallback(
     async (clientId: string, ignoreDateFilter: boolean = false) => {
@@ -206,7 +221,7 @@ export default function TasksPage() {
         setClientModalLoading(false);
       }
     },
-    [startDate, endDate]
+    [startDate, endDate],
   );
 
   useEffect(() => {
@@ -238,9 +253,9 @@ export default function TasksPage() {
   const filteredClients = useMemo(
     () =>
       clients.filter((c) =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
-    [clients, searchQuery]
+    [clients, searchQuery],
   );
 
   // ---------- grouping for modal
@@ -261,17 +276,17 @@ export default function TasksPage() {
     status === "completed"
       ? "bg-green-600 text-white hover:bg-green-700 transition-colors"
       : status === "qc_approved"
-      ? "bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
-      : status === "in_progress"
-      ? "bg-sky-600 text-white hover:bg-sky-700 transition-colors"
-      : status === "pending"
-      ? "bg-yellow-500 text-white hover:bg-yellow-600 transition-colors"
-      : status === "overdue"
-      ? "bg-red-600 text-white hover:bg-red-700 transition-colors"
-      : "bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors";
+        ? "bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
+        : status === "in_progress"
+          ? "bg-sky-600 text-white hover:bg-sky-700 transition-colors"
+          : status === "pending"
+            ? "bg-yellow-500 text-white hover:bg-yellow-600 transition-colors"
+            : status === "overdue"
+              ? "bg-red-600 text-white hover:bg-red-700 transition-colors"
+              : "bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors";
 
   const normalizeCategory = (
-    t: Task
+    t: Task,
   ): "Social Asset" | "Web 2.0" | "Additional Asset" | "Other" => {
     const name = t.category?.name || null;
     if (!name) return "Additional Asset";
@@ -282,7 +297,41 @@ export default function TasksPage() {
 
   const groupedByCategory = useMemo(() => {
     const groups: Record<string, Task[]> = {};
-    for (const t of modalTasks) {
+
+    // Filter modalTasks based on filters
+    const filteredTasks = modalTasks.filter((task) => {
+      // Task name search
+      if (
+        taskSearchQuery &&
+        !stripHtml(task.name)
+          .toLowerCase()
+          .includes(taskSearchQuery.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Status filter
+      if (statusFilter !== "all" && task.status !== statusFilter) {
+        return false;
+      }
+
+      // Priority filter
+      if (priorityFilter !== "all" && task.priority !== priorityFilter) {
+        return false;
+      }
+
+      // Category filter
+      if (categoryFilter !== "all") {
+        const normalized = normalizeCategory(task);
+        if (normalized !== categoryFilter) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    for (const t of filteredTasks) {
       const key = normalizeCategory(t);
       if (!groups[key]) groups[key] = [];
       groups[key].push(t);
@@ -303,7 +352,13 @@ export default function TasksPage() {
       });
     }
     return groups;
-  }, [modalTasks]);
+  }, [
+    modalTasks,
+    taskSearchQuery,
+    statusFilter,
+    priorityFilter,
+    categoryFilter,
+  ]);
 
   const orderedCategories: Array<keyof typeof groupedByCategory> = [
     "Social Asset" as any,
@@ -338,13 +393,16 @@ export default function TasksPage() {
         {/* Client Cards Grid Skeleton */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
+            <div
+              key={i}
+              className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6"
+            >
               {/* Client Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
                 <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"></div>
               </div>
-              
+
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
@@ -356,10 +414,10 @@ export default function TasksPage() {
                 <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
                 <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
               </div>
-              
+
               {/* Progress Bar */}
               <div className="h-2 w-full bg-gray-200 rounded animate-pulse mb-4"></div>
-              
+
               {/* View Button */}
               <div className="h-8 w-full bg-gray-200 rounded animate-pulse"></div>
             </div>
@@ -427,24 +485,73 @@ export default function TasksPage() {
             />
           </div>
 
-          <div className="flex gap-2 items-center">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-[150px]"
-            />
-            <span className="text-slate-500">–</span>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-[150px]"
-            />
-            <Button variant="outline" onClick={fetchAllTasks}>
-              Apply
-            </Button>
+          <div className="flex flex-col md:flex-row gap-3 items-center">
+            <div className="flex gap-2 items-center">
+              <Select
+                value={dateQuickFilter}
+                onValueChange={(value) => {
+                  const now = new Date();
+                  setDateQuickFilter(value);
+                  if (value === "today") {
+                    const d = format(now, "yyyy-MM-dd");
+                    setStartDate(d);
+                    setEndDate(d);
+                    void fetchAllTasks(d, d);
+                  } else if (value === "yesterday") {
+                    const d = format(subDays(now, 1), "yyyy-MM-dd");
+                    setStartDate(d);
+                    setEndDate(d);
+                    void fetchAllTasks(d, d);
+                  } else if (value === "tomorrow") {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const d = format(tomorrow, "yyyy-MM-dd");
+                    setStartDate(d);
+                    setEndDate(d);
+                    void fetchAllTasks(d, d);
+                  } else if (value === "last_7") {
+                    const s = format(subDays(now, 7), "yyyy-MM-dd");
+                    const e = format(now, "yyyy-MM-dd");
+                    setStartDate(s);
+                    setEndDate(e);
+                    void fetchAllTasks(s, e);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[150px] h-9">
+                  <SelectValue placeholder="Select date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="last_7">Last 7 Days</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {dateQuickFilter === "custom" && (
+              <div className="flex gap-2 items-center">
+                <Calendar className="h-4 w-4 text-slate-400" />
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-[150px]"
+                />
+                <span className="text-slate-500">–</span>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-[150px]"
+                />
+                <Button variant="outline" onClick={() => fetchAllTasks()}>
+                  Apply
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -512,6 +619,210 @@ export default function TasksPage() {
               </DialogHeader>
             </div>
 
+            {/* Filter Section */}
+            <div className="px-6 py-4 border-b bg-linear-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="h-4 w-4 text-slate-500" />
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Filters
+                </span>
+              </div>
+              <div className="flex flex-col gap-4">
+                {/* Date Quick Filters */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Today", value: "today" },
+                    { label: "Yesterday", value: "yesterday" },
+                    { label: "Tomorrow", value: "tomorrow" },
+                    { label: "Last 7 Days", value: "last_7" },
+                    { label: "Custom Range", value: "custom" },
+                  ].map((df) => (
+                    <Button
+                      key={df.value}
+                      variant={
+                        dateQuickFilter === df.value ? "default" : "outline"
+                      }
+                      size="sm"
+                      className="h-8 text-xs font-medium rounded-full"
+                      onClick={() => {
+                        setDateQuickFilter(df.value);
+                        const now = new Date();
+                        if (df.value === "today") {
+                          const d = format(now, "yyyy-MM-dd");
+                          setStartDate(d);
+                          setEndDate(d);
+                        } else if (df.value === "yesterday") {
+                          const d = format(subDays(now, 1), "yyyy-MM-dd");
+                          setStartDate(d);
+                          setEndDate(d);
+                        } else if (df.value === "tomorrow") {
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          const d = format(tomorrow, "yyyy-MM-dd");
+                          setStartDate(d);
+                          setEndDate(d);
+                        } else if (df.value === "last_7") {
+                          setStartDate(format(subDays(now, 7), "yyyy-MM-dd"));
+                          setEndDate(format(now, "yyyy-MM-dd"));
+                        }
+                      }}
+                    >
+                      {df.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Date Range & Search */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <div className="flex items-center gap-1 pl-9">
+                        <Input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => {
+                            setStartDate(e.target.value);
+                            setDateQuickFilter("today");
+                          }}
+                          className="h-9 text-xs border-none bg-transparent focus-visible:ring-0 p-0 w-[110px]"
+                        />
+                        <span className="text-slate-400">to</span>
+                        <Input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => {
+                            setEndDate(e.target.value);
+                            setDateQuickFilter("today");
+                          }}
+                          className="h-9 text-xs border-none bg-transparent focus-visible:ring-0 p-0 w-[110px]"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-9 px-3 shrink-0"
+                      onClick={() => fetchAllTasks()}
+                    >
+                      Apply Range
+                    </Button>
+                  </div>
+
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search tasks by name..."
+                      className="pl-9 h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
+                      value={taskSearchQuery}
+                      onChange={(e) => setTaskSearchQuery(e.target.value)}
+                    />
+                    {taskSearchQuery && (
+                      <button
+                        onClick={() => setTaskSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                      Status
+                    </Label>
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
+                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="qc_approved">QC Approved</SelectItem>
+                        <SelectItem value="overdue">Overdue</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="reassigned">Reassigned</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                      Priority
+                    </Label>
+                    <Select
+                      value={priorityFilter}
+                      onValueChange={setPriorityFilter}
+                    >
+                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                        <SelectValue placeholder="Priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Priority</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                      Category
+                    </Label>
+                    <Select
+                      value={categoryFilter}
+                      onValueChange={setCategoryFilter}
+                    >
+                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="Social Asset">
+                          Social Asset
+                        </SelectItem>
+                        <SelectItem value="Web 2.0">Web 2.0</SelectItem>
+                        <SelectItem value="Additional Asset">
+                          Additional Asset
+                        </SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {(taskSearchQuery ||
+                    statusFilter !== "all" ||
+                    priorityFilter !== "all" ||
+                    categoryFilter !== "all") && (
+                    <div className="flex items-end pb-0.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setTaskSearchQuery("");
+                          setStatusFilter("all");
+                          setPriorityFilter("all");
+                          setCategoryFilter("all");
+                        }}
+                        className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Reset Filters
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {clientModalLoading ? (
                 <div className="flex items-center justify-center h-48">
@@ -540,7 +851,7 @@ export default function TasksPage() {
                       for (const t of list) byStatus[t.status].push(t);
 
                       const nonEmptyStatuses = STATUS_ORDER.filter(
-                        (s) => byStatus[s].length > 0
+                        (s) => byStatus[s].length > 0,
                       );
 
                       return (
@@ -643,7 +954,7 @@ function ClientCard({
         "group cursor-pointer rounded-2xl border border-slate-200/70",
         "bg-linear-to-br from-white to-slate-50",
         "shadow-sm hover:shadow-md hover:-translate-y-0.5",
-        "transition-all duration-300 ease-out"
+        "transition-all duration-300 ease-out",
       )}
     >
       {/* HEADER */}
@@ -723,89 +1034,135 @@ function TaskMiniCard({
   };
 
   const due = task.dueDate ? (
-    <span className="text-xs text-slate-500">
+    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+      <Calendar className="h-3.5 w-3.5 text-slate-400" />
       {format(new Date(task.dueDate), "MMM d, yyyy")}
-    </span>
+    </div>
   ) : (
-    <span className="text-xs text-slate-400">No due date</span>
+    <div className="flex items-center gap-1.5 text-xs text-slate-400 italic">
+      <Calendar className="h-3.5 w-3.5" />
+      No due date
+    </div>
   );
 
-  const priorityBadge =
-    task.priority === "urgent" ? (
-      <Badge className="bg-red-100 text-red-800">Urgent</Badge>
-    ) : task.priority === "high" ? (
-      <Badge className="bg-pink-100 text-pink-800">High</Badge>
-    ) : task.priority === "medium" ? (
-      <Badge className="bg-indigo-100 text-indigo-800">Medium</Badge>
-    ) : (
-      <Badge className="bg-slate-100 text-slate-800">Low</Badge>
-    );
+  const priorityConfig = {
+    urgent: {
+      bg: "bg-rose-50 text-rose-700 border-rose-100",
+      icon: <AlertCircle className="h-3 w-3" />,
+    },
+    high: {
+      bg: "bg-orange-50 text-orange-700 border-orange-100",
+      icon: <Flag className="h-3 w-3" />,
+    },
+    medium: {
+      bg: "bg-blue-50 text-blue-700 border-blue-100",
+      icon: <ClockIcon className="h-3 w-3" />,
+    },
+    low: {
+      bg: "bg-slate-50 text-slate-600 border-slate-100",
+      icon: <List className="h-3 w-3" />,
+    },
+  };
 
-  const statusAccent =
-    task.status === "completed"
-      ? "border-emerald-400"
-      : task.status === "in_progress"
-      ? "border-sky-400"
-      : task.status === "pending"
-      ? "border-yellow-400"
-      : task.status === "overdue"
-      ? "border-red-400"
-      : "border-slate-300";
+  const p = priorityConfig[task.priority] || priorityConfig.low;
+
+  const statusColors: Record<Task["status"], string> = {
+    completed: "emerald",
+    qc_approved: "teal",
+    in_progress: "sky",
+    pending: "amber",
+    overdue: "rose",
+    cancelled: "slate",
+    reassigned: "indigo",
+  };
+
+  const color = statusColors[task.status] || "slate";
 
   return (
     <Card
       id={`task-${task.id}`}
       onClick={handleClick}
-      role={clickable ? "button" : undefined}
-      aria-label={clickable ? `Open ${task.name}` : undefined}
-      className={`relative h-full flex flex-col border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition-all 
-        ${
-          clickable
-            ? "cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
-            : ""
-        } 
-        pl-3 border-l-4 ${statusAccent} ${
-          isFocused ? "ring-2 ring-cyan-400 ring-offset-2" : ""
-        }`}
+      className={cn(
+        "relative h-full flex flex-col overflow-hidden border transition-all duration-300 rounded-2xl",
+        "bg-linear-to-br from-white via-indigo-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-slate-200/80 dark:border-slate-800",
+        "hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none hover:-translate-y-1",
+        clickable ? "cursor-pointer group" : "",
+        isFocused ? "ring-2 ring-blue-500 ring-offset-2" : "",
+      )}
     >
-      <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between gap-2">
-        {/* Header text with line clamping */}
-        <h4 className="font-semibold leading-tight text-sm uppercase tracking-wide line-clamp-3 flex-1">
+      {/* Top Color Accent (linear per status) */}
+      {(() => {
+        const statuslinear: Record<string, string> = {
+          completed: "from-emerald-400 to-emerald-600",
+          qc_approved: "from-teal-400 to-emerald-500",
+          in_progress: "from-sky-400 to-indigo-500",
+          pending: "from-amber-300 to-amber-500",
+          overdue: "from-rose-400 to-rose-600",
+          cancelled: "from-slate-300 to-slate-500",
+          reassigned: "from-indigo-400 to-purple-500",
+        };
+        const g = statuslinear[task.status] || "from-slate-300 to-slate-500";
+        return <div className={cn("h-1.5 w-full bg-linear-to-r", g)} />;
+      })()}
+
+      <CardHeader className="p-4 pb-2 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md border",
+              p.bg,
+            )}
+          >
+            <span className="mr-1">{p.icon}</span>
+            {task.priority}
+          </Badge>
+
+          <div
+            className={cn(
+              "h-8 w-8 rounded-full flex items-center justify-center transition-colors",
+              clickable
+                ? "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
+                : "bg-slate-50 text-slate-400",
+            )}
+          >
+            {clickable ? (
+              <ExternalLink className="h-4 w-4" />
+            ) : (
+              <List className="h-4 w-4" />
+            )}
+          </div>
+        </div>
+
+        <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 leading-snug line-clamp-3 group-hover:text-blue-600 transition-colors">
           {stripHtml(task.name)}
         </h4>
-        <div className="shrink-0">
-          {priorityBadge}
-        </div>
       </CardHeader>
 
-      <CardContent className="px-4 pb-4 mt-auto text-xs text-slate-600 dark:text-slate-300">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+      <CardContent className="px-4 pb-4 flex-1 flex flex-col justify-end">
+        <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between">
             {due}
+            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 max-w-[120px]">
+              <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <span className="truncate font-medium">
+                {task.assignedTo?.name || "Unassigned"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-slate-400" />
-            <span className="truncate">{task.assignedTo?.name || "Unassigned"}</span>
-          </div>
-        </div>
 
-        {/* Raw ("nude") completion link below */}
-        {href && (
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Completion Link</span>
-            <a
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 break-all hover:underline line-clamp-1"
-              onClick={(e) => e.stopPropagation()}
-              title="Open completion link"
-            >
-              {href}
-            </a>
-          </div>
-        )}
+          {href && (
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-2 group-hover:bg-blue-50 transition-colors">
+              <span className="text-[9px] font-black uppercase text-slate-400 block mb-1 tracking-widest">
+                Action Link
+              </span>
+              <div className="text-[11px] text-blue-600 font-medium truncate flex items-center gap-1">
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                {href}
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

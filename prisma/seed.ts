@@ -86,6 +86,7 @@ const PERMS = [
   // Tasks
   { id: "view_tasks_list", name: "view_tasks_list", description: "Tasks → All Tasks" },
   { id: "view_tasks_history", name: "view_tasks_history", description: "Tasks → Tasks History" },
+  { id: "view_admin_tasks", name: "view_admin_tasks", description: "Permissions → Admin Tasks" },
   { id: "view_agent_tasks", name: "view_agent_tasks", description: "Agent → Tasks" },
   { id: "view_agent_tasks_history", name: "view_agent_tasks_history", description: "Agent → Tasks History" },
   { id: "view_social_activities", name: "view_social_activities", description: "Agent → Social Activities" },
@@ -157,7 +158,6 @@ const ADMIN_PERMS: string[] = [
   "package_edit",
   "package_delete",
   "template_edit",
-  "template_delete",
   "asset_type_manage",
   "user_delete",
   "user_edit",
@@ -165,7 +165,6 @@ const ADMIN_PERMS: string[] = [
   "user_impersonate",
   "view_activity_logs",
   "client_card_client_view",
-
   "view_agents_create",
   "view_agents_list",
   "view_clients_create",
@@ -173,6 +172,9 @@ const ADMIN_PERMS: string[] = [
   "view_dashboard",
   "view_distribution_client_agent",
   "view_distribution_custom_jobs",
+  "view_tasks_list",
+  "view_tasks_history",
+  "view_admin_tasks",
   "view_notifications",
   "view_packages_list",
   "view_role_permissions",
