@@ -62,12 +62,15 @@ async function getScopedTask(id: string) {
 
 type UpdatePayload = {
   date?: string;
+  dueDate?: string;
   clientId?: string;
   name?: string;
   assignedToId?: string | null;
   issueStatus?: string | null;
   qcStatus?: string | null;
   clientNotificationUpdate?: string | null;
+  amUpdateStatus?: "approved" | "rejected" | null;
+  completionNotes?: string | null;
   priority?: TaskPriority;
   status?: TaskStatus;
   notes?: string | null;
@@ -109,6 +112,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = (await req.json()) as UpdatePayload;
     const { task: existing, denied } = await getScopedTask(id);
+    const currentUser = await getAuthUser();
+    const isAM = currentUser?.role === "am";
 
     if (denied) {
       return NextResponse.json(
@@ -127,6 +132,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const prevJson = parseJsonSafe(existing.taskCompletionJson, {});
     const requestedStatusChange =
       body.status !== undefined && body.status !== existing.status;
+    const resolvedDueDate = body.dueDate ?? body.date;
 
     if (requestedStatusChange) {
       const allowed =
@@ -156,6 +162,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
 
+    const hasAmUpdate =
+      body.amUpdateStatus !== undefined || body.completionNotes !== undefined;
+
+    if (hasAmUpdate) {
+      if (!isAM) {
+        return NextResponse.json(
+          { success: false, message: "Only AM can save AM updates." },
+          { status: 403 }
+        );
+      }
+
+      if (existing.status !== "completed" && existing.status !== "qc_approved") {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "AM updates are allowed only for completed or qc approved custom jobs.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const updated = await prismaById.task.update({
       where: { id },
       data: {
@@ -163,7 +191,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         assignedToId:
           body.assignedToId !== undefined ? body.assignedToId : existing.assignedToId,
         name: body.name?.trim() ?? existing.name,
-        dueDate: body.date ? new Date(body.date) : existing.dueDate,
+        dueDate: resolvedDueDate ? new Date(resolvedDueDate) : existing.dueDate,
         priority: body.priority ?? existing.priority,
         status: body.status ?? existing.status,
         notes: body.notes !== undefined ? body.notes : existing.notes,
@@ -176,6 +204,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.clientNotificationUpdate !== undefined
             ? { clientNotificationUpdate: body.clientNotificationUpdate }
             : {}),
+          ...(body.amUpdateStatus !== undefined
+            ? { amUpdateStatus: body.amUpdateStatus }
+            : {}),
+          ...(body.completionNotes !== undefined ? { notes: body.completionNotes } : {}),
           ...(body.link !== undefined ? { link: body.link } : {}),
           source: "custom-job",
         },

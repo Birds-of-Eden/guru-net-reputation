@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AssignmentModal from "./AssignmentModal";
+import AMUpdateModal from "./AMUpdateModal";
 import JobDetailsModal from "./JobDetailsModal";
 import { ClientOption, CustomJob, UserOption } from "./customJobsTypes";
 import {
@@ -26,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Pencil, Trash2, Eye, CheckIcon, ChevronsUpDown } from "lucide-react";
+import { Search, Pencil, Trash2, Eye, CheckIcon, ChevronsUpDown } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -167,6 +168,8 @@ export default function CustomJobsTable({
   const [assigningJobId, setAssigningJobId] = useState<string | null>(null);
   const [viewDetailsModalOpen, setViewDetailsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<CustomJob | null>(null);
+  const [amUpdateModalOpen, setAmUpdateModalOpen] = useState(false);
+  const [amUpdatingJob, setAmUpdatingJob] = useState<CustomJob | null>(null);
   const [searchPopoverOpen, setSearchPopoverOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const router = useRouter();
@@ -240,6 +243,12 @@ export default function CustomJobsTable({
     return filteredJobs;
   }, [filteredJobs]);
 
+  const getAmUpdateStatus = (job?: CustomJob | null) =>
+    job?.taskCompletionJson?.amUpdateStatus || null;
+
+  const getAmUpdateNote = (job?: CustomJob | null) =>
+    job?.taskCompletionJson?.notes || "";
+
   const handleDelete = async (id: string) => {
     const ok = window.confirm(
       "Are you sure you want to delete this custom job?",
@@ -265,6 +274,8 @@ export default function CustomJobsTable({
     if (!assigningJobId) return;
 
     try {
+      const dueDate = new Date().toISOString();
+
       const res = await fetch(`/api/custom-jobs/${assigningJobId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -272,6 +283,7 @@ export default function CustomJobsTable({
           assignedToId: agentId,
           status: "pending",
           idealDurationMinutes: idealDurationMinutes || 30,
+          dueDate,
         }),
       });
       const result = await res.json();
@@ -302,6 +314,29 @@ export default function CustomJobsTable({
       console.error(error);
       alert(error instanceof Error ? error.message : "Status update failed");
     }
+  };
+
+  const handleAmUpdate = async (
+    status: "approved" | "rejected",
+    note: string,
+  ) => {
+    if (!amUpdatingJob) return;
+
+    const res = await fetch(`/api/custom-jobs/${amUpdatingJob.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amUpdateStatus: status,
+        completionNotes: note,
+      }),
+    });
+
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+      throw new Error(result.message || "Failed to save AM update");
+    }
+
+    onRefresh?.();
   };
 
   return (
@@ -399,6 +434,9 @@ export default function CustomJobsTable({
                 <TableHead className="font-semibold text-slate-700">
                   View Details
                 </TableHead>
+                <TableHead className="font-semibold text-slate-700">
+                  AM Updates
+                </TableHead>
                 <TableHead className="font-semibold text-slate-700 text-right">
                   Actions
                 </TableHead>
@@ -408,7 +446,7 @@ export default function CustomJobsTable({
               {loading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="h-24 text-center text-muted-foreground"
                   >
                     Loading...
@@ -417,7 +455,7 @@ export default function CustomJobsTable({
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No custom jobs found
@@ -526,6 +564,18 @@ export default function CustomJobsTable({
                         </Button>
                       </BackgroundGradient>
                     </TableCell>
+                    <TableCell className="w-[120px]">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setAmUpdatingJob(job);
+                          setAmUpdateModalOpen(true);
+                        }}
+                        className="h-8 rounded-md bg-linear-to-r from-sky-500 to-violet-600 px-2 text-[11px] font-medium text-white shadow-sm hover:from-sky-600 hover:to-violet-700"
+                      >
+                        AM Update
+                      </Button>
+                    </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
                         <Button
@@ -577,6 +627,23 @@ export default function CustomJobsTable({
           setSelectedJob(null);
         }}
         job={selectedJob}
+      />
+      <AMUpdateModal
+        open={amUpdateModalOpen}
+        onClose={() => {
+          setAmUpdateModalOpen(false);
+          setAmUpdatingJob(null);
+        }}
+        onSubmit={handleAmUpdate}
+        taskName={amUpdatingJob?.name ? stripHtml(amUpdatingJob.name) : undefined}
+        initialStatus={getAmUpdateStatus(amUpdatingJob)}
+        initialNote={getAmUpdateNote(amUpdatingJob)}
+        canEdit={
+          isAM &&
+          !!amUpdatingJob &&
+          (amUpdatingJob.status === "completed" ||
+            amUpdatingJob.status === "qc_approved")
+        }
       />
     </Card>
   );

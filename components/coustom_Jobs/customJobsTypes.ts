@@ -34,6 +34,8 @@ export type CustomJob = {
     count?: number;
     links?: string;
     link?: string;
+    notes?: string | null;
+    amUpdateStatus?: "approved" | "rejected" | null;
   };
 };
 

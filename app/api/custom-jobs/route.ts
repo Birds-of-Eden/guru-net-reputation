@@ -11,6 +11,7 @@ const prisma = new PrismaClient();
 
 type CustomJobPayload = {
   date?: string;
+  dueDate?: string;
   clientId?: string;
   name?: string; // Task লিখা হবে এখানে
   assignedToId?: string | null; // approved assignment flow পরে add করা যাবে
@@ -165,7 +166,11 @@ export async function POST(req: NextRequest) {
         assignedToId: body.assignedToId || null,
         categoryId: category.id,
         name: body.name.trim(),
-        dueDate: body.date ? new Date(body.date) : null,
+        dueDate: body.dueDate
+          ? new Date(body.dueDate)
+          : body.date
+            ? new Date(body.date)
+            : null,
         priority: body.priority || "medium",
         status: body.status || "requested",
         taskType: TaskType.customjob,

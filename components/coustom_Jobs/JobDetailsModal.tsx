@@ -50,6 +50,17 @@ function getStatusColor(status?: string) {
   }
 }
 
+function getAmUpdateColor(status?: string | null) {
+  switch (status) {
+    case "approved":
+      return "bg-emerald-500/10 text-emerald-700 border-emerald-200";
+    case "rejected":
+      return "bg-red-500/10 text-red-700 border-red-200";
+    default:
+      return "bg-gray-500/10 text-gray-700 border-gray-200";
+  }
+}
+
 function extractLinks(data: any): string[] {
   if (!data?.links) return [];
   return String(data.links)
@@ -75,6 +86,8 @@ export default function JobDetailsModal({
 
   const json = job.taskCompletionJson || {};
   const links = extractLinks(json);
+  const amUpdateStatus = json.amUpdateStatus;
+  const amUpdateNote = json.notes;
 
   const openAllLinks = () => {
     links.forEach((link) => {
@@ -246,6 +259,23 @@ export default function JobDetailsModal({
                 <div className="rounded-xl border border-yellow-100 bg-yellow-50 p-4 text-sm text-slate-800 whitespace-pre-wrap wrap-break-word">
                   {job.notes}
                 </div>
+              </div>
+            )}
+
+            {(amUpdateStatus || amUpdateNote) && (
+              <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    AM Update
+                  </h3>
+                  <Badge className={`border ${getAmUpdateColor(amUpdateStatus)}`}>
+                    {amUpdateStatus || "pending"}
+                  </Badge>
+                </div>
+                <div
+                  className="rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-800 whitespace-pre-wrap wrap-break-word [&_p]:my-0 [&_a]:text-blue-600 [&_a]:underline"
+                  dangerouslySetInnerHTML={{ __html: amUpdateNote || "<p>-</p>" }}
+                />
               </div>
             )}
 
