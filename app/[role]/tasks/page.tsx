@@ -430,128 +430,157 @@ export default function TasksPage() {
   return (
     <div className="py-8 px-4 md:px-6">
       {/* Header / Filters */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-lg mb-8 border border-slate-200/60 dark:border-slate-700/60">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Task Dashboard
-          </h1>
-          <div className="hidden md:flex gap-6">
-            <Kpi
-              title="Total Clients"
-              value={stats.totalClients}
-              icon={<Users className="h-6 w-6" />}
-              color="text-blue-600"
-              bg="bg-blue-50"
-            />
-            <Kpi
-              title="Total Tasks"
-              value={stats.totalTasks}
-              icon={<List className="h-6 w-6" />}
-              color="text-purple-600"
-              bg="bg-purple-50"
-            />
-            <Kpi
-              title="Completed"
-              value={stats.completedTasks}
-              icon={<CheckCircle className="h-6 w-6" />}
-              color="text-emerald-600"
-              bg="bg-emerald-50"
-            />
-            <Kpi
-              title="In Progress"
-              value={stats.inProgressTasks}
-              icon={<ClockIcon className="h-6 w-6" />}
-              color="text-amber-600"
-              bg="bg-amber-50"
-            />
-            <Kpi
-              title="Pending"
-              value={stats.pendingTasks}
-              icon={<AlertCircle className="h-6 w-6" />}
-              color="text-orange-600"
-              bg="bg-orange-50"
-            />
-          </div>
-        </div>
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 dark:border-slate-700/60 bg-white/95 dark:bg-slate-900/95 shadow-[0_20px_60px_-20px_rgba(15,23,42,0.25)] mb-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_28%),radial-gradient(circle_at_left,rgba(16,185,129,0.10),transparent_24%)] pointer-events-none" />
+        <div className="relative p-6 md:p-8">
+          <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6 mb-8">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/80 dark:bg-slate-800/70 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Task Overview
+              </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="relative w-full md:w-[320px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search clients…"
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3 items-center">
-            <div className="flex gap-2 items-center">
-              <Select
-                value={dateQuickFilter}
-                onValueChange={(value) => {
-                  const now = new Date();
-                  setDateQuickFilter(value);
-                  if (value === "today") {
-                    const d = format(now, "yyyy-MM-dd");
-                    setStartDate(d);
-                    setEndDate(d);
-                    void fetchAllTasks(d, d);
-                  } else if (value === "yesterday") {
-                    const d = format(subDays(now, 1), "yyyy-MM-dd");
-                    setStartDate(d);
-                    setEndDate(d);
-                    void fetchAllTasks(d, d);
-                  } else if (value === "tomorrow") {
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    const d = format(tomorrow, "yyyy-MM-dd");
-                    setStartDate(d);
-                    setEndDate(d);
-                    void fetchAllTasks(d, d);
-                  } else if (value === "last_7") {
-                    const s = format(subDays(now, 7), "yyyy-MM-dd");
-                    const e = format(now, "yyyy-MM-dd");
-                    setStartDate(s);
-                    setEndDate(e);
-                    void fetchAllTasks(s, e);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-[150px] h-9">
-                  <SelectValue placeholder="Select date" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="yesterday">Yesterday</SelectItem>
-                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="last_7">Last 7 Days</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  Task Dashboard
+                </h1>
+                <p className="mt-2 text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-2xl">
+                  Monitor client activity, track task progress, and filter work
+                  by date ranges from one unified workspace.
+                </p>
+              </div>
             </div>
 
-            {dateQuickFilter === "custom" && (
-              <div className="flex gap-2 items-center">
-                <Calendar className="h-4 w-4 text-slate-400" />
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 w-full xl:w-auto">
+              <Kpi
+                title="Total Clients"
+                value={stats.totalClients}
+                icon={<Users className="h-5 w-5" />}
+                color="text-blue-600 dark:text-blue-400"
+                bg="bg-blue-50 dark:bg-blue-500/10"
+              />
+              <Kpi
+                title="Total Tasks"
+                value={stats.totalTasks}
+                icon={<List className="h-5 w-5" />}
+                color="text-violet-600 dark:text-violet-400"
+                bg="bg-violet-50 dark:bg-violet-500/10"
+              />
+              <Kpi
+                title="Completed"
+                value={stats.completedTasks}
+                icon={<CheckCircle className="h-5 w-5" />}
+                color="text-emerald-600 dark:text-emerald-400"
+                bg="bg-emerald-50 dark:bg-emerald-500/10"
+              />
+              <Kpi
+                title="In Progress"
+                value={stats.inProgressTasks}
+                icon={<ClockIcon className="h-5 w-5" />}
+                color="text-amber-600 dark:text-amber-400"
+                bg="bg-amber-50 dark:bg-amber-500/10"
+              />
+              <Kpi
+                title="Pending"
+                value={stats.pendingTasks}
+                icon={<AlertCircle className="h-5 w-5" />}
+                color="text-orange-600 dark:text-orange-400"
+                bg="bg-orange-50 dark:bg-orange-500/10"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/80 dark:bg-slate-800/60 backdrop-blur-sm p-4 md:p-5">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+              <div className="relative w-full xl:max-w-sm">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-[150px]"
+                  placeholder="Search clients, tasks, or package..."
+                  className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-11 pr-4 text-sm shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500/30"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <span className="text-slate-500">–</span>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-[150px]"
-                />
-                <Button variant="outline" onClick={() => fetchAllTasks()}>
-                  Apply
-                </Button>
               </div>
-            )}
+
+              <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full xl:w-auto">
+                <Select
+                  value={dateQuickFilter}
+                  onValueChange={(value) => {
+                    const now = new Date();
+                    setDateQuickFilter(value);
+
+                    if (value === "today") {
+                      const d = format(now, "yyyy-MM-dd");
+                      setStartDate(d);
+                      setEndDate(d);
+                      void fetchAllTasks(d, d);
+                    } else if (value === "yesterday") {
+                      const d = format(subDays(now, 1), "yyyy-MM-dd");
+                      setStartDate(d);
+                      setEndDate(d);
+                      void fetchAllTasks(d, d);
+                    } else if (value === "tomorrow") {
+                      const tomorrow = new Date();
+                      tomorrow.setDate(tomorrow.getDate() + 1);
+                      const d = format(tomorrow, "yyyy-MM-dd");
+                      setStartDate(d);
+                      setEndDate(d);
+                      void fetchAllTasks(d, d);
+                    } else if (value === "last_7") {
+                      const s = format(subDays(now, 7), "yyyy-MM-dd");
+                      const e = format(now, "yyyy-MM-dd");
+                      setStartDate(s);
+                      setEndDate(e);
+                      void fetchAllTasks(s, e);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-11 min-w-[180px] rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-slate-500" />
+                      <SelectValue placeholder="Select date" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="yesterday">Yesterday</SelectItem>
+                    <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                    <SelectItem value="last_7">Last 7 Days</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {dateQuickFilter === "custom" && (
+                  <div className="flex flex-col md:flex-row md:items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <Input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="h-10 w-full md:w-[155px] rounded-lg"
+                      />
+                    </div>
+
+                    <span className="hidden md:inline text-slate-400">to</span>
+
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="h-10 w-full md:w-[155px] rounded-lg"
+                    />
+
+                    <Button
+                      onClick={() => fetchAllTasks()}
+                      className="h-10 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                    >
+                      Apply Filter
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -621,205 +650,93 @@ export default function TasksPage() {
 
             {/* Filter Section */}
             <div className="px-6 py-4 border-b bg-linear-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-              <div className="flex items-center gap-2 mb-3">
-                <Filter className="h-4 w-4 text-slate-500" />
-                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Filters
-                </span>
-              </div>
-              <div className="flex flex-col gap-4">
-                {/* Date Quick Filters */}
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "Today", value: "today" },
-                    { label: "Yesterday", value: "yesterday" },
-                    { label: "Tomorrow", value: "tomorrow" },
-                    { label: "Last 7 Days", value: "last_7" },
-                    { label: "Custom Range", value: "custom" },
-                  ].map((df) => (
+              <div className="flex flex-wrap gap-3 pt-1">
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                    Status
+                  </Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="qc_approved">QC Approved</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="reassigned">Reassigned</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                    Priority
+                  </Label>
+                  <Select
+                    value={priorityFilter}
+                    onValueChange={setPriorityFilter}
+                  >
+                    <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priority</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                    Category
+                  </Label>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
+                    <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      <SelectItem value="Social Asset">Social Asset</SelectItem>
+                      <SelectItem value="Web 2.0">Web 2.0</SelectItem>
+                      <SelectItem value="Additional Asset">
+                        Additional Asset
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {(taskSearchQuery ||
+                  statusFilter !== "all" ||
+                  priorityFilter !== "all" ||
+                  categoryFilter !== "all") && (
+                  <div className="flex items-end pb-0.5">
                     <Button
-                      key={df.value}
-                      variant={
-                        dateQuickFilter === df.value ? "default" : "outline"
-                      }
+                      variant="ghost"
                       size="sm"
-                      className="h-8 text-xs font-medium rounded-full"
                       onClick={() => {
-                        setDateQuickFilter(df.value);
-                        const now = new Date();
-                        if (df.value === "today") {
-                          const d = format(now, "yyyy-MM-dd");
-                          setStartDate(d);
-                          setEndDate(d);
-                        } else if (df.value === "yesterday") {
-                          const d = format(subDays(now, 1), "yyyy-MM-dd");
-                          setStartDate(d);
-                          setEndDate(d);
-                        } else if (df.value === "tomorrow") {
-                          const tomorrow = new Date();
-                          tomorrow.setDate(tomorrow.getDate() + 1);
-                          const d = format(tomorrow, "yyyy-MM-dd");
-                          setStartDate(d);
-                          setEndDate(d);
-                        } else if (df.value === "last_7") {
-                          setStartDate(format(subDays(now, 7), "yyyy-MM-dd"));
-                          setEndDate(format(now, "yyyy-MM-dd"));
-                        }
+                        setTaskSearchQuery("");
+                        setStatusFilter("all");
+                        setPriorityFilter("all");
+                        setCategoryFilter("all");
                       }}
+                      className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2"
                     >
-                      {df.label}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Date Range & Search */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <div className="flex items-center gap-1 pl-9">
-                        <Input
-                          type="date"
-                          value={startDate}
-                          onChange={(e) => {
-                            setStartDate(e.target.value);
-                            setDateQuickFilter("today");
-                          }}
-                          className="h-9 text-xs border-none bg-transparent focus-visible:ring-0 p-0 w-[110px]"
-                        />
-                        <span className="text-slate-400">to</span>
-                        <Input
-                          type="date"
-                          value={endDate}
-                          onChange={(e) => {
-                            setEndDate(e.target.value);
-                            setDateQuickFilter("today");
-                          }}
-                          className="h-9 text-xs border-none bg-transparent focus-visible:ring-0 p-0 w-[110px]"
-                        />
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="h-9 px-3 shrink-0"
-                      onClick={() => fetchAllTasks()}
-                    >
-                      Apply Range
+                      <X className="h-4 w-4 mr-1" />
+                      Reset Filters
                     </Button>
                   </div>
-
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search tasks by name..."
-                      className="pl-9 h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
-                      value={taskSearchQuery}
-                      onChange={(e) => setTaskSearchQuery(e.target.value)}
-                    />
-                    {taskSearchQuery && (
-                      <button
-                        onClick={() => setTaskSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 pt-1">
-                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
-                      Status
-                    </Label>
-                    <Select
-                      value={statusFilter}
-                      onValueChange={setStatusFilter}
-                    >
-                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="qc_approved">QC Approved</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="reassigned">Reassigned</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
-                      Priority
-                    </Label>
-                    <Select
-                      value={priorityFilter}
-                      onValueChange={setPriorityFilter}
-                    >
-                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
-                        <SelectValue placeholder="Priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Priority</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                    <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
-                      Category
-                    </Label>
-                    <Select
-                      value={categoryFilter}
-                      onValueChange={setCategoryFilter}
-                    >
-                      <SelectTrigger className="h-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl">
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="Social Asset">
-                          Social Asset
-                        </SelectItem>
-                        <SelectItem value="Web 2.0">Web 2.0</SelectItem>
-                        <SelectItem value="Additional Asset">
-                          Additional Asset
-                        </SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {(taskSearchQuery ||
-                    statusFilter !== "all" ||
-                    priorityFilter !== "all" ||
-                    categoryFilter !== "all") && (
-                    <div className="flex items-end pb-0.5">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setTaskSearchQuery("");
-                          setStatusFilter("all");
-                          setPriorityFilter("all");
-                          setCategoryFilter("all");
-                        }}
-                        className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2"
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Reset Filters
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
 
@@ -920,21 +837,27 @@ function Kpi({
   bg,
 }: {
   title: string;
-  value: number;
+  value: number | string;
   icon: React.ReactNode;
   color: string;
   bg: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div
-        className={`h-10 w-10 ${bg} ${color} rounded-xl grid place-items-center`}
-      >
-        {icon}
-      </div>
-      <div>
-        <div className="text-xs text-slate-500">{title}</div>
-        <div className="text-xl font-bold">{value}</div>
+    <div className="group rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/80 dark:bg-slate-900/70 p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {title}
+          </p>
+          <h3 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+            {value}
+          </h3>
+        </div>
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-xl ${bg} ${color} shadow-sm`}
+        >
+          {icon}
+        </div>
       </div>
     </div>
   );
@@ -947,70 +870,187 @@ function ClientCard({
   client: ClientStats;
   onClick: () => void;
 }) {
+  const initials = client.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const completionPct =
+    client.totalTasks > 0
+      ? Math.round((client.completed / client.totalTasks) * 100)
+      : 0;
+
+  const accent =
+    completionPct >= 70
+      ? {
+          ring: "from-emerald-500/20 via-emerald-400/10 to-transparent",
+          line: "from-emerald-500 to-teal-500",
+          badge:
+            "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20",
+          avatar:
+            "from-emerald-500 to-teal-500 text-white shadow-emerald-500/20",
+          progress: "from-emerald-500 to-teal-500",
+          glow: "group-hover:shadow-emerald-500/10",
+        }
+      : completionPct >= 35
+        ? {
+            ring: "from-blue-500/20 via-sky-400/10 to-transparent",
+            line: "from-blue-500 to-sky-500",
+            badge:
+              "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20",
+            avatar: "from-blue-500 to-sky-500 text-white shadow-blue-500/20",
+            progress: "from-blue-500 to-sky-500",
+            glow: "group-hover:shadow-blue-500/10",
+          }
+        : {
+            ring: "from-violet-500/20 via-purple-400/10 to-transparent",
+            line: "from-violet-500 to-purple-500",
+            badge:
+              "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-300 dark:border-violet-500/20",
+            avatar:
+              "from-violet-500 to-purple-500 text-white shadow-violet-500/20",
+            progress: "from-violet-500 to-purple-500",
+            glow: "group-hover:shadow-violet-500/10",
+          };
+
+  const stats = [
+    {
+      label: "Completed",
+      value: client.completed,
+      tone: "text-emerald-600 dark:text-emerald-400",
+      bg: "bg-emerald-50/80 dark:bg-emerald-500/10",
+    },
+    {
+      label: "In Progress",
+      value: client.inProgress,
+      tone: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-50/80 dark:bg-blue-500/10",
+    },
+    {
+      label: "Pending",
+      value: client.pending,
+      tone: "text-amber-600 dark:text-amber-400",
+      bg: "bg-amber-50/80 dark:bg-amber-500/10",
+    },
+    {
+      label: "Overdue",
+      value: client.overdue,
+      tone: "text-rose-600 dark:text-rose-400",
+      bg: "bg-rose-50/80 dark:bg-rose-500/10",
+    },
+  ];
+
   return (
     <Card
       onClick={onClick}
       className={cn(
-        "group cursor-pointer rounded-2xl border border-slate-200/70",
-        "bg-linear-to-br from-white to-slate-50",
-        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
-        "transition-all duration-300 ease-out",
+        "group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700/60",
+        "bg-white/95 dark:bg-slate-900/95 backdrop-blur",
+        "shadow-[0_10px_30px_-18px_rgba(15,23,42,0.25)]",
+        "transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-2xl",
+        accent.glow,
       )}
     >
-      {/* HEADER */}
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-800 group-hover:text-slate-900 transition-colors">
-            {client.name}
-          </h3>
-          <div className="p-1.5 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors">
-            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.14),transparent_28%),radial-gradient(circle_at_left,rgba(16,185,129,0.10),transparent_24%)]" />
+
+      <div
+        className={cn(
+          "absolute inset-x-0 top-0 h-1 bg-linear-to-r",
+          accent.line,
+        )}
+      />
+
+      <CardHeader className="relative px-5 pt-5 pb-4">
+        <div className="flex items-start gap-4">
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br text-sm font-bold shadow-lg",
+              accent.avatar,
+            )}
+          >
+            {initials}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold tracking-tight text-slate-900 transition-colors group-hover:text-black dark:text-slate-100 dark:group-hover:text-white">
+                  {client.name}
+                </h3>
+                <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+                  Package ID: {client.packageId}
+                </p>
+              </div>
+
+              <div
+                className={cn(
+                  "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+                  accent.badge,
+                )}
+              >
+                {completionPct}% Done
+              </div>
+            </div>
           </div>
         </div>
-        <p className="text-sm text-slate-500 mt-1">
-          Package:{" "}
-          <span className="font-medium text-slate-700">{client.packageId}</span>
-        </p>
       </CardHeader>
 
-      {/* CONTENT */}
-      <CardContent className="pt-3">
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-2 text-slate-700">
-            <CheckCircle className="h-4 w-4 text-emerald-500" />
-            <span className="font-medium">{client.completed}</span>
-            <span className="text-slate-400">Completed</span>
+      <CardContent className="relative px-5 pb-4">
+        <div className="mb-4 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Overall Progress
+            </span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              {client.completed}/{client.totalTasks}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-slate-700">
-            <ClockIcon className="h-4 w-4 text-blue-500" />
-            <span className="font-medium">{client.inProgress}</span>
-            <span className="text-slate-400">In Progress</span>
+
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
+            <div
+              className={cn(
+                "h-full rounded-full bg-linear-to-r transition-all duration-700",
+                accent.progress,
+              )}
+              style={{ width: `${completionPct}%` }}
+            />
           </div>
-          <div className="flex items-center gap-2 text-slate-700">
-            <AlertCircle className="h-4 w-4 text-amber-500" />
-            <span className="font-medium">{client.pending}</span>
-            <span className="text-slate-400">Pending</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-700">
-            <Flag className="h-4 w-4 text-rose-500" />
-            <span className="font-medium">{client.overdue}</span>
-            <span className="text-slate-400">Overdue</span>
-          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {stats.map((item) => (
+            <div
+              key={item.label}
+              className={cn(
+                "rounded-2xl border border-slate-200/70 px-3.5 py-3 dark:border-slate-800",
+                item.bg,
+              )}
+            >
+              <div className={cn("text-xl font-bold leading-none", item.tone)}>
+                {item.value}
+              </div>
+              <div className="mt-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {item.label}
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
 
-      {/* FOOTER */}
-      <CardFooter className="pt-3 flex justify-between items-center">
-        <Badge
-          variant="outline"
-          className="text-xs font-medium border-slate-200 text-slate-600 bg-slate-50 px-2 py-0.5"
-        >
-          Total Tasks: {client.totalTasks}
-        </Badge>
+      <CardFooter className="relative flex items-center justify-between border-t border-slate-200/70 px-5 py-3.5 dark:border-slate-800">
+        <div className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">
+            {client.totalTasks}
+          </span>{" "}
+          total tasks tracked
+        </div>
 
-        <span className="text-xs text-slate-400 font-medium tracking-wide">
-          View Details →
-        </span>
+        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 transition-all group-hover:translate-x-0.5 dark:text-slate-200">
+          View details
+          <ChevronRight className="h-4 w-4" />
+        </div>
       </CardFooter>
     </Card>
   );
