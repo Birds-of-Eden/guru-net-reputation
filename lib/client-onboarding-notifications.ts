@@ -38,9 +38,12 @@ const formatDateLabel = (value?: string | Date | null) => {
 };
 
 function buildNotificationMessage(payload: NotifyPayload) {
-  const statusLabel = String(payload.clientStatus ?? "").trim().toLowerCase() === "draft"
-    ? "New draft client created"
-    : "New client created";
+  const statusLabel =
+    String(payload.clientStatus ?? "")
+      .trim()
+      .toLowerCase() === "draft"
+      ? "New draft client created"
+      : "New client created";
   const bits = [
     `${statusLabel}: ${payload.clientName}`,
     payload.company ? `Company: ${payload.company}` : null,
@@ -124,7 +127,9 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
     });
 
     const participantUserIds = Array.from(
-      new Set(mainGroup?.participants.map((p) => p.userId).filter(Boolean) ?? []),
+      new Set(
+        mainGroup?.participants.map((p) => p.userId).filter(Boolean) ?? [],
+      ),
     );
 
     const participantEmails = Array.from(
@@ -135,7 +140,9 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
       ),
     );
 
-    const extraEmails = splitEmails(process.env.CLIENT_DRAFT_NOTIFICATION_EMAILS);
+    const extraEmails = splitEmails(
+      process.env.CLIENT_DRAFT_NOTIFICATION_EMAILS,
+    );
     const emailRecipients = Array.from(
       new Set([...participantEmails, ...extraEmails]),
     );
@@ -163,7 +170,9 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
     }
 
     const isDraftClient =
-      String(payload.clientStatus ?? "").trim().toLowerCase() === "draft";
+      String(payload.clientStatus ?? "")
+        .trim()
+        .toLowerCase() === "draft";
     const subject = `${isDraftClient ? "Draft client" : "Client"} created: ${payload.clientName}`;
     const startDate = formatDateLabel(payload.startDate);
     const endDate = formatDateLabel(payload.dueDate);
@@ -172,8 +181,13 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
       process.env.APP_URL?.replace(/\/$/, "") ||
       process.env.NEXTAUTH_URL?.replace(/\/$/, "") ||
       "http://localhost:3000";
-    const clientProfileUrl = `${baseUrl}/admin/clients/${payload.clientId}`;
-    const reviewUrl = `${baseUrl}/admin/clients`;
+    const roleSegment =
+      String(payload.createdByRole ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "") || "admin";
+    const clientProfileUrl = `${baseUrl}/${roleSegment}/clients/${payload.clientId}`;
+    const reviewUrl = `${baseUrl}/${roleSegment}/clients`;
     const text = [
       `A new ${isDraftClient ? "draft " : ""}client has been created.`,
       ``,

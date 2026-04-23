@@ -133,26 +133,37 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const requestedStatusChange =
       body.status !== undefined && body.status !== existing.status;
     const resolvedDueDate = body.dueDate ?? body.date;
+    const canReassignRejectedJob =
+      (existing.status === "completed" || existing.status === "qc_approved") &&
+      prevJson?.amUpdateStatus === "rejected" &&
+      (body.status === "pending" || body.status === "reassigned");
 
     if (requestedStatusChange) {
       const allowed =
         (existing.status === "requested" &&
           (body.status === "requested" || body.status === "approved")) ||
         (existing.status === "approved" &&
-          (body.status === "approved" || body.status === "pending"));
+          (body.status === "approved" || body.status === "pending")) ||
+        canReassignRejectedJob;
 
       if (!allowed) {
         return NextResponse.json(
           {
             success: false,
-            message: "Custom job status can only change from requested to approved, or approved to pending.",
+            message:
+              "Custom job status can only change from requested to approved, approved to pending, or rejected completed jobs back to pending/reassigned.",
           },
           { status: 400 }
         );
       }
     }
 
-    if (body.assignedToId !== undefined && body.assignedToId && existing.status !== "approved") {
+    if (
+      body.assignedToId !== undefined &&
+      body.assignedToId &&
+      existing.status !== "approved" &&
+      !(canReassignRejectedJob && body.assignedToId === existing.assignedToId)
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -204,6 +215,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ...(body.clientNotificationUpdate !== undefined
             ? { clientNotificationUpdate: body.clientNotificationUpdate }
             : {}),
+          ...(canReassignRejectedJob ? { amUpdateStatus: null, notes: null } : {}),
           ...(body.amUpdateStatus !== undefined
             ? { amUpdateStatus: body.amUpdateStatus }
             : {}),

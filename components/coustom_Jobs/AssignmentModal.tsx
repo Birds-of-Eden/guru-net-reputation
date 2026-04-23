@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   UserCheck,
   Clock,
@@ -27,6 +28,8 @@ import {
   Mail,
   ShieldCheck,
   TimerReset,
+  Check,
+  History,
 } from "lucide-react";
 
 type UserOption = {
@@ -42,6 +45,7 @@ type Props = {
   onClose: () => void;
   onAssign: (agentId: string, idealDurationMinutes?: number) => void;
   agents: UserOption[];
+  preferredAgentId?: string | null;
   taskName?: string;
   taskPriority?: string;
 };
@@ -51,17 +55,66 @@ export default function AssignmentModal({
   onClose,
   onAssign,
   agents,
+  preferredAgentId,
   taskName,
   taskPriority,
 }: Props) {
   const [selectedAgentId, setSelectedAgentId] = useState("");
   const [idealDurationMinutes, setIdealDurationMinutes] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [agentSearch, setAgentSearch] = useState("");
 
   const selectedAgent = useMemo(
     () => agents.find((a) => a.id === selectedAgentId),
     [agents, selectedAgentId]
   );
+
+  const visibleAgents = useMemo(() => {
+    const q = agentSearch.trim().toLowerCase();
+    const withScore = agents.map((a) => {
+      const isPreferred = !!preferredAgentId && a.id === preferredAgentId;
+      if (!q) {
+        return {
+          agent: a,
+          score: isPreferred ? 1000 : 0,
+          isPreferred,
+        };
+      }
+
+      const hay = `${a.name ?? ""} ${a.email ?? ""} ${a.category ?? ""}`
+        .trim()
+        .toLowerCase();
+      if (!hay.includes(q)) return { agent: a, score: -1, isPreferred };
+
+      let score = 0;
+      // Exact match on name
+      if (a.name?.toLowerCase() === q) score = 100;
+      // Starts with name
+      else if (a.name?.toLowerCase().startsWith(q)) score = 80;
+      // Starts with email
+      else if (a.email?.toLowerCase().startsWith(q)) score = 75;
+      // Contains in name
+      else if (a.name?.toLowerCase().includes(q)) score = 60;
+      // Contains in email
+      else if (a.email?.toLowerCase().includes(q)) score = 50;
+      // Contains in category
+      else if (a.category?.toLowerCase().includes(q)) score = 40;
+      // General contains
+      else score = 20;
+
+      if (isPreferred) score += 500;
+
+      return { agent: a, score, isPreferred };
+    });
+
+    const filtered = withScore.filter((item) => item.score >= 0);
+    filtered.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.agent.name.localeCompare(b.agent.name);
+    });
+
+    return filtered.map((item) => item.agent);
+  }, [agentSearch, agents, preferredAgentId]);
 
   if (!open) return null;
 
@@ -88,6 +141,7 @@ export default function AssignmentModal({
       onClose();
       setSelectedAgentId("");
       setIdealDurationMinutes(30);
+      setAgentSearch("");
     }
   };
 
@@ -167,44 +221,73 @@ export default function AssignmentModal({
                   </Label>
                 </div>
 
-                <Select
-                  value={selectedAgentId}
-                  onValueChange={(v) => setSelectedAgentId(v)}
-                >
-                  <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-white text-left shadow-sm transition focus:ring-2 focus:ring-violet-500 dark:border-slate-700 dark:bg-slate-950">
-                    <SelectValue placeholder="Choose an agent to assign task to..." />
-                  </SelectTrigger>
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+                  <Command shouldFilter={false} className="bg-transparent">
+                    <CommandInput
+                      value={agentSearch}
+                      onValueChange={setAgentSearch}
+                      placeholder="Search agent by name, email, or role..."
+                      className="h-14"
+                    />
+                    <CommandList className="max-h-72">
+                      <CommandEmpty>No agent found.</CommandEmpty>
+                      <CommandGroup>
+                        {visibleAgents.map((agent) => {
+                          const isSelected = selectedAgentId === agent.id;
+                          const isPreferred = preferredAgentId === agent.id;
 
-                  <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-700">
-                    {agents.map((agent) => (
-                      <SelectItem
-                        key={agent.id}
-                        value={agent.id}
-                        className="rounded-xl py-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                            <AvatarImage src={agent.image || undefined} />
-                            <AvatarFallback className="bg-linear-to-br from-violet-500 to-pink-500 text-xs font-bold text-white">
-                              {getInitials(agent.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          return (
+                            <CommandItem
+                              key={agent.id}
+                              value={`${agent.name} ${agent.email ?? ""} ${agent.category ?? ""}`}
+                              onSelect={() => setSelectedAgentId(agent.id)}
+                              className="mx-2 my-1 rounded-xl px-3 py-3"
+                            >
+                              <div className="flex w-full items-center gap-3">
+                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                  <AvatarImage src={agent.image || undefined} />
+                                  <AvatarFallback className="bg-linear-to-br from-violet-500 to-pink-500 text-xs font-bold text-white">
+                                    {getInitials(agent.name)}
+                                  </AvatarFallback>
+                                </Avatar>
 
-                          <div className="flex flex-col">
-                            <span className="font-medium text-slate-900 dark:text-slate-100">
-                              {agent.name}
-                            </span>
-                            {agent.category && (
-                              <span className="text-xs text-slate-500">
-                                {agent.category}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="truncate font-medium text-slate-900 dark:text-slate-100">
+                                      {agent.name}
+                                    </span>
+                                    {isPreferred && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                                        <History className="h-3 w-3" />
+                                        Last assigned
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                    {agent.email ? (
+                                      <span className="truncate">{agent.email}</span>
+                                    ) : null}
+                                    {agent.category ? (
+                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 dark:bg-slate-800">
+                                        {agent.category}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </div>
+
+                                {isSelected && (
+                                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-500 text-white">
+                                    <Check className="h-4 w-4" />
+                                  </div>
+                                )}
+                              </div>
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </div>
               </div>
 
               {selectedAgent && (

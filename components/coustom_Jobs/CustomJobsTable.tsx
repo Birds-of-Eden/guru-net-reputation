@@ -143,6 +143,8 @@ function statusBadgeClass(status: string) {
       return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20";
     case "overdue":
       return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20";
+    case "reassigned":
+      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20";
     case "qc_approved":
       return "bg-green-500/10 text-green-700 border border-green-200 hover:bg-green-500/20";
     default:
@@ -172,6 +174,7 @@ export default function CustomJobsTable({
   const [amUpdatingJob, setAmUpdatingJob] = useState<CustomJob | null>(null);
   const [searchPopoverOpen, setSearchPopoverOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
+  const [reassigningJobId, setReassigningJobId] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams<{ role: string }>();
   const { user } = useAuth();
@@ -293,6 +296,32 @@ export default function CustomJobsTable({
     } catch (error) {
       console.error(error);
       throw error;
+    }
+  };
+
+  const handleReassignToCurrentAgent = async (job: CustomJob) => {
+    try {
+      setReassigningJobId(job.id);
+      const dueDate = new Date().toISOString();
+
+      const res = await fetch(`/api/custom-jobs/${job.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "reassigned",
+          dueDate,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Reassign failed");
+      }
+      onRefresh?.();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Reassign failed");
+    } finally {
+      setReassigningJobId(null);
     }
   };
 
@@ -531,10 +560,23 @@ export default function CustomJobsTable({
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {job.assignedToName ? (
-                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
-                          <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                          {job.assignedToName}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                            <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                            {job.assignedToName}
+                          </span>
+                          {getAmUpdateStatus(job) === "rejected" && !isAM && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReassignToCurrentAgent(job)}
+                              disabled={reassigningJobId === job.id}
+                              className="h-8 rounded-md px-3 text-xs font-medium bg-red-500 hover:bg-red-700 text-white hover:text-white"
+                            >
+                              {reassigningJobId === job.id ? "Reassigning..." : "Reassign"}
+                            </Button>
+                          )}
+                        </div>
                       ) : job.status === "approved" && !isAM ? (
                         <Button
                           size="sm"
@@ -617,6 +659,7 @@ export default function CustomJobsTable({
         }}
         onAssign={handleAssign}
         agents={agents}
+        preferredAgentId={jobs.find((j) => j.id === assigningJobId)?.assignedToId}
         taskName={jobs.find((j) => j.id === assigningJobId)?.name ? stripHtml(jobs.find((j) => j.id === assigningJobId)?.name) : undefined}
         taskPriority={jobs.find((j) => j.id === assigningJobId)?.priority}
       />
