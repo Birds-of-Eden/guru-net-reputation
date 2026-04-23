@@ -137,6 +137,7 @@ const ICONS: Record<string, React.ReactNode> = {
   "Team Management": <Users className="h-4 w-4" strokeWidth={1.75} />,
   "User Management": <UserCircle className="h-4 w-4" strokeWidth={1.75} />,
   "Role Permissions": <Key className="h-4 w-4" strokeWidth={1.75} />,
+  Management: <Settings className="h-4 w-4" strokeWidth={1.75} />,
   Settings: <Settings className="h-4 w-4" strokeWidth={1.75} />,
   Configuration: <FolderTree className="h-4 w-4" strokeWidth={1.75} />,
 
@@ -393,40 +394,34 @@ function buildNav(role: Role): NavItem[] {
       ],
     },
 
-    // Team / Role-perms / User / Activity
+    // Management
     {
-      title: "Team Management",
-      url: p(r, "/teams"),
-      permission: "view_teams_manage",
-    },
-    {
-      title: "Role Permissions",
-      url: p(r, "/role-permissions"),
-      permission: "view_role_permissions",
-    },
-    {
-      title: "User Management",
-      url: p(r, "/user"),
-      permission: "view_user_management",
-    },
-    {
-      title: "Activity Logs",
-      url: p(r, "/activity"),
-      permission: "view_activity_logs",
-    },
-    // Settings -> Configuration -> Asset Types
-    {
-      title: "Settings",
+      title: "Management",
       children: [
         {
-          title: "Configuration",
-          children: [
-            {
-              title: "Asset Types",
-              url: p(r, "/asset-types"),
-              permission: "asset_type_manage",
-            },
-          ],
+          title: "Team Management",
+          url: p(r, "/teams"),
+          permission: "view_teams_manage",
+        },
+        {
+          title: "Role Permissions",
+          url: p(r, "/role-permissions"),
+          permission: "view_role_permissions",
+        },
+        {
+          title: "User Management",
+          url: p(r, "/user"),
+          permission: "view_user_management",
+        },
+        {
+          title: "Activity Logs",
+          url: p(r, "/activity"),
+          permission: "view_activity_logs",
+        },
+        {
+          title: "Asset Types",
+          url: p(r, "/asset-types"),
+          permission: "asset_type_manage",
         },
       ],
     },
