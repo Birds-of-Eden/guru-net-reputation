@@ -43,6 +43,30 @@ export async function GET(
       orderBy: { name: "asc" },
     });
 
+    const pendingDraftClients = await prisma.client.findMany({
+      where: {
+        packageId,
+        status: "draft",
+      },
+      select: {
+        id: true,
+        client_field_06: true,
+      },
+    });
+
+    const pendingDraftByTemplateId = new Map<string, number>();
+    for (const client of pendingDraftClients) {
+      const pendingTemplateId =
+        typeof (client.client_field_06 as any)?.pendingTemplateId === "string"
+          ? String((client.client_field_06 as any).pendingTemplateId).trim()
+          : "";
+      if (!pendingTemplateId) continue;
+      pendingDraftByTemplateId.set(
+        pendingTemplateId,
+        (pendingDraftByTemplateId.get(pendingTemplateId) ?? 0) + 1
+      );
+    }
+
     // 2) Enrich each template (clients, tasksCount, plus a small breakdown for site assets)
     const enriched = await Promise.all(
       templates.map(async (t) => {
@@ -95,6 +119,9 @@ export async function GET(
           assignedClients: clients,
           assignedClientsCount: clients.length,
           tasksCount,
+          pendingDraftClientsCount: pendingDraftByTemplateId.get(t.id) ?? 0,
+          hasPendingDraftPublish:
+            (pendingDraftByTemplateId.get(t.id) ?? 0) > 0,
         };
       })
     );

@@ -115,6 +115,8 @@ interface Template {
   }>;
   assignedClientsCount?: number;
   tasksCount: number;
+  pendingDraftClientsCount?: number;
+  hasPendingDraftPublish?: boolean;
 }
 
 type FilterStatus = "all" | "draft" | "requested" | "approved" | "rejected";
@@ -127,6 +129,14 @@ export default function TemplateListPage() {
   const [viewingTemplate, setViewingTemplate] = useState<Template | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user: currentUser, loading: sessionLoading } = useUserSession();
+  const currentUserRole = String(
+    typeof (currentUser as any)?.role === "string"
+      ? (currentUser as any)?.role
+      : (currentUser as any)?.role?.name ?? ""
+  )
+    .trim()
+    .toLowerCase();
+  const shouldHideDraftAttention = ["am", "am_ceo"].includes(currentUserRole);
 
   const canViewTemplate =
     !sessionLoading &&
@@ -665,15 +675,19 @@ export default function TemplateListPage() {
               // Detect if this is a customized template
               const isCustomized = template.description?.includes("Custom template for client:") || false;
               const isMainTemplate = !isCustomized;
+              const hasPendingDraftPublish =
+                !!template.hasPendingDraftPublish && !shouldHideDraftAttention;
               
               return (
                 <Card
                   key={template.id}
                   className={cn(
-                    "group overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 border-0 ring-2 hover:scale-101",
-                    isCustomized 
-                      ? "bg-linear-to-br from-purple-50 to-pink-50 ring-purple-300 hover:ring-purple-400"
-                      : "bg-white/90 ring-gray-200 hover:ring-blue-300"
+                    "group overflow-hidden backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-900 border-0 ring-2 hover:scale-101",
+                    hasPendingDraftPublish
+                      ? "bg-linear-to-br from-amber-50 to-orange-50 ring-amber-300 hover:ring-amber-400"
+                      : isCustomized 
+                        ? "bg-linear-to-br from-purple-50 to-pink-50 ring-purple-300 hover:ring-purple-400"
+                        : "bg-white/90 ring-gray-200 hover:ring-blue-300"
                   )}
                 >
                   <CardHeader className={cn(
@@ -731,6 +745,13 @@ export default function TemplateListPage() {
                         </div>
                         {getStatusBadge(template.status)}
                       </div>
+                      {hasPendingDraftPublish && (
+                        <div className="mt-2">
+                          <Badge className="bg-linear-to-r from-orange-500 to-amber-500 text-white animate-[pulse_900ms_ease-in-out_infinite]">
+                            Pending Publish {template.pendingDraftClientsCount ? `(${template.pendingDraftClientsCount})` : ""}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
 
@@ -874,7 +895,10 @@ export default function TemplateListPage() {
                         </Button>
                       )}
 
-                      {canEditTemplate && (template.assignedClientsCount ?? 0) === 0 && (
+                      {canEditTemplate &&
+                        ((template.assignedClientsCount ?? 0) === 0 ||
+                          normalizeTemplateStatus(template.status) === "draft" ||
+                          template.hasPendingDraftPublish) && (
                         <Button
                           variant="outline"
                           size="sm"

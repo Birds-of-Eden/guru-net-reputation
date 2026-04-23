@@ -33,8 +33,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { AssignmentPreview } from "./assignment-preview";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/auth-context";
 
 // --- TYPE DEFINITIONS ---
 type AMUser = { id: string; name: string | null; email: string | null };
@@ -237,6 +237,14 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
+  const userRole = String(
+    typeof user?.role === "string" ? user.role : user?.role?.name ?? "",
+  )
+    .trim()
+    .toLowerCase();
+  const shouldCreateDraftOnly =
+    userRole === "am" || userRole === "am_ceo";
 
   // ⚡ OPTIMIZED: Use SWR for parallel fetches with automatic caching
   const jsonFetcher = async (url: string) => {
@@ -510,7 +518,11 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
       const clientRes = await fetch("/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(restOfData),
+        body: JSON.stringify({
+          ...restOfData,
+          templateId: formData.templateId,
+          ...(shouldCreateDraftOnly ? { status: "draft" } : {}),
+        }),
       });
 
       const clientResult = await clientRes.json();
@@ -519,24 +531,33 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
         setIsSaving(false);
         return;
       }
-      toast.success("Client created successfully!");
+      toast.success(
+        shouldCreateDraftOnly
+          ? "Draft client created successfully!"
+          : "Client created successfully!",
+      );
 
       const createdClientId: string =
         clientResult?.id ?? clientResult?.client?.id ?? clientResult?.data?.id;
 
-      if (formData.templateId && createdClientId) {
+      if (!shouldCreateDraftOnly && formData.templateId && createdClientId) {
         const assignmentRes = await fetch("/api/assignments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             templateId: formData.templateId,
             clientId: createdClientId,
-            status: "active",
+            status: shouldCreateDraftOnly ? "pending" : "active",
+            createTasks: !shouldCreateDraftOnly,
           }),
         });
 
         if (assignmentRes.ok) {
-          toast.success("Template assigned successfully!");
+          toast.success(
+            shouldCreateDraftOnly
+              ? "Template linked successfully without creating tasks."
+              : "Template assigned successfully!",
+          );
         } else {
           toast.warning("Client created but template assignment failed.");
         }
@@ -935,21 +956,6 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
               </div>
             ))}
           </div>
-        </ReviewSectionCard>
-      )}
-
-      {/* Assignment Preview */}
-      {formData.templateId && (
-        <ReviewSectionCard
-          icon={Package}
-          title="Template Assignment Preview"
-          gradient="from-indigo-50 to-blue-50"
-        >
-          <AssignmentPreview
-            templateId={formData.templateId}
-            packageId={formData.packageId || ""}
-            templateName={fetchedData.templateName}
-          />
         </ReviewSectionCard>
       )}
 

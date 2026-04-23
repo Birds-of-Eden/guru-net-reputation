@@ -1065,7 +1065,7 @@ export function CreateTemplateModal({
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
             <FileText className="w-5 h-5 text-blue-600" />
-            {isEditMode ? "Edit Template dfgfg" : "Create New Template"}
+            {isEditMode ? "Edit Template" : "Create New Template"}
           </DialogTitle>
         </DialogHeader>
 

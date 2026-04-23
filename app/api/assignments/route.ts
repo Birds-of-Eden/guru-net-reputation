@@ -122,11 +122,13 @@ export async function POST(request: NextRequest) {
       templateId,
       status = "pending",
       agentIds = [],
+      createTasks = true,
     } = body as {
       clientId?: string;
       templateId?: string | null;
       status?: string;
       agentIds?: string[];
+      createTasks?: boolean;
     };
 
     if (!clientId) {
@@ -198,29 +200,31 @@ export async function POST(request: NextRequest) {
         const now = new Date();
         const defaultDue = addDays(now, 7);
 
-        const tasksToCreate = template.sitesAssets.map((site) => {
-          const duration = site.defaultIdealDurationMinutes ?? 30;
-          const type = normalizeAssetTypeSlug(site.type);
-          const categoryName = resolveCategoryName(
-            type,
-            assetTypeMap,
-            CATEGORY_NAME_BY_TYPE
-          );
-          const categoryId = idByName.get(categoryName) ?? null;
+        const tasksToCreate = createTasks
+          ? template.sitesAssets.map((site) => {
+              const duration = site.defaultIdealDurationMinutes ?? 30;
+              const type = normalizeAssetTypeSlug(site.type);
+              const categoryName = resolveCategoryName(
+                type,
+                assetTypeMap,
+                CATEGORY_NAME_BY_TYPE
+              );
+              const categoryId = idByName.get(categoryName) ?? null;
 
-          return {
-            id: randomUUID(),
-            name: `${site.name} Task`,
-            assignmentId: assignment.id,
-            clientId,
-            templateSiteAssetId: site.id,
-            categoryId,
-            dueDate: defaultDue,
-            status: TaskStatus.pending,
-            priority: TaskPriority.medium,
-            idealDurationMinutes: duration,
-          };
-        });
+              return {
+                id: randomUUID(),
+                name: `${site.name} Task`,
+                assignmentId: assignment.id,
+                clientId,
+                templateSiteAssetId: site.id,
+                categoryId,
+                dueDate: defaultDue,
+                status: TaskStatus.pending,
+                priority: TaskPriority.medium,
+                idealDurationMinutes: duration,
+              };
+            })
+          : [];
 
         const settingsToCreate = template.sitesAssets.map((site) => ({
           assignmentId: assignment.id,

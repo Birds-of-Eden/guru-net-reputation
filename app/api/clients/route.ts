@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { notifyDraftClientCreated } from "@/lib/client-onboarding-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -571,6 +572,17 @@ export async function GET(req: Request) {
 // ============ POST /api/clients ============
 export async function POST(req: NextRequest) {
   try {
+    const currentUser = await getAuthUser();
+    const currentUserRole = String(
+      typeof currentUser?.role === "string"
+        ? currentUser.role
+        : currentUser?.role?.name ?? "",
+    )
+      .trim()
+      .toLowerCase();
+    const isAmCreator =
+      currentUserRole === "am" || currentUserRole === "am_ceo";
+
     const body = await req.json();
 
     const {
@@ -595,6 +607,7 @@ export async function POST(req: NextRequest) {
       progress,
       status,
       packageId,
+      templateId,
       startDate,
       dueDate,
       socialLinks = [],
@@ -675,8 +688,15 @@ export async function POST(req: NextRequest) {
           imageDrivelink: normalizeImageDrivelink(imageDrivelink),
           avatar,
           progress: progressNumber as any,
-          status,
+          status: isAmCreator ? "draft" : status,
           packageId,
+          client_field_06:
+            isAmCreator && typeof templateId === "string" && templateId.trim()
+              ? {
+                  pendingTemplateId: templateId.trim(),
+                  pendingTemplateSelectedAt: new Date().toISOString(),
+                }
+              : undefined,
           startDate: parseDate(startDate) as any,
           dueDate: parseDate(dueDate) as any,
           otherField: [
@@ -839,6 +859,42 @@ export async function POST(req: NextRequest) {
         console.error("Activity fallback failed:", e2);
       }
     }
+
+    const [pkg, assignmentTemplate, assignedAm] = await Promise.all([
+      client.packageId
+        ? prisma.package.findUnique({
+            where: { id: client.packageId },
+            select: { name: true },
+          })
+        : Promise.resolve(null),
+      templateId
+        ? prisma.template.findUnique({
+            where: { id: String(templateId) },
+            select: { name: true },
+          })
+        : Promise.resolve(null),
+      client.amId
+        ? prisma.user.findUnique({
+            where: { id: client.amId },
+            select: { name: true, email: true },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    void notifyDraftClientCreated({
+      clientId: client.id,
+      clientName: client.name,
+      clientStatus: client.status ?? null,
+      startDate: client.startDate ?? null,
+      dueDate: client.dueDate ?? null,
+      company: client.company ?? null,
+      packageName: pkg?.name ?? null,
+      templateName: assignmentTemplate?.name ?? null,
+      createdByName: currentUser?.name ?? null,
+      createdByRole: currentUserRole,
+      amName: assignedAm?.name ?? null,
+      amEmail: assignedAm?.email ?? null,
+    });
 
     return NextResponse.json(client, { status: 201 });
   } catch (error) {

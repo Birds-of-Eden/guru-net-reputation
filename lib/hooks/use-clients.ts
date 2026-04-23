@@ -52,7 +52,19 @@ export function useClients() {
     dedupingInterval: 3000,
   });
 
-  const clients = data?.clients ?? [];
+  const clients = useMemo(() => {
+    const items = [...(data?.clients ?? [])];
+    items.sort((a, b) => {
+      const aDraft = String(a.status ?? "").trim().toLowerCase() === "draft";
+      const bDraft = String(b.status ?? "").trim().toLowerCase() === "draft";
+      if (aDraft !== bDraft) return aDraft ? -1 : 1;
+
+      const aCreated = new Date(a.createdAt ?? 0).getTime();
+      const bCreated = new Date(b.createdAt ?? 0).getTime();
+      return bCreated - aCreated;
+    });
+    return items;
+  }, [data?.clients]);
   const pagination = data?.pagination;
 
   // Helpers

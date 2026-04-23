@@ -58,6 +58,16 @@ export async function GET(request: Request) {
     });
 
     const packageIds = pkgs.map((p) => p.id);
+    const pendingDraftClients = await prisma.client.findMany({
+      where: {
+        status: "draft",
+        packageId: { in: packageIds },
+      },
+      select: {
+        packageId: true,
+        client_field_06: true,
+      },
+    });
 
     // Pull ALL TemplateTeamMember rows for templates under these packages,
     // selecting each row’s agentId and the template’s packageId
@@ -95,6 +105,19 @@ export async function GET(request: Request) {
       )
     );
 
+    const pendingDraftCountByPackage = new Map<string, number>();
+    for (const client of pendingDraftClients) {
+      const pendingTemplateId =
+        typeof (client.client_field_06 as any)?.pendingTemplateId === "string"
+          ? String((client.client_field_06 as any).pendingTemplateId).trim()
+          : "";
+      if (!client.packageId || !pendingTemplateId) continue;
+      pendingDraftCountByPackage.set(
+        client.packageId,
+        (pendingDraftCountByPackage.get(client.packageId) ?? 0) + 1
+      );
+    }
+
     const enriched = pkgs.map((p, i) => {
       const activeTemplates =
         p.templates?.filter((t) => isApprovedTemplateStatus(t.status)).length ||
@@ -114,6 +137,8 @@ export async function GET(request: Request) {
 
       // ✅ Team from TemplateTeamMember → Template → Package (UNIQUE agents)
       const teamMembers = teamUniqueByPkg.get(p.id)?.size ?? 0;
+      const pendingDraftPublish =
+        pendingDraftCountByPackage.get(p.id) ?? 0;
       // If you prefer TOTAL rows instead, swap to:
       // const teamMembers = teamTotalByPkg.get(p.id) ?? 0;
 
@@ -133,6 +158,7 @@ export async function GET(request: Request) {
           teamMembers,
           assignments,
           tasks: tasksCounts[i] || 0,
+          pendingDraftPublish,
         },
       };
     });

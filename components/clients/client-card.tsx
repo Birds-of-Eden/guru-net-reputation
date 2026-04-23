@@ -22,6 +22,7 @@ import {
   ArrowUpCircle,
   Heart,
   Calendar,
+  Flame,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitialsFromName, nameToColor } from "@/utils/avatar";
@@ -76,6 +77,7 @@ const ClientCardComponent = function ClientCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const [openDanger, setOpenDanger] = useState(false);
   const [openUpgrade, setOpenUpgrade] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const prefetchedDetailUrlRef = useRef<string | null>(null);
 
   // ⚡ OPTIMIZED: Memoize utility functions
@@ -247,6 +249,50 @@ const ClientCardComponent = function ClientCard({
 
   const handleUpgrade = () => setOpenUpgrade(true);
   const isAmCeo = role === "am_ceo";
+  const isAmRole = role === "am" || role === "am_ceo";
+  const normalizedClientStatus = String(client.status ?? "").trim().toLowerCase();
+  const isDraftClient = normalizedClientStatus === "draft";
+  const shouldShowDraftAttention = isDraftClient && !isAmRole;
+  const canPublishClient =
+    shouldShowDraftAttention && ["admin", "manager"].includes(role ?? "");
+
+  const handlePublish = useCallback(async () => {
+    if (!canPublishClient || isPublishing) return;
+
+    try {
+      setIsPublishing(true);
+      const response = await fetch(`/api/clients/${client.id}/publish`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to publish client");
+      }
+
+      toast.success(
+        `Client published. ${Number(data?.createdTasks ?? 0)} task(s) created.`,
+      );
+      await Promise.all([
+        mutateCache(
+          (key) => typeof key === "string" && key.startsWith("/api/clients"),
+          undefined,
+          { revalidate: true },
+        ),
+        mutateCache(
+          (key) =>
+            typeof key === "string" && key.startsWith("/api/zisanpackages"),
+          undefined,
+          { revalidate: true },
+        ),
+      ]);
+      router.refresh();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to publish client");
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [canPublishClient, client.id, isPublishing, mutateCache, router]);
 
   // Early returns after all hooks are called
   if (deleted) return null;
@@ -257,9 +303,21 @@ const ClientCardComponent = function ClientCard({
   }
 
   return (
-    <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white">
+    <Card
+      className={`overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white ${
+        shouldShowDraftAttention
+          ? "border-amber-300 shadow-amber-200/70 shadow-xl ring-1 ring-amber-200/80"
+          : "border-gray-100 shadow-lg"
+      }`}
+    >
       {/* Header */}
-      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50">
+      <CardHeader
+        className={`p-6 border-b ${
+          shouldShowDraftAttention
+            ? "border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-yellow-50"
+            : "border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50"
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-white shadow-md">
@@ -279,6 +337,13 @@ const ClientCardComponent = function ClientCard({
           </div>
 
           <div className="flex flex-col items-end gap-2">
+            {shouldShowDraftAttention && (
+              <Badge className="animate-pulse bg-linear-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-3 py-1.5 rounded-full shadow-md">
+                <Flame className="h-4 w-4 mr-1.5" />
+                Need Attention
+              </Badge>
+            )}
+
             {isAmCeo && (
               <TooltipProvider>
                 <Tooltip>
@@ -433,6 +498,17 @@ const ClientCardComponent = function ClientCard({
       {/* Footer */}
       <CardFooter className="border-t border-gray-100 bg-gray-50 p-6">
         <div className="flex flex-wrap gap-3 w-full">
+          {canPublishClient && (
+            <Button
+              onClick={handlePublish}
+              disabled={isPublishing}
+              className="animate-pulse flex-1 min-w-[150px] bg-linear-to-r from-orange-500 via-orange-600 to-orange-700 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-900"
+            >
+              <Flame className="h-4 w-4 mr-2" />
+              {isPublishing ? "Publishing..." : "Publish"}
+            </Button>
+          )}
+
           {canViewDetails && (
             <Button
               onClick={handleViewDetails}

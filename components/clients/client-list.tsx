@@ -1,14 +1,18 @@
 //lint error fixed
 
 "use client";
-import { Eye, Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Eye, Trash2, Flame } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { Client } from "@/types/client";
-import { hasPermissionClient } from "@/lib/permissions-client";
 import { handleDeleteClient } from "./handleDeleteClient";
+import { useUserSession } from "@/lib/hooks/use-user-session";
+import { toast } from "sonner";
 
 interface ClientListProps {
   clients: Client[];
@@ -16,6 +20,51 @@ interface ClientListProps {
 }
 
 export function ClientList({ clients, onViewDetails }: ClientListProps) {
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
+  const { user } = useUserSession();
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const role = String(
+    (user as any)?.role?.name ?? (user as any)?.role ?? ""
+  ).toLowerCase();
+
+  const handlePublish = useCallback(
+    async (clientId: string) => {
+      try {
+        setPublishingId(clientId);
+        const response = await fetch(`/api/clients/${clientId}/publish`, {
+          method: "POST",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data?.message || "Failed to publish client");
+        }
+        toast.success(
+          `Client published. ${Number(data?.createdTasks ?? 0)} task(s) created.`,
+        );
+        await Promise.all([
+          mutate(
+            (key) => typeof key === "string" && key.startsWith("/api/clients"),
+            undefined,
+            { revalidate: true },
+          ),
+          mutate(
+            (key) =>
+              typeof key === "string" && key.startsWith("/api/zisanpackages"),
+            undefined,
+            { revalidate: true },
+          ),
+        ]);
+        router.refresh();
+      } catch (error: any) {
+        toast.error(error?.message || "Failed to publish client");
+      } finally {
+        setPublishingId(null);
+      }
+    },
+    [mutate, router]
+  );
+
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
       <div className="grid grid-cols-[1.5fr_auto_auto_auto_auto_auto] p-4 bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-700">
@@ -27,9 +76,22 @@ export function ClientList({ clients, onViewDetails }: ClientListProps) {
         <div className="text-center w-28">Actions</div>
       </div>
       {clients.map((client) => (
+        (() => {
+          const isDraftClient =
+            String(client.status ?? "").trim().toLowerCase() === "draft";
+          const shouldShowDraftAttention =
+            isDraftClient && !["am", "am_ceo"].includes(role);
+          const canPublishClient =
+            shouldShowDraftAttention && ["admin", "manager"].includes(role);
+
+          return (
         <div
           key={client.id}
-          className="grid grid-cols-[1.5fr_auto_auto_auto_auto_auto] p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center last:border-b-0"
+          className={`grid grid-cols-[1.5fr_auto_auto_auto_auto_auto] p-4 border-b transition-colors items-center last:border-b-0 ${
+            shouldShowDraftAttention
+              ? "border-amber-200 bg-amber-50/70 hover:bg-amber-50"
+              : "border-gray-100 hover:bg-gray-50"
+          }`}
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12 border-2 border-gray-100 shadow-sm">
@@ -90,6 +152,17 @@ export function ClientList({ clients, onViewDetails }: ClientListProps) {
             </div>
           </div>
           <div className="flex items-center justify-center gap-1 w-28">
+            {canPublishClient && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="animate-pulse h-9 w-9 rounded-full border border-orange-200 bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 transition-colors"
+                disabled={publishingId === client.id}
+                onClick={() => handlePublish(client.id)}
+              >
+                <Flame className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -108,6 +181,8 @@ export function ClientList({ clients, onViewDetails }: ClientListProps) {
             </Button>
           </div>
         </div>
+          );
+        })()
       ))}
     </div>
   );

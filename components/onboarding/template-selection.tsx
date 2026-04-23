@@ -28,6 +28,7 @@ import {
 import type { StepProps } from "@/types/onboarding";
 import { toast } from "sonner";
 import { TemplateViewModal } from "@/components/package/Template-View-Modal";
+import { useAuth } from "@/context/auth-context";
 import {
   getTemplateStatusLabel,
   normalizeTemplateStatus,
@@ -53,10 +54,17 @@ export function TemplateSelection({
   onNext,
   onPrevious,
 }: StepProps) {
+  const { user } = useAuth();
   const [selectedTemplate, setSelectedTemplate] = useState<string>(
     formData.templateId || ""
   );
   const [viewingTemplate, setViewingTemplate] = useState<Template | null>(null);
+  const userRole = String(
+    typeof user?.role === "string" ? user.role : user?.role?.name ?? ""
+  )
+    .trim()
+    .toLowerCase();
+  const canUseDraftTemplates = userRole === "am" || userRole === "am_ceo";
 
   // ⚡ OPTIMIZED: Use SWR for automatic caching
   const jsonFetcher = async (url: string) => {
@@ -99,12 +107,17 @@ export function TemplateSelection({
     toast.success("Template selected successfully!");
   };
 
-  const approvedTemplates = useMemo(
+  const availableTemplates = useMemo(
     () =>
       templates.filter(
-        (template) => normalizeTemplateStatus(template.status) === "approved",
+        (template) =>
+          canUseDraftTemplates
+            ? ["approved", "draft"].includes(
+                normalizeTemplateStatus(template.status),
+              )
+            : normalizeTemplateStatus(template.status) === "approved",
       ),
-    [templates],
+    [canUseDraftTemplates, templates],
   );
 
   const getStatusColor = (status: string) => {
@@ -174,7 +187,7 @@ export function TemplateSelection({
         </p>
       </div>
 
-      {approvedTemplates.length === 0 ? (
+      {availableTemplates.length === 0 ? (
         <div className="text-center py-16">
           <div className="mx-auto w-32 h-32 bg-linear-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
             <FileText className="w-16 h-16 text-purple-600" />
@@ -183,13 +196,14 @@ export function TemplateSelection({
             No Templates Available
           </h3>
           <p className="text-gray-600 text-lg max-w-md mx-auto">
-            There are no templates available for the selected package. Please
-            contact support or try a different package.
+            {canUseDraftTemplates
+              ? "There are no approved or draft templates available for the selected package."
+              : "There are no approved templates available for the selected package. Please contact support or try a different package."}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {approvedTemplates.map((template, index) => {
+          {availableTemplates.map((template, index) => {
             const isCustomized = template.description?.includes(
               "Custom template for client:"
             );

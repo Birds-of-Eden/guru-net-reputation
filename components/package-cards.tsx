@@ -44,6 +44,7 @@ interface PackageStats {
   teamMembers: number;
   assignments: number;
   tasks: number;
+  pendingDraftPublish?: number;
 }
 
 interface Package {
@@ -65,6 +66,14 @@ export function PackageCards() {
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user, loading } = useUserSession();
+  const userRole = String(
+    typeof (user as any)?.role === "string"
+      ? (user as any)?.role
+      : (user as any)?.role?.name ?? ""
+  )
+    .trim()
+    .toLowerCase();
+  const shouldHideDraftAttention = ["am", "am_ceo"].includes(userRole);
 
   // ⚡ OPTIMIZED: Use SWR for automatic caching and revalidation
   const jsonFetcher = async (url: string) => {
@@ -145,7 +154,13 @@ export function PackageCards() {
   };
 
   const handleSeeTemplates = (pkg: Package) => {
-    const role = user?.role?.toLowerCase();
+    const role = String(
+      typeof (user as any)?.role === "string"
+        ? (user as any)?.role
+        : (user as any)?.role?.name ?? ""
+    )
+      .trim()
+      .toLowerCase();
     // Use the role directly as the base path, fallback to data_entry if not set
     const basePath = role || "data_entry";
     router.push(`/${basePath}/packages/${pkg.id}/templates`);
@@ -352,11 +367,19 @@ export function PackageCards() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {packageList.map((pkg) => {
           const healthScore = getPackageHealthScore(pkg);
+          const hasPendingDraftPublish =
+            Number(pkg.stats?.pendingDraftPublish ?? 0) > 0 &&
+            !shouldHideDraftAttention;
 
           return (
             <Card
               key={pkg.id}
-              className="group overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border-0 ring-1 ring-gray-200 hover:ring-blue-300 hover:scale-101"
+              className={cn(
+                "group overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border-0 hover:scale-101",
+                hasPendingDraftPublish
+                  ? "ring-2 ring-amber-300 hover:ring-amber-400"
+                  : "ring-1 ring-gray-200 hover:ring-blue-300"
+              )}
             >
               <CardHeader className="bg-linear-to-r from-slate-50 via-blue-50 to-indigo-50 pb-4 relative overflow-hidden">
                 <div className="absolute inset-0 bg-linear-to-r from-blue-600/5 to-purple-600/5"></div>
@@ -538,11 +561,19 @@ export function PackageCards() {
                 <div className="flex gap-2 w-full">
                   <Button
                     variant="outline"
-                    className="flex-1 border-blue-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 bg-transparent rounded-lg"
+                    className={cn(
+                      "flex-1 transition-all duration-900 bg-transparent rounded-lg",
+                      hasPendingDraftPublish
+                        ? "animate-[pulse_900ms_ease-in-out_infinite] border-amber-300 bg-amber-50 text-amber-700 hover:border-amber-400 hover:bg-amber-100 hover:text-amber-800"
+                        : "border-blue-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                    )}
                     onClick={() => handleSeeTemplates(pkg)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     Templates
+                    {hasPendingDraftPublish
+                      ? ` (${pkg.stats?.pendingDraftPublish ?? 0})`
+                      : ""}
                   </Button>
                   {canEdit && (
                     <Button
