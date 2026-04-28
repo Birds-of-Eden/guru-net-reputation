@@ -26,6 +26,19 @@ const splitEmails = (value?: string | null) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const normalizeHeaderValue = (value?: string | null) =>
+  String(value ?? "")
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+
+const escapeHtml = (value?: string | null) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const formatDateLabel = (value?: string | Date | null) => {
   if (!value) return "";
   const date = new Date(value);
@@ -73,13 +86,16 @@ async function sendSmtpEmail({
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  const from =
+  const from = normalizeHeaderValue(
     process.env.SMTP_FROM ||
-    process.env.MAIL_FROM ||
-    user ||
-    "no-reply@example.com";
+      process.env.MAIL_FROM ||
+      user ||
+      "no-reply@example.com",
+  );
+  const safeRecipients = to.map((email) => normalizeHeaderValue(email)).filter(Boolean);
+  const safeSubject = normalizeHeaderValue(subject);
 
-  if (!host || !user || !pass || to.length === 0) {
+  if (!host || !user || !pass || safeRecipients.length === 0 || !safeSubject) {
     return;
   }
 
@@ -92,8 +108,8 @@ async function sendSmtpEmail({
 
   await transporter.sendMail({
     from,
-    to: to.join(", "),
-    subject,
+    to: safeRecipients,
+    subject: safeSubject,
     text,
     html,
   });
@@ -173,9 +189,20 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
       String(payload.clientStatus ?? "")
         .trim()
         .toLowerCase() === "draft";
-    const subject = `${isDraftClient ? "Draft client" : "Client"} created: ${payload.clientName}`;
+    const subject = `${isDraftClient ? "Draft client" : "Client"} created: ${normalizeHeaderValue(payload.clientName)}`;
     const startDate = formatDateLabel(payload.startDate);
     const endDate = formatDateLabel(payload.dueDate);
+    const clientName = normalizeHeaderValue(payload.clientName);
+    const company = normalizeHeaderValue(payload.company);
+    const packageName = normalizeHeaderValue(payload.packageName);
+    const templateName = normalizeHeaderValue(payload.templateName);
+    const amName = normalizeHeaderValue(payload.amName);
+    const amEmail = normalizeHeaderValue(payload.amEmail);
+    const createdByName = normalizeHeaderValue(payload.createdByName);
+    const createdByRole = normalizeHeaderValue(payload.createdByRole);
+    const status = normalizeHeaderValue(
+      payload.clientStatus || (isDraftClient ? "draft" : "active"),
+    );
 
     const baseUrl =
       process.env.APP_URL?.replace(/\/$/, "") ||
@@ -191,16 +218,16 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
     const text = [
       `A new ${isDraftClient ? "draft " : ""}client has been created.`,
       ``,
-      `Client: ${payload.clientName}`,
-      payload.company ? `Company: ${payload.company}` : null,
-      payload.packageName ? `Package: ${payload.packageName}` : null,
-      payload.templateName ? `Template: ${payload.templateName}` : null,
+      `Client: ${clientName}`,
+      company ? `Company: ${company}` : null,
+      packageName ? `Package: ${packageName}` : null,
+      templateName ? `Template: ${templateName}` : null,
       startDate ? `Start Date: ${startDate}` : null,
       endDate ? `End Date: ${endDate}` : null,
-      payload.amName ? `AM: ${payload.amName}` : null,
-      payload.amEmail ? `AM Email: ${payload.amEmail}` : null,
-      payload.createdByName
-        ? `Created By: ${payload.createdByName}${payload.createdByRole ? ` (${payload.createdByRole})` : ""}`
+      amName ? `AM: ${amName}` : null,
+      amEmail ? `AM Email: ${amEmail}` : null,
+      createdByName
+        ? `Created By: ${createdByName}${createdByRole ? ` (${createdByRole})` : ""}`
         : null,
     ]
       .filter(Boolean)
@@ -209,20 +236,20 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
     const html = `
       <div>
         <p>A new draft client has been created.</p>
-        <p>Status: ${payload.clientStatus || (isDraftClient ? "draft" : "active")}</p>
+        <p>Status: ${escapeHtml(status)}</p>
         <ul>
-          <li><strong>Client:</strong> ${payload.clientName}</li>
-          ${payload.company ? `<li><strong>Company:</strong> ${payload.company}</li>` : ""}
-          ${payload.packageName ? `<li><strong>Package:</strong> ${payload.packageName}</li>` : ""}
-          ${payload.templateName ? `<li><strong>Template:</strong> ${payload.templateName}</li>` : ""}
+          <li><strong>Client:</strong> ${escapeHtml(clientName)}</li>
+          ${company ? `<li><strong>Company:</strong> ${escapeHtml(company)}</li>` : ""}
+          ${packageName ? `<li><strong>Package:</strong> ${escapeHtml(packageName)}</li>` : ""}
+          ${templateName ? `<li><strong>Template:</strong> ${escapeHtml(templateName)}</li>` : ""}
           ${startDate ? `<li><strong>Start Date:</strong> ${startDate}</li>` : ""}
           ${endDate ? `<li><strong>End Date:</strong> ${endDate}</li>` : ""}
-          ${payload.amName ? `<li><strong>AM:</strong> ${payload.amName}</li>` : ""}
-          ${payload.amEmail ? `<li><strong>AM Email:</strong> ${payload.amEmail}</li>` : ""}
+          ${amName ? `<li><strong>AM:</strong> ${escapeHtml(amName)}</li>` : ""}
+          ${amEmail ? `<li><strong>AM Email:</strong> ${escapeHtml(amEmail)}</li>` : ""}
           ${
-            payload.createdByName
-              ? `<li><strong>Created By:</strong> ${payload.createdByName}${
-                  payload.createdByRole ? ` (${payload.createdByRole})` : ""
+            createdByName
+              ? `<li><strong>Created By:</strong> ${escapeHtml(createdByName)}${
+                  createdByRole ? ` (${escapeHtml(createdByRole)})` : ""
                 }</li>`
               : ""
           }
