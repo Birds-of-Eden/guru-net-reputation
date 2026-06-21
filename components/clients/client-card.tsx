@@ -133,6 +133,7 @@ const ClientCardComponent = function ClientCard({
         in_progress: 0,
         completed: 0,
         overdue: 0,
+        cancelled: 0,
       }
     );
   }, [client.taskSummary]);

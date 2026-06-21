@@ -57,6 +57,7 @@ import { EditKeywordsModal } from "./EditKeywordsModal";
 
 function getTaskStatusCounts(tasks: Client["tasks"] = []): TaskStatusCounts {
   return {
+    total: tasks.length,
     pending: tasks.filter((t) => t.status === "pending").length,
     in_progress: tasks.filter((t) => t.status === "in_progress").length,
     completed: tasks.filter((t) => t.status === "completed").length,
