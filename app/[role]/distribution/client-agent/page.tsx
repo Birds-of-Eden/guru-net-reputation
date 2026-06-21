@@ -90,7 +90,11 @@ type Client = {
   taskStats?: TaskStats;
 
   amId?: string | null;
-  accountManager?: { id: string; name: string | null; email: string | null } | null;
+  accountManager?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
 
   postingTasksCreated?: boolean;
   existingPostingTasksCount?: number;
@@ -116,8 +120,32 @@ type PostingSortMeta = {
   label: string;
 };
 
+type TaskCategoryFilterKey =
+  | "all"
+  | "social_site"
+  | "web2_site"
+  | "other_asset"
+  | "Social Activity"
+  | "Blog Posting";
+
 const POSTING_CATEGORY_NAMES = new Set(["Social Activity", "Blog Posting"]);
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const TASK_CATEGORY_FILTER_OPTIONS: Array<{
+  value: TaskCategoryFilterKey;
+  label: string;
+}> = [
+  { value: "all", label: "All Task Categories" },
+  { value: "social_site", label: "Social Site" },
+  { value: "web2_site", label: "Web2 Site" },
+  { value: "other_asset", label: "Other Asset" },
+  { value: "Social Activity", label: "Social Activity" },
+  { value: "Blog Posting", label: "Blog Posting" },
+];
+
+const hasExistingPostingFlow = (client: Client) =>
+  client.postingTasksCreated === true ||
+  (client.existingPostingTasksCount ?? 0) > 0 ||
+  (client.taskStats?.posting?.totalPostingTasks ?? 0) > 0;
 
 export default function ClientUnifiedDashboard() {
   const router = useRouter();
@@ -127,6 +155,8 @@ export default function ClientUnifiedDashboard() {
   const [packageFilter, setPackageFilter] = useState<string>("all");
   const [dueDateFilter, setDueDateFilter] = useState<DueDateFilterKey>("all");
   const [amFilter, setAmFilter] = useState<string>("all");
+  const [taskCategoryFilter, setTaskCategoryFilter] =
+    useState<TaskCategoryFilterKey>("all");
   // OPTIMIZATION (React useTransition): keep UI responsive while large client lists re-filter.
   const [isFilteringPending, startFilteringTransition] = useTransition();
   // OPTIMIZATION (virtual batching state): track how many slices of the grid are rendered.
@@ -145,7 +175,7 @@ export default function ClientUnifiedDashboard() {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   const clients: Client[] = useMemo(() => {
@@ -177,7 +207,8 @@ export default function ClientUnifiedDashboard() {
     for (const c of clients) {
       const id = c.accountManager?.id ?? c.amId ?? null;
       if (!id) continue;
-      const label = c.accountManager?.name?.trim() || c.accountManager?.email?.trim() || id;
+      const label =
+        c.accountManager?.name?.trim() || c.accountManager?.email?.trim() || id;
       map.set(id, label);
     }
     return Array.from(map.entries())
@@ -192,7 +223,8 @@ export default function ClientUnifiedDashboard() {
     normalizedSearch.length > 0 ||
     packageFilter !== "all" ||
     dueDateFilter !== "all" ||
-    amFilter !== "all";
+    amFilter !== "all" ||
+    taskCategoryFilter !== "all";
   const isClearDisabled = !hasActiveFilters;
 
   const dueDateRange = useMemo(() => {
@@ -206,7 +238,7 @@ export default function ClientUnifiedDashboard() {
       0,
       0,
       0,
-      0
+      0,
     );
     const endOfToday = new Date(
       now.getFullYear(),
@@ -215,7 +247,7 @@ export default function ClientUnifiedDashboard() {
       23,
       59,
       59,
-      999
+      999,
     );
 
     const addDays = (d: Date, days: number) => {
@@ -258,7 +290,27 @@ export default function ClientUnifiedDashboard() {
       }
       return false;
     },
-    [dueDateRange]
+    [dueDateRange],
+  );
+
+  const hasTaskInSelectedCategory = useCallback(
+    (client: Client) => {
+      if (taskCategoryFilter === "all") return true;
+
+      const stats = client.taskStats;
+      if (!stats) return false;
+
+      if (
+        taskCategoryFilter === "social_site" ||
+        taskCategoryFilter === "web2_site" ||
+        taskCategoryFilter === "other_asset"
+      ) {
+        return (stats.assetTypes[taskCategoryFilter]?.total ?? 0) > 0;
+      }
+
+      return (stats.posting?.categories?.[taskCategoryFilter]?.total ?? 0) > 0;
+    },
+    [taskCategoryFilter],
   );
 
   const postingDueMeta = useCallback((client: Client) => {
@@ -291,12 +343,21 @@ export default function ClientUnifiedDashboard() {
 
     const todayStart = (() => {
       const now = new Date();
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      return new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
     })();
 
     const assigned = postingTasks.filter(isAssigned);
     const cycle1 = postingTasks.filter((t) => parseCycle(t.name) === 1);
-    const cycle1Unassigned = cycle1.length > 0 && cycle1.every((t) => !isAssigned(t));
+    const cycle1Unassigned =
+      cycle1.length > 0 && cycle1.every((t) => !isAssigned(t));
 
     const minDate = (arr: typeof postingTasks) => {
       let best: Date | null = null;
@@ -359,7 +420,7 @@ export default function ClientUnifiedDashboard() {
     }
 
     const postingTasks = tasks.filter((t) =>
-      POSTING_CATEGORY_NAMES.has(t.category?.name ?? "")
+      POSTING_CATEGORY_NAMES.has(t.category?.name ?? ""),
     );
     if (postingTasks.length === 0) {
       return {
@@ -398,10 +459,14 @@ export default function ClientUnifiedDashboard() {
       return best;
     };
 
-    const cycle1Tasks = postingTasks.filter((task) => parseCycle(task.name) === 1);
+    const cycle1Tasks = postingTasks.filter(
+      (task) => parseCycle(task.name) === 1,
+    );
     const cycle1Unassigned =
       cycle1Tasks.length > 0 && cycle1Tasks.every((task) => !isAssigned(task));
-    const unassignedPostingTasks = postingTasks.filter((task) => !isAssigned(task));
+    const unassignedPostingTasks = postingTasks.filter(
+      (task) => !isAssigned(task),
+    );
 
     const actionableDate = cycle1Unassigned
       ? minDate(cycle1Tasks)
@@ -423,7 +488,7 @@ export default function ClientUnifiedDashboard() {
       0,
       0,
       0,
-      0
+      0,
     );
     const today = new Date();
     const todayStart = new Date(
@@ -433,10 +498,10 @@ export default function ClientUnifiedDashboard() {
       0,
       0,
       0,
-      0
+      0,
     );
     const daysFromToday = Math.floor(
-      (actionableStart.getTime() - todayStart.getTime()) / MS_PER_DAY
+      (actionableStart.getTime() - todayStart.getTime()) / MS_PER_DAY,
     );
 
     let bucket: PostingSortBucket = "upcoming";
@@ -468,6 +533,7 @@ export default function ClientUnifiedDashboard() {
       }
 
       if (!hasTaskInDueDateRange(c)) return false;
+      if (!hasTaskInSelectedCategory(c)) return false;
 
       if (!deferredSearch) return true;
       const target = deferredSearch;
@@ -477,7 +543,14 @@ export default function ClientUnifiedDashboard() {
         c.id.toLowerCase().includes(target)
       );
     });
-  }, [clients, amFilter, packageFilter, deferredSearch, hasTaskInDueDateRange]);
+  }, [
+    clients,
+    amFilter,
+    packageFilter,
+    deferredSearch,
+    hasTaskInDueDateRange,
+    hasTaskInSelectedCategory,
+  ]);
 
   const sortedFilteredClients = useMemo(() => {
     const bucketRank: Record<PostingSortBucket, number> = {
@@ -487,20 +560,36 @@ export default function ClientUnifiedDashboard() {
       none: 3,
     };
 
-    return [...filteredClients].sort((a, b) => {
-      const aMeta = getPostingSortMeta(a);
-      const bMeta = getPostingSortMeta(b);
-      const bucketDiff = bucketRank[aMeta.bucket] - bucketRank[bMeta.bucket];
-      if (bucketDiff !== 0) return bucketDiff;
+    return filteredClients
+      .map((client, index) => ({ client, index }))
+      .sort((aEntry, bEntry) => {
+        const a = aEntry.client;
+        const b = bEntry.client;
+        const aHasPostingFlow = hasExistingPostingFlow(a);
+        const bHasPostingFlow = hasExistingPostingFlow(b);
 
-      const aTime = aMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
-      const bTime = bMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
-      if (aTime !== bTime) return aTime - bTime;
+        if (aHasPostingFlow !== bHasPostingFlow) {
+          return aHasPostingFlow ? 1 : -1;
+        }
 
-      const aName = (a.name ?? a.company ?? a.id).toLowerCase();
-      const bName = (b.name ?? b.company ?? b.id).toLowerCase();
-      return aName.localeCompare(bName);
-    });
+        if (!aHasPostingFlow && !bHasPostingFlow) {
+          return aEntry.index - bEntry.index;
+        }
+
+        const aMeta = getPostingSortMeta(a);
+        const bMeta = getPostingSortMeta(b);
+        const bucketDiff = bucketRank[aMeta.bucket] - bucketRank[bMeta.bucket];
+        if (bucketDiff !== 0) return bucketDiff;
+
+        const aTime = aMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
+        const bTime = bMeta.date?.getTime() ?? Number.POSITIVE_INFINITY;
+        if (aTime !== bTime) return aTime - bTime;
+
+        const aName = (a.name ?? a.company ?? a.id).toLowerCase();
+        const bName = (b.name ?? b.company ?? b.id).toLowerCase();
+        return aName.localeCompare(bName);
+      })
+      .map(({ client }) => client);
   }, [filteredClients, getPostingSortMeta]);
 
   const visibleClients = useMemo(() => {
@@ -508,14 +597,21 @@ export default function ClientUnifiedDashboard() {
   }, [sortedFilteredClients, visibleBatch]);
   const remainingClients = Math.max(
     sortedFilteredClients.length - visibleClients.length,
-    0
+    0,
   );
   const hasMoreClients = remainingClients > 0;
   const nextBatchCount = Math.min(remainingClients, CLIENT_BATCH_SIZE);
 
   useEffect(() => {
     setVisibleBatch(1);
-  }, [deferredSearch, packageFilter, dueDateFilter, amFilter, clients.length]);
+  }, [
+    deferredSearch,
+    packageFilter,
+    dueDateFilter,
+    amFilter,
+    taskCategoryFilter,
+    clients.length,
+  ]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
@@ -529,7 +625,7 @@ export default function ClientUnifiedDashboard() {
         setVisibleBatch(1);
       });
     },
-    [startFilteringTransition]
+    [startFilteringTransition],
   );
 
   const handleDueDateChange = useCallback(
@@ -539,7 +635,7 @@ export default function ClientUnifiedDashboard() {
         setVisibleBatch(1);
       });
     },
-    [startFilteringTransition]
+    [startFilteringTransition],
   );
 
   const handleAmChange = useCallback(
@@ -549,7 +645,17 @@ export default function ClientUnifiedDashboard() {
         setVisibleBatch(1);
       });
     },
-    [startFilteringTransition]
+    [startFilteringTransition],
+  );
+
+  const handleTaskCategoryChange = useCallback(
+    (value: TaskCategoryFilterKey) => {
+      startFilteringTransition(() => {
+        setTaskCategoryFilter(value);
+        setVisibleBatch(1);
+      });
+    },
+    [startFilteringTransition],
   );
 
   const handleClearFilters = useCallback(() => {
@@ -559,6 +665,7 @@ export default function ClientUnifiedDashboard() {
       setPackageFilter("all");
       setDueDateFilter("all");
       setAmFilter("all");
+      setTaskCategoryFilter("all");
       setVisibleBatch(1);
     });
   }, [hasActiveFilters, startFilteringTransition]);
@@ -574,14 +681,11 @@ export default function ClientUnifiedDashboard() {
 
   const conditionalRouteAndLabel = (client: Client) => {
     const ready = client.taskStats?.isReadyForTaskCreation === true;
-    const already =
-      client.postingTasksCreated === true ||
-      (client.existingPostingTasksCount ?? 0) > 0 ||
-      (client.taskStats?.posting?.totalPostingTasks ?? 0) > 0;
+    const already = hasExistingPostingFlow(client);
 
     if (already) {
       return {
-        label: "View Details",
+        label: "View Tasks Info",
         icon: <Layers className="h-4 w-4" />,
         go: () => router.push(`${distributionBasePath}/client/${client.id}`),
         klass:
@@ -597,9 +701,9 @@ export default function ClientUnifiedDashboard() {
           "bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white",
       };
     }
-    // not ready → view details (same as second component)
+    // not ready → View Tasks Info (same as second component)
     return {
-      label: "View Details",
+      label: "View Tasks Info",
       icon: <Building2 className="h-4 w-4" />,
       go: () => router.push(`${distributionBasePath}/client/${client.id}`),
       klass:
@@ -610,10 +714,7 @@ export default function ClientUnifiedDashboard() {
   /** ---------- UI helpers ---------- */
   const getStatusBadge = (client: Client) => {
     const t = client.taskStats;
-    const already =
-      client.postingTasksCreated === true ||
-      (client.existingPostingTasksCount ?? 0) > 0 ||
-      (client.taskStats?.posting?.totalPostingTasks ?? 0) > 0;
+    const already = hasExistingPostingFlow(client);
 
     if (!t || t.totalTasks === 0) {
       return (
@@ -708,7 +809,7 @@ export default function ClientUnifiedDashboard() {
                   <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                     <Users className="h-6 w-6 text-white" />
                   </div>
-                  Client to Agent Task Flow
+                  Client's Task Management
                 </CardTitle>
               </div>
               <div className="hidden lg:flex items-center">
@@ -723,7 +824,7 @@ export default function ClientUnifiedDashboard() {
             {/* Search + Filters */}
             <div className="mb-8 grid grid-cols-12 gap-3 items-center">
               {/* Search */}
-              <div className="relative col-span-12 md:col-span-4">
+              <div className="relative col-span-12 md:col-span-3">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <Input
                   placeholder="Search clients by name, company, or ID..."
@@ -770,7 +871,10 @@ export default function ClientUnifiedDashboard() {
                 </span>
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
 
-                <Select value={dueDateFilter} onValueChange={handleDueDateChange}>
+                <Select
+                  value={dueDateFilter}
+                  onValueChange={handleDueDateChange}
+                >
                   <SelectTrigger
                     className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
                     aria-busy={isFilteringPending}
@@ -813,8 +917,35 @@ export default function ClientUnifiedDashboard() {
                 </Select>
               </div>
 
+              {/* Task category filter (2 cols) */}
+              <div className="relative col-span-12 md:col-span-2">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                  Task Category
+                </span>
+                <Bookmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
+
+                <Select
+                  value={taskCategoryFilter}
+                  onValueChange={handleTaskCategoryChange}
+                >
+                  <SelectTrigger
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    aria-busy={isFilteringPending}
+                  >
+                    <SelectValue placeholder="Filter by task category" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                    {TASK_CATEGORY_FILTER_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Clear button (1 col, beside filter) */}
-              <div className="col-span-12 md:col-span-2">
+              <div className="col-span-12 md:col-span-1">
                 <Button
                   onClick={handleClearFilters}
                   disabled={isClearDisabled}
@@ -822,7 +953,7 @@ export default function ClientUnifiedDashboard() {
                     "h-10 w-full rounded-xl font-semibold transition shadow-md",
                     isClearDisabled
                       ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : "bg-linear-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg"
+                      : "bg-linear-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg",
                   )}
                   title="Clear search and all filters"
                 >
@@ -891,8 +1022,8 @@ export default function ClientUnifiedDashboard() {
                   No clients found
                 </h3>
                 <p className="text-slate-600">
-                  {search || packageFilter !== "all"
-                    ? "Try adjusting your search or package filter"
+                  {hasActiveFilters
+                    ? "Try adjusting your search or filters"
                     : "No clients available at the moment"}
                 </p>
               </div>
@@ -924,7 +1055,7 @@ export default function ClientUnifiedDashboard() {
                                 className="text-white font-bold text-lg"
                                 style={{
                                   backgroundColor: nameToColor(
-                                    client.name || client.id
+                                    client.name || client.id,
                                   ),
                                 }}
                               >
@@ -964,8 +1095,8 @@ export default function ClientUnifiedDashboard() {
                                     client.status === "active"
                                       ? "bg-green-50 text-green-700 border-green-200"
                                       : client.status === "qc_approved"
-                                      ? "bg-teal-50 text-teal-700 border-teal-200"
-                                      : "bg-slate-50 text-slate-600 border-slate-200"
+                                        ? "bg-teal-50 text-teal-700 border-teal-200"
+                                        : "bg-slate-50 text-slate-600 border-slate-200",
                                   )}
                                   title={
                                     client.status === "qc_approved"
@@ -1003,7 +1134,7 @@ export default function ClientUnifiedDashboard() {
                                     "text-xs",
                                     postingCreated
                                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                                      : "bg-slate-50 text-slate-600 border-slate-200"
+                                      : "bg-slate-50 text-slate-600 border-slate-200",
                                   )}
                                   title="Posting tasks created count"
                                 >
@@ -1051,8 +1182,8 @@ export default function ClientUnifiedDashboard() {
                                           !has
                                             ? "bg-slate-50 text-slate-400 border-slate-200"
                                             : complete
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                            : "bg-amber-50 text-amber-700 border-amber-200"
+                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                              : "bg-amber-50 text-amber-700 border-amber-200",
                                         )}
                                       >
                                         {getAssetTypeIcon(assetType)}
@@ -1075,7 +1206,7 @@ export default function ClientUnifiedDashboard() {
                                       "h-2 rounded-full transition-all duration-300",
                                       t.isReadyForTaskCreation
                                         ? "bg-linear-to-r from-emerald-500 to-green-500"
-                                        : "bg-linear-to-r from-amber-500 to-orange-500"
+                                        : "bg-linear-to-r from-amber-500 to-orange-500",
                                     )}
                                     style={{
                                       width: `${
@@ -1090,7 +1221,7 @@ export default function ClientUnifiedDashboard() {
                                 <div className="text-xs text-slate-500 mt-1 text-right">
                                   {t.totalTasks > 0
                                     ? Math.round(
-                                        (t.completedTasks / t.totalTasks) * 100
+                                        (t.completedTasks / t.totalTasks) * 100,
                                       )
                                     : 0}
                                   % Complete
@@ -1112,11 +1243,12 @@ export default function ClientUnifiedDashboard() {
                                       "font-medium",
                                       dueMeta.isOverdue
                                         ? "text-red-600"
-                                        : "text-slate-600"
+                                        : "text-slate-600",
                                     )}
                                     title={dueMeta.date.toLocaleString()}
                                   >
-                                    {dueMeta.label} {dueMeta.date.toLocaleDateString()}
+                                    {dueMeta.label}{" "}
+                                    {dueMeta.date.toLocaleDateString()}
                                   </span>
                                 ) : (
                                   <span className="text-slate-600 font-medium"></span>
@@ -1143,8 +1275,8 @@ export default function ClientUnifiedDashboard() {
                                           !has
                                             ? "bg-slate-50 text-slate-400 border-slate-200"
                                             : complete
-                                            ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                            : "bg-blue-50 text-blue-700 border-blue-200"
+                                              ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                              : "bg-blue-50 text-blue-700 border-blue-200",
                                         )}
                                       >
                                         {getPostingCategoryIcon(cat)}
@@ -1156,7 +1288,7 @@ export default function ClientUnifiedDashboard() {
                                         )}
                                       </Badge>
                                     );
-                                  }
+                                  },
                                 )}
                               </div>
 
@@ -1166,7 +1298,7 @@ export default function ClientUnifiedDashboard() {
                                     "h-2 rounded-full transition-all duration-300",
                                     t.posting.isAllPostingCompleted
                                       ? "bg-linear-to-r from-indigo-500 to-blue-500"
-                                      : "bg-linear-to-r from-blue-500 to-sky-500"
+                                      : "bg-linear-to-r from-blue-500 to-sky-500",
                                   )}
                                   style={{
                                     width: `${
@@ -1184,7 +1316,7 @@ export default function ClientUnifiedDashboard() {
                                   ? Math.round(
                                       (t.posting.completedPostingTasks /
                                         t.posting.totalPostingTasks) *
-                                        100
+                                        100,
                                     )
                                   : 0}
                                 % Complete
@@ -1193,55 +1325,71 @@ export default function ClientUnifiedDashboard() {
                           )}
 
                           {/* Buttons: 1) Open Distribution, 2) Conditional, 3) View Details */}
-                          <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+
+                          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* Open Distribution */}
                             <Button
                               variant="outline"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openDistribution(client.id);
                               }}
-                              className="h-11 flex-1 rounded-xl border-slate-300 hover:border-indigo-300 hover:text-indigo-700"
-                              title="Open classic distribution"
+                              className={cn(
+                                "h-11 sm:h-12 w-full rounded-xl sm:rounded-2xl border-0 text-white shadow-md",
+                                "bg-linear-to-r from-cyan-500 via-sky-500 to-blue-600",
+                                "hover:from-cyan-600 hover:via-sky-600 hover:to-blue-700",
+                                "hover:shadow-cyan-500/30 hover:scale-[1.02] hover:text-white",
+                                "transition-all duration-300",
+                              )}
                             >
-                              <Users className="h-4 w-4 mr-2" />
-                              Open Distribution
+                              <Users className="h-4 w-4 shrink-0 mr-2" />
+                              <span className="truncate">
+                                Open Distribution
+                              </span>
                             </Button>
 
+                            {/* Conditional Action */}
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 conditional.go();
                               }}
                               className={cn(
-                                "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
-                                conditional.klass
+                                "h-11 sm:h-12 w-full rounded-xl sm:rounded-2xl border-0 text-white font-semibold shadow-md",
+                                "hover:scale-[1.02] transition-all duration-300",
+                                conditional.klass,
                               )}
-                              title="Proceed (condition wise)"
                             >
-                              <div className="flex items-center gap-2">
-                                {conditional.icon}
-                                {conditional.label}
-                                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              <div className="flex min-w-0 items-center justify-center gap-2">
+                                <span className="shrink-0">
+                                  {conditional.icon}
+                                </span>
+                                <span className="truncate">
+                                  {conditional.label}
+                                </span>
                               </div>
                             </Button>
 
+                            {/* Show Tasks */}
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(
-                                  `${distributionBasePath}/tasks?clientId=${client.id}`
+                                  `${distributionBasePath}/tasks?clientId=${client.id}`,
                                 );
                               }}
                               className={cn(
-                                "h-11 flex-1 rounded-xl font-semibold transition-all duration-300 group-hover:shadow-lg",
-                                "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                                "h-11 sm:h-12 w-full rounded-xl sm:rounded-2xl border-0 text-white font-semibold shadow-md",
+                                "bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600",
+                                "hover:from-violet-700 hover:via-purple-700 hover:to-fuchsia-700",
+                                "hover:shadow-purple-500/30 hover:scale-[1.02]",
+                                "transition-all duration-300",
+                                "md:col-span-2",
                               )}
-                              title="View client details"
                             >
-                              <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4" />
-                                Show Tasks
-                                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              <div className="flex min-w-0 items-center justify-center gap-2">
+                                <Building2 className="h-4 w-4 shrink-0" />
+                                <span className="truncate">Show Tasks</span>
                               </div>
                             </Button>
                           </div>

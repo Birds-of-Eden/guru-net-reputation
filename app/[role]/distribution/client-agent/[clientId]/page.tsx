@@ -102,6 +102,28 @@ const POSTING_CATEGORIES = [
   "Social Communication",
 ] as const;
 
+const CATEGORY_DISPLAY_ORDER = [
+  "Graphics Design",
+  "Image Optimization",
+  "Bio Optimization",
+  "EMD",
+  "Asset Creation",
+  "Social Activity",
+  "Blog Posting",
+  "Content Studio",
+  "Content Writing",
+  "Backlinks",
+  "Completed Communication",
+  "YouTube Video Optimization",
+  "Monitoring",
+  "Review Removal",
+  "Summary Report",
+  "Guest Posting",
+  "Completed.com",
+  "Social Communication",
+  "Custom Job",
+] as const;
+
 // --- Team routing maps (ids from your Team table) ---
 const TEAM_ID_BY_CATEGORY: Record<string, string> = {
   "Asset Creation": "asset-team",
@@ -490,24 +512,6 @@ export default function TaskDistributionForClient() {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
   });
-
-  type AssetTypeApiRow = {
-    slug: string;
-    sortOrder: number;
-    categoryName?: string | null;
-  };
-
-  const { data: assetTypesData } = useSWR<{ assetTypes?: AssetTypeApiRow[] }>(
-    clientId ? "/api/asset-types" : null,
-    jsonFetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-    },
-  );
-  const assetTypes = Array.isArray(assetTypesData?.assetTypes)
-    ? assetTypesData?.assetTypes
-    : [];
 
   const {
     data: allAgents = [],
@@ -1026,18 +1030,6 @@ export default function TaskDistributionForClient() {
     "Social Asset Creation",
   ]);
 
-  const categoryOrderMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of assetTypes) {
-      const name = String(t?.categoryName ?? "").trim();
-      if (!name) continue;
-      const order = Number(t?.sortOrder ?? 0);
-      const prev = map.get(name);
-      if (prev === undefined || order < prev) map.set(name, order);
-    }
-    return map;
-  }, [assetTypes]);
-
   const categoryLabels = useMemo(() => {
     const base = (dbCategories ?? [])
       .map((c) => String(c?.name ?? "").trim())
@@ -1046,40 +1038,26 @@ export default function TaskDistributionForClient() {
 
     const extras = Object.keys(statsByCategory)
       .filter((k) => !base.includes(k))
-      .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k))
-      .sort((a, b) => a.localeCompare(b));
+      .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k));
 
     // Merge + de-dupe
     const merged = Array.from(new Set([...base, ...extras]));
+    const known = CATEGORY_DISPLAY_ORDER.filter((name) =>
+      merged.includes(name),
+    );
+    const unknown = merged
+      .filter(
+        (name) =>
+          !CATEGORY_DISPLAY_ORDER.includes(
+            name as (typeof CATEGORY_DISPLAY_ORDER)[number],
+          ),
+      )
+      .sort((a, b) => a.localeCompare(b));
+
+    return [...known, ...unknown];
 
     // ✅ Force "Asset Creation" to top
-    const ASSET_CREATION = "Asset Creation";
-    const withoutAsset = merged.filter((x) => x !== ASSET_CREATION);
-    const hasAsset = merged.includes(ASSET_CREATION);
-
-    const sorted = withoutAsset.sort((a, b) => {
-      const ao = categoryOrderMap.get(a);
-      const bo = categoryOrderMap.get(b);
-      if (ao !== undefined && bo !== undefined) return ao - bo;
-      if (ao !== undefined) return -1;
-      if (bo !== undefined) return 1;
-      return a.localeCompare(b);
-    });
-
-    const desired = ["Social Activity", "Blog Posting"];
-    const rest = sorted.filter((c) => !desired.includes(c));
-    const picked = desired.filter((c) => sorted.includes(c));
-
-    if (hasAsset) {
-      const first = rest.slice(0, 4);
-      const tail = rest.slice(4);
-      return [ASSET_CREATION, ...first, ...picked, ...tail];
-    }
-
-    const first = rest.slice(0, 4);
-    const tail = rest.slice(4);
-    return [...first, ...picked, ...tail];
-  }, [dbCategories, statsByCategory, categoryOrderMap]);
+  }, [dbCategories, statsByCategory]);
 
   useEffect(() => {
     if (!selectedCategory) {
@@ -1316,7 +1294,7 @@ export default function TaskDistributionForClient() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-[180px]",
+                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-45",
                               !categoryDueDate && "text-muted-foreground",
                             )}
                             aria-label="Open date picker"
@@ -1331,7 +1309,7 @@ export default function TaskDistributionForClient() {
                         <PopoverContent
                           align="end"
                           sideOffset={8}
-                          className="p-0 w-[300px] overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
+                          className="p-0 w-75 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
                         >
                           <div className="px-3 py-2 bg-linear-to-r from-indigo-500 via-blue-500 to-cyan-500">
                             <div className="text-[10px] uppercase tracking-wide text-white/80">

@@ -126,20 +126,23 @@ const ClientCardComponent = function ClientCard({
 
   // ⚡ OPTIMIZED: Memoize task counts from taskSummary
   const taskCounts: TaskStatusCounts = useMemo(() => {
-    return client.taskSummary ?? {
-      total: 0,
-      pending: 0,
-      in_progress: 0,
-      completed: 0,
-      overdue: 0,
-    };
+    return (
+      client.taskSummary ?? {
+        total: 0,
+        pending: 0,
+        in_progress: 0,
+        completed: 0,
+        overdue: 0,
+      }
+    );
   }, [client.taskSummary]);
 
-  const totalTasks = taskCounts.total ?? (taskCounts.pending +
-    taskCounts.in_progress +
-    taskCounts.completed +
-    taskCounts.overdue);
-
+  const totalTasks =
+    taskCounts.total ??
+    taskCounts.pending +
+      taskCounts.in_progress +
+      taskCounts.completed +
+      taskCounts.overdue;
 
   // ⚡ OPTIMIZED: Memoize date formatting
   const formatDate = useCallback(
@@ -153,7 +156,7 @@ const ClientCardComponent = function ClientCard({
           })
         : "—";
     },
-    [parseDate]
+    [parseDate],
   );
 
   // ⚡ OPTIMIZED: Memoize role and segment
@@ -236,7 +239,7 @@ const ClientCardComponent = function ClientCard({
       }
       startNavigate(() => router.push(detailUrl));
     },
-    [onViewDetails, router, detailUrl, primeDetails, startNavigate]
+    [onViewDetails, router, detailUrl, primeDetails, startNavigate],
   );
 
   const handleViewTasks = () => {
@@ -250,7 +253,9 @@ const ClientCardComponent = function ClientCard({
   const handleUpgrade = () => setOpenUpgrade(true);
   const isAmCeo = role === "am_ceo";
   const isAmRole = role === "am" || role === "am_ceo";
-  const normalizedClientStatus = String(client.status ?? "").trim().toLowerCase();
+  const normalizedClientStatus = String(client.status ?? "")
+    .trim()
+    .toLowerCase();
   const isDraftClient = normalizedClientStatus === "draft";
   const shouldShowDraftAttention = isDraftClient && !isAmRole;
   const canPublishClient =
@@ -376,8 +381,8 @@ const ClientCardComponent = function ClientCard({
                 client.status === "active"
                   ? "bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full"
                   : client.status === "inactive"
-                  ? "bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1.5 rounded-full"
-                  : "bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1.5 rounded-full"
+                    ? "bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1.5 rounded-full"
+                    : "bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1.5 rounded-full"
               }
             >
               {client.status || "Pending"}
@@ -414,7 +419,7 @@ const ClientCardComponent = function ClientCard({
             <div className="text-gray-600">Start Date:</div>
             <div className="font-medium text-gray-800">
               {formatDate(
-                (client as any)?.startDate || (client as any)?.createdAt
+                (client as any)?.startDate || (client as any)?.createdAt,
               )}
             </div>
 
@@ -518,14 +523,14 @@ const ClientCardComponent = function ClientCard({
               onTouchStart={prefetchDetails}
               className="flex-1 min-w-[150px] bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-md rounded-lg px-5 py-2.5 transition-all duration-300"
             >
-              <Eye className="h-4 w-4 mr-2" /> View Details
+              <Eye className="h-4 w-4 mr-2" /> View Client Details
             </Button>
           )}
 
           {!permsLoading &&
             hasPermissionClient(
               user?.permissions,
-              "client_card_Upgrade_Package"
+              "client_card_Upgrade_Package",
             ) && (
               <Button
                 onClick={handleUpgrade}
