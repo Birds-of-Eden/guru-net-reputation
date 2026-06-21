@@ -97,6 +97,24 @@ const normalizeType = (s: string | null | undefined) =>
     .toLowerCase()
     .replace(/\s+/g, " ")
     .trim();
+const htmlToPlainText = (value: string | null | undefined) =>
+  String(value ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+const truncateWords = (value: string | null | undefined, maxWords = 5) => {
+  const plain = htmlToPlainText(value);
+  if (!plain) return "Untitled task";
+  const words = plain.split(/\s+/);
+  if (words.length <= maxWords) return plain;
+  return `${words.slice(0, maxWords).join(" ")}...`;
+};
 const assetKey = (a: { name: string; type: string }) =>
   `${normalizeType(a.type)}::${normalizeForDedupe(a.name)}`;
 
@@ -503,8 +521,11 @@ export default function PackageUpgradeDialog({
                                         key={t.id}
                                         className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-3 transition-colors hover:bg-slate-100"
                                       >
-                                        <span className="font-medium text-slate-700 truncate mr-4">
-                                          {t.name}
+                                        <span
+                                          className="font-medium text-slate-700 truncate mr-4"
+                                          title={htmlToPlainText(t.name)}
+                                        >
+                                          {truncateWords(t.name, 5)}
                                         </span>
                                         <Badge
                                           variant={

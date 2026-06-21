@@ -71,7 +71,7 @@ const sanitizeHtml = (html: string) => {
 };
 
 // Truncate text to 10 words
-const truncateToWords = (text: string, maxWords = 10): string => {
+const truncateToWords = (text: string, maxWords = 2): string => {
   if (!text) return "";
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text;
@@ -179,9 +179,9 @@ function RangeControls({
   setCustomEnd: (v: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-2">
+    <div className="flex w-full flex-wrap items-end gap-2 sm:w-auto">
       <Select value={range} onValueChange={(v: RangeType) => setRange(v)}>
-        <SelectTrigger className="w-44 h-9 border-slate-300 bg-white/80 backdrop-blur">
+        <SelectTrigger className="h-9 w-full border-slate-300 bg-white/80 backdrop-blur sm:w-44">
           <SelectValue placeholder="Date range" />
         </SelectTrigger>
         <SelectContent>
@@ -193,8 +193,8 @@ function RangeControls({
       </Select>
 
       {range === "custom" && (
-        <div className="flex items-end gap-2">
-          <div className="grid gap-1">
+        <div className="grid w-full gap-2 sm:flex sm:w-auto sm:items-end">
+          <div className="grid min-w-0 gap-1">
             <Label htmlFor="start" className="text-xs">
               Start
             </Label>
@@ -206,7 +206,7 @@ function RangeControls({
               onChange={(e) => setCustomStart(e.target.value)}
             />
           </div>
-          <div className="grid gap-1">
+          <div className="grid min-w-0 gap-1">
             <Label htmlFor="end" className="text-xs">
               End
             </Label>
@@ -432,10 +432,10 @@ export default function QCDashboardPro({
   }, [rangedTasks]);
 
   return (
-    <div className="space-y-6 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="min-h-screen w-full overflow-x-hidden bg-linear-to-br from-slate-50 to-blue-50 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div className="min-w-0">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-linear-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
             QC Dashboard
           </h1>
@@ -448,13 +448,13 @@ export default function QCDashboardPro({
             )}
           </p>
         </div>
-        <div className="flex items-end gap-3 flex-wrap w-full md:w-auto">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex w-full flex-wrap items-end gap-3 md:w-auto md:justify-end">
+          <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
             <Input
               placeholder="Quick filter (client / assignee / task)"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="h-9 sm:w-72 border-slate-300 bg-white/80 backdrop-blur"
+              className="h-9 w-full min-w-0 border-slate-300 bg-white/80 backdrop-blur sm:w-72"
             />
           </div>
           {!isQC && (
@@ -575,9 +575,9 @@ export default function QCDashboardPro({
       )}
 
       {/* Status & Priority breakdown (matches your gradient bars) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Status */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
+        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
           <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/70 to-indigo-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />
@@ -585,23 +585,23 @@ export default function QCDashboardPro({
             </CardTitle>
             <CardDescription>Current task status breakdown</CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
+          <CardContent className="min-w-0 pt-6">
+            <div className="min-w-0 space-y-4">
               {by(rangedTasks, (t) => String(t.status || "unknown")).map(
                 (g) => {
                   const total = rangedTasks.length || 1;
                   const pct = (g.value / total) * 100;
                   const color = STATUS_COLOR[g.name] || "bg-slate-400";
                   return (
-                    <div key={g.name} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                    <div key={g.name} className="min-w-0 space-y-2">
+                      <div className="flex min-w-0 items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
                           <span className={cn("h-3 w-3 rounded-full", color)} />
-                          <span className="text-sm font-medium text-slate-700">
+                          <span className="truncate text-sm font-medium text-slate-700">
                             {titleCase(g.name)}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-slate-900">
+                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900">
                           {numberFmt(g.value)} ({pct.toFixed(1)}%)
                         </span>
                       </div>
@@ -621,7 +621,7 @@ export default function QCDashboardPro({
         </Card>
 
         {/* Priority */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
+        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
           <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/70 to-violet-50/70">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Users className="h-5 w-5 text-purple-600" />
@@ -629,23 +629,23 @@ export default function QCDashboardPro({
             </CardTitle>
             <CardDescription>Tasks by urgency</CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
+          <CardContent className="min-w-0 pt-6">
+            <div className="min-w-0 space-y-4">
               {by(rangedTasks, (t) => String(t.priority || "unknown")).map(
                 (g) => {
                   const total = rangedTasks.length || 1;
                   const pct = (g.value / total) * 100;
                   const color = PRIORITY_COLOR[g.name] || "bg-slate-400";
                   return (
-                    <div key={g.name} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                    <div key={g.name} className="min-w-0 space-y-2">
+                      <div className="flex min-w-0 items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
                           <span className={cn("h-3 w-3 rounded-full", color)} />
-                          <span className="text-sm font-medium text-slate-700 capitalize">
+                          <span className="truncate text-sm font-medium text-slate-700 capitalize">
                             {g.name}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-slate-900">
+                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900">
                           {numberFmt(g.value)} ({pct.toFixed(1)}%)
                         </span>
                       </div>
@@ -666,28 +666,29 @@ export default function QCDashboardPro({
       </div>
 
       {/* Tables */}
-      <Tabs defaultValue="all" className="w-full space-y-4">
-        <TabsList className={cn(
-          "bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg",
-          isQC ? "grid w-full grid-cols-4" : "grid w-full grid-cols-3"
-        )}>
+      <Tabs defaultValue="all" className="w-full min-w-0 space-y-4">
+        <TabsList
+          className={cn(
+            "flex w-full min-w-0 gap-2 overflow-x-auto rounded-2xl border border-slate-200/60 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 p-2 shadow-lg backdrop-blur-md",
+          )}
+        >
           <TabsTrigger
             value="all"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <BarChart3 className="h-4 w-4 mr-2" />
             All Tasks
           </TabsTrigger>
           <TabsTrigger
             value="qc"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             QC Approved
           </TabsTrigger>
           <TabsTrigger
             value="overdue"
-            className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reassign
@@ -695,7 +696,7 @@ export default function QCDashboardPro({
           {isQC && (
             <TabsTrigger
               value="agents"
-              className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+              className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
             >
               <Users className="h-4 w-4 mr-2" />
               Agents
@@ -720,41 +721,46 @@ export default function QCDashboardPro({
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="max-h-[50vh] overflow-y-auto">
-                <Table>
+              <div className="w-full overflow-x-auto">
+                <ScrollArea className="max-h-[50vh] overflow-y-auto">
+                  <Table className="w-full table-fixed text-sm">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Assignee</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Due</TableHead>
-                      <TableHead>Completed</TableHead>
-                      <TableHead>Ideal</TableHead>
-                      <TableHead>Actual</TableHead>
-                      <TableHead>Rating</TableHead>
+                      <TableHead className="w-[14%]">Task</TableHead>
+                      <TableHead className="w-[12%]">Client</TableHead>
+                      <TableHead className="w-[10%]">Category</TableHead>
+                      <TableHead className="w-[10%]">Assignee</TableHead>
+                      <TableHead className="w-[9%]">Status</TableHead>
+                      <TableHead className="w-[8%]">Priority</TableHead>
+                      <TableHead className="w-[10%]">Due</TableHead>
+                      <TableHead className="w-[10%]">Completed</TableHead>
+                      <TableHead className="w-[6%]">Ideal</TableHead>
+                      <TableHead className="w-[6%]">Actual</TableHead>
+                      <TableHead className="w-[5%]">Rating</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
                       <TableRow key={r.id} className="hover:bg-slate-100/60">
                         <TableCell
-                          className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
                         />
-                        <TableCell>{r.client}</TableCell>
-                        <TableCell>{r.category}</TableCell>
-                        <TableCell>{r.assignee}</TableCell>
+                        <TableCell className="truncate">{r.client}</TableCell>
+                        <TableCell className="truncate">{r.category}</TableCell>
+                        <TableCell className="truncate">{r.assignee}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-medium">
                             {titleCase(r.status)}
                           </Badge>
                         </TableCell>
-                        <TableCell>{r.priority}</TableCell>
-                        <TableCell>{fmt(r.dueDate)}</TableCell>
-                        <TableCell>{fmt(r.completedAt)}</TableCell>
+                        <TableCell className="truncate">{r.priority}</TableCell>
+                        <TableCell className="truncate">
+                          {fmt(r.dueDate)}
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {fmt(r.completedAt)}
+                        </TableCell>
                         <TableCell>{r.ideal ?? "—"}</TableCell>
                         <TableCell>{r.actual ?? "—"}</TableCell>
                         <TableCell>{r.rating ?? "—"}</TableCell>
@@ -771,8 +777,9 @@ export default function QCDashboardPro({
                       </TableRow>
                     )}
                   </TableBody>
-                </Table>
-              </ScrollArea>
+                  </Table>
+                </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -790,8 +797,9 @@ export default function QCDashboardPro({
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="max-h-[40vh] overflow-y-auto">
-                <Table>
+              <div className="w-full overflow-x-auto">
+                <ScrollArea className="max-h-[40vh] overflow-y-auto">
+                  <Table className="min-w-[760px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Task</TableHead>
@@ -830,8 +838,9 @@ export default function QCDashboardPro({
                       </TableRow>
                     )}
                   </TableBody>
-                </Table>
-              </ScrollArea>
+                  </Table>
+                </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -847,8 +856,9 @@ export default function QCDashboardPro({
               <CardDescription>Pending / reassigned tasks</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="max-h-[40vh] overflow-y-auto">
-                <Table>
+              <div className="w-full overflow-x-auto">
+                <ScrollArea className="max-h-[40vh] overflow-y-auto">
+                  <Table className="min-w-[860px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
@@ -892,8 +902,9 @@ export default function QCDashboardPro({
                       </TableRow>
                     )}
                   </TableBody>
-                </Table>
-              </ScrollArea>
+                  </Table>
+                </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -912,8 +923,9 @@ export default function QCDashboardPro({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className="max-h-[50vh] overflow-y-auto">
-                  <Table>
+                <div className="w-full overflow-x-auto">
+                  <ScrollArea className="max-h-[50vh] overflow-y-auto">
+                    <Table className="min-w-[860px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Agent Name</TableHead>
@@ -999,8 +1011,9 @@ export default function QCDashboardPro({
                         </TableRow>
                       )}
                     </TableBody>
-                  </Table>
-                </ScrollArea>
+                    </Table>
+                  </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
