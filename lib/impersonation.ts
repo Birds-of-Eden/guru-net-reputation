@@ -53,7 +53,7 @@ export async function amScopeCheck(amUserId: string, targetUserId: string) {
 
 export async function amCeoScopeCheck(
   _amCeoUserId: string,
-  targetUserId: string
+  targetUserId: string,
 ) {
   const target = await prisma.user.findUnique({
     where: { id: targetUserId },
@@ -73,12 +73,12 @@ export async function amCeoScopeCheck(
   if (role === "am_ceo") {
     return {
       ok: false as const,
-      reason: "AM CEO cannot impersonate another AM CEO",
+      reason: "CEO cannot impersonate another CEO",
     };
   }
 
   return {
     ok: false as const,
-    reason: "AM CEO can only impersonate AM or client users",
+    reason: "CEO can only impersonate AM or client users",
   };
 }

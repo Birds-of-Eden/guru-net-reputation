@@ -125,7 +125,9 @@ const GRADIENTS = {
 };
 
 // Fetcher for packages
-const packagesFetcher = async (url: string): Promise<Array<{id: string; name: string}>> => {
+const packagesFetcher = async (
+  url: string,
+): Promise<Array<{ id: string; name: string }>> => {
   const res = await fetch(url, { cache: "no-store" });
   const raw = await res.json();
   const list = safeParse<any[]>(raw);
@@ -142,43 +144,55 @@ const summaryFetcher = async (url: string): Promise<Summary> => {
   return safeParse<Summary>(raw);
 };
 
-const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
+const AMCeoDashboardComponent = function AMCeoDashboard({
+  defaultAmId = "",
+}: {
+  defaultAmId?: string;
+}) {
   const [selectedAmCeoId, setSelectedAmCeoId] = useState<string>(defaultAmId);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientOpen, setClientOpen] = useState<boolean>(false);
   const { user, loading: sessionLoading } = useUserSession();
 
   // Use optimized hooks with SWR
-  const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
-  
-  const { data: packages, isLoading: pkgLoading } = useSWR("/api/packages", packagesFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 60000,
-    refreshInterval: 300000,
-  });
-  
+  const {
+    clients: allClients,
+    loading: clientsLoading,
+    error: clientsError,
+  } = useClients();
+
+  const { data: packages, isLoading: pkgLoading } = useSWR(
+    "/api/packages",
+    packagesFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+      refreshInterval: 300000,
+    },
+  );
+
   const summaryUrl = selectedAmCeoId
     ? `/api/clients/summary?am_ceoId=${encodeURIComponent(selectedAmCeoId)}&limitUpcoming=8`
     : `/api/clients/summary?limitUpcoming=8`;
-  
-  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useSWR(
-    summaryUrl,
-    summaryFetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 30000,
-      refreshInterval: 60000,
-    }
-  );
 
-  // Filter clients by AM CEO (client-side filtering)
+  const {
+    data: summaryData,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useSWR(summaryUrl, summaryFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000,
+    refreshInterval: 60000,
+  });
+
+  // Filter clients by CEO (client-side filtering)
   const clients = useMemo(() => {
     const data = allClients.filter((c: any) => {
       if (!selectedAmCeoId) return true;
       const cAmId = c.amCeoId || c.accountManager?.id;
       return cAmId === selectedAmCeoId;
     });
-    
+
     return {
       data,
       loading: clientsLoading,
@@ -196,11 +210,14 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
   }, [packages]);
 
   // Summary state
-  const summary = useMemo(() => ({
-    data: summaryData || null,
-    loading: summaryLoading,
-    error: summaryError ? "Failed to load summary" : null,
-  }), [summaryData, summaryLoading, summaryError]);
+  const summary = useMemo(
+    () => ({
+      data: summaryData || null,
+      loading: summaryLoading,
+      error: summaryError ? "Failed to load summary" : null,
+    }),
+    [summaryData, summaryLoading, summaryError],
+  );
 
   // Enhanced chart data with unique visual treatments
   const pieData = useMemo(
@@ -209,17 +226,19 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
         ([name, value], index) => ({
           name: name.replace(/_/g, " "),
           value,
-          fill: Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length],
-        })
+          fill: Object.values(CHART_COLORS)[
+            index % Object.values(CHART_COLORS).length
+          ],
+        }),
       ),
-    [summary.data?.statusCounts]
+    [summary.data?.statusCounts],
   );
 
   const progressBuckets = summary.data?.progressBuckets ?? [];
   const startsByMonth = summary.data?.startsByMonth ?? [];
 
   const upcomingDueList = (summary.data?.upcomingDueList ?? []).filter(
-    (c) => !selectedClientId || c.id === selectedClientId
+    (c) => !selectedClientId || c.id === selectedClientId,
   );
 
   // Enhanced progress chart with line overlay
@@ -227,9 +246,12 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     () =>
       progressBuckets.map((bucket, index) => ({
         ...bucket,
-        trend: Math.max(0, bucket.count - (progressBuckets[index - 1]?.count || 0)),
+        trend: Math.max(
+          0,
+          bucket.count - (progressBuckets[index - 1]?.count || 0),
+        ),
       })),
-    [progressBuckets]
+    [progressBuckets],
   );
 
   const amLabel = useMemo(() => {
@@ -240,7 +262,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     const cm = clients.data[0]?.accountManager;
     if (cm?.name && cm?.email) return `${cm.name}`;
     if (cm?.name || cm?.email) return cm.name || cm.email || "All AMs";
-    return selectedAmCeoId ? "Selected AM CEO" : "All AM CEOs";
+    return selectedAmCeoId ? "Selected CEO" : "All CEOs";
   }, [user, selectedAmCeoId, clients.data]);
 
   const selectedClientName = useMemo(() => {
@@ -251,14 +273,17 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
     );
   }, [selectedClientId, clients.data]);
 
-  const formatDate = useCallback((s?: string | null) =>
-    s
-      ? new Date(s).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
-      : "—", []);
+  const formatDate = useCallback(
+    (s?: string | null) =>
+      s
+        ? new Date(s).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "—",
+    [],
+  );
 
   const isLoading = clients.loading || summary.loading || sessionLoading;
   const errorMsg = clients.error || summary.error;
@@ -269,13 +294,13 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-6">
         <div className="space-y-2">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            AM CEO's Dashboard
+            CEO Dashboard
           </h1>
           <p className="text-sm text-slate-600 font-medium">
             {amLabel} • {summary.data?.totalClients ?? 0} total clients
           </p>
         </div>
-        
+
         {/* Enhanced Client Filter */}
         <div className="flex items-center gap-3">
           <div className="text-sm text-slate-500 hidden sm:block">
@@ -340,7 +365,10 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
           {/* KPI Cards Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: 3 }).map((_, index) => (
-              <Card key={`kpi-skeleton-${index}`} className="border-0 shadow-lg">
+              <Card
+                key={`kpi-skeleton-${index}`}
+                className="border-0 shadow-lg"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-3 flex-1">
@@ -389,7 +417,7 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
               </CardContent>
             </Card>
 
-            {/* Progress Distribution Chart */}
+            {/* Campaign Progress  Chart */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -442,7 +470,10 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
               <CardContent>
                 <div className="space-y-4">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 p-3 rounded-lg border"
+                    >
                       <Skeleton className="h-10 w-10 rounded-full" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-4 w-32" />
@@ -468,7 +499,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
         <>
           {/* Enhanced KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -490,7 +523,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
               </CardContent>
             </Card>
 
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -512,8 +547,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
               </CardContent>
             </Card>
 
-           
-            <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -539,13 +575,15 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Enhanced Status Pie Chart with Donut */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-indigo-500 rounded-lg shadow-md">
                     <PieChartIcon className="w-5 h-5 text-white" />
                   </div>
-                  <span>Client Status Distribution</span>
+                  <span>Clients Status</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="h-[280px]">
@@ -554,11 +592,21 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                     <PieChart>
                       <defs>
                         {pieData.map((entry, index) => (
-                          <filter key={index} id={`glow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                          <filter
+                            key={index}
+                            id={`glow-${index}`}
+                            x="-50%"
+                            y="-50%"
+                            width="200%"
+                            height="200%"
+                          >
+                            <feGaussianBlur
+                              stdDeviation="3"
+                              result="coloredBlur"
+                            />
                             <feMerge>
-                              <feMergeNode in="coloredBlur"/>
-                              <feMergeNode in="SourceGraphic"/>
+                              <feMergeNode in="coloredBlur" />
+                              <feMergeNode in="SourceGraphic" />
                             </feMerge>
                           </filter>
                         ))}
@@ -571,26 +619,29 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                         outerRadius={90}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => 
+                        label={({ name, percent }) =>
                           `${name}: ${(percent * 100).toFixed(0)}%`
                         }
                         labelLine={false}
                       >
                         {pieData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={entry.fill}
                             filter={`url(#glow-${index})`}
                           />
                         ))}
                       </Pie>
-                      <RTooltip 
-                        formatter={(value: number) => [`${value} clients`, 'Count']}
+                      <RTooltip
+                        formatter={(value: number) => [
+                          `${value} clients`,
+                          "Count",
+                        ]}
                         contentStyle={{
-                          backgroundColor: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                          backgroundColor: "#f8fafc",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                         }}
                       />
                     </PieChart>
@@ -604,32 +655,55 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
             </Card>
 
             {/* Enhanced Progress Bar Chart with Line Overlay */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-emerald-500 rounded-lg shadow-md">
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
-                  <span>Progress Distribution</span>
+                  <span>Campaign Progress </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={enhancedProgressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart
+                    data={enhancedProgressData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.4}/>
+                      <linearGradient
+                        id="progressGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0.4}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis 
-                      dataKey="label" 
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
@@ -642,18 +716,18 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
-                      formatter={(value: number) => [value, 'Clients']}
+                      formatter={(value: number) => [value, "Clients"]}
                     />
-                    <Bar 
-                      dataKey="count" 
-                      fill="url(#progressGradient)" 
+                    <Bar
+                      dataKey="count"
+                      fill="url(#progressGradient)"
                       radius={[4, 4, 0, 0]}
                       barSize={30}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="trend" 
-                      stroke="#f59e0b" 
+                    <Line
+                      type="monotone"
+                      dataKey="trend"
+                      stroke="#f59e0b"
                       strokeWidth={2}
                       dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
                       strokeDasharray="3 3"
@@ -664,7 +738,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
             </Card>
 
             {/* Enhanced Area Chart with Gradient */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-blue-500 rounded-lg shadow-md">
@@ -675,25 +751,56 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={startsByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart
+                    data={startsByMonth}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="colorStarts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                      <linearGradient
+                        id="colorStarts"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.1}
+                        />
                       </linearGradient>
-                      <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.5}/>
+                      <linearGradient
+                        id="colorLine"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
+                        <stop
+                          offset="95%"
+                          stopColor="#6366f1"
+                          stopOpacity={0.5}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis 
-                      dataKey="label" 
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                     />
-                    <YAxis 
+                    <YAxis
                       allowDecimals={false}
                       tick={{ fill: "#64748b", fontSize: 11 }}
                       axisLine={false}
@@ -706,14 +813,14 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
-                      formatter={(value: number) => [value, 'New Clients']}
+                      formatter={(value: number) => [value, "New Clients"]}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="count" 
+                    <Area
+                      type="monotone"
+                      dataKey="count"
                       stroke="url(#colorLine)"
                       strokeWidth={3}
-                      fill="url(#colorStarts)" 
+                      fill="url(#colorStarts)"
                       dot={{ fill: "#6366f1", strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6, fill: "#6366f1" }}
                     />
@@ -724,7 +831,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
           </div>
 
           {/* Enhanced Upcoming Due Table */}
-          <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}>
+          <Card
+            className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}
+          >
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                 <div className="p-2 bg-amber-500 rounded-lg shadow-md">
@@ -743,7 +852,8 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                     <>
                       {" • "}
                       <span className="text-amber-600">
-                        {clients.data.find((c) => c.id === selectedClientId)?.name || "—"}
+                        {clients.data.find((c) => c.id === selectedClientId)
+                          ?.name || "—"}
                       </span>
                     </>
                   )}
@@ -756,10 +866,18 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Client
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Package
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Due Date
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -783,8 +901,8 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                           </td>
                           <td className="py-4 px-6 text-slate-600 font-medium">
                             {c.packageId
-                              ? pkgMap[c.packageId] ??
-                                (pkgLoading ? "Loading…" : c.packageId)
+                              ? (pkgMap[c.packageId] ??
+                                (pkgLoading ? "Loading…" : c.packageId))
                               : "—"}
                           </td>
                           <td className="py-4 px-6">
@@ -804,7 +922,9 @@ const AMCeoDashboardComponent = function AMCeoDashboard({ defaultAmId = "" }: { 
                 <div className="py-16 text-center text-slate-500 font-medium">
                   <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                   <p>No upcoming deliverables found</p>
-                  <p className="text-sm text-slate-400 mt-1">All clients are up to date</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    All clients are up to date
+                  </p>
                 </div>
               )}
             </CardContent>

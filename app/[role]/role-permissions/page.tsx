@@ -123,7 +123,7 @@ const PERMISSION_CATEGORY_MAP: Record<string, string> = {
   view_agents_list: "agents",
   view_agents_create: "agents",
 
-  // ---- AM / AM CEO (will fall back to Clients/Sales heuristics too) ----
+  // ---- AM / CEO (will fall back to Clients/Sales heuristics too) ----
   view_am_clients_list: "clients",
   view_am_ceo_clients_list: "clients",
   view_am_clients_create: "clients",
@@ -433,7 +433,7 @@ export default function RolePermissionPage() {
       (r) =>
         r.name?.toLowerCase() === "admin" ||
         r.id?.toLowerCase() === "admin" ||
-        r.name?.toLowerCase() === "administrator"
+        r.name?.toLowerCase() === "administrator",
     );
     const pick = adminLike ?? roles[0];
     if (pick?.id) {
@@ -548,8 +548,8 @@ export default function RolePermissionPage() {
       await mutate("/api/auth/me"); // 🔄 সাথে সাথে পুরো অ্যাপের পারমিশন রি-ফেচ
       await mutate(
         (
-          key: any // ঐচ্ছিক: সংশ্লিষ্ট সব কী রি-ফেচ
-        ) => typeof key === "string" && key.startsWith("/api/role-permissions")
+          key: any, // ঐচ্ছিক: সংশ্লিষ্ট সব কী রি-ফেচ
+        ) => typeof key === "string" && key.startsWith("/api/role-permissions"),
       );
       toast.success("Permissions updated");
     } catch (e: any) {
@@ -562,13 +562,13 @@ export default function RolePermissionPage() {
     const q = search.trim().toLowerCase();
     if (!q) return roles;
     return roles.filter(
-      (r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)
+      (r) => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q),
     );
   }, [roles, search]);
 
   const selectedRoleMeta = useMemo(
     () => roles.find((r) => r.id === selectedRole?.id),
-    [roles, selectedRole?.id]
+    [roles, selectedRole?.id],
   );
 
   // Toggle category expansion
@@ -640,76 +640,74 @@ export default function RolePermissionPage() {
           </div>
 
           <ul className="divide-y max-h-[70vh] overflow-auto">
-            {rolesLoading ? (
-              // Skeleton for roles
-              Array.from({ length: 5 }).map((_, index) => (
-                <li key={`skeleton-${index}`} className="p-4">
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                </li>
-              ))
-            ) : (
-              filteredRoles.map((role) => (
-              <li
-                key={role.id}
-                className={cn(
-                  "p-4 transition-colors",
-                  selectedRole?.id === role.id
-                    ? "bg-blue-50 border-l-4 border-l-blue-500"
-                    : "hover:bg-gray-50"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <button
-                    className="text-left flex-1"
-                    onClick={() => loadRolePermissions(role.id)}
-                    title="Select to manage permissions"
-                  >
-                    <div
-                      className={cn(
-                        "text-sm font-medium",
-                        selectedRole?.id === role.id
-                          ? "text-blue-700"
-                          : "text-gray-800"
-                      )}
-                    >
-                      {role.name.toUpperCase()}
+            {rolesLoading
+              ? // Skeleton for roles
+                Array.from({ length: 5 }).map((_, index) => (
+                  <li key={`skeleton-${index}`} className="p-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-3 w-24" />
                     </div>
-                    {role.description && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {role.description}
-                      </div>
+                  </li>
+                ))
+              : filteredRoles.map((role) => (
+                  <li
+                    key={role.id}
+                    className={cn(
+                      "p-4 transition-colors",
+                      selectedRole?.id === role.id
+                        ? "bg-blue-50 border-l-4 border-l-blue-500"
+                        : "hover:bg-gray-50",
                     )}
-                    {!!role._count?.users && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {role._count.users} user(s)
-                      </div>
-                    )}
-                  </button>
+                  >
+                    <div className="flex items-center justify-between">
+                      <button
+                        className="text-left flex-1"
+                        onClick={() => loadRolePermissions(role.id)}
+                        title="Select to manage permissions"
+                      >
+                        <div
+                          className={cn(
+                            "text-sm font-medium",
+                            selectedRole?.id === role.id
+                              ? "text-blue-700"
+                              : "text-gray-800",
+                          )}
+                        >
+                          {role.name.toUpperCase()}
+                        </div>
+                        {role.description && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {role.description}
+                          </div>
+                        )}
+                        {!!role._count?.users && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {role._count.users} user(s)
+                          </div>
+                        )}
+                      </button>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditRole(role)}
-                      className="p-1.5 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50"
-                      title="Edit role"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => confirmDeleteRole(role)}
-                      className="p-1.5 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50"
-                      title="Delete role"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))
-            )}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditRole(role)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                          title="Edit role"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteRole(role)}
+                          className="p-1.5 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          title="Delete role"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
 
             {!rolesLoading && filteredRoles.length === 0 && (
               <li className="p-4 text-sm text-gray-500 text-center">
@@ -766,7 +764,7 @@ export default function RolePermissionPage() {
                     "px-3 py-1.5 rounded-full text-sm transition-colors",
                     filterCategory === "all"
                       ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                   )}
                 >
                   All Categories
@@ -780,7 +778,7 @@ export default function RolePermissionPage() {
                       "px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-2",
                       filterCategory === category.id
                         ? "bg-blue-100 text-blue-800 border border-blue-200"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                     )}
                   >
                     {category.icon}
@@ -809,7 +807,10 @@ export default function RolePermissionPage() {
                 // Skeleton for permissions grid
                 <div className="space-y-4">
                   {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={`skeleton-cat-${index}`} className="border rounded-lg overflow-hidden">
+                    <div
+                      key={`skeleton-cat-${index}`}
+                      className="border rounded-lg overflow-hidden"
+                    >
                       <div className="p-4 bg-gray-50 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-5 w-5 rounded-md" />
@@ -822,7 +823,10 @@ export default function RolePermissionPage() {
                       </div>
                       <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
                         {Array.from({ length: 4 }).map((_, idx) => (
-                          <div key={`skeleton-perm-${idx}`} className="flex items-start gap-3 rounded-lg border p-3">
+                          <div
+                            key={`skeleton-perm-${idx}`}
+                            className="flex items-start gap-3 rounded-lg border p-3"
+                          >
                             <Skeleton className="h-5 w-5 mt-0.5" />
                             <div className="flex-1 space-y-2">
                               <Skeleton className="h-4 w-32" />
@@ -843,7 +847,7 @@ export default function RolePermissionPage() {
                       if (perms.length === 0) return null;
 
                       const category = permissionCategories.find(
-                        (c) => c.id === categoryId
+                        (c) => c.id === categoryId,
                       ) || {
                         id: categoryId,
                         name:
@@ -888,9 +892,8 @@ export default function RolePermissionPage() {
                           {isExpanded && (
                             <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
                               {perms.map((p) => {
-                                const checked = selectedRole.permissions.includes(
-                                  p.id
-                                );
+                                const checked =
+                                  selectedRole.permissions.includes(p.id);
                                 return (
                                   <label
                                     key={p.id}
@@ -913,7 +916,10 @@ export default function RolePermissionPage() {
                                         className="hidden"
                                         checked={checked}
                                         onChange={(e) =>
-                                          togglePermission(p.id, e.target.checked)
+                                          togglePermission(
+                                            p.id,
+                                            e.target.checked,
+                                          )
                                         }
                                       />
                                     </div>
@@ -934,7 +940,7 @@ export default function RolePermissionPage() {
                           )}
                         </div>
                       );
-                    }
+                    },
                   )}
                 </div>
               )}
@@ -1005,8 +1011,8 @@ export default function RolePermissionPage() {
                   {submittingRole
                     ? "Saving…"
                     : editingRole
-                    ? "Save Changes"
-                    : "Create Role"}
+                      ? "Save Changes"
+                      : "Create Role"}
                 </button>
               </div>
             </form>

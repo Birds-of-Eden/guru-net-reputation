@@ -172,13 +172,15 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
     isLoading: loading,
     error: fetchError,
   } = useSWR<AgentClient[]>(
-    agentId ? `/api/tasks/clients/agents/${agentId}?timeRange=${timeRange}` : null,
+    agentId
+      ? `/api/tasks/clients/agents/${agentId}?timeRange=${timeRange}`
+      : null,
     agentDashboardFetcher,
     {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
       refreshInterval: 60000,
-    }
+    },
   );
 
   const error = fetchError
@@ -192,7 +194,9 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
 
     try {
       const clients = rawClients.map((c) => {
-        const counts = normalizeCounts(c.agentTaskCounts ?? c.taskCounts ?? EMPTY_COUNTS);
+        const counts = normalizeCounts(
+          c.agentTaskCounts ?? c.taskCounts ?? EMPTY_COUNTS,
+        );
 
         // overall completion (completed / total)
         const derivedFromCounts =
@@ -406,7 +410,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-5">
-                <BarRow
+              <BarRow
                 label="QC Approved"
                 value={dashboardData?.qcApprovedTasks ?? 0}
                 total={dashboardData?.totalTasks ?? 0}
@@ -418,7 +422,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                 total={dashboardData?.totalTasks ?? 0}
                 barClass="bg-emerald-500"
               />
-            
+
               <BarRow
                 label="In Progress"
                 value={dashboardData?.inProgressTasks ?? 0}
@@ -441,14 +445,14 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
           </CardContent>
         </Card>
 
-        {/* Client Progress Distribution (QC-based) */}
+        {/* Client Campaign Progress  (QC-based) */}
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/50 backdrop-blur-sm">
           <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/50 to-violet-50/50">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Target className="h-5 w-5 text-purple-600" />
-                  Client Progress Distribution
+                  Client Campaign Progress
                 </CardTitle>
                 <CardDescription className="text-slate-500">
                   QC approved progress across clients

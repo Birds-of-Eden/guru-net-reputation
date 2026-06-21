@@ -157,7 +157,7 @@ const ICONS: Record<string, React.ReactNode> = {
   "Admin Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
   "Agent Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
   "AM Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
-  "AM CEO Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
+  "CEO Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
   "Client Chat": <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />,
   "Data Entry Chat": (
     <MessageSquareText className="h-4 w-4" strokeWidth={1.75} />
@@ -194,7 +194,7 @@ const p = (role: Role, suffix = "") => `${basePath[role]}${suffix}`;
 
 const fetcher = (u: string) =>
   fetch(u, { cache: "no-store" }).then((r) =>
-    r.ok ? r.json() : Promise.reject(r.status)
+    r.ok ? r.json() : Promise.reject(r.status),
   );
 
 /* =========================
@@ -264,16 +264,11 @@ function buildNav(role: Role): NavItem[] {
       ],
     },
 
-    // AM CEO Clients
+    // CEO Clients
     {
-      title: "Clients",
-      children: [
-        {
-          title: "Clients",
-          url: p(r, "/am_ceo_clients"),
-          permission: "view_am_ceo_clients_list",
-        },
-      ],
+      title: "Account Manager",
+      url: p(r, "/am_ceo_clients"),
+      permission: "view_am_ceo_clients_list",
     },
 
     // AM Clients
@@ -309,20 +304,28 @@ function buildNav(role: Role): NavItem[] {
           url: p(r, "/distribution/client-agent"),
           permission: "view_distribution_client_agent",
         },
-        ...(r !== "am" && r !== "am_ceo" ? [{
-          title: "Custom Jobs",
-          url: p(r, "/distribution/custom_jobs"),
-          permission: "view_distribution_custom_jobs",
-        }] : []),
+        ...(r !== "am" && r !== "am_ceo"
+          ? [
+              {
+                title: "Custom Jobs",
+                url: p(r, "/distribution/custom_jobs"),
+                permission: "view_distribution_custom_jobs",
+              },
+            ]
+          : []),
       ],
     },
 
     // Custom Jobs - separate for AM users
-    ...(r === "am" || r === "am_ceo" ? [{
-      title: "Custom Jobs",
-      url: p(r, "/distribution/custom_jobs"),
-      permission: "view_distribution_custom_jobs",
-    }] : []),
+    ...(r === "am" || r === "am_ceo"
+      ? [
+          {
+            title: "Custom Jobs",
+            url: p(r, "/distribution/custom_jobs"),
+            permission: "view_distribution_custom_jobs",
+          },
+        ]
+      : []),
 
     // Tasks
     {
@@ -419,7 +422,7 @@ function buildNav(role: Role): NavItem[] {
           permission: "view_activity_logs",
         },
         {
-          title: "Asset Types",
+          title: "Task Category",
           url: p(r, "/asset-types"),
           permission: "asset_type_manage",
         },
@@ -450,21 +453,25 @@ function isGroup(item: NavItem): item is NavGroup {
   return (item as NavGroup).children !== undefined;
 }
 
-function groupHasActive(item: NavGroup, active: (url: string) => boolean): boolean {
+function groupHasActive(
+  item: NavGroup,
+  active: (url: string) => boolean,
+): boolean {
   return item.children.some((child) =>
-    isGroup(child) ? groupHasActive(child, active) : active(child.url)
+    isGroup(child) ? groupHasActive(child, active) : active(child.url),
   );
 }
 
 function collectLeafUrls(item: NavItem): string[] {
-  if (isGroup(item)) return item.children.flatMap((child) => collectLeafUrls(child));
+  if (isGroup(item))
+    return item.children.flatMap((child) => collectLeafUrls(child));
   return [item.url];
 }
 
 function collectExpandedGroups(
   item: NavItem,
   active: (url: string) => boolean,
-  out: Set<string>
+  out: Set<string>,
 ) {
   if (!isGroup(item)) return;
   if (groupHasActive(item, active)) out.add(item.title);
@@ -482,21 +489,19 @@ function useActive(pathname: string) {
   const normPath = React.useMemo(() => normalizePath(pathname), [pathname]);
   return React.useCallback(
     (url: string) => normalizePath(url) === normPath,
-    [normPath]
+    [normPath],
   );
 }
 
 function filterNavByAccess(
   items: NavItem[],
-  permissionSet: Set<string> | null
+  permissionSet: Set<string> | null,
 ) {
   const hasPerm = (perm?: string) =>
     !perm ? true : !!permissionSet?.has(perm);
   const filterItem = (item: NavItem): NavItem | null => {
     if (isGroup(item)) {
-      const kids = item.children
-        .map(filterItem)
-        .filter(Boolean) as NavItem[];
+      const kids = item.children.map(filterItem).filter(Boolean) as NavItem[];
       if (kids.length === 0) return null;
       return { ...item, children: kids } as NavGroup;
     }
@@ -576,7 +581,7 @@ export function AppSidebar({ className }: { className?: string }) {
   const { data: unreadData } = useSWR<{ count: number }>(
     "/api/chat/unread-count",
     fetcher,
-    { refreshInterval: 15_000, revalidateOnFocus: true }
+    { refreshInterval: 15_000, revalidateOnFocus: true },
   );
   const chatUnread = unreadData?.count ?? 0;
 
@@ -587,7 +592,7 @@ export function AppSidebar({ className }: { className?: string }) {
     () => {
       if (typeof window === "undefined") return true;
       return (localStorage.getItem("chatSound") ?? "on") === "on";
-    }
+    },
   );
 
   React.useEffect(() => {
@@ -645,7 +650,7 @@ export function AppSidebar({ className }: { className?: string }) {
   const nav = React.useMemo(() => buildNav(actingRole), [actingRole]);
   const visibleNav = React.useMemo(
     () => filterNavByAccess(nav, permissionSet),
-    [nav, permissionSet]
+    [nav, permissionSet],
   );
 
   // Auto behaviors
@@ -786,7 +791,7 @@ export function AppSidebar({ className }: { className?: string }) {
           "hidden md:flex fixed top-0 left-0 h-screen w-64 z-0 flex-col",
           "bg-linear-to-b from-slate-50 via-white to-slate-50",
           "border-r border-gray-200/80 shadow-xl",
-          className
+          className,
         )}
         aria-label="Sidebar"
       >
@@ -924,7 +929,7 @@ function GroupItem({
           "hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100/50",
           "hover:shadow-sm hover:border-gray-200/50 border border-transparent text-left",
           isActive &&
-            "bg-linear-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm"
+            "bg-linear-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm",
         )}
         aria-expanded={open}
         aria-controls={`section-${item.title}`}
@@ -933,7 +938,7 @@ function GroupItem({
           <div
             className={cn(
               "p-2 rounded-lg transition-all duration-200 bg-linear-to-br from-gray-100 to-gray-200",
-              isActive && "from-cyan-500 to-blue-500 text-white shadow-md"
+              isActive && "from-cyan-500 to-blue-500 text-white shadow-md",
             )}
           >
             {ICONS[item.title] ?? <Folder className="h-4 w-4" />}
@@ -941,7 +946,7 @@ function GroupItem({
           <span
             className={cn(
               "font-medium transition-colors duration-200 text-gray-700 group-hover:text-gray-900",
-              isActive && "text-cyan-700"
+              isActive && "text-cyan-700",
             )}
           >
             {item.title}
@@ -986,7 +991,7 @@ function GroupItem({
                   active={active}
                   chatUnread={chatUnread}
                 />
-              )
+              ),
             )}
           </motion.div>
         )}
@@ -1014,14 +1019,14 @@ function LeafItem({
       className={cn(
         "flex items-center gap-3 p-2.5 rounded-lg",
         "transition-all duration-200 hover:bg-gray-50",
-        isActive && "bg-cyan-50 text-cyan-700 font-medium"
+        isActive && "bg-cyan-50 text-cyan-700 font-medium",
       )}
       aria-current={isActive ? "page" : undefined}
     >
       <div
         className={cn(
           "p-1.5 rounded-md bg-gray-100",
-          isActive && "bg-cyan-100 text-cyan-700"
+          isActive && "bg-cyan-100 text-cyan-700",
         )}
       >
         {ICONS[item.title] ?? <FileText className="h-4 w-4" />}
@@ -1061,7 +1066,7 @@ function MobileItem({
       <button
         className={cn(
           "w-full flex items-center justify-between px-3 py-2 bg-white",
-          isActive && "bg-cyan-50"
+          isActive && "bg-cyan-50",
         )}
         onClick={() =>
           setExpanded((s) => ({ ...s, [item.title]: !s[item.title] }))
@@ -1072,7 +1077,7 @@ function MobileItem({
           <div
             className={cn(
               "p-2 rounded-lg bg-gray-100",
-              isActive && "bg-cyan-100 text-cyan-700"
+              isActive && "bg-cyan-100 text-cyan-700",
             )}
           >
             {ICONS[item.title] ?? <Folder className="h-4 w-4" />}
@@ -1110,7 +1115,7 @@ function MobileItem({
                     active={active}
                     chatUnread={chatUnread}
                   />
-                )
+                ),
               )}
             </div>
           </motion.div>
@@ -1160,7 +1165,7 @@ function SidebarFooter({
           <button
             className={cn(
               "w-full flex items-center gap-3 p-3 rounded-xl bg-white/60 backdrop-blur-sm",
-              "border border-gray-200/50 shadow-sm hover:shadow transition"
+              "border border-gray-200/50 shadow-sm hover:shadow transition",
             )}
             aria-label="Account menu"
           >

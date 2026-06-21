@@ -309,12 +309,14 @@ export const TaskListItem = memo(function TaskListItem({
                       isPriorityLocked
                         ? "Priority locked for completed/QC approved tasks"
                         : shouldDisableDropdown
-                        ? "Controlled by the first selected task"
-                        : undefined
+                          ? "Controlled by the first selected task"
+                          : undefined
                     }
                   >
                     <SelectValue
-                      placeholder={priorityUpdating ? "Updating..." : "Priority"}
+                      placeholder={
+                        priorityUpdating ? "Updating..." : "Priority"
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -515,21 +517,23 @@ export const TaskListItem = memo(function TaskListItem({
                               <div className="flex items-center gap-3">
                                 <span className="inline-flex items-center gap-1">
                                   <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
-                                  P
+                                  Pending
                                 </span>
                                 <span className="inline-flex items-center gap-1">
                                   <span className="h-2 w-2 rounded-full bg-indigo-500" />{" "}
-                                  IP
+                                  In Progress
                                 </span>
                                 <span className="inline-flex items-center gap-1">
                                   <span className="h-2 w-2 rounded-full bg-rose-500" />{" "}
-                                  O
+                                  Overdue
                                 </span>
                                 <span className="inline-flex items-center gap-1">
                                   <span className="h-2 w-2 rounded-full bg-orange-500" />{" "}
-                                  R
+                                  Reassigned
                                 </span>
-                                <span className="ml-auto">Active / W</span>
+                                <span className="ml-auto">
+                                  Active / Working
+                                </span>
                               </div>
                             </div>
 

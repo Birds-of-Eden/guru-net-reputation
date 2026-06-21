@@ -46,7 +46,11 @@ type ClientLite = {
   dueDate?: string | null;
   amId?: string | null;
   packageId?: string | null;
-  accountManager?: { id?: string; name?: string | null; email?: string | null } | null;
+  accountManager?: {
+    id?: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
 };
 
 type FetchState<T> = {
@@ -94,14 +98,22 @@ const packagesFetcher = async (url: string): Promise<PackageLite[]> => {
   const res = await fetch(url, { cache: "no-store" });
   const raw = await res.json();
   const list = safeParse<any[]>(raw);
-  const packages = (Array.isArray(list) ? list : Array.isArray((raw as any)?.data) ? (raw as any).data : []);
+  const packages = Array.isArray(list)
+    ? list
+    : Array.isArray((raw as any)?.data)
+      ? (raw as any).data
+      : [];
   return packages.map((p: any) => ({
     id: String(p?.id ?? ""),
     name: String(p?.name ?? "Unnamed"),
   }));
 };
 
-const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaultAmId?: string }) {
+const AMDashboardComponent = function AMDashboard({
+  defaultAmId = "",
+}: {
+  defaultAmId?: string;
+}) {
   const [selectedAmId, setSelectedAmId] = useState<string>(defaultAmId);
   const { user, loading: sessionLoading } = useUserSession();
 
@@ -110,12 +122,20 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   const isAM = role === "am";
 
   // Use optimized hooks with SWR
-  const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
-  const { data: packages, isLoading: pkgLoading } = useSWR<PackageLite[]>("/api/packages", packagesFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 60000, // 1 minute
-    refreshInterval: 300000, // 5 minutes
-  });
+  const {
+    clients: allClients,
+    loading: clientsLoading,
+    error: clientsError,
+  } = useClients();
+  const { data: packages, isLoading: pkgLoading } = useSWR<PackageLite[]>(
+    "/api/packages",
+    packagesFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // 1 minute
+      refreshInterval: 300000, // 5 minutes
+    },
+  );
 
   // Set selection from session (AM users see their own clients)
   useEffect(() => {
@@ -164,7 +184,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   }, [clients.data]);
 
   const totalClients = clients.data.length;
-  const activeClients = clients.data.filter((c) => (c.status ?? "").toLowerCase() === "active").length;
+  const activeClients = clients.data.filter(
+    (c) => (c.status ?? "").toLowerCase() === "active",
+  ).length;
 
   const avgProgress = useMemo(() => {
     if (!clients.data.length) return 0;
@@ -186,7 +208,11 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
   const upcomingDueList = useMemo(() => {
     return [...clients.data]
       .filter((c) => !!c.dueDate)
-      .sort((a, b) => new Date(a.dueDate as string).getTime() - new Date(b.dueDate as string).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.dueDate as string).getTime() -
+          new Date(b.dueDate as string).getTime(),
+      )
       .slice(0, 8);
   }, [clients.data]);
 
@@ -196,9 +222,11 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
       Object.entries(statusCounts).map(([name, value], index) => ({
         name: name.replace(/_/g, " "),
         value,
-        fill: Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length],
+        fill: Object.values(CHART_COLORS)[
+          index % Object.values(CHART_COLORS).length
+        ],
       })),
-    [statusCounts]
+    [statusCounts],
   );
 
   const progressBuckets = useMemo(() => {
@@ -223,9 +251,12 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     () =>
       progressBuckets.map((bucket, index) => ({
         ...bucket,
-        trend: Math.max(0, bucket.count - (progressBuckets[index - 1]?.count || 0)),
+        trend: Math.max(
+          0,
+          bucket.count - (progressBuckets[index - 1]?.count || 0),
+        ),
       })),
-    [progressBuckets]
+    [progressBuckets],
   );
 
   const startsByMonth = useMemo(() => {
@@ -258,8 +289,17 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
     return selectedAmId ? "Selected AM" : "All AMs";
   }, [isAM, user, selectedAmId, clients.data]);
 
-  const formatDate = useCallback((s?: string | null) =>
-    s ? new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—", []);
+  const formatDate = useCallback(
+    (s?: string | null) =>
+      s
+        ? new Date(s).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "—",
+    [],
+  );
 
   return (
     <div className="space-y-6 px-4 bg-linear-to-br from-slate-50 to-gray-100 min-h-screen">
@@ -267,7 +307,7 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-6">
         <div className="space-y-2">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            AM's Dashboard
+            AM Dashboard
           </h1>
           <p className="text-sm text-slate-600 font-medium">
             {amLabel} • {totalClients} total clients
@@ -281,7 +321,10 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
           {/* KPI Cards Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: 3 }).map((_, index) => (
-              <Card key={`kpi-skeleton-${index}`} className="border-0 shadow-lg">
+              <Card
+                key={`kpi-skeleton-${index}`}
+                className="border-0 shadow-lg"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-3 flex-1">
@@ -327,7 +370,7 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardContent>
             </Card>
 
-            {/* Progress Distribution Chart */}
+            {/* Campaign Progress  Chart */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3">
@@ -373,7 +416,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
         <>
           {/* Enhanced KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.indigo} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -395,7 +440,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardContent>
             </Card>
 
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -417,7 +464,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardContent>
             </Card>
 
-            <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -443,13 +492,15 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Enhanced Status Pie Chart with Donut */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-indigo-500 rounded-lg shadow-md">
                     <PieChartIcon className="w-5 h-5 text-white" />
                   </div>
-                  <span>Client Status Distribution</span>
+                  <span>Clients Status</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="h-[280px]">
@@ -458,8 +509,18 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                     <PieChart>
                       <defs>
                         {pieData.map((entry, index) => (
-                          <filter key={index} id={`glow-${index}`} x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                          <filter
+                            key={index}
+                            id={`glow-${index}`}
+                            x="-50%"
+                            y="-50%"
+                            width="200%"
+                            height="200%"
+                          >
+                            <feGaussianBlur
+                              stdDeviation="3"
+                              result="coloredBlur"
+                            />
                             <feMerge>
                               <feMergeNode in="coloredBlur" />
                               <feMergeNode in="SourceGraphic" />
@@ -489,7 +550,10 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                         ))}
                       </Pie>
                       <RTooltip
-                        formatter={(value: number) => [`${value} clients`, "Count"]}
+                        formatter={(value: number) => [
+                          `${value} clients`,
+                          "Count",
+                        ]}
                         contentStyle={{
                           backgroundColor: "#f8fafc",
                           border: "1px solid #e2e8f0",
@@ -508,25 +572,48 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
 
             {/* Enhanced Progress Bar Chart with Line Overlay */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-emerald-500 rounded-lg shadow-md">
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
-                  <span>Progress Distribution</span>
+                  <span>Campaign Progress </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={enhancedProgressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart
+                    data={enhancedProgressData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0.4} />
+                      <linearGradient
+                        id="progressGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0.4}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
@@ -568,7 +655,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
             </Card>
 
             {/* Enhanced Area Chart with Gradient */}
-            <Card className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}>
+            <Card
+              className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}
+            >
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                   <div className="p-2 bg-blue-500 rounded-lg shadow-md">
@@ -579,18 +668,49 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={startsByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <AreaChart
+                    data={startsByMonth}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <defs>
-                      <linearGradient id="colorStarts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                      <linearGradient
+                        id="colorStarts"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#3b82f6"
+                          stopOpacity={0.1}
+                        />
                       </linearGradient>
-                      <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient
+                        id="colorLine"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
                         <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.5} />
+                        <stop
+                          offset="95%"
+                          stopColor="#6366f1"
+                          stopOpacity={0.5}
+                        />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e2e8f0"
+                      vertical={false}
+                    />
                     <XAxis
                       dataKey="label"
                       tick={{ fill: "#64748b", fontSize: 11 }}
@@ -628,7 +748,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
           </div>
 
           {/* Enhanced Upcoming Due Table */}
-          <Card className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}>
+          <Card
+            className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}
+          >
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
                 <div className="p-2 bg-amber-500 rounded-lg shadow-md">
@@ -652,10 +774,18 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Client</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Status</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Package</th>
-                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">Due Date</th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Client
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Package
+                        </th>
+                        <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
+                          Due Date
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -679,8 +809,8 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                           </td>
                           <td className="py-4 px-6 text-slate-600 font-medium">
                             {c.packageId
-                              ? pkgMap[c.packageId] ??
-                                (pkgLoading ? "Loading…" : c.packageId)
+                              ? (pkgMap[c.packageId] ??
+                                (pkgLoading ? "Loading…" : c.packageId))
                               : "—"}
                           </td>
                           <td className="py-4 px-6">
@@ -700,7 +830,9 @@ const AMDashboardComponent = function AMDashboard({ defaultAmId = "" }: { defaul
                 <div className="py-16 text-center text-slate-500 font-medium">
                   <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                   <p>No upcoming deliverables found</p>
-                  <p className="text-sm text-slate-400 mt-1">All clients are up to date</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    All clients are up to date
+                  </p>
                 </div>
               )}
             </CardContent>

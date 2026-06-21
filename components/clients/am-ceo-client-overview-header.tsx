@@ -70,21 +70,20 @@ export function AmCeoClientOverviewHeader({
 
   // 🔎 Debug helpers (চাইলে রাখুন, সমস্যা বোঝা সহজ হবে)
   useEffect(() => {
-     
     console.log(
       "[AM FILTER/HEADER] isAM:",
       isAM,
       "currentUserIdStr:",
       currentUserIdStr,
       "amFilter:",
-      amFilter
+      amFilter,
     );
   }, [isAM, currentUserIdStr, amFilter]);
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
       <h1 className="text-3xl font-bold text-gray-800">
-        ALL AM&apos;s Overview
+        Account Manager&apos;s Overview
       </h1>
 
       <div className="flex flex-wrap items-center gap-4">

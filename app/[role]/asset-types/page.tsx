@@ -27,14 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import {
-  Plus,
-  Search,
-  Pencil,
-  RefreshCw,
-  Power,
-  PowerOff,
-} from "lucide-react";
+import { Plus, Search, Pencil, RefreshCw, Power, PowerOff } from "lucide-react";
 
 type AssetType = {
   id: string;
@@ -84,8 +77,8 @@ export default function AssetTypesPage() {
       const data = await res.json();
       setAssetTypes(Array.isArray(data?.assetTypes) ? data.assetTypes : []);
     } catch (err) {
-      console.error("Failed to load asset types:", err);
-      toast.error("Failed to load asset types");
+      console.error("Failed to load Task Category Management:", err);
+      toast.error("Failed to load Task Category Management");
     } finally {
       setLoading(false);
     }
@@ -144,7 +137,9 @@ export default function AssetTypesPage() {
 
   const handleSave = async () => {
     if (!canManage) {
-      toast.error("You do not have permission to manage asset types");
+      toast.error(
+        "You do not have permission to manage Task Category Management",
+      );
       return;
     }
     const label = form.label.trim();
@@ -175,7 +170,9 @@ export default function AssetTypesPage() {
       const res = await fetch("/api/asset-types", {
         method: editing ? "PATCH" : "POST",
         headers,
-        body: JSON.stringify(editing ? { ...payload, slug: editing.slug } : payload),
+        body: JSON.stringify(
+          editing ? { ...payload, slug: editing.slug } : payload,
+        ),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -192,7 +189,9 @@ export default function AssetTypesPage() {
 
   const toggleActive = async (item: AssetType) => {
     if (!canManage) {
-      toast.error("You do not have permission to manage asset types");
+      toast.error(
+        "You do not have permission to manage Task Category Management",
+      );
       return;
     }
     try {
@@ -203,12 +202,12 @@ export default function AssetTypesPage() {
 
       if (item.isActive) {
         const ok = window.confirm(
-          `Disable "${item.label}"? It will be hidden from selection.`
+          `Disable "${item.label}"? It will be hidden from selection.`,
         );
         if (!ok) return;
         const res = await fetch(
           `/api/asset-types?slug=${encodeURIComponent(item.slug)}`,
-          { method: "DELETE", headers }
+          { method: "DELETE", headers },
         );
         if (!res.ok) throw new Error("Failed to disable asset type");
       } else {
@@ -231,9 +230,9 @@ export default function AssetTypesPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="rounded-lg border bg-white p-6">
-          <h1 className="text-2xl font-bold">Asset Types</h1>
+          <h1 className="text-2xl font-bold">Task Category Management</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            You do not have permission to manage asset types.
+            You do not have permission to manage Task Category Management.
           </p>
         </div>
       </div>
@@ -241,15 +240,15 @@ export default function AssetTypesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-4 py-8">
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Asset Types
+              Task Category Management
             </h1>
             <p className="text-sm text-muted-foreground">
-              Create, edit, and disable asset types from one place.
+              Create, edit, and disable Task Category Management from one place.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -338,9 +337,7 @@ export default function AssetTypesPage() {
                       {item.sortOrder ?? 0}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={item.isActive ? "default" : "secondary"}
-                      >
+                      <Badge variant={item.isActive ? "default" : "secondary"}>
                         {item.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
@@ -371,7 +368,7 @@ export default function AssetTypesPage() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-6">
-                    No asset types found.
+                    No Task Category Management found.
                   </TableCell>
                 </TableRow>
               )}

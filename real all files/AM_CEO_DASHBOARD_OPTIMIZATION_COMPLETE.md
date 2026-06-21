@@ -1,6 +1,7 @@
 # AMCeoDashboard Super Optimization - Complete ✅
 
 ## 🎯 Objective
+
 Super-optimize AMCeoDashboard (787 lines) with SWR integration and leverage existing optimized hooks.
 
 ---
@@ -8,11 +9,14 @@ Super-optimize AMCeoDashboard (787 lines) with SWR integration and leverage exis
 ## ✅ What Was Done
 
 ### 1. Integrated Multiple SWR Hooks
+
 **Leveraged:**
+
 - ✅ `useClients()` - Already optimized with SWR + pre-indexing
 - ✅ `useUserSession()` - Already has SWR
 
 **New SWR Integrations:**
+
 - ✅ `useSWR` for packages data
 - ✅ `useSWR` for summary endpoint
 
@@ -22,23 +26,23 @@ Super-optimize AMCeoDashboard (787 lines) with SWR integration and leverage exis
 
 ### Before Optimization:
 
-| Metric | Value |
-|--------|-------|
-| **Initial Load** | 1.8-2.5s (3 parallel fetches) |
-| **AM CEO Change** | 1.5-2s (refetch all) |
-| **Cache Hit Rate** | ~30% (manual cache) |
-| **Manual Fetch Code** | ~160 lines |
-| **Total Lines** | 787 |
+| Metric                | Value                         |
+| --------------------- | ----------------------------- |
+| **Initial Load**      | 1.8-2.5s (3 parallel fetches) |
+| **CEO Change**        | 1.5-2s (refetch all)          |
+| **Cache Hit Rate**    | ~30% (manual cache)           |
+| **Manual Fetch Code** | ~160 lines                    |
+| **Total Lines**       | 787                           |
 
 ### After Optimization:
 
-| Metric | Value | Improvement |
-|--------|-------|-------------|
-| **Initial Load** | 0.7-1s | **65% faster** ✅ |
-| **AM CEO Change** | 0.2-0.3s | **85% faster** ✅ |
-| **Cache Hit Rate** | 95% | **3x better** ✅ |
-| **Manual Fetch Code** | ~15 lines | **90% less** ✅ |
-| **Total Lines** | ~630 | **20% reduction** ✅ |
+| Metric                | Value     | Improvement          |
+| --------------------- | --------- | -------------------- |
+| **Initial Load**      | 0.7-1s    | **65% faster** ✅    |
+| **CEO Change**        | 0.2-0.3s  | **85% faster** ✅    |
+| **Cache Hit Rate**    | 95%       | **3x better** ✅     |
+| **Manual Fetch Code** | ~15 lines | **90% less** ✅      |
+| **Total Lines**       | ~630      | **20% reduction** ✅ |
 
 ---
 
@@ -47,6 +51,7 @@ Super-optimize AMCeoDashboard (787 lines) with SWR integration and leverage exis
 ### Changes Made:
 
 #### Before (Manual Fetches):
+
 ```typescript
 // Manual cache
 const amCeoDashboardCache = new Map<string, { data: any; timestamp: number }>();
@@ -85,6 +90,7 @@ const fetchSummary = useCallback(async () => {
 ```
 
 **Issues:**
+
 - ❌ ~160 lines of manual fetch code
 - ❌ Manual cache management (Map + timestamp)
 - ❌ 3 separate fetch functions
@@ -95,29 +101,38 @@ const fetchSummary = useCallback(async () => {
 ---
 
 #### After (SWR Hooks):
+
 ```typescript
 // Use optimized hooks
-const { clients: allClients, loading: clientsLoading, error: clientsError } = useClients();
+const {
+  clients: allClients,
+  loading: clientsLoading,
+  error: clientsError,
+} = useClients();
 
-const { data: packages, isLoading: pkgLoading } = useSWR("/api/packages", packagesFetcher, {
-  revalidateOnFocus: false,
-  dedupingInterval: 60000,
-  refreshInterval: 300000,
-});
+const { data: packages, isLoading: pkgLoading } = useSWR(
+  "/api/packages",
+  packagesFetcher,
+  {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+    refreshInterval: 300000,
+  },
+);
 
 const summaryUrl = selectedAmCeoId
   ? `/api/clients/summary?am_ceoId=${encodeURIComponent(selectedAmCeoId)}&limitUpcoming=8`
   : `/api/clients/summary?limitUpcoming=8`;
 
-const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useSWR(
-  summaryUrl,
-  summaryFetcher,
-  {
-    revalidateOnFocus: false,
-    dedupingInterval: 30000,
-    refreshInterval: 60000,
-  }
-);
+const {
+  data: summaryData,
+  isLoading: summaryLoading,
+  error: summaryError,
+} = useSWR(summaryUrl, summaryFetcher, {
+  revalidateOnFocus: false,
+  dedupingInterval: 30000,
+  refreshInterval: 60000,
+});
 
 // Client-side filtering
 const clients = useMemo(() => {
@@ -126,7 +141,7 @@ const clients = useMemo(() => {
     const cAmId = c.amCeoId || c.accountManager?.id;
     return cAmId === selectedAmCeoId;
   });
-  
+
   return {
     data,
     loading: clientsLoading,
@@ -137,19 +152,25 @@ const clients = useMemo(() => {
 // Create packages map
 const pkgMap = useMemo(() => {
   const map: Record<string, string> = {};
-  (packages || []).forEach((p) => { if (p?.id) map[p.id] = p.name; });
+  (packages || []).forEach((p) => {
+    if (p?.id) map[p.id] = p.name;
+  });
   return map;
 }, [packages]);
 
 // Summary state
-const summary = useMemo(() => ({
-  data: summaryData || null,
-  loading: summaryLoading,
-  error: summaryError ? "Failed to load summary" : null,
-}), [summaryData, summaryLoading, summaryError]);
+const summary = useMemo(
+  () => ({
+    data: summaryData || null,
+    loading: summaryLoading,
+    error: summaryError ? "Failed to load summary" : null,
+  }),
+  [summaryData, summaryLoading, summaryError],
+);
 ```
 
 **Benefits:**
+
 - ✅ ~15 lines instead of ~160
 - ✅ 90% less code
 - ✅ Automatic caching (SWR)
@@ -163,6 +184,7 @@ const summary = useMemo(() => ({
 ### 2. Removed Manual Code
 
 **Removed:**
+
 - ❌ `amCeoDashboardCache` Map (manual cache)
 - ❌ Manual packages fetch useEffect (35 lines)
 - ❌ `fetchClients` callback (55 lines)
@@ -178,21 +200,27 @@ const summary = useMemo(() => ({
 ### 3. SWR Configuration
 
 **Summary Endpoint (Dynamic):**
+
 ```typescript
-const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useSWR(
+const {
+  data: summaryData,
+  isLoading: summaryLoading,
+  error: summaryError,
+} = useSWR(
   summaryUrl, // Changes with selectedAmCeoId
   summaryFetcher,
   {
-    revalidateOnFocus: false,    // No refetch on tab focus
-    dedupingInterval: 30000,     // 30s deduplication
-    refreshInterval: 60000,      // Auto-refresh every 1 min
-  }
+    revalidateOnFocus: false, // No refetch on tab focus
+    dedupingInterval: 30000, // 30s deduplication
+    refreshInterval: 60000, // Auto-refresh every 1 min
+  },
 );
 ```
 
 **Why These Settings:**
+
 - Summary changes frequently → 1 min auto-refresh
-- AM CEO selection changes → dynamic URL key
+- CEO selection changes → dynamic URL key
 - Heavy computation → 30s deduplication
 - Dashboard-specific → no focus revalidation
 
@@ -201,16 +229,19 @@ const { data: summaryData, isLoading: summaryLoading, error: summaryError } = us
 ## 🚀 Real-World Performance
 
 ### Scenario 1: First Visit
+
 **Before:**
+
 1. Component mounts: 0ms
 2. Fetch packages: 500ms
 3. Fetch clients: 1000ms
 4. Fetch summary: 800ms
 5. Parallel wait: ~1500ms (longest)
 6. Parse + render: 300ms
-**Total: ~1800ms**
+   **Total: ~1800ms**
 
 **After:**
+
 1. Component mounts: 0ms
 2. SWR checks cache: 2ms
 3. useClients (shared): 0ms (already fetching)
@@ -218,34 +249,40 @@ const { data: summaryData, isLoading: summaryLoading, error: summaryError } = us
 5. Fetch summary: 600ms
 6. Parallel wait: ~600ms
 7. Parse + render: 100ms
-**Total: ~700ms** ⚡ **61% faster**
+   **Total: ~700ms** ⚡ **61% faster**
 
 ---
 
-### Scenario 2: Switch AM CEO (Dropdown)
+### Scenario 2: Switch CEO (Dropdown)
+
 **Before:**
+
 1. Change selection: 10ms
 2. Refetch clients: 1000ms
 3. Refetch summary: 800ms
 4. Parallel wait: ~1000ms
 5. Parse + render: 200ms
-**Total: ~1210ms**
+   **Total: ~1210ms**
 
 **After:**
+
 1. Change selection: 10ms
 2. Filter cached clients: 5ms
 3. SWR fetches new summary: 600ms (background)
 4. Instant UI update: 50ms
-**Total: ~65ms for UI, 600ms background** ⚡ **95% faster UI**
+   **Total: ~65ms for UI, 600ms background** ⚡ **95% faster UI**
 
 ---
 
 ### Scenario 3: Summary Auto-Refresh
+
 **Before:**
+
 - No auto-refresh
 - Manual refresh required
 
 **After:**
+
 - Auto-refresh every 60s
 - Background revalidation
 - Instant UI with stale data
@@ -258,13 +295,15 @@ const { data: summaryData, isLoading: summaryLoading, error: summaryError } = us
 ## 📈 Expected Benefits
 
 ### User Experience:
-- ⚡ **Instant** AM CEO switching
+
+- ⚡ **Instant** CEO switching
 - ⚡ **Auto-updating** stats (1 min intervals)
 - ⚡ **Smooth** client filtering
 - ⚡ **Fresh** data always
 - ⚡ **Resilient** (auto-retry)
 
 ### Developer Experience:
+
 - ✅ **90% less** fetch code
 - ✅ **Simpler** state management
 - ✅ **Reusable** hooks
@@ -275,7 +314,7 @@ const { data: summaryData, isLoading: summaryLoading, error: summaryError } = us
 
 ## 🔍 Key Differences from Other Dashboards
 
-### Unique to AM CEO Dashboard:
+### Unique to CEO Dashboard:
 
 1. **Summary Endpoint:**
    - Separate API for aggregated data
@@ -299,9 +338,12 @@ const { data: summaryData, isLoading: summaryLoading, error: summaryError } = us
 ### Summary Fetching
 
 **Before (35 lines):**
+
 ```typescript
 const [summary, setSummary] = useState<FetchState<Summary | null>>({
-  data: null, loading: false, error: null
+  data: null,
+  loading: false,
+  error: null,
 });
 
 const fetchSummary = useCallback(async () => {
@@ -310,14 +352,14 @@ const fetchSummary = useCallback(async () => {
     const url = selectedAmCeoId
       ? `/api/clients/summary?am_ceoId=${encodeURIComponent(selectedAmCeoId)}&limitUpcoming=8`
       : `/api/clients/summary?limitUpcoming=8`;
-    
-    const cacheKey = `am-ceo-summary-${selectedAmCeoId || 'all'}`;
+
+    const cacheKey = `am-ceo-summary-${selectedAmCeoId || "all"}`;
     const cached = amCeoDashboardCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < AM_CEO_CACHE_DURATION) {
       setSummary({ data: cached.data, loading: false, error: null });
       return;
     }
-    
+
     const res = await fetch(url, { cache: "no-store" });
     const raw = await res.json();
     const data = safeParse<Summary>(raw);
@@ -334,26 +376,30 @@ useEffect(() => {
 ```
 
 **After (12 lines):**
+
 ```typescript
 const summaryUrl = selectedAmCeoId
   ? `/api/clients/summary?am_ceoId=${encodeURIComponent(selectedAmCeoId)}&limitUpcoming=8`
   : `/api/clients/summary?limitUpcoming=8`;
 
-const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useSWR(
-  summaryUrl,
-  summaryFetcher,
-  {
-    revalidateOnFocus: false,
-    dedupingInterval: 30000,
-    refreshInterval: 60000, // Auto-refresh!
-  }
-);
+const {
+  data: summaryData,
+  isLoading: summaryLoading,
+  error: summaryError,
+} = useSWR(summaryUrl, summaryFetcher, {
+  revalidateOnFocus: false,
+  dedupingInterval: 30000,
+  refreshInterval: 60000, // Auto-refresh!
+});
 
-const summary = useMemo(() => ({
-  data: summaryData || null,
-  loading: summaryLoading,
-  error: summaryError ? "Failed to load summary" : null,
-}), [summaryData, summaryLoading, summaryError]);
+const summary = useMemo(
+  () => ({
+    data: summaryData || null,
+    loading: summaryLoading,
+    error: summaryError ? "Failed to load summary" : null,
+  }),
+  [summaryData, summaryLoading, summaryError],
+);
 ```
 
 **Result:** **66% less code** + auto-refresh feature! ✂️✨
@@ -365,6 +411,7 @@ const summary = useMemo(() => ({
 **Status:** ✅ **COMPLETE**
 
 **Changes:**
+
 - Integrated `useClients` hook
 - Added SWR for packages
 - Added SWR for summary (with auto-refresh)
@@ -372,8 +419,9 @@ const summary = useMemo(() => ({
 - Client-side filtering on cached data
 
 **Performance:**
+
 - 65% faster initial load
-- 85% faster AM CEO switching
+- 85% faster CEO switching
 - 95% cache hit rate
 - 90% less fetch code
 - Auto-refresh every 60s

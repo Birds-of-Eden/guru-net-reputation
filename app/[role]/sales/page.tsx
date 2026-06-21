@@ -11,16 +11,56 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSalesOverview } from "@/hooks/useSalesOverview";
 
 // ✅ Lazy load heavy components for better performance
-const ClientsTable = React.lazy(() => import("@/components/sales/ClientsTable").then(m => ({ default: m.ClientsTable })));
-const PackageSalesTable = React.lazy(() => import("@/components/sales/PackageSalesTable").then(m => ({ default: m.PackageSalesTable })));
-const ChartsSection = React.lazy(() => import("@/components/sales/ChartsSection").then(m => ({ default: m.ChartsSection })));
-const PackagesOverview = React.lazy(() => import("@/components/sales/PackagesOverview").then(m => ({ default: m.PackagesOverview })));
-const SalesSpotlight = React.lazy(() => import("@/components/sales/SalesSpotlight").then(m => ({ default: m.SalesSpotlight })));
-const SmartInsights = React.lazy(() => import("@/components/sales/SmartInsights").then(m => ({ default: m.SmartInsights })));
-const RenewalForecast = React.lazy(() => import("@/components/sales/RenewalForecast").then(m => ({ default: m.RenewalForecast })));
-const SalesKPIGrid = React.lazy(() => import("@/components/sales/SalesKPIGrid").then(m => ({ default: m.SalesKPIGrid })));
-const RetentionGauge = React.lazy(() => import("@/components/sales/RetentionGauge").then(m => ({ default: m.RetentionGauge })));
-const TopPackagesShareRace = React.lazy(() => import("@/components/sales/TopPackagesShareRace").then(m => ({ default: m.TopPackagesShareRace })));
+const ClientsTable = React.lazy(() =>
+  import("@/components/sales/ClientsTable").then((m) => ({
+    default: m.ClientsTable,
+  })),
+);
+const PackageSalesTable = React.lazy(() =>
+  import("@/components/sales/PackageSalesTable").then((m) => ({
+    default: m.PackageSalesTable,
+  })),
+);
+const ChartsSection = React.lazy(() =>
+  import("@/components/sales/ChartsSection").then((m) => ({
+    default: m.ChartsSection,
+  })),
+);
+const PackagesOverview = React.lazy(() =>
+  import("@/components/sales/PackagesOverview").then((m) => ({
+    default: m.PackagesOverview,
+  })),
+);
+const SalesSpotlight = React.lazy(() =>
+  import("@/components/sales/SalesSpotlight").then((m) => ({
+    default: m.SalesSpotlight,
+  })),
+);
+const SmartInsights = React.lazy(() =>
+  import("@/components/sales/SmartInsights").then((m) => ({
+    default: m.SmartInsights,
+  })),
+);
+const RenewalForecast = React.lazy(() =>
+  import("@/components/sales/RenewalForecast").then((m) => ({
+    default: m.RenewalForecast,
+  })),
+);
+const SalesKPIGrid = React.lazy(() =>
+  import("@/components/sales/SalesKPIGrid").then((m) => ({
+    default: m.SalesKPIGrid,
+  })),
+);
+const RetentionGauge = React.lazy(() =>
+  import("@/components/sales/RetentionGauge").then((m) => ({
+    default: m.RetentionGauge,
+  })),
+);
+const TopPackagesShareRace = React.lazy(() =>
+  import("@/components/sales/TopPackagesShareRace").then((m) => ({
+    default: m.TopPackagesShareRace,
+  })),
+);
 
 // ✅ Memoized component for better performance
 const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
@@ -30,21 +70,18 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
   const [query, setQuery] = React.useState("");
 
   // ✅ Memoized data extraction
-  const {
-    summary,
-    series,
-    byPackage,
-    packageSales,
-    grouped,
-    totalSales
-  } = React.useMemo(() => ({
-    summary: data?.summary ?? {},
-    series: data?.timeseries ?? [],
-    byPackage: data?.byPackage ?? [],
-    packageSales: data?.packageSales ?? [],
-    grouped: data?.groupedClients ?? [],
-    totalSales: data?.totalSales ?? data?.summary?.totalSales ?? 0,
-  }), [data]);
+  const { summary, series, byPackage, packageSales, grouped, totalSales } =
+    React.useMemo(
+      () => ({
+        summary: data?.summary ?? {},
+        series: data?.timeseries ?? [],
+        byPackage: data?.byPackage ?? [],
+        packageSales: data?.packageSales ?? [],
+        grouped: data?.groupedClients ?? [],
+        totalSales: data?.totalSales ?? data?.summary?.totalSales ?? 0,
+      }),
+      [data],
+    );
 
   const ma7 = React.useMemo(() => {
     let sum = 0;
@@ -121,7 +158,10 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <div key={`insight-${index}`} className="p-4 border rounded-lg space-y-2">
+                <div
+                  key={`insight-${index}`}
+                  className="p-4 border rounded-lg space-y-2"
+                >
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
@@ -182,7 +222,10 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
           <CardContent>
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, index) => (
-                <div key={`table-row-${index}`} className="flex items-center justify-between p-3 border-b">
+                <div
+                  key={`table-row-${index}`}
+                  className="flex items-center justify-between p-3 border-b"
+                >
                   <Skeleton className="h-5 w-32" />
                   <Skeleton className="h-5 w-20" />
                   <Skeleton className="h-5 w-24" />
@@ -216,7 +259,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            AM CEO — Package Sales
+            CEO — Package Sales
           </h1>
           <p className="text-sm text-slate-600">
             Package performance, client status, and sales distribution
@@ -237,7 +280,9 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
       </div>
 
       {/* ✅ Sales Overview Section with Suspense */}
-      <React.Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}
+      >
         <SalesSpotlight
           isLoading={isLoading}
           totalSales={totalSales}
@@ -247,11 +292,21 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}
+      >
         <SmartInsights summary={summary} byPackage={byPackage} />
       </React.Suspense>
 
-      <React.Suspense fallback={<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[120px] w-full rounded-lg" />)}</div>}>
+      <React.Suspense
+        fallback={
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[120px] w-full rounded-lg" />
+            ))}
+          </div>
+        }
+      >
         <SalesKPIGrid
           summary={summary}
           trendData={[
@@ -263,7 +318,9 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}
+      >
         <PackagesOverview
           isLoading={isLoading}
           byPackage={byPackage}
@@ -276,14 +333,18 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
 
       {/* ✅ Renewal Forecast + Retention Gauge Grid with Suspense */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <React.Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+        <React.Suspense
+          fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}
+        >
           <RetentionGauge
             active={summary?.active ?? 0}
             expired={summary?.expired ?? 0}
           />
         </React.Suspense>
 
-        <React.Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+        <React.Suspense
+          fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}
+        >
           <RenewalForecast
             forecastData={series.slice(-30).map((d) => ({
               day: d.day,
@@ -294,7 +355,9 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         </React.Suspense>
       </div>
 
-      <React.Suspense fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}
+      >
         <PackageSalesTable
           isLoading={isLoading}
           packageSales={packageSales}
@@ -302,7 +365,9 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={<Skeleton className="h-[500px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[500px] w-full rounded-lg" />}
+      >
         <ClientsTable
           isLoading={isLoading}
           grouped={grouped}
@@ -313,11 +378,21 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         />
       </React.Suspense>
 
-      <React.Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+      <React.Suspense
+        fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}
+      >
         <TopPackagesShareRace packageSales={packageSales} />
       </React.Suspense>
 
-      <React.Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-[300px] w-full rounded-lg" />)}</div>}>
+      <React.Suspense
+        fallback={
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Skeleton key={i} className="h-[300px] w-full rounded-lg" />
+            ))}
+          </div>
+        }
+      >
         <ChartsSection
           isLoading={isLoading}
           series={series}

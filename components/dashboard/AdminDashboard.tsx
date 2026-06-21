@@ -57,8 +57,8 @@ const numberFmt = (n: number) =>
 // Sanitize HTML to prevent XSS attacks
 const sanitizeHtml = (html: string) => {
   return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['a', 'b', 'i', 'u', 'strong', 'em', 'span'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
+    ALLOWED_TAGS: ["a", "b", "i", "u", "strong", "em", "span"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
   });
 };
 
@@ -100,37 +100,42 @@ const titleCase = (s: string) =>
 
 export function AdminDashboard() {
   const [timeRange, setTimeRange] = useState("this_month");
-  
+
   // ✅ Use optimized SWR hook with auto-revalidation
-  const { stats: dashboardData, loading, error: fetchError, getLatestItems } = useDashboardStats(timeRange);
-  
+  const {
+    stats: dashboardData,
+    loading,
+    error: fetchError,
+    getLatestItems,
+  } = useDashboardStats(timeRange);
+
   const error = fetchError ? fetchError.message : null;
 
   /* ---- ✅ Use helper from hook for latest items ---- */
   const recentTasks = useMemo(
     () => getLatestItems(dashboardData?.recent?.tasks, "createdAt", 5),
-    [dashboardData, getLatestItems]
+    [dashboardData, getLatestItems],
   );
   const recentClients = useMemo(
     () => getLatestItems(dashboardData?.recent?.clients, "createdAt", 5),
-    [dashboardData, getLatestItems]
+    [dashboardData, getLatestItems],
   );
   const recentUsers = useMemo(
     () => getLatestItems(dashboardData?.recent?.users, "createdAt", 5),
-    [dashboardData, getLatestItems]
+    [dashboardData, getLatestItems],
   );
   const recentNotifications = useMemo(
     () => getLatestItems(dashboardData?.recent?.notifications, "createdAt", 5),
-    [dashboardData, getLatestItems]
+    [dashboardData, getLatestItems],
   );
   const recentActivities = useMemo(
     () => getLatestItems(dashboardData?.recent?.activities, "timestamp", 5),
-    [dashboardData, getLatestItems]
+    [dashboardData, getLatestItems],
   );
   // Get all teams without limiting the count
   const allTeams = useMemo(
     () => dashboardData?.teams?.data || [],
-    [dashboardData]
+    [dashboardData],
   );
 
   // Get task categories with counts from the API data
@@ -143,7 +148,7 @@ export function AdminDashboard() {
       if (task.categoryName) {
         categoryMap.set(
           task.categoryName,
-          (categoryMap.get(task.categoryName) || 0) + 1
+          (categoryMap.get(task.categoryName) || 0) + 1,
         );
       }
     });
@@ -376,7 +381,7 @@ export function AdminDashboard() {
                           value={pct}
                           className={cn(
                             "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
-                            `[&>div]:${color}`
+                            `[&>div]:${color}`,
                           )}
                         />
                       </div>
@@ -424,7 +429,7 @@ export function AdminDashboard() {
                           value={pct}
                           className={cn(
                             "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
-                            `[&>div]:${color}`
+                            `[&>div]:${color}`,
                           )}
                         />
                       </div>
@@ -462,7 +467,7 @@ export function AdminDashboard() {
                             <span
                               className={cn(
                                 "h-3 w-3 rounded-full",
-                                category.color
+                                category.color,
                               )}
                             />
                             <span className="text-sm font-medium text-slate-700">
@@ -477,7 +482,7 @@ export function AdminDashboard() {
                           value={percentage}
                           className={cn(
                             "h-2.5 bg-slate-200/70 overflow-hidden rounded-full",
-                            `[&>div]:${category.color}`
+                            `[&>div]:${category.color}`,
                           )}
                         />
                       </div>
@@ -536,10 +541,10 @@ export function AdminDashboard() {
                               isCompleted
                                 ? "bg-emerald-100 text-emerald-600"
                                 : isInProgress
-                                ? "bg-blue-100 text-blue-600"
-                                : isOverdue
-                                ? "bg-red-100 text-red-600"
-                                : "bg-slate-100 text-slate-600"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : isOverdue
+                                    ? "bg-red-100 text-red-600"
+                                    : "bg-slate-100 text-slate-600",
                             )}
                           >
                             {isCompleted ? (
@@ -551,9 +556,13 @@ export function AdminDashboard() {
                             )}
                           </div>
                           <div>
-                            <p 
+                            <p
                               className="font-medium text-slate-800 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
-                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(task.name)) }}
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeHtml(
+                                  truncateToWords(task.name),
+                                ),
+                              }}
                             />
                             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                               {task.clientName && (
@@ -582,10 +591,10 @@ export function AdminDashboard() {
                               task.priority === "urgent"
                                 ? "bg-red-50 text-red-700 border-red-200"
                                 : task.priority === "high"
-                                ? "bg-orange-50 text-orange-700 border-orange-200"
-                                : task.priority === "medium"
-                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                : "bg-green-50 text-green-700 border-green-200"
+                                  ? "bg-orange-50 text-orange-700 border-orange-200"
+                                  : task.priority === "medium"
+                                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                    : "bg-green-50 text-green-700 border-green-200",
                             )}
                           >
                             {task.priority.toUpperCase()}
@@ -597,10 +606,10 @@ export function AdminDashboard() {
                               isCompleted
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : isInProgress
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : isOverdue
-                                ? "bg-red-50 text-red-700 border-red-200"
-                                : "bg-slate-50 text-slate-700 border-slate-200"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : isOverdue
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-slate-50 text-slate-700 border-slate-200",
                             )}
                           >
                             {titleCase(task.status)}
@@ -717,7 +726,7 @@ export function AdminDashboard() {
                             "font-medium",
                             c.status?.toLowerCase() === "active"
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-slate-100 text-slate-700 border-slate-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200",
                           )}
                         >
                           {c.status?.toUpperCase() || "UNKNOWN"}
@@ -807,7 +816,7 @@ export function AdminDashboard() {
                           value={pct}
                           className={cn(
                             "h-2.5 bg-slate-200 [&>div]:rounded-full",
-                            `[&>div]:${color}`
+                            `[&>div]:${color}`,
                           )}
                         />
                       </div>
@@ -937,20 +946,22 @@ export function AdminDashboard() {
                       <div
                         className={cn(
                           "h-8 w-8 rounded-full flex items-center justify-center",
-                          n.isRead ? "bg-slate-100" : "bg-orange-100"
+                          n.isRead ? "bg-slate-100" : "bg-orange-100",
                         )}
                       >
                         <Bell
                           className={cn(
                             "h-4 w-4",
-                            n.isRead ? "text-slate-600" : "text-orange-600"
+                            n.isRead ? "text-slate-600" : "text-orange-600",
                           )}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p 
+                        <p
                           className="text-sm font-medium text-slate-800 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(n.message)) }}
+                          dangerouslySetInnerHTML={{
+                            __html: sanitizeHtml(truncateToWords(n.message)),
+                          }}
                         />
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
                           <span className="capitalize">
@@ -1072,7 +1083,7 @@ export function AdminDashboard() {
                           "font-medium",
                           u.status === "active"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200",
                         )}
                       >
                         {u.status.toUpperCase()}
@@ -1085,40 +1096,6 @@ export function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* Extra KPI Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <MetricCard
-          title="Packages"
-          value={numberFmt(dashboardData.overview.totalPackages)}
-          change={`${dashboardData.overview.totalTemplates}`}
-          trend="up"
-          description="total templates"
-          icon={<PackageIcon className="h-6 w-6" />}
-          gradient="from-teal-500 to-cyan-500"
-          subMetric={`${dashboardData.overview.totalAssignments} assignments`}
-        />
-        <MetricCard
-          title="Conversations"
-          value={numberFmt(dashboardData.overview.totalConversations)}
-          change={`${dashboardData.overview.totalMessages}`}
-          trend="up"
-          description="total messages"
-          icon={<MessageSquare className="h-6 w-6" />}
-          gradient="from-pink-500 to-rose-500"
-          subMetric="active chats"
-        />
-        <MetricCard
-          title="Avg Task Time"
-          value={`${dashboardData.tasks.avgCompletionTime}m`}
-          change={`${dashboardData.tasks.overdue}`}
-          trend={dashboardData.tasks.overdue > 0 ? "down" : "up"}
-          description="overdue tasks"
-          icon={<Timer className="h-6 w-6" />}
-          gradient="from-indigo-500 to-purple-500"
-          subMetric="completion time"
-        />
-      </div>
     </div>
   );
 }
@@ -1156,7 +1133,7 @@ function MetricCard({
     <Card
       className={cn(
         "overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 backdrop-blur-sm",
-        "shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+        "shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5",
       )}
     >
       <CardContent className="p-6">
@@ -1165,7 +1142,7 @@ function MetricCard({
           className={cn(
             "p-3 rounded-xl text-white shadow-md shadow-slate-300/30 w-fit",
             "bg-linear-to-r",
-            gradient
+            gradient,
           )}
         >
           {icon}
