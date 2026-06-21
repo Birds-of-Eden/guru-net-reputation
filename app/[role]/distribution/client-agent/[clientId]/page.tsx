@@ -142,7 +142,6 @@ const TEAM_NAME_BY_ID: Record<string, string> = {
   "qc-team": "QC Team",
 };
 
-
 // OPTIMIZATION (virtual batching): cap initial DOM work to manageable slices.
 const TASK_BATCH_SIZE = 40;
 
@@ -466,7 +465,6 @@ export default function TaskDistributionForClient() {
   const [agentSource, setAgentSource] = useState<"team" | "all">("team");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
-
   const {
     data: teamAgents = [],
     isLoading: teamAgentsLoading,
@@ -480,36 +478,36 @@ export default function TaskDistributionForClient() {
       refreshInterval: 60000,
     },
   );
-type TaskCategoryApiRow = {
-  id: string;
-  name: string;
-  tasks?: any[];
-};
+  type TaskCategoryApiRow = {
+    id: string;
+    name: string;
+    tasks?: any[];
+  };
 
-const { data: dbCategories = [], isLoading: categoriesLoading } = useSWR<
-  TaskCategoryApiRow[]
->(clientId ? "/api/task-categories" : null, jsonFetcher, {
-  revalidateOnFocus: false,
-  dedupingInterval: 60000,
-});
-
-type AssetTypeApiRow = {
-  slug: string;
-  sortOrder: number;
-  categoryName?: string | null;
-};
-
-const { data: assetTypesData } = useSWR<{ assetTypes?: AssetTypeApiRow[] }>(
-  clientId ? "/api/asset-types" : null,
-  jsonFetcher,
-  {
+  const { data: dbCategories = [], isLoading: categoriesLoading } = useSWR<
+    TaskCategoryApiRow[]
+  >(clientId ? "/api/task-categories" : null, jsonFetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
-  },
-);
-const assetTypes = Array.isArray(assetTypesData?.assetTypes)
-  ? assetTypesData?.assetTypes
-  : [];
+  });
+
+  type AssetTypeApiRow = {
+    slug: string;
+    sortOrder: number;
+    categoryName?: string | null;
+  };
+
+  const { data: assetTypesData } = useSWR<{ assetTypes?: AssetTypeApiRow[] }>(
+    clientId ? "/api/asset-types" : null,
+    jsonFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    },
+  );
+  const assetTypes = Array.isArray(assetTypesData?.assetTypes)
+    ? assetTypesData?.assetTypes
+    : [];
 
   const {
     data: allAgents = [],
@@ -623,7 +621,10 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
       }
     }
 
-    return { canUnassignSelected: canUnassign, canReassignSelected: canReassign };
+    return {
+      canUnassignSelected: canUnassign,
+      canReassignSelected: canReassign,
+    };
   }, [selectedTaskObjects]);
 
   // OPTIMIZATION (memoized payload): keep TaskTabs props stable to avoid unnecessary re-renders.
@@ -866,7 +867,7 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
     async (taskId: string, priority: "low" | "medium" | "high" | "urgent") => {
       const isMultipleSelected = selectedTasks.size > 1;
       const firstSelectedTaskId = selectedTasksOrder.find((id) =>
-        selectedTasks.has(id)
+        selectedTasks.has(id),
       );
       const targetIds =
         isMultipleSelected && firstSelectedTaskId === taskId
@@ -882,8 +883,7 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
 
       if (updatableIds.length === 0) {
         toast.info("Priority locked", {
-          description:
-            "Completed or QC approved tasks cannot change priority.",
+          description: "Completed or QC approved tasks cannot change priority.",
         });
         return;
       }
@@ -903,17 +903,18 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
               },
               body: JSON.stringify({ priority }),
             }).then((res) => {
-              if (!res.ok) throw new Error(`Failed to update priority for ${id}`);
-            })
-          )
+              if (!res.ok)
+                throw new Error(`Failed to update priority for ${id}`);
+            }),
+          ),
         );
 
         mutateTasks(
           (prev) =>
             prev?.map((t) =>
-              updatableIds.includes(t.id) ? ({ ...t, priority } as Task) : t
+              updatableIds.includes(t.id) ? ({ ...t, priority } as Task) : t,
             ) ?? prev,
-          false
+          false,
         );
 
         toast.success("Priority updated", {
@@ -939,7 +940,7 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
         }
       }
     },
-    [mutateTasks, selectedTasks, selectedTasksOrder, tasks]
+    [mutateTasks, selectedTasks, selectedTasksOrder, tasks],
   );
 
   const submitTaskDistribution = async () => {
@@ -1019,74 +1020,73 @@ const assetTypes = Array.isArray(assetTypesData?.assetTypes)
     [allTasks],
   );
 
-const HIDDEN_CATEGORY_NAMES = new Set([
-  "Web 2.0 Asset Creation",
-  "Additional Asset Creation",
-  "Social Asset Creation",
-]);
+  const HIDDEN_CATEGORY_NAMES = new Set([
+    "Web 2.0 Asset Creation",
+    "Additional Asset Creation",
+    "Social Asset Creation",
+  ]);
 
-const categoryOrderMap = useMemo(() => {
-  const map = new Map<string, number>();
-  for (const t of assetTypes) {
-    const name = String(t?.categoryName ?? "").trim();
-    if (!name) continue;
-    const order = Number(t?.sortOrder ?? 0);
-    const prev = map.get(name);
-    if (prev === undefined || order < prev) map.set(name, order);
-  }
-  return map;
-}, [assetTypes]);
+  const categoryOrderMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of assetTypes) {
+      const name = String(t?.categoryName ?? "").trim();
+      if (!name) continue;
+      const order = Number(t?.sortOrder ?? 0);
+      const prev = map.get(name);
+      if (prev === undefined || order < prev) map.set(name, order);
+    }
+    return map;
+  }, [assetTypes]);
 
-const categoryLabels = useMemo(() => {
-  const base = (dbCategories ?? [])
-    .map((c) => String(c?.name ?? "").trim())
-    .filter(Boolean)
-    .filter((name) => !HIDDEN_CATEGORY_NAMES.has(name));
+  const categoryLabels = useMemo(() => {
+    const base = (dbCategories ?? [])
+      .map((c) => String(c?.name ?? "").trim())
+      .filter(Boolean)
+      .filter((name) => !HIDDEN_CATEGORY_NAMES.has(name));
 
-  const extras = Object.keys(statsByCategory)
-    .filter((k) => !base.includes(k))
-    .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k))
-    .sort((a, b) => a.localeCompare(b));
+    const extras = Object.keys(statsByCategory)
+      .filter((k) => !base.includes(k))
+      .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k))
+      .sort((a, b) => a.localeCompare(b));
 
-  // Merge + de-dupe
-  const merged = Array.from(new Set([...base, ...extras]));
+    // Merge + de-dupe
+    const merged = Array.from(new Set([...base, ...extras]));
 
-  // ✅ Force "Asset Creation" to top
-  const ASSET_CREATION = "Asset Creation";
-  const withoutAsset = merged.filter((x) => x !== ASSET_CREATION);
-  const hasAsset = merged.includes(ASSET_CREATION);
+    // ✅ Force "Asset Creation" to top
+    const ASSET_CREATION = "Asset Creation";
+    const withoutAsset = merged.filter((x) => x !== ASSET_CREATION);
+    const hasAsset = merged.includes(ASSET_CREATION);
 
-  const sorted = withoutAsset.sort((a, b) => {
-    const ao = categoryOrderMap.get(a);
-    const bo = categoryOrderMap.get(b);
-    if (ao !== undefined && bo !== undefined) return ao - bo;
-    if (ao !== undefined) return -1;
-    if (bo !== undefined) return 1;
-    return a.localeCompare(b);
-  });
+    const sorted = withoutAsset.sort((a, b) => {
+      const ao = categoryOrderMap.get(a);
+      const bo = categoryOrderMap.get(b);
+      if (ao !== undefined && bo !== undefined) return ao - bo;
+      if (ao !== undefined) return -1;
+      if (bo !== undefined) return 1;
+      return a.localeCompare(b);
+    });
 
-  const desired = ["Social Activity", "Blog Posting"];
-  const rest = sorted.filter((c) => !desired.includes(c));
-  const picked = desired.filter((c) => sorted.includes(c));
+    const desired = ["Social Activity", "Blog Posting"];
+    const rest = sorted.filter((c) => !desired.includes(c));
+    const picked = desired.filter((c) => sorted.includes(c));
 
-  if (hasAsset) {
+    if (hasAsset) {
+      const first = rest.slice(0, 4);
+      const tail = rest.slice(4);
+      return [ASSET_CREATION, ...first, ...picked, ...tail];
+    }
+
     const first = rest.slice(0, 4);
     const tail = rest.slice(4);
-    return [ASSET_CREATION, ...first, ...picked, ...tail];
-  }
+    return [...first, ...picked, ...tail];
+  }, [dbCategories, statsByCategory, categoryOrderMap]);
 
-  const first = rest.slice(0, 4);
-  const tail = rest.slice(4);
-  return [...first, ...picked, ...tail];
-}, [dbCategories, statsByCategory, categoryOrderMap]);
-
-
-useEffect(() => {
-  if (!selectedCategory) {
-    const first = categoryLabels[0] ?? "Graphics Design";
-    setSelectedCategory(first);
-  }
-}, [categoryLabels, selectedCategory]);
+  useEffect(() => {
+    if (!selectedCategory) {
+      const first = categoryLabels[0] ?? "Graphics Design";
+      setSelectedCategory(first);
+    }
+  }, [categoryLabels, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-violet-50 via-indigo-50 to-purple-50">
@@ -1142,7 +1142,7 @@ useEffect(() => {
                       )}
                     </div>
 
-                    {/* Company information */}
+                    {/* Proffessional Background */}
                     {client.company && (
                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-3">
                         <Building2 className="h-4 w-4 shrink-0" />
@@ -1439,7 +1439,9 @@ useEffect(() => {
                             `Deselected agents for all ${clearedCount} tasks in ${selectedCategory}`,
                           );
                         }}
-                        disabled={submitting || categoryAssignments.length === 0}
+                        disabled={
+                          submitting || categoryAssignments.length === 0
+                        }
                         className="bg-red-600 text-white hover:text-white hover:bg-red-700"
                       >
                         Deselect All

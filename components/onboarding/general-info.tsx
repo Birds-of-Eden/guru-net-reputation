@@ -5,7 +5,18 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Upload, User, Building2, MapPin, Calendar, Mail, Phone, Lock, Shield, Briefcase } from "lucide-react";
+import {
+  Upload,
+  User,
+  Building2,
+  MapPin,
+  Calendar,
+  Mail,
+  Phone,
+  Lock,
+  Shield,
+  Briefcase,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +37,7 @@ import type { StepProps } from "@/types/onboarding";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useUserSession } from "@/lib/hooks/use-user-session";
-import { KeywordInput } from './KeywordInput';
+import { KeywordInput } from "./KeywordInput";
 
 type AMUser = {
   id: string;
@@ -137,7 +148,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
 
         <div className="space-y-6">
           <div className="group">
-            <Label htmlFor="name" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="name"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <User className="w-4 h-4 text-violet-500" />
               Full Name *
             </Label>
@@ -154,7 +168,9 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <KeywordInput formData={formData} updateFormData={updateFormData} />
 
           <div className="group">
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Profile Picture</Label>
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block">
+              Profile Picture
+            </Label>
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="relative h-28 w-28 rounded-2xl overflow-hidden border-4 border-white shadow-xl ring-2 ring-violet-200 group-hover:ring-violet-400 transition-all duration-300">
@@ -173,8 +189,16 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 </div>
                 {previewUrl && (
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                 )}
@@ -183,8 +207,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-violet-300 rounded-xl hover:border-violet-500 hover:bg-violet-50 transition-all duration-200 group">
                   <Upload className="w-5 h-5 text-violet-500 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
-                    <span className="block text-sm font-semibold text-gray-700">Upload Photo</span>
-                    <span className="block text-xs text-gray-500">PNG, JPG up to 10MB</span>
+                    <span className="block text-sm font-semibold text-gray-700">
+                      Upload Photo
+                    </span>
+                    <span className="block text-xs text-gray-500">
+                      PNG, JPG up to 10MB
+                    </span>
                   </div>
                 </div>
                 <input
@@ -199,35 +227,49 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="group">
-              <Label htmlFor="birthdate" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Label
+                htmlFor="birthdate"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              >
                 <Calendar className="w-4 h-4 text-violet-500" />
                 Birth Date
               </Label>
               <div className="mt-2">
-              <DatePicker
-                selected={
-                  formData.birthdate ? new Date(formData.birthdate) : null
-                }
-                onChange={(date: Date | null) =>
-                  updateFormData({ birthdate: date ? date.toISOString() : "" })
-                }
-                dateFormat="MMMM d, yyyy"
-                showMonthDropdown
-                showYearDropdown
-                dropdownMode="select"
-                placeholderText="Select birth date"
-                className="w-full h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl px-4 py-2"
-              />
+                <DatePicker
+                  selected={
+                    formData.birthdate ? new Date(formData.birthdate) : null
+                  }
+                  onChange={(date: Date | null) =>
+                    updateFormData({
+                      birthdate: date ? date.toISOString() : "",
+                    })
+                  }
+                  dateFormat="MMMM d, yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
+                  placeholderText="Select birth date"
+                  className="w-full h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl px-4 py-2"
+                />
               </div>
             </div>
 
             <div className="group">
-              <Label htmlFor="gender" className="text-sm font-semibold text-gray-700">Gender</Label>
+              <Label
+                htmlFor="gender"
+                className="text-sm font-semibold text-gray-700"
+              >
+                Gender
+              </Label>
               <select
                 id="gender"
                 value={formData.gender || ""}
                 onChange={(e) => {
-                  const value = e.target.value as "" | "male" | "female" | "other";
+                  const value = e.target.value as
+                    | ""
+                    | "male"
+                    | "female"
+                    | "other";
                   updateFormData({ gender: value || undefined });
                 }}
                 className="mt-2 flex h-12 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200"
@@ -242,7 +284,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
             </div>
 
             <div className="group">
-              <Label htmlFor="location" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Label
+                htmlFor="location"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              >
                 <MapPin className="w-4 h-4 text-violet-500" />
                 Location
               </Label>
@@ -258,18 +303,23 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
         </div>
       </div>
 
-      {/* Company Information Card */}
+      {/* Proffessional Background Card */}
       <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
             <Building2 className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Company Information</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Proffessional Background
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="group">
-            <Label htmlFor="company" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="company"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Building2 className="w-4 h-4 text-blue-500" />
               Company
             </Label>
@@ -283,7 +333,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="designation" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="designation"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Briefcase className="w-4 h-4 text-blue-500" />
               Designation
             </Label>
@@ -297,7 +350,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="companyaddress" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="companyaddress"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <MapPin className="w-4 h-4 text-blue-500" />
               Company Address
             </Label>
@@ -313,7 +369,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="companywebsite" className="text-sm font-semibold text-gray-700">Company Website</Label>
+            <Label
+              htmlFor="companywebsite"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Company Website
+            </Label>
             <Input
               id="companywebsite"
               value={formData.companywebsite || ""}
@@ -334,12 +395,19 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Account Management</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Account Management
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="group">
-            <Label htmlFor="amId" className="text-sm font-semibold text-gray-700">Account Manager (AM)</Label>
+            <Label
+              htmlFor="amId"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Account Manager (AM)
+            </Label>
             <Select
               value={
                 isAM && currentUserId ? currentUserId : formData.amId || ""
@@ -359,8 +427,8 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                     amsLoading
                       ? "Loading AMs..."
                       : ams.length
-                      ? "Select account manager"
-                      : "No AMs found"
+                        ? "Select account manager"
+                        : "No AMs found"
                   }
                 />
               </SelectTrigger>
@@ -373,7 +441,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                       const me = ams.find((u) => u.id === currentUserId);
                       return (
                         <SelectItem key={currentUserId} value={currentUserId}>
-                          {me ? me.name ?? me.email ?? currentUserId : "You"}
+                          {me ? (me.name ?? me.email ?? currentUserId) : "You"}
                         </SelectItem>
                       );
                     })()
@@ -395,7 +463,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="status" className="text-sm font-semibold text-gray-700">Status</Label>
+            <Label
+              htmlFor="status"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Status
+            </Label>
             <Select
               value={formData.status || ""}
               onValueChange={(value) => updateFormData({ status: value })}
@@ -413,21 +486,28 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
         </div>
       </div>
 
-      {/* Optional Information Card */}
+      {/* Contact Information Card */}
       <div className="bg-linear-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
               <Lock className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Optional Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Contact Information
+            </h2>
           </div>
-          <span className="px-4 py-1.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded-full">Optional</span>
+          <span className="px-4 py-1.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded-full">
+            Optional
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="group">
-            <Label htmlFor="email" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="email"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Mail className="w-4 h-4 text-amber-500" />
               Client Email
             </Label>
@@ -444,7 +524,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="phone"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Phone className="w-4 h-4 text-amber-500" />
               Client Phone
             </Label>
@@ -461,7 +544,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="password"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Lock className="w-4 h-4 text-amber-500" />
               Password
             </Label>
@@ -477,7 +563,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           </div>
 
           <div className="group">
-            <Label htmlFor="recoveryEmail" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <Label
+              htmlFor="recoveryEmail"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+            >
               <Shield className="w-4 h-4 text-amber-500" />
               Recovery Email
             </Label>
@@ -503,21 +592,42 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div tabIndex={0}>
-                <Button 
-                  onClick={onNext} 
-                  disabled={!formData.name || !formData.gender || !formData.status || !formData.amId}
+                <Button
+                  onClick={onNext}
+                  disabled={
+                    !formData.name ||
+                    !formData.gender ||
+                    !formData.status ||
+                    !formData.amId
+                  }
                   className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-700 hover:via-purple-700 hover:to-fuchsia-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   Continue to Next Step
-                  <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <svg
+                    className="w-5 h-5 ml-2 inline-block"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
                   </svg>
                 </Button>
               </div>
             </TooltipTrigger>
-            {(!formData.name || !formData.gender || !formData.status || !formData.amId) && (
+            {(!formData.name ||
+              !formData.gender ||
+              !formData.status ||
+              !formData.amId) && (
               <TooltipContent>
-                <p>Please fill all required fields, including Account Manager, to continue.</p>
+                <p>
+                  Please fill all required fields, including Account Manager, to
+                  continue.
+                </p>
               </TooltipContent>
             )}
           </Tooltip>

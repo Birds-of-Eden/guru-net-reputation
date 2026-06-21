@@ -83,7 +83,7 @@ export function TaskList({ status }: TaskListProps) {
       comments: [
         {
           author: "Robert Garcia",
-          text: "The topic should focus on industry trends",
+          text: "The topic should focus on Proffessional Background trends",
           time: "4 days ago",
         },
         {
@@ -185,7 +185,7 @@ export function TaskList({ status }: TaskListProps) {
 
     // Update the selected task with the new comment
     const updatedTask = updatedTasks.find(
-      (task) => task.id === selectedTask.id
+      (task) => task.id === selectedTask.id,
     );
     setSelectedTask(updatedTask);
   };
@@ -303,7 +303,7 @@ export function TaskList({ status }: TaskListProps) {
                                 <p className="mt-1 text-sm">{comment.text}</p>
                               </div>
                             </div>
-                          )
+                          ),
                         )
                       )}
                     </div>

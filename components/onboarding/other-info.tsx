@@ -404,7 +404,7 @@ export function OtherInfo({
           <TableIcon className="h-7 w-7 text-white" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Data Spreadsheet
+          Campaign Resources
         </h1>
         <p className="mx-auto max-w-2xl text-balance text-sm text-gray-600">
           Add and manage your data in an Excel-like spreadsheet. Add columns,

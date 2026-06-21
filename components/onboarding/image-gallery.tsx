@@ -100,7 +100,7 @@ export function ImageGallery({
 
   const folderId = useMemo(
     () => (driveLink ? extractFolderId(driveLink) : null),
-    [driveLink]
+    [driveLink],
   );
 
   // -------- actions --------
@@ -253,7 +253,7 @@ export function ImageGallery({
           ]);
           setCopiedId(img.id);
           toast.success(
-            "Image copied! এখন যেকোনো অ্যাপে Paste করুন (Ctrl/⌘+V)."
+            "Image copied! এখন যেকোনো অ্যাপে Paste করুন (Ctrl/⌘+V).",
           );
         } catch {
           // Fallback: PNG convert then copy
@@ -284,7 +284,7 @@ export function ImageGallery({
       // reset button label after 2s
       setTimeout(
         () => setCopiedId((curr) => (curr === img.id ? null : curr)),
-        2000
+        2000,
       );
     }
   };
@@ -309,8 +309,8 @@ export function ImageGallery({
       const pngBlob: Blob = await new Promise((resolve, reject) =>
         canvas.toBlob(
           (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-          "image/png"
-        )
+          "image/png",
+        ),
       );
       return pngBlob;
     } catch {
@@ -439,11 +439,18 @@ export function ImageGallery({
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
             <ImageIcon className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Connect Drive Folder</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Connect Campaign Folder
+          </h2>
         </div>
 
         <div className="space-y-4">
-          <Label htmlFor="avatar" className="text-sm font-semibold text-gray-700">Avatar URL (optional)</Label>
+          <Label
+            htmlFor="avatar"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Avatar URL (optional)
+          </Label>
           <Input
             id="avatar"
             placeholder="https://example.com/avatar.jpg"
@@ -452,7 +459,12 @@ export function ImageGallery({
             className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl"
           />
 
-          <Label htmlFor="imageDrivelink" className="text-sm font-semibold text-gray-700">Google Drive Folder Link</Label>
+          <Label
+            htmlFor="imageDrivelink"
+            className="text-sm font-semibold text-gray-700"
+          >
+            Google Drive Folder Link
+          </Label>
           <div className="flex gap-3">
             <Input
               id="imageDrivelink"
@@ -487,7 +499,8 @@ export function ImageGallery({
           {folderId && (
             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-sm text-green-800">
-                <span className="font-semibold">Folder ID:</span> <span className="font-mono">{folderId}</span>
+                <span className="font-semibold">Folder ID:</span>{" "}
+                <span className="font-mono">{folderId}</span>
               </p>
             </div>
           )}
@@ -579,8 +592,12 @@ export function ImageGallery({
               <ImageIcon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Image Preview</h2>
-              <p className="text-sm text-gray-600">{images.length} images found</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Image Preview
+              </h2>
+              <p className="text-sm text-gray-600">
+                {images.length} images found
+              </p>
             </div>
           </div>
           <div className="flex gap-3 items-center">
@@ -625,8 +642,18 @@ export function ImageGallery({
           onClick={onPrevious}
           className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 rounded-xl"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 17l-5-5m0 0l5-5m-5 5h12"
+            />
           </svg>
           Previous
         </Button>
@@ -642,9 +669,19 @@ export function ImageGallery({
             onClick={onNext}
             className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
           >
-            {images.length > 0 ? 'Save & Continue' : 'Continue'}
-            <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            {images.length > 0 ? "Save & Continue" : "Continue"}
+            <svg
+              className="w-5 h-5 ml-2 inline-block"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
             </svg>
           </Button>
         </div>

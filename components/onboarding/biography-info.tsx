@@ -57,7 +57,7 @@ ${
   formData.location ? `Based in ${formData.location}, I ` : "I "
 }am committed to excellence and take pride in helping businesses achieve their goals through strategic thinking and creative solutions.
 
-When I'm not working, I enjoy exploring new technologies, staying updated with industry trends, and contributing to community initiatives that make a positive impact.`;
+When I'm not working, I enjoy exploring new technologies, staying updated with Proffessional Background trends, and contributing to community initiatives that make a positive impact.`;
 
       updateFormData({ biography: generatedBio });
       setIsGenerating(false);
@@ -96,13 +96,12 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Your Story</h2>
-              <p className="text-sm text-gray-600">Share your professional journey</p>
+              <p className="text-sm text-gray-600">
+                Share your professional journey
+              </p>
             </div>
           </div>
-          {hasPermissionClient(
-            user?.permissions,
-            "generate_biography"
-          ) && (
+          {hasPermissionClient(user?.permissions, "generate_biography") && (
             <Button
               onClick={handleGenerateBio}
               disabled={isGenerating}
@@ -126,7 +125,10 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
         </div>
 
         <div className="space-y-4">
-          <Label htmlFor="biography" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Label
+            htmlFor="biography"
+            className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+          >
             <Sparkles className="w-4 h-4 text-amber-500" />
             Biography
           </Label>
@@ -134,7 +136,9 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
           {/* Replaced Textarea with TinyMceEditor */}
           <TinyMceEditor
             initialValue={formData.biography || ""}
-            onContentChange={(content: string) => updateFormData({ biography: content })}
+            onContentChange={(content: string) =>
+              updateFormData({ biography: content })
+            }
             height={320}
             placeholder="Write about yourself, your experience, achievements, and what makes you unique..."
           />
@@ -142,8 +146,10 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
           <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl">
             <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              <span className="font-semibold">Pro tip:</span> This biography will be used across your profiles and marketing
-              materials. Make it engaging, authentic, and professional to leave a lasting impression.
+              <span className="font-semibold">Pro tip:</span> This biography
+              will be used across your profiles and marketing materials. Make it
+              engaging, authentic, and professional to leave a lasting
+              impression.
             </p>
           </div>
         </div>
@@ -156,8 +162,18 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
           onClick={onPrevious}
           className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-amber-50 hover:to-orange-50 hover:text-amber-700 hover:border-amber-400 transition-all duration-200 rounded-xl"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 17l-5-5m0 0l5-5m-5 5h12"
+            />
           </svg>
           Previous
         </Button>
@@ -166,8 +182,18 @@ When I'm not working, I enjoy exploring new technologies, staying updated with i
           className="px-8 py-6 text-lg font-semibold bg-linear-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:via-orange-700 hover:to-red-700 text-white rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
         >
           Continue to Next Step
-          <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          <svg
+            className="w-5 h-5 ml-2 inline-block"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 7l5 5m0 0l-5 5m5-5H6"
+            />
           </svg>
         </Button>
       </div>

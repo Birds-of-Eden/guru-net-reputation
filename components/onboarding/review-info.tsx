@@ -31,6 +31,8 @@ import {
   Sparkles,
   Clock,
   BookOpen,
+  Plus,
+  Play,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -141,26 +143,23 @@ const isLikelyUrl = (v: string) =>
 
 // --- REUSABLE SUB-COMPONENTS ---
 
-const ReviewSectionCard: FC<ReviewSectionProps> = memo(({
-  icon: Icon,
-  title,
-  children,
-  gradient = "from-blue-50 to-indigo-50",
-}) => (
-  <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
-    <CardHeader className="relative space-y-0 py-6 px-8 border-b-0">
-      <div className="flex items-center gap-3 relative z-10">
-        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-          <Icon className="w-5 h-5 text-white" />
+const ReviewSectionCard: FC<ReviewSectionProps> = memo(
+  ({ icon: Icon, title, children, gradient = "from-blue-50 to-indigo-50" }) => (
+    <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
+      <CardHeader className="relative space-y-0 py-6 px-8 border-b-0">
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <Icon className="w-5 h-5 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            {title}
+          </CardTitle>
         </div>
-        <CardTitle className="text-2xl font-bold text-gray-900">
-          {title}
-        </CardTitle>
-      </div>
-    </CardHeader>
-    <CardContent className="p-8 relative">{children}</CardContent>
-  </Card>
-));
+      </CardHeader>
+      <CardContent className="p-8 relative">{children}</CardContent>
+    </Card>
+  ),
+);
 
 ReviewSectionCard.displayName = "ReviewSectionCard";
 
@@ -188,63 +187,66 @@ const InfoItem: FC<InfoItemProps> = memo(({ label, value, icon: Icon }) => {
 
 InfoItem.displayName = "InfoItem";
 
-const StatusBadge: FC<{ status?: string; progress?: number }> = memo(({
-  status,
-  progress,
-}) => {
-  if (!status) return null;
+const StatusBadge: FC<{ status?: string; progress?: number }> = memo(
+  ({ status, progress }) => {
+    if (!status) return null;
 
-  const statusConfig = {
-    active: {
-      color: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      icon: BadgeCheck,
-    },
-    pending: {
-      color: "bg-amber-100 text-amber-800 border-amber-200",
-      icon: Clock,
-    },
-    draft: {
-      color: "bg-slate-100 text-slate-800 border-slate-200",
-      icon: FileText,
-    },
-    completed: {
-      color: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      icon: CheckCircle,
-    },
-  };
+    const statusConfig = {
+      active: {
+        color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        icon: BadgeCheck,
+      },
+      pending: {
+        color: "bg-amber-100 text-amber-800 border-amber-200",
+        icon: Clock,
+      },
+      draft: {
+        color: "bg-slate-100 text-slate-800 border-slate-200",
+        icon: FileText,
+      },
+      completed: {
+        color: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        icon: CheckCircle,
+      },
+    };
 
-  const config =
-    statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-  const StatusIcon = config.icon;
+    const config =
+      statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
+    const StatusIcon = config.icon;
 
-  return (
-    <Badge
-      variant="outline"
-      className={`${config.color} px-3 py-1.5 rounded-full font-medium`}
-    >
-      <StatusIcon className="w-3 h-3 mr-1.5" />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-      {progress !== undefined && ` • ${progress}%`}
-    </Badge>
-  );
-});
+    return (
+      <Badge
+        variant="outline"
+        className={`${config.color} px-3 py-1.5 rounded-full font-medium`}
+      >
+        <StatusIcon className="w-3 h-3 mr-1.5" />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {progress !== undefined && ` • ${progress}%`}
+      </Badge>
+    );
+  },
+);
 
 StatusBadge.displayName = "StatusBadge";
 
 // --- MAIN COMPONENT ---
 
-export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps) {
+export function ReviewInfo({
+  formData,
+  onPrevious,
+  clearDraft,
+}: ReviewInfoProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [createdClientId, setCreatedClientId] = useState<string | null>(null);
   const router = useRouter();
   const { user } = useAuth();
   const userRole = String(
-    typeof user?.role === "string" ? user.role : user?.role?.name ?? "",
+    typeof user?.role === "string" ? user.role : (user?.role?.name ?? ""),
   )
     .trim()
     .toLowerCase();
-  const shouldCreateDraftOnly =
-    userRole === "am" || userRole === "am_ceo";
+  const shouldCreateDraftOnly = userRole === "am" || userRole === "am_ceo";
 
   // ⚡ OPTIMIZED: Use SWR for parallel fetches with automatic caching
   const jsonFetcher = async (url: string) => {
@@ -257,21 +259,23 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
   const { data: pkgData } = useSWR(
     formData.packageId ? `/api/packages/${formData.packageId}` : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
   // Parallel fetch #2: Template
   const { data: tplData } = useSWR(
-    formData.templateId ? `/api/packages/templates/${formData.templateId}` : null,
+    formData.templateId
+      ? `/api/packages/templates/${formData.templateId}`
+      : null,
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 60000 }
+    { revalidateOnFocus: false, dedupingInterval: 60000 },
   );
 
   // Parallel fetch #3: AM users
   const { data: amsData } = useSWR(
     "/api/users?role=am&limit=100",
     jsonFetcher,
-    { revalidateOnFocus: false, dedupingInterval: 30000 }
+    { revalidateOnFocus: false, dedupingInterval: 30000 },
   );
 
   // ⚡ OPTIMIZED: Memoize fetched data
@@ -328,15 +332,16 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
         { label: "Designation", value: formData.designation, icon: BadgeCheck },
         {
           label: "Name Keywords",
-          value: formData.keywords && formData.keywords.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {formData.keywords.map((keyword, index) => (
-                <Badge key={index} variant="secondary">
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          ) : null,
+          value:
+            formData.keywords && formData.keywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {formData.keywords.map((keyword, index) => (
+                  <Badge key={index} variant="secondary">
+                    {keyword}
+                  </Badge>
+                ))}
+              </div>
+            ) : null,
           icon: User,
         },
       ].filter((item) => item.value),
@@ -403,7 +408,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
             label: `Topic ${index + 1}`,
             value: topic.topicname,
             icon: FileText,
-          })
+          }),
         ),
       });
     }
@@ -459,19 +464,29 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
 
   const groupedOther = useMemo(() => {
     const raw = formData.otherField || [];
-    
+
     // Check if it's the new spreadsheet format (has sheets with id, name, columns, rows)
-    if (raw.length > 0 && raw[0] && typeof raw[0] === 'object' && 'id' in raw[0] && 'columns' in raw[0] && 'rows' in raw[0]) {
+    if (
+      raw.length > 0 &&
+      raw[0] &&
+      typeof raw[0] === "object" &&
+      "id" in raw[0] &&
+      "columns" in raw[0] &&
+      "rows" in raw[0]
+    ) {
       // New format: SpreadsheetData - display as sheets
-      return (raw as any[]).map((sheet: any) => [
-        sheet.name || "Sheet",
-        sheet.rows.map((row: string[], idx: number) => ({
-          title: `Row ${idx + 1}`,
-          data: row,
-        })) as OtherField[]
-      ] as const);
+      return (raw as any[]).map(
+        (sheet: any) =>
+          [
+            sheet.name || "Sheet",
+            sheet.rows.map((row: string[], idx: number) => ({
+              title: `Row ${idx + 1}`,
+              data: row,
+            })) as OtherField[],
+          ] as const,
+      );
     }
-    
+
     // Old format: OtherField[] - group by category
     const map = new Map<string, OtherField[]>();
     for (const it of raw) {
@@ -484,7 +499,10 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
       .sort(([a], [b]) => a.localeCompare(b))
       .map(
         ([cat, items]) =>
-          [cat, items.sort((x, y) => (x.title || "").localeCompare(y.title || ""))] as const
+          [
+            cat,
+            items.sort((x, y) => (x.title || "").localeCompare(y.title || "")),
+          ] as const,
       );
   }, [formData.otherField]);
 
@@ -540,6 +558,9 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
       const createdClientId: string =
         clientResult?.id ?? clientResult?.client?.id ?? clientResult?.data?.id;
 
+      // persist for post-submit actions
+      setCreatedClientId(createdClientId || null);
+
       if (!shouldCreateDraftOnly && formData.templateId && createdClientId) {
         const assignmentRes = await fetch("/api/assignments", {
           method: "POST",
@@ -562,12 +583,12 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
           toast.warning("Client created but template assignment failed.");
         }
       }
-      
+
       // Clear draft on successful submission
       if (clearDraft) {
         clearDraft();
       }
-      
+
       setIsSubmitted(true);
     } catch (err) {
       console.error(err);
@@ -599,15 +620,57 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
             </p>
           </div>
 
-          {/* Minimal Button */}
-          <div className="pt-4">
-            <button
-              onClick={() => router.push("/admin")}
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-300 shadow-md"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </button>
+          {/* Enhanced Action Buttons */}
+          <div className="pt-8 flex flex-col gap-6 justify-center items-center">
+            {/* Primary Actions Row */}
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button
+                onClick={() => router.push("/admin")}
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+                Back to Dashboard
+              </button>
+
+              <button
+                onClick={() => router.push("/admin/clients/onboarding")}
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Plus className="w-4 h-4 mr-2 transition-transform group-hover:rotate-90" />
+                Add Another Client
+              </button>
+            </div>
+
+            {/* Secondary Actions Row */}
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button
+                onClick={() =>
+                  createdClientId
+                    ? router.push(`/${userRole}/clients/${createdClientId}`)
+                    : undefined
+                }
+                disabled={!createdClientId}
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-indigo-700 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <User className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
+                View Client Profile
+              </button>
+
+              <button
+                onClick={() =>
+                  createdClientId
+                    ? router.push(
+                        `/admin/distribution/client-agent/${createdClientId}`,
+                      )
+                    : undefined
+                }
+                disabled={!createdClientId}
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-violet-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <Play className="w-4 h-4 mr-2 transition-transform group-hover:translate-x-0.5" />
+                Start Task
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -682,7 +745,7 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                           {link.url.replace(/^https?:\/\//, "")}
                         </a>
                       </div>
-                    )
+                    ),
                 )}
               </div>
             </ReviewSectionCard>
@@ -751,7 +814,9 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                                       title={v}
                                     >
                                       <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
-                                      <span className="wrap-break-word">{v}</span>
+                                      <span className="wrap-break-word">
+                                        {v}
+                                      </span>
                                     </a>
                                   </li>
                                 );
@@ -778,22 +843,22 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
           )}
 
           {/* Biography */}
-{formData.biography && (
-  <ReviewSectionCard
-    icon={FileText}
-    title="Biography"
-    gradient="from-cyan-50 to-blue-50"
-  >
-    <div
-      className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
-      dangerouslySetInnerHTML={{
-        __html: DOMPurify.sanitize(formData.biography, {
-          USE_PROFILES: { html: true },
-        }),
-      }}
-    />
-  </ReviewSectionCard>
-)}
+          {formData.biography && (
+            <ReviewSectionCard
+              icon={FileText}
+              title="Biography"
+              gradient="from-cyan-50 to-blue-50"
+            >
+              <div
+                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(formData.biography, {
+                    USE_PROFILES: { html: true },
+                  }),
+                }}
+              />
+            </ReviewSectionCard>
+          )}
 
           {/* Assets & Images */}
           {(avatarPreviewUrl || formData.imageDrivelink) && (
@@ -847,7 +912,9 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                             className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
                           >
                             <LinkIcon className="h-4 w-4 shrink-0" />
-                            <span className="truncate text-sm">{driveLink}</span>
+                            <span className="truncate text-sm">
+                              {driveLink}
+                            </span>
                           </a>
                         </div>
                       )}
@@ -910,7 +977,8 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                   <FileText className="w-5 h-5" />
                   {category.category}
                   <Badge variant="secondary" className="ml-2">
-                    {category.titles.length} {category.titles.length === 1 ? 'title' : 'titles'}
+                    {category.titles.length}{" "}
+                    {category.titles.length === 1 ? "title" : "titles"}
                   </Badge>
                 </h3>
                 <div className="space-y-3 ml-6">
@@ -931,8 +999,8 @@ export function ReviewInfo({ formData, onPrevious, clearDraft }: ReviewInfoProps
                               title.draftStatus === "Approved"
                                 ? "bg-green-100 text-green-800 border-green-200"
                                 : title.draftStatus === "Revision"
-                                ? "bg-amber-100 text-amber-800 border-amber-200"
-                                : "bg-blue-100 text-blue-800 border-blue-200"
+                                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                                  : "bg-blue-100 text-blue-800 border-blue-200"
                             }
                           >
                             {title.draftStatus}
