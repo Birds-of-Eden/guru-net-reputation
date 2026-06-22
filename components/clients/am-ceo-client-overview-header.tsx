@@ -92,7 +92,7 @@ export function AmCeoClientOverviewHeader({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search clients..."
-            className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
+            className="pl-9 w-64 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -100,7 +100,7 @@ export function AmCeoClientOverviewHeader({
 
         {/* Status filter */}
         <Select value={statusFilter ?? "all"} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+          <SelectTrigger className="w-36 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -117,7 +117,7 @@ export function AmCeoClientOverviewHeader({
             value={amFilter ?? "all"}
             onValueChange={(v) => setAmFilter(v)}
           >
-            <SelectTrigger className="w-[220px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+            <SelectTrigger className="w-56 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
               <SelectValue placeholder="Filter by account manager" />
             </SelectTrigger>
             <SelectContent>
@@ -133,7 +133,7 @@ export function AmCeoClientOverviewHeader({
 
         {/* Package filter */}
         <Select value={packageFilter ?? "all"} onValueChange={setPackageFilter}>
-          <SelectTrigger className="w-[180px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+          <SelectTrigger className="w-48 border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
             <SelectValue placeholder="Filter by package" />
           </SelectTrigger>
           <SelectContent>

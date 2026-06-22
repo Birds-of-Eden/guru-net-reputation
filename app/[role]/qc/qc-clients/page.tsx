@@ -1,13 +1,7 @@
 //app/[role]/qc/qc-clients/page.tsx
 "use client";
 
-import {
-  useMemo,
-  useState,
-  useEffect,
-  useCallback,
-  useDeferredValue,
-} from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useUserSession } from "@/lib/hooks/use-user-session";
@@ -15,9 +9,9 @@ import { useUserSession } from "@/lib/hooks/use-user-session";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,84 +25,24 @@ import {
 } from "@/components/ui/select";
 
 import {
-  Building2,
-  Search,
-  X,
   Activity,
-  RefreshCw,
-  Users,
-  ListChecks,
+  AlertCircle,
+  ArrowUpDown,
+  Building2,
+  CalendarDays,
+  CheckCheck,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  RotateCcw,
-  CheckCheck,
-  Play,
   Grid,
   List,
-  ArrowUpDown,
-  Package2,
-  Globe,
-  ExternalLink,
-  MapPin,
-  UserCircle2,
+  Play,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  X,
 } from "lucide-react";
 
-type ClientLite = { id: string; name: string; company?: string };
-
-
-type TaskRow = {
-  id: string;
-  status: string;
-  completedAt?: string | null;
-  dueDate?: string | null;
-  client?: { id: string; name: string; company?: string } | null;
-  qcTotalScore?: number | null;
-  qcReview?: any | null;
-};
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-  return res.json();
-};
-function pct(total: number, part: number) {
-  if (!total) return 0;
-  return Math.round((part / total) * 100);
-}
-
-function normStatus(s?: string) {
-  return String(s ?? "")
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "_");
-}
-
-function statusKey(t: TaskRow) {
-  return normStatus(t.status);
-}
-
-
-function isCompleted(t: TaskRow) {
-  return statusKey(t) === "completed";
-}
-
-function isQCApproved(t: TaskRow) {
-  return statusKey(t) === "qc_approved";
-}
-
-function isOverdue(t: TaskRow) {
-  if (!t?.dueDate) return false;
-
-  const st = statusKey(t);
-
-  
-  if (st === "completed") return false;
-  if (st === "qc_approved") return false;
-  if (st === "cancelled") return false;
-
-  return new Date(t.dueDate).getTime() < Date.now();
-}
+type ClientLite = { id: string; name: string; company?: string | null };
 
 type ClientStats = {
   client: ClientLite;
@@ -120,6 +54,7 @@ type ClientStats = {
   overdue: number;
   qcApproved: number;
   progress: number;
+  latestTaskDate?: string | null;
 };
 
 type StatusFilter =
@@ -134,99 +69,150 @@ type StatusFilter =
 
 type ProgressFilter = "all" | "0_25" | "25_50" | "50_75" | "75_100";
 type QCFilter = "all" | "needs_qc" | "qc_done";
-type SortBy = "name_asc" | "tasks_desc" | "progress_desc" | "qc_desc";
+type SortBy =
+  | "newest_first"
+  | "name_asc"
+  | "tasks_desc"
+  | "progress_desc"
+  | "qc_desc";
+type DateFilter =
+  | "all"
+  | "today"
+  | "tomorrow"
+  | "yesterday"
+  | "last_7_days"
+  | "last_15_days"
+  | "this_month"
+  | "this_year"
+  | "custom";
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+  return res.json();
+};
 
 function classNames(...xs: Array<string | false | null | undefined>) {
   return xs.filter(Boolean).join(" ");
 }
 
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function endOfDay(date: Date) {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+}
+
+function parseClientDate(value?: string | null) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function isClientCompleted(stats: ClientStats) {
+  return stats.totalTasks > 0 && stats.qcApproved >= stats.totalTasks;
+}
+
+function matchesDateFilter(
+  stats: ClientStats,
+  filter: DateFilter,
+  customStart: string,
+  customEnd: string,
+) {
+  if (filter === "all") return true;
+
+  const taskDate = parseClientDate(stats.latestTaskDate);
+  if (!taskDate) return false;
+
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const todayEnd = endOfDay(now);
+  const tomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+  );
+  const yesterday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - 1,
+  );
+  const tomorrowStart = startOfDay(tomorrow);
+  const tomorrowEnd = endOfDay(tomorrow);
+  const yesterdayStart = startOfDay(yesterday);
+  const yesterdayEnd = endOfDay(yesterday);
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisYearStart = new Date(now.getFullYear(), 0, 1);
+
+  if (filter === "today") return taskDate >= todayStart && taskDate <= todayEnd;
+  if (filter === "tomorrow")
+    return taskDate >= tomorrowStart && taskDate <= tomorrowEnd;
+  if (filter === "yesterday")
+    return taskDate >= yesterdayStart && taskDate <= yesterdayEnd;
+  if (filter === "last_7_days") {
+    const rangeStart = startOfDay(
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6),
+    );
+    return taskDate >= rangeStart && taskDate <= todayEnd;
+  }
+  if (filter === "last_15_days") {
+    const rangeStart = startOfDay(
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14),
+    );
+    return taskDate >= rangeStart && taskDate <= todayEnd;
+  }
+  if (filter === "this_month")
+    return taskDate >= thisMonthStart && taskDate <= todayEnd;
+  if (filter === "this_year")
+    return taskDate >= thisYearStart && taskDate <= todayEnd;
+  if (filter === "custom") {
+    if (!customStart || !customEnd) return true;
+    const rangeStart = startOfDay(new Date(customStart));
+    const rangeEnd = endOfDay(new Date(customEnd));
+    return taskDate >= rangeStart && taskDate <= rangeEnd;
+  }
+
+  return true;
+}
+
 export default function QCClientsPage() {
-  const { user } = useUserSession();
+  const { user, loading: sessionLoading } = useUserSession();
   const qcId = (user as any)?.id ?? null;
 
-  
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>("all");
   const [qcFilter, setQcFilter] = useState<QCFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("name_asc");
-
-  
+  const [sortBy, setSortBy] = useState<SortBy>("newest_first");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
-  
-  const clientsSWR = useSWR("/api/clients", fetcher);
-  const clients: ClientLite[] = Array.isArray(clientsSWR.data?.clients)
-    ? clientsSWR.data.clients
-    : [];
-
- 
-  const tasksUrl = useMemo(() => {
+  const qcClientsUrl = useMemo(() => {
     const params = new URLSearchParams();
-    params.set("limit", "5000"); // adjust if needed
     if (qcId) params.set("qcSupervisorId", String(qcId));
-    return `/api/tasks?${params.toString()}`;
+    return `/api/tasks/qc-clients?${params.toString()}`;
   }, [qcId]);
 
-  const tasksSWR = useSWR(tasksUrl, fetcher);
+  const qcClientsSWR = useSWR(qcId ? qcClientsUrl : null, fetcher);
 
-
-  const tasks: TaskRow[] = useMemo(() => {
-    const raw = tasksSWR.data;
-    if (Array.isArray(raw)) return raw as TaskRow[];
-    if (Array.isArray(raw?.tasks)) return raw.tasks as TaskRow[];
+  const statsByClient: ClientStats[] = useMemo(() => {
+    const raw = qcClientsSWR.data;
+    if (Array.isArray(raw?.clients)) return raw.clients as ClientStats[];
     return [];
-  }, [tasksSWR.data]);
+  }, [qcClientsSWR.data]);
 
- 
-  const statsByClient = useMemo<ClientStats[]>(() => {
-    const map = new Map<string, Omit<ClientStats, "progress">>();
-
-    for (const t of tasks) {
-      const cid = t?.client?.id;
-      if (!cid) continue;
-
-      if (!map.has(cid)) {
-        map.set(cid, {
-          client: {
-            id: cid,
-            name: t.client?.name ?? "Unknown Client",
-            company: (t.client as any)?.company,
-          },
-          totalTasks: 0,
-          completed: 0,
-          pending: 0,
-          inProgress: 0,
-          reassigned: 0,
-          overdue: 0,
-          qcApproved: 0,
-        });
-      }
-
-      const s = map.get(cid)!;
-      s.totalTasks += 1;
-
-      const st = statusKey(t);
-
-      if (st === "completed") s.completed += 1;
-      else if (st === "pending") s.pending += 1;
-      else if (st === "in_progress") s.inProgress += 1;
-      else if (st === "reassigned") s.reassigned += 1;
-      else if (st === "qc_approved") s.qcApproved += 1;
-
-      if (isOverdue(t)) s.overdue += 1;
-    }
-
-    
-    return Array.from(map.values()).map((s) => ({
-      ...s,
-     
-      progress: pct(s.totalTasks, s.qcApproved),
-    }));
-  }, [clients, tasks]);
-
-  
   const kpis = useMemo(() => {
     let totalTasks = 0;
     let completed = 0;
@@ -258,7 +244,6 @@ export default function QCClientsPage() {
     };
   }, [statsByClient]);
 
-  
   const filtered = useMemo(() => {
     let list = statsByClient;
 
@@ -283,6 +268,12 @@ export default function QCClientsPage() {
       });
     }
 
+    if (dateFilter !== "all") {
+      list = list.filter((s) =>
+        matchesDateFilter(s, dateFilter, customStartDate, customEndDate),
+      );
+    }
+
     if (progressFilter !== "all") {
       list = list.filter((s) => {
         const p = s.progress;
@@ -305,6 +296,18 @@ export default function QCClientsPage() {
 
     const out = [...list];
     out.sort((a, b) => {
+      if (sortBy === "newest_first") {
+        const aCompleted = isClientCompleted(a);
+        const bCompleted = isClientCompleted(b);
+        if (aCompleted !== bCompleted) return aCompleted ? 1 : -1;
+
+        const aTime = parseClientDate(a.latestTaskDate)?.getTime() ?? 0;
+        const bTime = parseClientDate(b.latestTaskDate)?.getTime() ?? 0;
+        if (aTime !== bTime) return bTime - aTime;
+
+        return a.client.name.localeCompare(b.client.name);
+      }
+
       if (sortBy === "name_asc")
         return a.client.name.localeCompare(b.client.name);
       if (sortBy === "tasks_desc") return b.totalTasks - a.totalTasks;
@@ -318,30 +321,34 @@ export default function QCClientsPage() {
     statsByClient,
     deferredQuery,
     statusFilter,
+    dateFilter,
     progressFilter,
     qcFilter,
+    customStartDate,
+    customEndDate,
     sortBy,
   ]);
 
-  const isLoading = clientsSWR.isLoading || tasksSWR.isLoading;
-  const hasError = !!clientsSWR.error || !!tasksSWR.error;
+  const isLoading = sessionLoading || qcClientsSWR.isLoading;
+  const hasError = !!qcClientsSWR.error;
 
   const refreshAll = () => {
-    clientsSWR.mutate();
-    tasksSWR.mutate();
+    qcClientsSWR.mutate();
   };
 
   const clearAll = () => {
     setQuery("");
     setStatusFilter("all");
+    setDateFilter("all");
     setProgressFilter("all");
     setQcFilter("all");
-    setSortBy("name_asc");
+    setSortBy("newest_first");
+    setCustomStartDate("");
+    setCustomEndDate("");
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      {/* Header (agent-dashboard style) */}
       <div className="space-y-2 pl-2">
         <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           QC Clients
@@ -351,8 +358,7 @@ export default function QCClientsPage() {
         </p>
       </div>
 
-      {/* Stats Cards (agent-dashboard style) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 mb-8">
+      <div className="grid grid-cols-1 gap-6 mt-8 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Clients"
           value={kpis.totalClients}
@@ -396,7 +402,6 @@ export default function QCClientsPage() {
         />
       </div>
 
-      {/* Management Card (agent-dashboard style) */}
       <Card className="border-0 shadow-xl bg-white dark:bg-gray-900 overflow-hidden">
         <div className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
           <CardHeader className="pb-6">
@@ -407,7 +412,7 @@ export default function QCClientsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">
-                    Client Task's QC Review
+                    Client Task&apos;s QC Review
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400 text-base">
                     Search, filter, and manage your assigned clients
@@ -430,10 +435,9 @@ export default function QCClientsPage() {
         </div>
 
         <CardContent className="p-6">
-          {/* Filters row (same feel as agent dashboard) */}
           <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
               <Input
                 placeholder="Search clients by name or company..."
                 value={query}
@@ -465,14 +469,31 @@ export default function QCClientsPage() {
                   <SelectItem value="has_tasks">Has Tasks</SelectItem>
                   <SelectItem value="no_tasks">No Tasks</SelectItem>
                   <SelectItem value="has_completed">Has Completed</SelectItem>
-                  <SelectItem value="has_inprogress">
-                    Has In Progress
-                  </SelectItem>
+                  <SelectItem value="has_inprogress">Has In Progress</SelectItem>
                   <SelectItem value="has_pending">Has Pending</SelectItem>
                   <SelectItem value="has_overdue">Has Overdue</SelectItem>
-                  <SelectItem value="has_qc_approved">
-                    Has QC Approved
-                  </SelectItem>
+                  <SelectItem value="has_qc_approved">Has QC Approved</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={dateFilter}
+                onValueChange={(v) => setDateFilter(v as DateFilter)}
+              >
+                <SelectTrigger className="w-full sm:w-[190px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by date" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">All Dates</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                  <SelectItem value="last_15_days">Last 15 Days</SelectItem>
+                  <SelectItem value="this_month">This Month</SelectItem>
+                  <SelectItem value="this_year">This Year</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -485,10 +506,10 @@ export default function QCClientsPage() {
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="all">All Progress</SelectItem>
-                  <SelectItem value="0_25">0–24%</SelectItem>
-                  <SelectItem value="25_50">25–49%</SelectItem>
-                  <SelectItem value="50_75">50–74%</SelectItem>
-                  <SelectItem value="75_100">75–100%</SelectItem>
+                  <SelectItem value="0_25">0-24%</SelectItem>
+                  <SelectItem value="25_50">25-49%</SelectItem>
+                  <SelectItem value="50_75">50-74%</SelectItem>
+                  <SelectItem value="75_100">75-100%</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -496,12 +517,13 @@ export default function QCClientsPage() {
                 value={sortBy}
                 onValueChange={(v) => setSortBy(v as SortBy)}
               >
-                <SelectTrigger className="w-full sm:w-[170px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <SelectTrigger className="w-full sm:w-[180px] h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <ArrowUpDown className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="name_asc">Sort: Name (A–Z)</SelectItem>
+                  <SelectItem value="newest_first">Sort: Newest First</SelectItem>
+                  <SelectItem value="name_asc">Sort: Name (A-Z)</SelectItem>
                   <SelectItem value="tasks_desc">Sort: Total Tasks</SelectItem>
                   <SelectItem value="progress_desc">Sort: Progress</SelectItem>
                   <SelectItem value="qc_desc">Sort: QC Approved</SelectItem>
@@ -550,7 +572,23 @@ export default function QCClientsPage() {
             </div>
           </div>
 
-          {/* Content */}
+          {dateFilter === "custom" && (
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:max-w-lg">
+              <Input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl"
+              />
+              <Input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="h-12 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl"
+              />
+            </div>
+          )}
+
           {hasError ? (
             <div className="text-center py-12">
               <div className="inline-flex flex-col items-center gap-4">
@@ -575,7 +613,7 @@ export default function QCClientsPage() {
               </div>
             </div>
           ) : isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
@@ -586,7 +624,7 @@ export default function QCClientsPage() {
           ) : filtered.length === 0 ? (
             <EmptyClients onReset={clearAll} />
           ) : viewMode === "card" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
               {filtered.map((s) => (
                 <ClientCard key={s.client.id} stats={s} />
               ))}
@@ -612,17 +650,7 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <Card
-      className="
-        bg-white 
-        border border-gray-200 
-        rounded-xl 
-        shadow-[0_2px_8px_rgba(0,0,0,0.04)]
-        hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]
-        transition-all duration-300 
-        p-6
-      "
-    >
+    <Card className="bg-white border border-gray-200 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition-all duration-300 p-6">
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
           <span className="text-sm text-gray-600 font-semibold tracking-wide">
@@ -631,20 +659,9 @@ function StatCard({
           <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight">
             {value}
           </span>
-          {subtitle && (
-            <span className="text-xs mt-1 text-gray-500">{subtitle}</span>
-          )}
+          {subtitle && <span className="text-xs mt-1 text-gray-500">{subtitle}</span>}
         </div>
-        <div
-          className="
-            w-12 h-12 
-            flex items-center justify-center
-            rounded-xl 
-            bg-gray-100 
-            border border-gray-200
-            text-gray-700
-          "
-        >
+        <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 border border-gray-200 text-gray-700">
           {icon}
         </div>
       </div>
@@ -660,18 +677,12 @@ function EmptyClients({ onReset }: { onReset: () => void }) {
           <Search className="h-12 w-12 text-slate-400" />
         </div>
         <div className="space-y-2 max-w-md">
-          <h3 className="text-xl font-semibold text-slate-900">
-            No clients found
-          </h3>
+          <h3 className="text-xl font-semibold text-slate-900">No clients found</h3>
           <p className="text-slate-600">
             Try adjusting your filters or clearing the search
           </p>
         </div>
-        <Button
-          onClick={onReset}
-          variant="outline"
-          className="bg-transparent rounded-xl"
-        >
+        <Button onClick={onReset} variant="outline" className="bg-transparent rounded-xl">
           Reset Filters
         </Button>
       </div>
@@ -681,9 +692,9 @@ function EmptyClients({ onReset }: { onReset: () => void }) {
 
 function ClientCard({ stats }: { stats: ClientStats }) {
   const href = `./qc-review?clientId=${encodeURIComponent(stats.client.id)}`;
-
   const countsTotal = stats.totalTasks;
   const done = stats.completed + stats.qcApproved;
+  const latestTaskDate = parseClientDate(stats.latestTaskDate);
 
   return (
     <Card className="border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden bg-white dark:bg-gray-900">
@@ -694,16 +705,20 @@ function ClientCard({ stats }: { stats: ClientStats }) {
           </div>
 
           <div className="min-w-0 flex-1">
-            <CardTitle className="truncate text-xl">
-              {stats.client.name}
-            </CardTitle>
+            <CardTitle className="truncate text-xl">{stats.client.name}</CardTitle>
 
-            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <div className="mt-1 space-y-1 text-sm text-gray-500 dark:text-gray-400">
               {stats.client.company && (
                 <span className="inline-flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
                   {stats.client.company}
                 </span>
+              )}
+              {latestTaskDate && (
+                <div className="inline-flex items-center gap-1">
+                  <CalendarDays className="h-4 w-4" />
+                  {latestTaskDate.toLocaleDateString()}
+                </div>
               )}
             </div>
           </div>
@@ -713,14 +728,19 @@ function ClientCard({ stats }: { stats: ClientStats }) {
               "px-2.5 py-1 rounded-full text-xs font-semibold",
               stats.overdue > 0
                 ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                : isClientCompleted(stats)
+                  ? "bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300"
+                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
             )}
           >
-            {stats.overdue > 0 ? "Needs Attention" : "Active"}
+            {stats.overdue > 0
+              ? "Needs Attention"
+              : isClientCompleted(stats)
+                ? "Completed"
+                : "Active"}
           </span>
         </div>
 
-        {/* Progress */}
         <div className="mt-4">
           <div className="flex items-center justify-between text-sm mb-1">
             <span className="text-gray-600 dark:text-gray-400">Progress</span>
@@ -738,20 +758,11 @@ function ClientCard({ stats }: { stats: ClientStats }) {
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
-        {/* Breakdown */}
         <div className="grid grid-cols-3 gap-3">
           <StatusChip label="Total" value={stats.totalTasks} tone="default" />
-          <StatusChip
-            label="Completed"
-            value={stats.completed}
-            tone="success"
-          />
+          <StatusChip label="Completed" value={stats.completed} tone="success" />
           <StatusChip label="QC Approved" value={stats.qcApproved} tone="sky" />
-          <StatusChip
-            label="In Progress"
-            value={stats.inProgress}
-            tone="warn"
-          />
+          <StatusChip label="In Progress" value={stats.inProgress} tone="warn" />
           <StatusChip label="Pending" value={stats.pending} tone="muted" />
           <StatusChip
             label="Overdue"
@@ -790,6 +801,9 @@ function ClientsTable({ rows }: { rows: ClientStats[] }) {
                 Client
               </th>
               <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">
+                Latest Date
+              </th>
+              <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">
                 Progress
               </th>
               <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">
@@ -801,73 +815,80 @@ function ClientsTable({ rows }: { rows: ClientStats[] }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
-              <tr
-                key={r.client.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-100 dark:border-gray-800"
-              >
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                      <span className="text-blue-700 dark:text-blue-300 font-semibold text-sm">
-                        {r.client.name.substring(0, 2)}
+            {rows.map((r) => {
+              const latestTaskDate = parseClientDate(r.latestTaskDate);
+              return (
+                <tr
+                  key={r.client.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-100 dark:border-gray-800"
+                >
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        <span className="text-blue-700 dark:text-blue-300 font-semibold text-sm">
+                          {r.client.name.substring(0, 2)}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-gray-900 dark:text-gray-50 truncate">
+                          {r.client.name}
+                        </div>
+                        {r.client.company && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {r.client.company}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="p-4 text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                    {latestTaskDate ? latestTaskDate.toLocaleDateString() : "-"}
+                  </td>
+
+                  <td className="p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${r.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-50 min-w-12">
+                        {r.progress}%
                       </span>
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-gray-900 dark:text-gray-50 truncate">
-                        {r.client.name}
-                      </div>
-                      {r.client.company && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {r.client.company}
-                        </div>
-                      )}
+                  </td>
+
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      <Pill label="T" value={r.totalTasks} />
+                      <Pill label="C" value={r.completed} tone="success" />
+                      <Pill label="IP" value={r.inProgress} tone="warn" />
+                      <Pill label="P" value={r.pending} tone="muted" />
+                      <Pill label="OD" value={r.overdue} tone="danger" />
+                      <Pill label="R" value={r.reassigned} tone="pink" />
+                      <Pill label="QC" value={r.qcApproved} tone="sky" />
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <td className="p-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${r.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-50 min-w-12">
-                      {r.progress}%
-                    </span>
-                  </div>
-                </td>
-
-                <td className="p-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    <Pill label="T" value={r.totalTasks} />
-                    <Pill label="C" value={r.completed} tone="success" />
-                    <Pill label="IP" value={r.inProgress} tone="warn" />
-                    <Pill label="P" value={r.pending} tone="muted" />
-                    <Pill label="OD" value={r.overdue} tone="danger" />
-                    <Pill label="R" value={r.reassigned} tone="pink" />
-                    <Pill label="QC" value={r.qcApproved} tone="sky" />
-                  </div>
-                </td>
-
-                <td className="p-4">
-                  <Button
-                    size="sm"
-                    asChild
-                    disabled={r.totalTasks === 0}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Link
-                      href={`./qc-review?clientId=${encodeURIComponent(r.client.id)}`}
+                  <td className="p-4">
+                    <Button
+                      size="sm"
+                      asChild
+                      disabled={r.totalTasks === 0}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      QC Review
-                    </Link>
-                  </Button>
-                </td>
-              </tr>
-            ))}
+                      <Link
+                        href={`./qc-review?clientId=${encodeURIComponent(r.client.id)}`}
+                      >
+                        QC Review
+                      </Link>
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -951,6 +972,7 @@ function Pill({
     pink: "bg-pink-50 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400",
     sky: "bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
   };
+
   return (
     <span
       className={classNames(
