@@ -53,6 +53,7 @@ type SiteAsset = {
   url: string | null
   type: string
   eligible: boolean
+  postingFrequency?: number
 }
 
 const FALLBACK_ASSET_TYPES: AssetTypeOption[] = [
@@ -464,9 +465,9 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
                                     </span>
                                   )}
                                 </span>
-                                {!site.eligible && (
-                                  <span className="shrink-0 text-xs text-muted-foreground">
-                                    0 frequency
+                                {site.postingFrequency === 0 && (
+                                  <span className="shrink-0 rounded-full bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                                    0 freq
                                   </span>
                                 )}
                               </label>

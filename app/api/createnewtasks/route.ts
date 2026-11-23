@@ -83,9 +83,9 @@ export async function GET(req: NextRequest) {
           name: a.name,
           url: a.url,
           type: a.type,
-          // Posting types with 0 frequency are skipped by POST
-          eligible:
-            !POSTING_TYPES.includes(a.type) || Number(a.defaultPostingFrequency ?? 0) > 0,
+          postingFrequency: Number(a.defaultPostingFrequency ?? 0),
+          // Every site can be selected manually, including 0-frequency ones
+          eligible: true,
         })),
       },
       { status: 200 }
@@ -298,7 +298,8 @@ export async function POST(req: NextRequest) {
       const assetType = asset.type as string;
       const isPostingType = POSTING_TYPES.includes(assetType);
       const postingFreq = Number(asset.defaultPostingFrequency ?? 0);
-      if (isPostingType && postingFreq <= 0) {
+      // Sites picked explicitly in the UI are always created, even with 0 frequency
+      if (!templateSiteAssetIds && isPostingType && postingFreq <= 0) {
         console.log("[create-manual-tasks] Skipping asset with 0 frequency:", {
           assetId: asset.id,
           assetType,
