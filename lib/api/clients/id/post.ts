@@ -532,6 +532,8 @@ export async function POST(
           qc_approved: 0,
           paused: 0,
           data_entered: 0,
+          requested: 0,
+          approved: 0,
         };
         for (const row of grouped) baseCounts[row.status] = row._count._all;
 

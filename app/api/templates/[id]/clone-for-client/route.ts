@@ -1,6 +1,7 @@
 // app/api/templates/[id]/clone-for-client/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { copyPostingCycleFields } from "@/lib/posting-schedule";
 
 /**
  * Clone a template specifically for a client, creating a custom version
@@ -93,6 +94,7 @@ export async function POST(
             description: asset.description || null,
             isRequired: asset.isRequired,
             defaultPostingFrequency: asset.defaultPostingFrequency ?? null,
+            ...copyPostingCycleFields(asset),
             defaultIdealDurationMinutes: asset.defaultIdealDurationMinutes ?? null,
             defaultIdealDurationMinutesForPosting:
               asset.defaultIdealDurationMinutesForPosting ?? null,

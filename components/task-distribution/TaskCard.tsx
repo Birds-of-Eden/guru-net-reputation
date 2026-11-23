@@ -128,6 +128,11 @@ const TaskCardComponent = function TaskCard({
   const SiteIcon = siteTypeIcons[siteType as keyof typeof siteTypeIcons];
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
+  const priorityValue = (task as any)?.priority ?? "medium";
+  const priorityKey = String(priorityValue).toLowerCase();
+  const statusKey = String((task as any)?.status ?? "pending").toLowerCase();
+  const isPriorityLocked =
+    statusKey === "completed" || statusKey === "qc_approved";
   const shouldDisablePriority =
     isPriorityLocked || shouldDisableDropdown || priorityUpdating;
 
@@ -140,12 +145,6 @@ const TaskCardComponent = function TaskCard({
     `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() ||
     u?.email ||
     "User";
-
-  const priorityValue = (task as any)?.priority ?? "medium";
-  const priorityKey = String(priorityValue).toLowerCase();
-  const statusKey = String((task as any)?.status ?? "pending").toLowerCase();
-  const isPriorityLocked =
-    statusKey === "completed" || statusKey === "qc_approved";
 
   const LoadIndicator = (a: any) => {
     const { P, IP, O, R, active, weighted } = getLoadStats(a);

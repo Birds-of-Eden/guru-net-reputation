@@ -63,7 +63,8 @@ export function resolveCategoryName(
 export function resolveCategoryFromMap(
   slug: string,
   overrides: Record<string, string>,
-  assetTypeMap: Map<string, AssetTypeRecord>,
+  // Only categoryName is read, so accept any map that carries it
+  assetTypeMap: Map<string, Pick<AssetTypeRecord, "categoryName"> | { categoryName?: string | null }>,
   fallbackMap: Record<string, string>,
   fallbackName = "Other Task"
 ) {

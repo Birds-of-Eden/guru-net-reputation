@@ -74,7 +74,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 17,
     defaultIdealDurationMinutesForPosting: 3,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -83,7 +83,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 15,
     defaultIdealDurationMinutesForPosting: 4,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -92,7 +92,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 16,
     defaultIdealDurationMinutesForPosting: 3,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -119,7 +119,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 25,
     defaultIdealDurationMinutesForPosting: 10,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -128,7 +128,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 13,
     defaultIdealDurationMinutesForPosting: 6,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -137,7 +137,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 17,
     defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -146,7 +146,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 16,
     defaultIdealDurationMinutesForPosting: 3,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -165,6 +165,7 @@ export const DEFAULT_SOCIAL_SITES = [
     defaultIdealDurationMinutes: 13,
     defaultIdealDurationMinutesForPosting: 4,
     defaultPostingFrequency: 3,
+    postingInterval: 2, // Every other month
   },
 
   {
@@ -192,6 +193,7 @@ export const DEFAULT_SOCIAL_SITES = [
     defaultIdealDurationMinutes: 25,
     defaultIdealDurationMinutesForPosting: 7,
     defaultPostingFrequency: 3,
+    postingInterval: 2, // Every other month
   },
 
   {
@@ -200,7 +202,17 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 20,
     defaultIdealDurationMinutesForPosting: 5,
+    defaultPostingFrequency: 0, // No activity,
+  },
+
+  {
+    name: "Flickr",
+    url: "https://www.flickr.com/",
+    isRequired: true,
+    defaultIdealDurationMinutes: 20,
+    defaultIdealDurationMinutesForPosting: 5,
     defaultPostingFrequency: 3,
+    postingInterval: 2, // Every other month
   },
 
   {
@@ -290,7 +302,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 20,
     defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {
@@ -326,7 +338,7 @@ export const DEFAULT_SOCIAL_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 14,
     defaultIdealDurationMinutesForPosting: 5,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 ];
 
@@ -356,6 +368,7 @@ export const DEFAULT_WEB2_SITES = [
     defaultIdealDurationMinutes: 25,
     defaultIdealDurationMinutesForPosting: 15,
     defaultPostingFrequency: 3,
+    postingInterval: 2, // Every other month
   },
 
   {
@@ -410,6 +423,7 @@ export const DEFAULT_WEB2_SITES = [
     defaultIdealDurationMinutes: 30,
     defaultIdealDurationMinutesForPosting: 10,
     defaultPostingFrequency: 3,
+    postingInterval: 2, // Every other month
   },
 
   {
@@ -418,7 +432,7 @@ export const DEFAULT_WEB2_SITES = [
     isRequired: true,
     defaultIdealDurationMinutes: 30,
     defaultIdealDurationMinutesForPosting: 10,
-    defaultPostingFrequency: 3,
+    defaultPostingFrequency: 0, // No activity,
   },
 
   {

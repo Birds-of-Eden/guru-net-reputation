@@ -28,6 +28,12 @@ import Link from 'next/link'
 import type { AssetTypeOption } from '@/types/asset-types'
 import { toast } from 'sonner'
 import { normalizeTemplateStatus } from '@/lib/template-status'
+import {
+  CYCLE_SELECT_OPTIONS,
+  cycleSelectValue,
+  postingCycleLabel,
+  resolvePostingCycle,
+} from '@/lib/posting-cycle'
 
 interface Template {
   id: string
@@ -306,6 +312,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                   <TableHead>URL</TableHead>
                   <TableHead>Required</TableHead>
                   <TableHead>Posts/Month</TableHead>
+                  <TableHead>Posting Cycle</TableHead>
                   <TableHead>Duration (min)</TableHead>
                   <TableHead>Posting Duration (min)</TableHead>
                   {editing && <TableHead className="text-right">Actions</TableHead>}
@@ -366,6 +373,43 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                         />
                       ) : (
                         asset.defaultPostingFrequency ?? 0
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editing ? (
+                        <select
+                          aria-label="Posting cycle"
+                          value={cycleSelectValue(
+                            (asset as any).postingInterval !== undefined
+                              ? (asset as any)
+                              : {
+                                  postingInterval: resolvePostingCycle(asset as any).interval,
+                                  postingStartOffset: resolvePostingCycle(asset as any).offset,
+                                }
+                          )}
+                          onChange={(e) => {
+                            const [interval, offset] = e.target.value.split(":").map(Number);
+                            setTemplate({
+                              ...template,
+                              sitesAssets: template.sitesAssets.map((a) =>
+                                a.id === asset.id
+                                  ? ({ ...a, postingInterval: interval, postingStartOffset: offset } as any)
+                                  : a
+                              ),
+                            });
+                          }}
+                          className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                        >
+                          {CYCLE_SELECT_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          {postingCycleLabel(resolvePostingCycle(asset as any))}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>

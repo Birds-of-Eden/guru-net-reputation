@@ -2,6 +2,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { postingCycleFromInput } from "@/lib/posting-cycle";
 import { diffChanges } from "@/utils/audit"; // না থাকলে নিচের লোকাল fallback ব্যবহার করো
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";
@@ -123,6 +124,7 @@ export async function PUT(
         0,
         Number.parseInt(String(asset.defaultPostingFrequency), 10) || 0
       ),
+      ...postingCycleFromInput(asset),
       defaultIdealDurationMinutes: Math.max(
         1,
         parseInt(asset.defaultIdealDurationMinutes) || 30

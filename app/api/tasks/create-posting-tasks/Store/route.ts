@@ -10,6 +10,13 @@ import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
+import {
+  cycleFor,
+  loadPostingCycles,
+  totalPostingCopies,
+  virtualCycleNumber,
+  type PostingCycle,
+} from "@/lib/posting-schedule";
 
 // ---------- Constants ----------
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
@@ -118,6 +125,8 @@ function countByStatus(tasks: { status: TaskStatus }[]) {
     qc_approved: 0,
     paused: 0,
     data_entered: 0,
+    requested: 0,
+    approved: 0,
   };
   for (const t of tasks) base[t.status] += 1;
   return base;
@@ -365,6 +374,7 @@ export async function GET(req: NextRequest) {
     const requiredByAssetId = new Map<number, number | null | undefined>();
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
+    const cycleByAssetId = await loadPostingCycles(assetIds, assignment.id);
 
     const tasks = sourceTasks.map((src) => {
       const assetId = src.templateSiteAsset?.id;
@@ -382,8 +392,12 @@ export async function GET(req: NextRequest) {
         status: src.status,
         priority: src.priority,
         assetType,
-        // 👇 multiply original frequency by package months
-        frequency: freq * packageTotalMonths,
+        // posts/month x ACTIVE package months (alternate months etc.)
+        frequency: totalPostingCopies(
+          freq,
+          packageTotalMonths,
+          cycleFor(cycleByAssetId, assetId)
+        ),
         categoryName: resolveCategoryFromType(
           assetType,
           assetTypeMap,
@@ -409,7 +423,10 @@ export async function GET(req: NextRequest) {
         fallbackCategoryMap
       );
       const base = baseNameOf(src.name);
-      const totalCopies = Math.max(1, freq * packageTotalMonths);
+      const totalCopies = Math.max(
+        1,
+        totalPostingCopies(freq, packageTotalMonths, cycleFor(cycleByAssetId, assetId))
+      );
       for (let i = 1; i <= totalCopies; i++) {
         expandedCopies.push({ name: `${base} -${i}`, catName });
       }
@@ -706,6 +723,7 @@ export async function POST(req: NextRequest) {
     const requiredByAssetId = new Map<number, number | null | undefined>();
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
+    const cycleByAssetId = await loadPostingCycles(assetIds, assignment.id);
 
     // Ensure categories WITHOUT relying on unique(name)
     const ensureCategory = async (name: string) => {
@@ -753,6 +771,8 @@ export async function POST(req: NextRequest) {
       src: (typeof sourceTasks)[number];
       name: string;
       catName: string;
+      freq: number;
+      cycle: PostingCycle;
     }[] = [];
 
     // NEW: Social Activity সিরিজের প্রতিটি base-এর last cycle dueDate ক্যাশ
@@ -776,16 +796,20 @@ export async function POST(req: NextRequest) {
       );
       const base = baseNameOf(src.name);
 
-      // total copies = freq * months
-      const totalCopies = Math.max(1, freq * months);
+      // total copies = freq * active months
+      const cycle = cycleFor(cycleByAssetId, assetId);
+      const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
       for (let i = 1; i <= totalCopies; i++) {
-        expandedCopies.push({ src, catName, name: `${base} -${i}` });
+        expandedCopies.push({ src, catName, name: `${base} -${i}`, freq, cycle });
       }
 
       // NEW: কেবল Social Activity-এর জন্য last cycle dueDate ক্যাশ করো
       if (catName === CAT_SOCIAL_ACTIVITY) {
         const anchor = src.createdAt || new Date();
-        const lastDue = calculateTaskDueDate(anchor, totalCopies); // uses your working-days rules
+        const lastDue = calculateTaskDueDate(
+          anchor,
+          virtualCycleNumber(totalCopies, freq, cycle)
+        ); // uses your working-days rules
         lastCycleDueByBase.set(base, lastDue);
       }
     }
@@ -846,7 +870,10 @@ export async function POST(req: NextRequest) {
 
       // Anchor to the creation moment of the new copy (not the source task time)
       const anchor = new Date();
-      const dueDate = calculateTaskDueDate(anchor, cycleNumber);
+      const dueDate = calculateTaskDueDate(
+        anchor,
+        virtualCycleNumber(cycleNumber, item.freq, item.cycle)
+      );
 
       payloads.push({
         id: makeId(),
@@ -893,9 +920,10 @@ export async function POST(req: NextRequest) {
           required: assetId ? requiredByAssetId.get(assetId) : undefined,
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
-        const totalCopies = Math.max(1, freq * months);
+        const cycle = cycleFor(cycleByAssetId, assetId);
+        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
         const anchor = src.createdAt || new Date();
-        dueDate = calculateTaskDueDate(anchor, totalCopies);
+        dueDate = calculateTaskDueDate(anchor, virtualCycleNumber(totalCopies, freq, cycle));
       }
 
       const catId = categoryIdByName.get("Social Communication")!;

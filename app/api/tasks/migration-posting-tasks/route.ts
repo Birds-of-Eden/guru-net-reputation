@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
+import {
+  cycleFor,
+  loadPostingCycles,
+  totalPostingCopies,
+  virtualCycleNumber,
+  type PostingCycle,
+} from "@/lib/posting-schedule";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import {
   fetchAssetTypeMap,
@@ -126,6 +133,8 @@ function countByStatus(tasks: { status: TaskStatus }[]) {
     qc_approved: 0,
     paused: 0,
     data_entered: 0,
+    requested: 0,
+    approved: 0,
   };
   for (const t of tasks) base[t.status] += 1;
   return base;
@@ -351,6 +360,7 @@ export async function POST(req: NextRequest) {
     const requiredByAssetId = new Map<number, number | null | undefined>();
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
+    const cycleByAssetId = await loadPostingCycles(assetIds, assignment.id);
 
     // ensure posting categories
     async function ensureCategory(name: string) {
@@ -396,6 +406,8 @@ export async function POST(req: NextRequest) {
       src: (typeof sourceTasks)[number];
       name: string;
       catName: string;
+      freq: number;
+      cycle: PostingCycle;
     }[] = [];
     const lastCycleDueByBase = new Map<string, Date>();
 
@@ -415,15 +427,19 @@ export async function POST(req: NextRequest) {
       );
       const base = baseNameOf(src.name);
 
-      const totalCopies = Math.max(1, freq * months);
+      const cycle = cycleFor(cycleByAssetId, assetId);
+      const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
       for (let i = 1; i <= totalCopies; i++) {
         // <-- Ensure " Task" suffix on posting copies
-        expandedCopies.push({ src, catName, name: `${base} Task -${i}` });
+        expandedCopies.push({ src, catName, name: `${base} Task -${i}`, freq, cycle });
       }
 
       if (catName === CAT_SOCIAL_ACTIVITY) {
         const anchor = src.createdAt || new Date();
-        const lastDue = calculateTaskDueDate(anchor, totalCopies);
+        const lastDue = calculateTaskDueDate(
+          anchor,
+          virtualCycleNumber(totalCopies, freq, cycle)
+        );
         lastCycleDueByBase.set(base, lastDue);
       }
     }
@@ -526,7 +542,10 @@ export async function POST(req: NextRequest) {
       const cycleNumber = Number.isFinite(n) && n > 0 ? n : 1;
 
       const anchor = new Date();
-      const dueDate = calculateTaskDueDate(anchor, cycleNumber);
+      const dueDate = calculateTaskDueDate(
+        anchor,
+        virtualCycleNumber(cycleNumber, item.freq, item.cycle)
+      );
 
       payloads.push({
         id: makeId(),
@@ -570,9 +589,10 @@ export async function POST(req: NextRequest) {
           required: assetId ? requiredByAssetId.get(assetId) : undefined,
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
-        const totalCopies = Math.max(1, freq * months);
+        const cycle = cycleFor(cycleByAssetId, assetId);
+        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
         const anchor = src.createdAt || new Date();
-        dueDate = calculateTaskDueDate(anchor, totalCopies);
+        dueDate = calculateTaskDueDate(anchor, virtualCycleNumber(totalCopies, freq, cycle));
       }
 
       const catId = categoryIdByName.get(CAT_SOCIAL_COMMUNICATION)!;

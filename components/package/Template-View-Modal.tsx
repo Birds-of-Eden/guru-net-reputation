@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAssetTypeLabel } from "@/lib/asset-types";
+import { isEveryMonth, postingCycleLabel, resolvePostingCycle } from "@/lib/posting-cycle";
 
 interface TemplateSiteAsset {
   id: number;
@@ -321,6 +322,12 @@ export function TemplateViewModal({
               <span className="flex items-center gap-1">
                 <Target className="w-3 h-3" />
                 {site.defaultPostingFrequency || 0}
+                {(site.defaultPostingFrequency || 0) > 0 &&
+                  !isEveryMonth(resolvePostingCycle(site as any)) && (
+                    <span className="ml-1 rounded-full bg-amber-50 px-1.5 text-[10px] font-medium text-amber-700">
+                      {postingCycleLabel(resolvePostingCycle(site as any))}
+                    </span>
+                  )}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />

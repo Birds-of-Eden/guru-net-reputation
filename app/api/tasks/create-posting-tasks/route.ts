@@ -10,6 +10,13 @@ import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
+import {
+  cycleFor,
+  loadPostingCycles,
+  postingCycleLabel,
+  totalPostingCopies,
+  virtualCycleNumber,
+} from "@/lib/posting-schedule";
 
 // ---------- Constants ----------
 const PREREQ_ASSET_TYPES = [
@@ -153,6 +160,8 @@ function countByStatus(tasks: { status: TaskStatus }[]) {
     qc_approved: 0,
     paused: 0,
     data_entered: 0,
+    requested: 0,
+    approved: 0,
   };
   for (const t of tasks) base[t.status] += 1;
   return base;
@@ -476,6 +485,7 @@ export async function GET(req: NextRequest) {
     const requiredByAssetId = new Map<number, number | null | undefined>();
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
+    const cycleByAssetId = await loadPostingCycles(assetIds, fallbackAssignment.id);
 
     const tasks = augmentedSourceTasks.map((src) => {
       const assetId = src.templateSiteAsset?.id;
@@ -486,6 +496,7 @@ export async function GET(req: NextRequest) {
       const assetType = normalizeAssetTypeSlug(
         src.templateSiteAsset?.type ?? ""
       );
+      const cycle = cycleFor(cycleByAssetId, assetId);
       return {
         id: src.id,
         name: src.name,
@@ -493,8 +504,9 @@ export async function GET(req: NextRequest) {
         status: src.status,
         priority: src.priority,
         assetType,
-        // multiply original frequency by package months
-        frequency: freq * packageTotalMonths,
+        // posts/month x ACTIVE package months (alternate months etc.)
+        frequency: totalPostingCopies(freq, packageTotalMonths, cycle),
+        postingCycle: postingCycleLabel(cycle),
         categoryName: resolveCategoryFromType(
           assetType,
           assetTypeMap,
@@ -904,6 +916,7 @@ export async function POST(req: NextRequest) {
     const requiredByAssetId = new Map<number, number | null | undefined>();
     for (const s of settings)
       requiredByAssetId.set(s.templateSiteAssetId, s.requiredFrequency);
+    const cycleByAssetId = await loadPostingCycles(assetIds, fallbackAssignment.id);
 
     // Ensure categories WITHOUT relying on unique(name)
     const ensureCategory = async (name: string) => {
@@ -952,8 +965,13 @@ export async function POST(req: NextRequest) {
       base: string;
       catName: string;
       totalCopies: number;
+      freq: number;
+      cycle: ReturnType<typeof cycleFor>;
     };
     const postingSources: PostingSource[] = [];
+    // Due date of the n-th task, skipping inactive months for alternate cycles
+    const dueDateForSource = (item: Pick<PostingSource, "freq" | "cycle">, n: number) =>
+      dueDateFromFirstCycleDueDate(virtualCycleNumber(n, item.freq, item.cycle));
 
     // NEW: Social Activity সিরিজের প্রতিটি base-এর last cycle dueDate ক্যাশ
     const lastCycleDueByBase = new Map<string, Date>();
@@ -975,11 +993,12 @@ export async function POST(req: NextRequest) {
         fallbackCategoryMap
       );
       const base = baseNameOf(src.name);
+      const cycle = cycleFor(cycleByAssetId, assetId);
 
-      // total copies = freq * months (0 means skip)
-      const totalCopies = freq * months;
+      // total copies = freq * active months (0 means skip)
+      const totalCopies = totalPostingCopies(freq, months, cycle);
       if (totalCopies <= 0) continue;
-      postingSources.push({ src, base, catName, totalCopies });
+      postingSources.push({ src, base, catName, totalCopies, freq, cycle });
 
       // NEW: কেবল Social Activity-এর জন্য last cycle dueDate ক্যাশ করো
     }
@@ -1012,7 +1031,7 @@ export async function POST(req: NextRequest) {
         item.totalCopies,
         maxCycleMap.get(key) ?? 0
       );
-      const lastDue = dueDateFromFirstCycleDueDate(Math.max(1, effectiveCycles));
+      const lastDue = dueDateForSource(item, Math.max(1, effectiveCycles));
       lastCycleDueByBase.set(item.base, lastDue);
     }
 
@@ -1051,7 +1070,7 @@ export async function POST(req: NextRequest) {
         const name = `${item.base} -${cycle}`;
         if (skipNameSet.has(name)) continue;
 
-        const dueDate = dueDateFromFirstCycleDueDate(cycle);
+        const dueDate = dueDateForSource(item, cycle);
 
         payloads.push({
           id: makeId(),
@@ -1101,8 +1120,9 @@ export async function POST(req: NextRequest) {
           required: assetId ? requiredByAssetId.get(assetId) : undefined,
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
-        const totalCopies = Math.max(1, freq * months);
-        dueDate = dueDateFromFirstCycleDueDate(totalCopies);
+        const cycle = cycleFor(cycleByAssetId, assetId);
+        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
+        dueDate = dueDateForSource({ freq, cycle }, totalCopies);
       }
 
       const catId = categoryIdByName.get(CAT_SOCIAL_COMMUNICATION)!;

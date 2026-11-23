@@ -67,6 +67,8 @@ function countByStatus(tasks: { status: TaskStatus }[]) {
     qc_approved: 0,
     paused: 0,
     data_entered: 0,
+    requested: 0,
+    approved: 0,
   };
   for (const t of tasks) base[t.status] += 1;
   return base;

@@ -6,6 +6,14 @@ import { calculateTaskDueDate } from "@/utils/working-days";
 import { differenceInCalendarDays, addDays, isWeekend } from "date-fns";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import {
+  cycleFor,
+  loadPostingCycles,
+  postingCycleLabel,
+  resolvePostingCycle,
+  totalPostingCopies,
+  virtualCycleNumber,
+} from "@/lib/posting-schedule";
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
 const CAT_BLOG_POSTING = "Blog Posting";
@@ -80,12 +88,15 @@ export async function GET(
     );
     const requiredFrequency =
       setting?.requiredFrequency ?? qcTask.templateSiteAsset?.defaultPostingFrequency ?? 4;
+    const postingCycle = postingCycleLabel(
+      resolvePostingCycle(qcTask.templateSiteAsset as any, setting as any)
+    );
 
     const dueDate = qcTask.assignment?.client?.dueDate ?? qcTask.dueDate ?? null;
 
     return NextResponse.json({
       qcTask: { id: qcTask.id, name: qcTask.name, status: qcTask.status, dueDate },
-      preview: { requiredFrequency },
+      preview: { requiredFrequency, postingCycle },
     });
   } catch (error: any) {
     console.error("Preview posting error:", error);
@@ -169,7 +180,9 @@ export async function POST(
     // === 2️⃣ Compute total months between start and due ===
     const totalDays = Math.max(1, differenceInCalendarDays(due, start));
     const totalMonths = Math.ceil(totalDays / 30);
-    const totalTasks = frequency * totalMonths;
+    const cycleMap = await loadPostingCycles([qcTask.templateSiteAssetId], qcTask.assignmentId);
+    const cycle = cycleFor(cycleMap, qcTask.templateSiteAssetId);
+    const totalTasks = totalPostingCopies(frequency, totalMonths, cycle);
 
     // === 3️⃣ Determine category ===
     const categoryName = resolveCategoryFromType(
@@ -190,7 +203,7 @@ export async function POST(
     const endDue = new Date(clientDueDate);
 
     for (let i = 1; i <= plannedTotal; i++) {
-      const due = calculateTaskDueDate(anchor, i);
+      const due = calculateTaskDueDate(anchor, virtualCycleNumber(i, frequency, cycle));
       if (endDue && due > endDue) break;
       const task = await prisma.task.create({
         data: {
@@ -206,7 +219,7 @@ export async function POST(
           idealDurationMinutes:
             qcTask.templateSiteAsset?.defaultIdealDurationMinutes ?? 30,
           notes: `[AUTO-GENERATED] Posting ${i + 1}/${totalTasks}
-Frequency: ${frequency}/month × ${totalMonths} months
+Frequency: ${frequency}/month × ${totalMonths} months (${postingCycleLabel(cycle)})
 Client Due: ${endDue.toDateString()}
 Spacing: every 7 working days`,
         },

@@ -2,6 +2,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { postingCycleFromInput } from "@/lib/posting-cycle";
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";
 import { getAuthUser } from "@/lib/getAuthUser";
@@ -191,6 +192,7 @@ export async function POST(request: NextRequest) {
       description: asset.description?.trim() || null,
       isRequired: Boolean(asset.isRequired),
       defaultPostingFrequency: clampInt(asset.defaultPostingFrequency, 3, 0),
+      ...postingCycleFromInput(asset),
       defaultIdealDurationMinutes: clampInt(asset.defaultIdealDurationMinutes, 30, 1),
       defaultIdealDurationMinutesForPosting: normalizePostingDuration(
         asset.defaultIdealDurationMinutesForPosting

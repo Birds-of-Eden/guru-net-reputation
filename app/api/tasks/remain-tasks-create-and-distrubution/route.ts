@@ -8,6 +8,13 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import {
+  activeMonthCount,
+  calendarMonthIndex,
+  cycleFor,
+  isActiveMonth,
+  loadPostingCycles,
+} from "@/lib/posting-schedule";
+import {
   fetchAssetTypeMap,
   resolveCategoryFromMap,
   type AssetTypeRecord,
@@ -493,6 +500,10 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
+    const cycleByAssetId = await loadPostingCycles(
+      sourceTasks.map((s) => s.templateSiteAsset?.id),
+      assignment.id
+    );
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(
@@ -550,8 +561,10 @@ export async function POST(req: NextRequest) {
       if (freqPerMonth === 0) continue;
 
       // Total campaign months always based on full startDate → dueDate
+      // Active months only (alternate-month cycles skip the rest)
+      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
       const totalMonths = monthsBetweenInclusive(startDate, dueDate);
-      const totalCopies = totalMonths * freqPerMonth;
+      const totalCopies = activeMonthCount(totalMonths, cycle) * freqPerMonth;
 
       // Already created cycles for this asset
       const alreadyCreated = existingTasksForSource.length;
@@ -568,6 +581,8 @@ export async function POST(req: NextRequest) {
 
       for (const d of cadenceDates(todayMidnight, dueDate, lastTaskDueDate)) {
         if (d > dueDate) break;
+        // Month index counted from the campaign start, not from today
+        if (!isActiveMonth(calendarMonthIndex(startDate, d), cycle)) continue;
 
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
           2,

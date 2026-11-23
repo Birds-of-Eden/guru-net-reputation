@@ -7,6 +7,13 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import {
+  activeMonthCount,
+  calendarMonthIndex,
+  cycleFor,
+  isActiveMonth,
+  loadPostingCycles,
+} from "@/lib/posting-schedule";
 
 // ---- constants
 type AssetTypeSlug = string;
@@ -521,6 +528,10 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
+    const cycleByAssetId = await loadPostingCycles(
+      sourceTasks.map((s) => s.templateSiteAsset?.id),
+      assignment.id
+    );
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(
@@ -577,8 +588,11 @@ export async function POST(req: NextRequest) {
       if (freqPerMonth === 0) continue;
 
       // Total months from renewalDate to dueDate
+      // Active months only (alternate-month cycles skip the rest)
+      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
       const totalMonths = monthsBetweenInclusive(renewalDate, dueDate);
-      const totalNeeded = totalMonths * freqPerMonth;
+      const totalNeeded = activeMonthCount(totalMonths, cycle) * freqPerMonth;
+      if (totalNeeded === 0) continue;
 
       // Per-month cap implementation
       const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
@@ -589,6 +603,7 @@ export async function POST(req: NextRequest) {
       for (const d of cadenceDates(renewalDate, dueDate, lastTaskDueDate)) {
         const dOnly = dateOnly(d);
         if (dOnly.getTime() > cutoff.getTime()) break; // Stop at cutoff (today or dueDate)
+        if (!isActiveMonth(calendarMonthIndex(renewalDate, dOnly), cycle)) continue;
 
         const key = `${dOnly.getFullYear()}-${String(
           dOnly.getMonth() + 1

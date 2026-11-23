@@ -1,6 +1,7 @@
 // app/api/templates/[id]/duplicate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { copyPostingCycleFields } from "@/lib/posting-schedule";
 
 export async function POST(
   request: NextRequest,
@@ -70,6 +71,7 @@ export async function POST(
             description: s.description || null,
             isRequired: s.isRequired,
             defaultPostingFrequency: s.defaultPostingFrequency ?? null,
+            ...copyPostingCycleFields(s),
             defaultIdealDurationMinutes: s.defaultIdealDurationMinutes ?? null,
             defaultIdealDurationMinutesForPosting:
               s.defaultIdealDurationMinutesForPosting ?? null,

@@ -15,6 +15,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import { isEveryMonth, postingCycleLabel, resolvePostingCycle } from "@/lib/posting-cycle";
 
 interface AssetCardProps {
   asset: any;
@@ -33,6 +34,7 @@ export function AssetCard({
     setting?.requiredFrequency !== asset.defaultPostingFrequency;
 
   const displayFrequency = setting?.requiredFrequency ?? asset.defaultPostingFrequency ?? 0;
+  const displayCycle = resolvePostingCycle(asset as any, setting as any);
   const displayDuration = setting?.idealDurationMinutes ?? asset.defaultIdealDurationMinutes ?? 0;
 
   const getTypeIcon = (type: string) => {
@@ -111,6 +113,11 @@ export function AssetCard({
                   </p>
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
                     {displayFrequency > 0 ? `${displayFrequency}/month` : "Not set"}
+                    {displayFrequency > 0 && !isEveryMonth(displayCycle) && (
+                      <span className="ml-1 rounded-full bg-amber-50 dark:bg-amber-900/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                        {postingCycleLabel(displayCycle)}
+                      </span>
+                    )}
                     {hasOverride && (
                       <Zap className="h-3 w-3 text-yellow-500" aria-label="Client Override" />
                     )}

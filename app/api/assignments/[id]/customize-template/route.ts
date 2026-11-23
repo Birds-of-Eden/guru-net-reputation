@@ -1,6 +1,7 @@
 // app/api/assignments/[id]/customize-template/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { copyPostingCycleFields, postingCycleFromInput } from "@/lib/posting-cycle";
 import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -254,6 +255,7 @@ export async function POST(
               description: asset.description || null,
               isRequired: asset.isRequired,
               defaultPostingFrequency: asset.defaultPostingFrequency ?? null,
+              ...copyPostingCycleFields(asset),
               defaultIdealDurationMinutes:
                 asset.defaultIdealDurationMinutes ?? null,
               defaultIdealDurationMinutesForPosting:
@@ -387,6 +389,9 @@ export async function POST(
             defaultPostingFrequency:
               replacement.defaultPostingFrequency ??
               oldAsset?.defaultPostingFrequency,
+            ...((replacement as any).postingInterval !== undefined
+              ? postingCycleFromInput(replacement as any)
+              : copyPostingCycleFields(oldAsset)),
             defaultIdealDurationMinutes:
               replacement.defaultIdealDurationMinutes ??
               oldAsset?.defaultIdealDurationMinutes,
@@ -500,6 +505,7 @@ export async function POST(
             isRequired: newAssetData.isRequired,
             defaultPostingFrequency:
               newAssetData.defaultPostingFrequency ?? 3,  // Default to 3 instead of null
+            ...postingCycleFromInput(newAssetData as any),
             defaultIdealDurationMinutes:
               newAssetData.defaultIdealDurationMinutes ?? null,
             defaultIdealDurationMinutesForPosting:

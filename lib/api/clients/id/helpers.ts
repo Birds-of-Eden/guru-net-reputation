@@ -26,6 +26,8 @@ export async function computeClientProgress(clientId: string) {
     reassigned: 0,
     qc_approved: 0,
     data_entered: 0,
+    requested: 0,
+    approved: 0,
   };
 
   for (const row of grouped) {

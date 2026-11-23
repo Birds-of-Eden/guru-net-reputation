@@ -7,6 +7,13 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
+import {
+  activeMonthCount,
+  calendarMonthIndex,
+  cycleFor,
+  isActiveMonth,
+  loadPostingCycles,
+} from "@/lib/posting-schedule";
 
 // ================== CONSTANTS ==================
 type AssetTypeSlug = string;
@@ -392,6 +399,10 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
+    const cycleByAssetId = await loadPostingCycles(
+      sourceTasks.map((s) => s.templateSiteAsset?.id),
+      assignment.id
+    );
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(src.templateSiteAsset?.type);
@@ -420,9 +431,11 @@ export async function POST(req: NextRequest) {
       const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
       if (freqPerMonth === 0) continue;
 
-      // মোট লাগবে: inclusive month count × freqPerMonth
+      // মোট লাগবে: active months (alternate etc.) × freqPerMonth
+      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
       const totalMonths = monthsBetweenInclusive(startDate, dueDate);
-      const totalNeeded = totalMonths * freqPerMonth;
+      const totalNeeded = activeMonthCount(totalMonths, cycle) * freqPerMonth;
+      if (totalNeeded === 0) continue;
 
       // প্রতি মাসে cap ধরে, cutoff পর্যন্ত fill
       const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
@@ -431,6 +444,8 @@ export async function POST(req: NextRequest) {
       for (const d of cadenceDates(startDate)) {
         const dOnly = dateOnly(d);
         if (dOnly.getTime() > cutoff.getTime()) break; // এই API cutoff পর্যন্তই বানাবে
+        // Skip inactive months (alternate-month cycles)
+        if (!isActiveMonth(calendarMonthIndex(startDate, dOnly), cycle)) continue;
 
         const key = `${dOnly.getFullYear()}-${String(dOnly.getMonth() + 1).padStart(2, "0")}`;
         const used = perMonthCount.get(key) ?? 0;

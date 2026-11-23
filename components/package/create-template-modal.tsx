@@ -54,6 +54,11 @@ import {
   slugifyAssetType,
 } from "@/lib/asset-types";
 import { normalizeTemplateStatus } from "@/lib/template-status";
+import {
+  CYCLE_SELECT_OPTIONS,
+  cycleSelectValue,
+  resolvePostingCycle,
+} from "@/lib/posting-cycle";
 import type { AssetTypeOption } from "@/types/asset-types";
 import {
   DEFAULT_SOCIAL_SITES,
@@ -82,7 +87,9 @@ interface SiteAsset {
   url?: string;
   description?: string;
   isRequired: boolean;
-  defaultPostingFrequency?: number; // per month
+  defaultPostingFrequency?: number; // per active month
+  postingInterval?: number; // 1 = every month, 2 = alternate months, 3 = every 3 months
+  postingStartOffset?: number; // 0 = start in month 1, 1 = start in month 2
   defaultIdealDurationMinutes?: number;
   defaultIdealDurationMinutesForPosting?: number | null;
 }
@@ -316,6 +323,8 @@ export function CreateTemplateModal({
     defaultPostingFrequency: number;
     defaultIdealDurationMinutes: number;
     defaultIdealDurationMinutesForPosting?: number | null;
+    postingInterval?: number;
+    postingStartOffset?: number;
   }) => ({
     type,
     name: site.name,
@@ -323,6 +332,8 @@ export function CreateTemplateModal({
     description: "",
     isRequired: site.isRequired ?? true,
     defaultPostingFrequency: site.defaultPostingFrequency ?? 3,
+    postingInterval: site.postingInterval ?? 1,
+    postingStartOffset: site.postingStartOffset ?? 0,
     defaultIdealDurationMinutes: site.defaultIdealDurationMinutes ?? 30,
     defaultIdealDurationMinutesForPosting:
       site.defaultIdealDurationMinutesForPosting ??
@@ -337,7 +348,15 @@ export function CreateTemplateModal({
         setDescription(initialData.description || "");
         setStatus(normalizeTemplateStatus(initialData.status));
 
-        const assets = initialData.sitesAssets ?? [];
+        // Map stored cycle columns onto editable fields
+        const assets = (initialData.sitesAssets ?? []).map((a: any) => {
+          const cycle = resolvePostingCycle(a);
+          return {
+            ...a,
+            postingInterval: a.postingInterval ?? cycle.interval,
+            postingStartOffset: a.postingStartOffset ?? cycle.offset,
+          };
+        });
         const pick = (t: SiteAssetTypeTS) =>
           assets.filter((a) => normalizeAssetTypeSlug(a.type) === t) as SiteAsset[];
 
@@ -628,6 +647,18 @@ export function CreateTemplateModal({
     setter(updated);
   };
 
+  // Update several fields at once (avoids stale-list overwrites)
+  const updateSiteAssetFields = (
+    type: SiteAssetTypeTS,
+    index: number,
+    patch: Partial<SiteAsset>,
+  ) => {
+    const [list, setter] = getListAndSetter(type);
+    const updated = [...list];
+    updated[index] = { ...updated[index], ...patch } as SiteAsset;
+    setter(updated);
+  };
+
   const nextStep = () =>
     currentStep < steps.length - 1 && setCurrentStep(currentStep + 1);
   const prevStep = () => currentStep > 0 && setCurrentStep(currentStep - 1);
@@ -813,12 +844,13 @@ export function CreateTemplateModal({
 
       {/* Compact table-like layout */}
       <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
-        <div className={`grid gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700 ${shouldHideDurationFields ? 'grid-cols-11' : 'grid-cols-13'}`}>
+        <div className={`grid gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700 ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
           <div className="col-span-2">Site Name</div>
           <div className="col-span-3">URL</div>
           <div className="col-span-2">Description</div>
           <div className="col-span-1 text-center">Required</div>
           <div className="col-span-1 text-center">Posts/Month</div>
+          <div className="col-span-2 text-center">Posting Cycle</div>
           {!shouldHideDurationFields && (
             <>
               <div className="col-span-1 text-center">Duration (min)</div>
@@ -830,7 +862,7 @@ export function CreateTemplateModal({
         
         <div className="flex-1 overflow-y-auto">
           {sites.map((site, index) => (
-            <div key={index} className={`grid gap-2 p-2 border-b hover:bg-gray-50 items-center ${shouldHideDurationFields ? 'grid-cols-11' : 'grid-cols-13'}`}>
+            <div key={index} className={`grid gap-2 p-2 border-b hover:bg-gray-50 items-center ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
               <div className="col-span-2">
                 <Input
                   value={site.name}
@@ -894,6 +926,32 @@ export function CreateTemplateModal({
                   }
                   className="text-sm h-8 bg-white w-full"
                 />
+              </div>
+              <div className="col-span-2">
+                <select
+                  aria-label="Posting cycle"
+                  value={cycleSelectValue(site)}
+                  disabled={(site.defaultPostingFrequency ?? 0) <= 0}
+                  title={
+                    (site.defaultPostingFrequency ?? 0) <= 0
+                      ? "Set Posts/Month above 0 to choose a cycle"
+                      : undefined
+                  }
+                  onChange={(e) => {
+                    const [interval, offset] = e.target.value.split(":").map(Number);
+                    updateSiteAssetFields(type, index, {
+                      postingInterval: interval,
+                      postingStartOffset: offset,
+                    });
+                  }}
+                  className="h-8 w-full rounded-md border border-input bg-white px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {CYCLE_SELECT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               {!shouldHideDurationFields && (
                 <>

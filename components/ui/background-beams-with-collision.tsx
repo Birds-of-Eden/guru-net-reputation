@@ -36,7 +36,7 @@ export const BackgroundBeamsWithCollision: React.FC<BackgroundBeamsWithCollision
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const beamsRef = useRef<Beam[]>([]);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   const {
     count = 12,

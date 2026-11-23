@@ -1,6 +1,7 @@
 // app/api/templates/[id]/add-assets/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { postingCycleFromInput } from "@/lib/posting-cycle";
 import { normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap } from "@/lib/asset-types.server";
 
@@ -90,6 +91,7 @@ export async function POST(
             description: assetData.description || null,
             isRequired: assetData.isRequired,
             defaultPostingFrequency: assetData.defaultPostingFrequency ?? null,
+            ...postingCycleFromInput(assetData as any),
             defaultIdealDurationMinutes:
               assetData.defaultIdealDurationMinutes ?? null,
           },
