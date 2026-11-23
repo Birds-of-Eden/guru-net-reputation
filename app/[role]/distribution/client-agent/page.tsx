@@ -720,7 +720,7 @@ export default function ClientUnifiedDashboard() {
       return (
         <Badge
           variant="outline"
-          className="bg-slate-50 text-slate-600 border-slate-300"
+          className="bg-slate-50 text-slate-600 border-slate-300 dark:bg-muted/40 dark:text-muted-foreground dark:border-border"
         >
           <Clock className="h-3 w-3 mr-1" />
           No Tasks
@@ -732,7 +732,7 @@ export default function ClientUnifiedDashboard() {
       return (
         <Badge
           variant="outline"
-          className="bg-linear-to-r from-blue-50 to-indigo-50 text-indigo-700 border-indigo-300 font-semibold"
+          className="bg-linear-to-r from-blue-50 to-indigo-50 text-indigo-700 border-indigo-300 font-semibold dark:from-blue-950/40 dark:to-indigo-950/40 dark:text-indigo-300 dark:border-indigo-700"
           title={`Posting tasks created: ${
             client.existingPostingTasksCount ?? 0
           }`}
@@ -747,7 +747,7 @@ export default function ClientUnifiedDashboard() {
       return (
         <Badge
           variant="outline"
-          className="bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-semibold"
+          className="bg-linear-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-300 font-semibold dark:from-emerald-950/40 dark:to-green-950/40 dark:text-emerald-300 dark:border-emerald-700"
         >
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Ready for Task Creation
@@ -798,22 +798,22 @@ export default function ClientUnifiedDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-cyan-50 dark:from-indigo-950/40 dark:via-card dark:to-cyan-950/40">
       <div>
-        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-slate-50/50 to-indigo-50/30 overflow-hidden backdrop-blur-sm dark:from-card dark:via-background/50 dark:to-indigo-950/40">
           <CardHeader className="relative overflow-hidden bg-linear-to-r from-indigo-600 via-purple-600 to-cyan-600 text-white px-8 py-4">
             <div className="absolute inset-0 bg-[radial-gradient(1200px_400px_at_0%_0%,rgba(255,255,255,0.15),transparent_60%)]" />
             <div className="relative flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <CardTitle className="text-3xl font-bold mb-2 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center dark:bg-card/20">
                     <Users className="h-6 w-6 text-white" />
                   </div>
                   Client's Task Management
                 </CardTitle>
               </div>
               <div className="hidden lg:flex items-center">
-                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 shadow-lg flex items-center justify-center">
+                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20 shadow-lg flex items-center justify-center dark:bg-card/10">
                   <TrendingUp className="h-10 w-10 text-white" />
                 </div>
               </div>
@@ -825,19 +825,19 @@ export default function ClientUnifiedDashboard() {
             <div className="mb-8 grid grid-cols-12 gap-3 items-center">
               {/* Search */}
               <div className="relative col-span-12 md:col-span-3">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-muted-foreground" />
                 <Input
                   placeholder="Search clients by name, company, or ID..."
                   value={search}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-12 h-12 rounded-xl border-slate-300 bg-white shadow-sm text-base w-full"
+                  className="pl-12 h-12 rounded-xl border-slate-300 bg-white shadow-sm text-base w-full dark:border-border dark:bg-card"
                 />
               </div>
 
               {/* Package filter (2 cols) */}
               <div className="relative col-span-12 md:col-span-2">
                 {/* Floating label */}
-                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100 dark:text-indigo-400 dark:bg-card">
                   Package
                 </span>
                 {/* Icon */}
@@ -848,12 +848,12 @@ export default function ClientUnifiedDashboard() {
                   onValueChange={handlePackageChange}
                 >
                   <SelectTrigger
-                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full dark:bg-card/90 dark:ring-border"
                     aria-busy={isFilteringPending}
                   >
                     <SelectValue placeholder="Filter by package" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl dark:border-border">
                     <SelectItem value="all">All Packages</SelectItem>
                     {packageOptions.map((p) => (
                       <SelectItem key={p} value={p}>
@@ -866,7 +866,7 @@ export default function ClientUnifiedDashboard() {
 
               {/* Due date filter (2 cols) */}
               <div className="relative col-span-12 md:col-span-2">
-                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100 dark:text-indigo-400 dark:bg-card">
                   Due Date
                 </span>
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
@@ -876,12 +876,12 @@ export default function ClientUnifiedDashboard() {
                   onValueChange={handleDueDateChange}
                 >
                   <SelectTrigger
-                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full dark:bg-card/90 dark:ring-border"
                     aria-busy={isFilteringPending}
                   >
                     <SelectValue placeholder="Filter by due date" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl dark:border-border">
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="today">Today</SelectItem>
                     <SelectItem value="next_7">Next 7 Days</SelectItem>
@@ -894,19 +894,19 @@ export default function ClientUnifiedDashboard() {
 
               {/* AM filter (2 cols) */}
               <div className="relative col-span-12 md:col-span-2">
-                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100 dark:text-indigo-400 dark:bg-card">
                   AM
                 </span>
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
 
                 <Select value={amFilter} onValueChange={handleAmChange}>
                   <SelectTrigger
-                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full dark:bg-card/90 dark:ring-border"
                     aria-busy={isFilteringPending}
                   >
                     <SelectValue placeholder="Filter by AM" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl dark:border-border">
                     <SelectItem value="all">All</SelectItem>
                     {amOptions.map((am) => (
                       <SelectItem key={am.id} value={am.id}>
@@ -919,7 +919,7 @@ export default function ClientUnifiedDashboard() {
 
               {/* Task category filter (2 cols) */}
               <div className="relative col-span-12 md:col-span-2">
-                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100">
+                <span className="absolute -top-2 left-3 px-2 text-[11px] font-semibold tracking-wide text-indigo-600 bg-white rounded-full shadow-sm ring-1 ring-indigo-100 dark:text-indigo-400 dark:bg-card">
                   Task Category
                 </span>
                 <Bookmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-500 pointer-events-none" />
@@ -929,12 +929,12 @@ export default function ClientUnifiedDashboard() {
                   onValueChange={handleTaskCategoryChange}
                 >
                   <SelectTrigger
-                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full"
+                    className="h-12 pl-10 rounded-xl bg-white/90 shadow-sm border-0 ring-1 ring-slate-300 hover:ring-indigo-300 focus:ring-2 focus:ring-indigo-400 transition w-full dark:bg-card/90 dark:ring-border"
                     aria-busy={isFilteringPending}
                   >
                     <SelectValue placeholder="Filter by task category" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border-slate-200 shadow-xl">
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl dark:border-border">
                     {TASK_CATEGORY_FILTER_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -952,7 +952,7 @@ export default function ClientUnifiedDashboard() {
                   className={cn(
                     "h-10 w-full rounded-xl font-semibold transition shadow-md",
                     isClearDisabled
-                      ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      ? "bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-muted dark:text-muted-foreground"
                       : "bg-linear-to-r from-cyan-500 via-sky-500 to-teal-500 text-white hover:opacity-90 hover:shadow-lg",
                   )}
                   title="Clear search and all filters"
@@ -968,7 +968,7 @@ export default function ClientUnifiedDashboard() {
                 {Array.from({ length: 6 }).map((_, index) => (
                   <Card
                     key={`skeleton-${index}`}
-                    className="border-2 border-slate-200 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                    className="border-2 border-slate-200 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden dark:border-border dark:from-card dark:to-background/50"
                   >
                     <CardContent className="p-6">
                       {/* Identity Skeleton */}
@@ -1017,11 +1017,11 @@ export default function ClientUnifiedDashboard() {
               </div>
             ) : sortedFilteredClients.length === 0 ? (
               <div className="text-center py-16">
-                <Users className="h-16 w-16 mx-auto mb-6 text-slate-400" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                <Users className="h-16 w-16 mx-auto mb-6 text-slate-400 dark:text-muted-foreground" />
+                <h3 className="text-xl font-semibold text-slate-900 mb-2 dark:text-foreground">
                   No clients found
                 </h3>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-muted-foreground">
                   {hasActiveFilters
                     ? "Try adjusting your search or filters"
                     : "No clients available at the moment"}
@@ -1039,12 +1039,12 @@ export default function ClientUnifiedDashboard() {
                     return (
                       <Card
                         key={client.id}
-                        className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden"
+                        className="group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 border-slate-200 hover:border-indigo-300 bg-linear-to-br from-white to-slate-50/50 rounded-2xl overflow-hidden dark:border-border dark:hover:border-indigo-700 dark:from-card dark:to-background/50"
                       >
                         <CardContent className="p-6">
                           {/* Identity */}
                           <div className="flex items-start gap-4 mb-4">
-                            <Avatar className="h-16 w-16 ring-4 ring-slate-200 group-hover:ring-indigo-300 transition-all duration-300 shadow-lg">
+                            <Avatar className="h-16 w-16 ring-4 ring-slate-200 group-hover:ring-indigo-300 transition-all duration-300 shadow-lg dark:ring-border">
                               {client.avatar ? (
                                 <AvatarImage
                                   src={client.avatar || "/placeholder.svg"}
@@ -1065,18 +1065,18 @@ export default function ClientUnifiedDashboard() {
 
                             <div className="flex-1 min-w-0">
                               <h3
-                                className="font-bold text-lg text-slate-900 truncate mb-1"
+                                className="font-bold text-lg text-slate-900 truncate mb-1 dark:text-foreground"
                                 title={client.name || "Unnamed Client"}
                               >
                                 {client.name || "Unnamed Client"}
                               </h3>
-                              <div className="flex items-center gap-2 text-sm text-slate-600 mb-3">
+                              <div className="flex items-center gap-2 text-sm text-slate-600 mb-3 dark:text-muted-foreground">
                                 <Building2 className="h-4 w-4 shrink-0" />
                                 <span className="truncate">
                                   {client.company || "No company"}
                                 </span>
                               </div>
-                              <div className="text-xs text-slate-500 font-mono truncate">
+                              <div className="text-xs text-slate-500 font-mono truncate dark:text-muted-foreground">
                                 ID: {client.id}
                               </div>
                             </div>
@@ -1093,10 +1093,10 @@ export default function ClientUnifiedDashboard() {
                                   className={cn(
                                     "text-xs font-medium",
                                     client.status === "active"
-                                      ? "bg-green-50 text-green-700 border-green-200"
+                                      ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800"
                                       : client.status === "qc_approved"
-                                        ? "bg-teal-50 text-teal-700 border-teal-200"
-                                        : "bg-slate-50 text-slate-600 border-slate-200",
+                                        ? "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800"
+                                        : "bg-slate-50 text-slate-600 border-slate-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border",
                                   )}
                                   title={
                                     client.status === "qc_approved"
@@ -1118,7 +1118,7 @@ export default function ClientUnifiedDashboard() {
                               {client.package?.name && (
                                 <Badge
                                   variant="secondary"
-                                  className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200"
+                                  className="text-xs bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800"
                                   title="Client package"
                                 >
                                   <Package className="h-3 w-3 mr-1" />
@@ -1133,8 +1133,8 @@ export default function ClientUnifiedDashboard() {
                                   className={cn(
                                     "text-xs",
                                     postingCreated
-                                      ? "bg-blue-50 text-blue-700 border-blue-200"
-                                      : "bg-slate-50 text-slate-600 border-slate-200",
+                                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
+                                      : "bg-slate-50 text-slate-600 border-slate-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border",
                                   )}
                                   title="Posting tasks created count"
                                 >
@@ -1154,10 +1154,10 @@ export default function ClientUnifiedDashboard() {
                             <div className="mb-4 space-y-3">
                               <div>
                                 <div className="flex items-center justify-between text-sm mb-2">
-                                  <span className="text-slate-600 font-medium">
+                                  <span className="text-slate-600 font-medium dark:text-muted-foreground">
                                     Required Assets
                                   </span>
-                                  <span className="text-slate-900 font-semibold">
+                                  <span className="text-slate-900 font-semibold dark:text-foreground">
                                     {t.completedTasks}/{t.totalTasks}
                                   </span>
                                 </div>
@@ -1180,10 +1180,10 @@ export default function ClientUnifiedDashboard() {
                                         className={cn(
                                           "text-xs font-medium",
                                           !has
-                                            ? "bg-slate-50 text-slate-400 border-slate-200"
+                                            ? "bg-slate-50 text-slate-400 border-slate-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border"
                                             : complete
-                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                              : "bg-amber-50 text-amber-700 border-amber-200",
+                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                                              : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
                                         )}
                                       >
                                         {getAssetTypeIcon(assetType)}
@@ -1200,7 +1200,7 @@ export default function ClientUnifiedDashboard() {
                                   })}
                                 </div>
 
-                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                <div className="w-full bg-slate-200 rounded-full h-2 dark:bg-muted">
                                   <div
                                     className={cn(
                                       "h-2 rounded-full transition-all duration-300",
@@ -1218,7 +1218,7 @@ export default function ClientUnifiedDashboard() {
                                     }}
                                   />
                                 </div>
-                                <div className="text-xs text-slate-500 mt-1 text-right">
+                                <div className="text-xs text-slate-500 mt-1 text-right dark:text-muted-foreground">
                                   {t.totalTasks > 0
                                     ? Math.round(
                                         (t.completedTasks / t.totalTasks) * 100,
@@ -1234,7 +1234,7 @@ export default function ClientUnifiedDashboard() {
                           {t?.posting && (
                             <div className="mt-5 space-y-3">
                               <div className="flex items-center justify-between text-sm mb-2">
-                                <span className="text-slate-600 font-medium">
+                                <span className="text-slate-600 font-medium dark:text-muted-foreground">
                                   Posting Tasks
                                 </span>
                                 {dueMeta ? (
@@ -1242,8 +1242,8 @@ export default function ClientUnifiedDashboard() {
                                     className={cn(
                                       "font-medium",
                                       dueMeta.isOverdue
-                                        ? "text-red-600"
-                                        : "text-slate-600",
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-slate-600 dark:text-muted-foreground",
                                     )}
                                     title={dueMeta.date.toLocaleString()}
                                   >
@@ -1251,9 +1251,9 @@ export default function ClientUnifiedDashboard() {
                                     {dueMeta.date.toLocaleDateString()}
                                   </span>
                                 ) : (
-                                  <span className="text-slate-600 font-medium"></span>
+                                  <span className="text-slate-600 font-medium dark:text-muted-foreground"></span>
                                 )}
-                                <span className="text-slate-900 font-semibold">
+                                <span className="text-slate-900 font-semibold dark:text-foreground">
                                   {t.posting.completedPostingTasks}/
                                   {t.posting.totalPostingTasks}
                                 </span>
@@ -1273,10 +1273,10 @@ export default function ClientUnifiedDashboard() {
                                         className={cn(
                                           "text-xs font-medium",
                                           !has
-                                            ? "bg-slate-50 text-slate-400 border-slate-200"
+                                            ? "bg-slate-50 text-slate-400 border-slate-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border"
                                             : complete
-                                              ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                              : "bg-blue-50 text-blue-700 border-blue-200",
+                                              ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800"
+                                              : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
                                         )}
                                       >
                                         {getPostingCategoryIcon(cat)}
@@ -1292,7 +1292,7 @@ export default function ClientUnifiedDashboard() {
                                 )}
                               </div>
 
-                              <div className="w-full bg-slate-200 rounded-full h-2">
+                              <div className="w-full bg-slate-200 rounded-full h-2 dark:bg-muted">
                                 <div
                                   className={cn(
                                     "h-2 rounded-full transition-all duration-300",
@@ -1311,7 +1311,7 @@ export default function ClientUnifiedDashboard() {
                                   }}
                                 />
                               </div>
-                              <div className="text-xs text-slate-500 mt-1 text-right">
+                              <div className="text-xs text-slate-500 mt-1 text-right dark:text-muted-foreground">
                                 {t.posting.totalPostingTasks > 0
                                   ? Math.round(
                                       (t.posting.completedPostingTasks /
@@ -1399,8 +1399,8 @@ export default function ClientUnifiedDashboard() {
                   })}
                 </div>
                 {hasMoreClients && (
-                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-indigo-200/70 bg-white/80 p-4 text-center">
-                    <p className="text-sm text-slate-600">
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-indigo-200/70 bg-white/80 p-4 text-center dark:border-indigo-800/70 dark:bg-card/80">
+                    <p className="text-sm text-slate-600 dark:text-muted-foreground">
                       Showing {visibleClients.length} of{" "}
                       {filteredClients.length} clients
                     </p>

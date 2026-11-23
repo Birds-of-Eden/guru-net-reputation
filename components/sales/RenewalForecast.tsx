@@ -20,10 +20,10 @@ export function RenewalForecast({
   isLoading: boolean;
 }) {
   return (
-    <Card className="mt-6 border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-slate-50 to-white">
+    <Card className="mt-6 border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-slate-50 to-white dark:ring-border/60 dark:from-background dark:to-card">
       <div className="flex items-center gap-2 mb-4">
         <CalendarClock className="h-5 w-5 text-amber-500" />
-        <p className="text-sm font-semibold text-slate-800">
+        <p className="text-sm font-semibold text-slate-800 dark:text-foreground">
           Renewal Forecast (Next 30 Days)
         </p>
       </div>
@@ -70,7 +70,7 @@ export function RenewalForecast({
           </ResponsiveContainer>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">No upcoming expirations found.</p>
+        <p className="text-sm text-slate-500 dark:text-muted-foreground">No upcoming expirations found.</p>
       )}
     </Card>
   );

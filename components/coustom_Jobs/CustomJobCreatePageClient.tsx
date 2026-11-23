@@ -52,7 +52,7 @@ export default function CustomJobCreatePageClient() {
   const listHref = `/${role}/distribution/custom_jobs`;
 
   return (
-    <div className="min-h-screen space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-background dark:via-card dark:to-background">
       {loading ? <CustomJobFormSkeleton /> : (
         <CustomJobFormModal
           clients={clients}

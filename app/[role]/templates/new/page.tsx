@@ -208,7 +208,7 @@ export default function NewTemplatePage() {
                     size="icon"
                     onClick={() => handleRemoveAsset(index)}
                   >
-                    <Trash className="h-4 w-4 text-red-600" />
+                    <Trash className="h-4 w-4 text-red-600 dark:text-red-400" />
                   </Button>
                 </div>
               ))}
@@ -300,7 +300,7 @@ export default function NewTemplatePage() {
                   }
                 />
               </div>
-              <div className="flex items-center space-x-2 text-sm text-green-700 font-medium px-3 py-1 rounded w-fit">
+              <div className="flex items-center space-x-2 text-sm text-green-700 font-medium px-3 py-1 rounded w-fit dark:text-green-300">
                 <input
                   type="checkbox"
                   id="asset-required"

@@ -75,7 +75,7 @@ const LinkPill = ({ href, label }: { href: string; label?: string }) => (
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs text-blue-700 hover:underline dark:border-slate-700 dark:bg-slate-800"
+    className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs text-blue-700 hover:underline dark:border-slate-700 dark:bg-slate-800 dark:text-blue-300"
   >
     <LinkIcon className="h-3.5 w-3.5" />
     {label ?? href}
@@ -222,14 +222,14 @@ export function Tasks({ clientData }: TasksProps) {
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group rounded-lg border border-blue-100 bg-blue-50 p-3 transition hover:border-blue-200 hover:bg-blue-100/70"
+                  className="group rounded-lg border border-blue-100 bg-blue-50 p-3 transition hover:border-blue-200 hover:bg-blue-100/70 dark:border-blue-800 dark:bg-blue-950/40 dark:hover:border-blue-800 dark:hover:bg-blue-900/40"
                 >
                   <div className="flex items-start gap-2 overflow-hidden">
-                    <div className="mt-0.5 rounded bg-white p-1.5 text-blue-600 shadow-sm">
+                    <div className="mt-0.5 rounded bg-white p-1.5 text-blue-600 shadow-sm dark:bg-card dark:text-blue-400">
                       <LinkIcon className="h-3.5 w-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-blue-700 truncate">
+                      <p className="text-xs font-semibold text-blue-700 truncate dark:text-blue-300">
                         {link}
                       </p>
                     </div>
@@ -241,7 +241,7 @@ export function Tasks({ clientData }: TasksProps) {
         )}
         {links.length === 0 && (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-500">No links provided.</p>
+            <p className="text-sm text-slate-500 dark:text-muted-foreground">No links provided.</p>
             <BackgroundGradient>
             <Button
               onClick={openJobDetails}
@@ -413,7 +413,7 @@ export function Tasks({ clientData }: TasksProps) {
       case "overdue":
         return <AlertCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <AlertCircle className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />;
     }
   };
 
@@ -633,7 +633,7 @@ export function Tasks({ clientData }: TasksProps) {
                 dangerouslySetInnerHTML={{ __html: it.content }}
               />
             ) : (
-              <p className="text-sm text-slate-500">No content provided.</p>
+              <p className="text-sm text-slate-500 dark:text-muted-foreground">No content provided.</p>
             )}
           </div>
         ))}
@@ -757,7 +757,7 @@ export function Tasks({ clientData }: TasksProps) {
               );
             })
           ) : (
-            <p className="text-sm text-slate-500">No review links provided.</p>
+            <p className="text-sm text-slate-500 dark:text-muted-foreground">No review links provided.</p>
           )}
         </div>
       </div>
@@ -787,7 +787,7 @@ export function Tasks({ clientData }: TasksProps) {
               dangerouslySetInnerHTML={{ __html: text }}
             />
           ) : (
-            <p className="text-sm text-slate-500">No report text provided.</p>
+            <p className="text-sm text-slate-500 dark:text-muted-foreground">No report text provided.</p>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -803,21 +803,21 @@ export function Tasks({ clientData }: TasksProps) {
                     url: pdfData,
                   })
                 }
-                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline dark:text-blue-300"
               >
                 <FileText className="h-3.5 w-3.5" /> View
               </button>
               <a
                 href={pdfData}
                 download={pdf || "summary-report.pdf"}
-                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline"
+                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline dark:text-blue-300"
               >
                 <FileDown className="h-3.5 w-3.5" /> Download
               </a>
             </>
           ) : (
             pdf && (
-              <span className="ml-1 inline-flex items-center gap-1 text-xs text-blue-700">
+              <span className="ml-1 inline-flex items-center gap-1 text-xs text-blue-700 dark:text-blue-300">
                 <FileDown className="h-3.5 w-3.5" />
                 {pdf}
               </span>
@@ -996,7 +996,7 @@ export function Tasks({ clientData }: TasksProps) {
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
         <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="text-indigo-600" />
+            <BarChart3 className="text-indigo-600 dark:text-indigo-400" />
             <span>Task Breakdown- {clientData.name}</span>
           </CardTitle>
         </CardHeader>
@@ -1009,7 +1009,7 @@ export function Tasks({ clientData }: TasksProps) {
                 </h4>
                 <Badge
                   variant="outline"
-                  className="bg-green-50 text-green-700 border-green-200"
+                  className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800"
                 >
                   {qcApprovedTasks}
                 </Badge>
@@ -1034,7 +1034,7 @@ export function Tasks({ clientData }: TasksProps) {
                 </h4>
                 <Badge
                   variant="outline"
-                  className="bg-green-50 text-green-700 border-green-200"
+                  className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800"
                 >
                   {completedTasks}
                 </Badge>
@@ -1055,7 +1055,7 @@ export function Tasks({ clientData }: TasksProps) {
                 </h4>
                 <Badge
                   variant="outline"
-                  className="bg-blue-50 text-blue-700 border-blue-200"
+                  className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                 >
                   {inProgressTasks}
                 </Badge>
@@ -1076,7 +1076,7 @@ export function Tasks({ clientData }: TasksProps) {
                 </h4>
                 <Badge
                   variant="outline"
-                  className="bg-yellow-50 text-yellow-700 border-yellow-200"
+                  className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800"
                 >
                   {pendingTasks + overdueTasks}
                 </Badge>
@@ -1101,7 +1101,7 @@ export function Tasks({ clientData }: TasksProps) {
       <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
         <CardHeader className="bg-linear-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
           <CardTitle className="flex items-center space-x-2">
-            <Activity className="h-5 w-5 text-emerald-600" />
+            <Activity className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             <span>Tasks by Category</span>
           </CardTitle>
         </CardHeader>
@@ -1175,7 +1175,7 @@ export function Tasks({ clientData }: TasksProps) {
                                 </div>
                                 <div>
                                   <h4 
-                                    className="font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                                    className="font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(task.name)) }}
                                   />
                                   <p className="text-sm text-slate-500 dark:text-slate-300">
@@ -1186,7 +1186,7 @@ export function Tasks({ clientData }: TasksProps) {
                                       href={link}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1 break-all"
+                                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1 break-all dark:text-blue-400"
                                     >
                                       <LinkIcon className="h-3.5 w-3.5" />
                                       {link}
@@ -1237,7 +1237,7 @@ export function Tasks({ clientData }: TasksProps) {
                                     );
                                   }
                                   return (
-                                    <p className="text-sm text-slate-500">
+                                    <p className="text-sm text-slate-500 dark:text-muted-foreground">
                                       {/* Default: compact note for categories without custom renderer */}
                                       No extra completion data for this
                                       category.
@@ -1309,7 +1309,7 @@ export function Tasks({ clientData }: TasksProps) {
               className="w-full h-full rounded-md border"
             />
           ) : (
-            <div className="text-sm text-slate-500">No PDF to preview.</div>
+            <div className="text-sm text-slate-500 dark:text-muted-foreground">No PDF to preview.</div>
           )}
         </DialogContent>
       </Dialog>

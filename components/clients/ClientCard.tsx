@@ -80,7 +80,7 @@ export function ClientCard({
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center dark:bg-muted">
               {client.profilePicture &&
               typeof client.profilePicture === "object" &&
               client.profilePicture instanceof File ? (
@@ -95,7 +95,7 @@ export function ClientCard({
                   className="object-cover"
                 />
               ) : (
-                <User className="h-6 w-6 text-gray-500" />
+                <User className="h-6 w-6 text-gray-500 dark:text-muted-foreground" />
               )}
             </div>
             <div>
@@ -121,14 +121,14 @@ export function ClientCard({
                 View Details
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-red-600">
+              <DropdownMenuItem onClick={onDelete} className="text-red-600 dark:text-red-400">
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        <div className="space-y-2 text-sm text-gray-600">
+        <div className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span>Born: {formatDate(client.birthDate)}</span>
@@ -155,7 +155,7 @@ export function ClientCard({
         </div>
 
         <div className="mt-4 pt-4 border-t">
-          <div className="flex justify-between items-center text-xs text-gray-500">
+          <div className="flex justify-between items-center text-xs text-gray-500 dark:text-muted-foreground">
             <span>Created: {formatDate(client.createdAt)}</span>
             <Button
               variant="outline"

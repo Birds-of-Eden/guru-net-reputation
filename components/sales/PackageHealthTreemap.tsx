@@ -80,7 +80,7 @@ export function PackageHealthTreemap({
   const totalClients = nodes.reduce((s, n) => s + (n.clients || 0), 0);
 
   return (
-    <Card className="relative border-0 shadow-lg ring-1 ring-slate-200/60 p-6 rounded-3xl bg-linear-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden">
+    <Card className="relative border-0 shadow-lg ring-1 ring-slate-200/60 p-6 rounded-3xl bg-linear-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden dark:ring-border/60">
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between mb-4">
         <div>

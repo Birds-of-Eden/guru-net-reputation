@@ -122,7 +122,7 @@ export function AssetCard({
                       <Zap className="h-3 w-3 text-yellow-500" aria-label="Client Override" />
                     )}
                     {!hasOverride && displayFrequency > 0 && (
-                      <Lock className="h-3 w-3 text-slate-400" aria-label="Template Default" />
+                      <Lock className="h-3 w-3 text-slate-400 dark:text-muted-foreground" aria-label="Template Default" />
                     )}
                   </p>
                 </div>

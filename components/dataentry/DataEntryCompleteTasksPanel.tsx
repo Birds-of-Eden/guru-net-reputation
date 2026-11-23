@@ -102,9 +102,9 @@ const statusVariant: Record<
 
 // Priority color mapping
 const priorityColor: Record<string, string> = {
-  high: "text-red-600",
-  medium: "text-yellow-600",
-  low: "text-green-600",
+  high: "text-red-600 dark:text-red-400",
+  medium: "text-yellow-600 dark:text-yellow-400",
+  low: "text-green-600 dark:text-green-400",
 };
 
 // Helper category checks (pure functions, stable references)
@@ -443,11 +443,11 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
     return (
       <tr
         key={t.id}
-        className="group hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out"
+        className="group hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out dark:hover:from-indigo-950/40 dark:hover:to-purple-950/40"
       >
         <td className="px-6 py-5">
           <div
-            className="font-bold text-slate-800 truncate max-w-[250px] group-hover:text-indigo-700 transition-colors"
+            className="font-bold text-slate-800 truncate max-w-[250px] group-hover:text-indigo-700 transition-colors dark:text-foreground dark:group-hover:text-indigo-300"
             title={t.name}
           >
             {t.name}
@@ -456,7 +456,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
         <td className="px-6 py-5">
           <Badge
             variant="outline"
-            className="bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm"
+            className="bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 font-semibold px-3 py-1 rounded-full shadow-sm dark:from-blue-950/40 dark:to-indigo-950/40 dark:text-blue-300 dark:border-blue-700"
           >
             {t.category?.name || "—"}
           </Badge>
@@ -464,7 +464,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
         <td className="px-6 py-5">
           <span
             className={`font-bold text-sm uppercase tracking-wide ${
-              priorityColor[t.priority] || "text-gray-600"
+              priorityColor[t.priority] || "text-gray-600 dark:text-muted-foreground"
             }`}
           >
             {t.priority
@@ -483,7 +483,7 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
         <td className="px-6 py-5">
           <div
             className={`flex items-center gap-2 font-medium ${
-              isOverdue ? "text-red-600 font-bold" : "text-slate-600"
+              isOverdue ? "text-red-600 font-bold dark:text-red-400" : "text-slate-600 dark:text-muted-foreground"
             }`}
           >
             {dueDateFormatted ? (
@@ -1181,12 +1181,12 @@ export default function DataEntryCompleteTasksPanel({
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
         {/* Total Tasks Card */}
         <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-indigo-600 via-blue-600 to-purple-700 hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm dark:bg-card/10" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
               Tasks Remaining
             </CardTitle>
-            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md dark:bg-card/20">
               <BarChart3 className="h-6 w-6 text-white" />
             </div>
           </CardHeader>
@@ -1203,12 +1203,12 @@ export default function DataEntryCompleteTasksPanel({
 
         {/* Completed Tasks Card */}
         <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-emerald-500 via-green-600 to-teal-700 hover:shadow-emerald-500/50 transition-all duration-500 hover:scale-105">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm dark:bg-card/10" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
               Completed
             </CardTitle>
-            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md dark:bg-card/20">
               <CheckCircle2 className="h-6 w-6 text-white" />
             </div>
           </CardHeader>
@@ -1227,12 +1227,12 @@ export default function DataEntryCompleteTasksPanel({
 
         {/* Overdue Tasks Card */}
         <Card className="group relative overflow-hidden border-0 shadow-2xl bg-linear-to-br from-orange-500 via-amber-600 to-red-600 hover:shadow-orange-500/50 transition-all duration-500 hover:scale-105">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm dark:bg-card/10" />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
             <CardTitle className="text-sm font-semibold tracking-wide text-white/90 uppercase">
               Overdue
             </CardTitle>
-            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md">
+            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md dark:bg-card/20">
               <AlertCircle className="h-6 w-6 text-white" />
             </div>
           </CardHeader>
@@ -1251,11 +1251,11 @@ export default function DataEntryCompleteTasksPanel({
       </div>
 
       {/* Tasks Panel */}
-      <Card className="border-0 shadow-2xl overflow-hidden backdrop-blur-xl bg-white/95">
+      <Card className="border-0 shadow-2xl overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-card/95">
         <CardHeader className="bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-8 px-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -1360,47 +1360,47 @@ export default function DataEntryCompleteTasksPanel({
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search tasks by name, category, priority..."
-                className="pl-12 h-14 rounded-2xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 text-base font-medium shadow-sm transition-all"
+                className="pl-12 h-14 rounded-2xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 text-base font-medium shadow-sm transition-all dark:border-border"
               />
             </div>
           </div>
 
           {/* Tasks Table */}
-          <div className="border-2 border-slate-200 rounded-3xl overflow-hidden shadow-lg bg-white">
+          <div className="border-2 border-slate-200 rounded-3xl overflow-hidden shadow-lg bg-white dark:border-border dark:bg-card">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
+                <thead className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200 dark:from-background dark:to-background dark:border-border">
                   <tr className="text-left">
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Task
                     </th>
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Category
                     </th>
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Priority
                     </th>
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Status
                     </th>
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Due Date
                     </th>
-                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider text-right">
+                    <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider text-right dark:text-foreground">
                       Action
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
+                <tbody className="divide-y divide-slate-100 bg-white dark:divide-border dark:bg-card">
                   {loading ? (
                     <tr>
                       <td colSpan={6} className="py-24">
                         <div className="flex flex-col items-center justify-center gap-4">
                           <div className="relative">
-                            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200"></div>
+                            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 dark:border-indigo-800"></div>
                             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent absolute top-0 left-0"></div>
                           </div>
-                          <p className="text-lg font-bold text-slate-600 animate-pulse">
+                          <p className="text-lg font-bold text-slate-600 animate-pulse dark:text-muted-foreground">
                             Loading tasks...
                           </p>
                         </div>
@@ -1410,14 +1410,14 @@ export default function DataEntryCompleteTasksPanel({
                     <tr>
                       <td colSpan={6} className="py-24">
                         <div className="flex flex-col items-center gap-6">
-                          <div className="bg-linear-to-br from-slate-100 to-slate-200 p-8 rounded-3xl">
-                            <BarChart3 className="h-20 w-20 text-slate-400" />
+                          <div className="bg-linear-to-br from-slate-100 to-slate-200 p-8 rounded-3xl dark:from-background dark:to-muted">
+                            <BarChart3 className="h-20 w-20 text-slate-400 dark:text-muted-foreground" />
                           </div>
                           <div className="text-center">
-                            <h3 className="text-2xl font-black text-slate-700 mb-2">
+                            <h3 className="text-2xl font-black text-slate-700 mb-2 dark:text-foreground">
                               No Tasks Found
                             </h3>
-                            <p className="text-slate-500 font-medium">
+                            <p className="text-slate-500 font-medium dark:text-muted-foreground">
                               You have completed all tasks for this client.
                             </p>
                           </div>
@@ -1428,7 +1428,7 @@ export default function DataEntryCompleteTasksPanel({
                           <div className="mt-6 flex justify-center">
                             <Button
                               variant="outline"
-                              className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all"
+                              className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all dark:hover:bg-muted"
                               onClick={handleClearFilters}
                             >
                               Clear filters
@@ -1456,7 +1456,7 @@ export default function DataEntryCompleteTasksPanel({
             </div>
             {/* Pagination controls */}
             <div className="mt-4 px-4 flex items-center justify-between">
-              <div className="text-sm text-slate-600">
+              <div className="text-sm text-slate-600 dark:text-muted-foreground">
                 Showing{" "}
                 {Math.min(filteredTasks.length, page * pageSize) -
                   (page - 1) * pageSize}{" "}
@@ -1485,7 +1485,7 @@ export default function DataEntryCompleteTasksPanel({
                   >
                     Prev
                   </Button>
-                  <span className="text-sm text-slate-600">
+                  <span className="text-sm text-slate-600 dark:text-muted-foreground">
                     Page {page} / {totalPages}
                   </span>
                   <Button
@@ -1510,7 +1510,7 @@ export default function DataEntryCompleteTasksPanel({
               >
                 {creatingPosting ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3 dark:border-border"></div>
                     Creating...
                   </>
                 ) : (

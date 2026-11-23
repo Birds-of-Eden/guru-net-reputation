@@ -128,21 +128,21 @@ export function TemplateViewModal({
     const statusLower = status.toLowerCase();
     if (statusLower === "active") {
       return (
-        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 px-3 py-1">
+        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 px-3 py-1 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           Active
         </Badge>
       );
     } else if (statusLower === "draft") {
       return (
-        <Badge className="bg-amber-100 text-amber-700 border-amber-200 px-3 py-1">
+        <Badge className="bg-amber-100 text-amber-700 border-amber-200 px-3 py-1 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800">
           <Clock className="w-3 h-3 mr-1" />
           Draft
         </Badge>
       );
     } else if (statusLower === "inactive") {
       return (
-        <Badge className="bg-slate-100 text-slate-600 border-slate-200 px-3 py-1">
+        <Badge className="bg-slate-100 text-slate-600 border-slate-200 px-3 py-1 dark:bg-muted dark:text-muted-foreground dark:border-border">
           <AlertCircle className="w-3 h-3 mr-1" />
           Inactive
         </Badge>
@@ -240,7 +240,7 @@ export function TemplateViewModal({
     color?: string;
     trend?: string;
   }) => (
-    <Card className="border-0 shadow-sm bg-linear-to-br from-white to-gray-50 hover:shadow-md transition-shadow">
+    <Card className="border-0 shadow-sm bg-linear-to-br from-white to-gray-50 hover:shadow-md transition-shadow dark:from-card dark:to-background">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className={`p-2 bg-${color}-100 rounded-lg`}>
@@ -256,8 +256,8 @@ export function TemplateViewModal({
           )}
         </div>
         <div className="mt-3">
-          <div className="text-2xl font-bold text-gray-900">{value}</div>
-          <div className="text-sm text-gray-600 font-medium">{label}</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-foreground">{value}</div>
+          <div className="text-sm text-gray-600 font-medium dark:text-muted-foreground">{label}</div>
         </div>
       </CardContent>
     </Card>
@@ -266,7 +266,7 @@ export function TemplateViewModal({
   const SiteCard = ({ site }: { site: TemplateSiteAsset }) => {
     const config = getSiteTypeConfig(site.type);
     return (
-      <Card className="border-0 shadow-xs hover:shadow-sm transition-all duration-200 bg-white">
+      <Card className="border-0 shadow-xs hover:shadow-sm transition-all duration-200 bg-white dark:bg-card">
         <CardContent className="p-3">
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -276,7 +276,7 @@ export function TemplateViewModal({
                 <SiteTypeIcon type={site.type} size={14} />
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="font-medium text-gray-900 text-sm truncate">
+                <h4 className="font-medium text-gray-900 text-sm truncate dark:text-foreground">
                   {site.name}
                 </h4>
                 {site.url && (
@@ -284,7 +284,7 @@ export function TemplateViewModal({
                     href={site.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-gray-500 hover:text-gray-700 truncate block"
+                    className="text-xs text-gray-500 hover:text-gray-700 truncate block dark:text-muted-foreground dark:hover:text-foreground"
                     title={site.url}
                   >
                     {(() => {
@@ -303,8 +303,8 @@ export function TemplateViewModal({
               className={cn(
                 "text-xs shrink-0 ml-2",
                 site.isRequired
-                  ? "bg-red-50 text-red-700 border-red-200"
-                  : "bg-gray-50 text-gray-600 border-gray-200"
+                  ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
+                  : "bg-gray-50 text-gray-600 border-gray-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border"
               )}
             >
               {site.isRequired ? "Required" : "Optional"}
@@ -312,19 +312,19 @@ export function TemplateViewModal({
           </div>
 
           {site.description && (
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2 dark:text-muted-foreground">
               {site.description}
             </p>
           )}
 
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-muted-foreground">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Target className="w-3 h-3" />
                 {site.defaultPostingFrequency || 0}
                 {(site.defaultPostingFrequency || 0) > 0 &&
                   !isEveryMonth(resolvePostingCycle(site as any)) && (
-                    <span className="ml-1 rounded-full bg-amber-50 px-1.5 text-[10px] font-medium text-amber-700">
+                    <span className="ml-1 rounded-full bg-amber-50 px-1.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                       {postingCycleLabel(resolvePostingCycle(site as any))}
                     </span>
                   )}
@@ -348,25 +348,25 @@ export function TemplateViewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[85vh] overflow-hidden p-0 bg-white flex flex-col">
+      <DialogContent className="max-w-6xl h-[85vh] overflow-hidden p-0 bg-white flex flex-col dark:bg-card">
         {/* Header remains fixed at the top */}
-        <DialogHeader className="p-4 border-b bg-white/80 backdrop-blur-sm">
+        <DialogHeader className="p-4 border-b bg-white/80 backdrop-blur-sm dark:bg-card/80">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
                 <FileText className="w-5 h-5 text-white" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold text-gray-900">
+                <DialogTitle className="text-xl font-bold text-gray-900 dark:text-foreground">
                   {template.name}
                 </DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
                   {getStatusBadge(template.status)}
-                  <Badge variant="outline" className="text-xs bg-blue-50">
+                  <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950/40">
                     <Package className="w-3 h-3 mr-1" />
                     {template.package?.name || "No Package"}
                   </Badge>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-muted-foreground">
                     {template.sitesAssets?.length || 0} total sites
                   </span>
                 </div>
@@ -375,7 +375,7 @@ export function TemplateViewModal({
           </div>
 
           {template.description && (
-            <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+            <p className="text-sm text-gray-600 mt-2 leading-relaxed dark:text-muted-foreground">
               {template.description}
             </p>
           )}
@@ -388,12 +388,12 @@ export function TemplateViewModal({
           className="flex-1 flex flex-col overflow-hidden"
         >
           {/* TabsList remains fixed below the header */}
-          <div className="px-4 border-b bg-slate-50">
-            <TabsList className="grid w-full text-white grid-cols-3 h-11 bg-blue-200 rounded-lg p-1 gap-1">
+          <div className="px-4 border-b bg-slate-50 dark:bg-muted/40">
+            <TabsList className="grid w-full text-white grid-cols-3 h-11 bg-blue-200 rounded-lg p-1 gap-1 dark:bg-blue-800/50">
               {/* Overview Tab */}
               <TabsTrigger
                 value="overview"
-                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200 dark:text-muted-foreground"
               >
                 <Activity className="w-4 h-4 mr-2" />
                 Overview
@@ -402,7 +402,7 @@ export function TemplateViewModal({
               {/* All Sites Tab */}
               <TabsTrigger
                 value="sites"
-                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200 dark:text-muted-foreground"
               >
                 <LayoutGrid className="w-4 h-4 mr-2" />
                 All Sites ({totalSites})
@@ -411,7 +411,7 @@ export function TemplateViewModal({
               {/* Tasks Tab */}
               <TabsTrigger
                 value="otherTasks"
-                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200"
+                className="text-slate-600 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md text-sm font-medium transition-all duration-200 dark:text-muted-foreground"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Tasks ({otherTasks.length})
@@ -420,7 +420,7 @@ export function TemplateViewModal({
           </div>
 
           {/* This container scrolls, holding all tab content */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-muted/40">
             <TabsContent value="overview" className="mt-0 space-y-4">
               {/* Quick Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -463,38 +463,38 @@ export function TemplateViewModal({
               </div>
 
               {/* Requirements Summary */}
-              <Card className="border-0 shadow-sm bg-white">
+              <Card className="border-0 shadow-sm bg-white dark:bg-card">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Target className="w-5 h-5 text-blue-600" />
+                    <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     Requirements Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-3 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-900">
+                    <div className="text-center p-3 bg-linear-to-br from-blue-50 to-blue-100 rounded-lg dark:from-blue-950/40 dark:to-blue-900/40">
+                      <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
                         {totalSites}
                       </div>
-                      <div className="text-sm text-blue-700">Total Sites</div>
+                      <div className="text-sm text-blue-700 dark:text-blue-300">Total Sites</div>
                     </div>
-                    <div className="text-center p-3 bg-linear-to-br from-red-50 to-red-100 rounded-lg">
-                      <div className="text-2xl font-bold text-red-900">
+                    <div className="text-center p-3 bg-linear-to-br from-red-50 to-red-100 rounded-lg dark:from-red-950/40 dark:to-red-900/40">
+                      <div className="text-2xl font-bold text-red-900 dark:text-red-300">
                         {requiredSites}
                       </div>
-                      <div className="text-sm text-red-700">Required</div>
+                      <div className="text-sm text-red-700 dark:text-red-300">Required</div>
                     </div>
-                    <div className="text-center p-3 bg-linear-to-br from-green-50 to-green-100 rounded-lg">
-                      <div className="text-2xl font-bold text-green-900">
+                    <div className="text-center p-3 bg-linear-to-br from-green-50 to-green-100 rounded-lg dark:from-green-950/40 dark:to-green-900/40">
+                      <div className="text-2xl font-bold text-green-900 dark:text-green-300">
                         {totalSites - requiredSites}
                       </div>
-                      <div className="text-sm text-green-700">Optional</div>
+                      <div className="text-sm text-green-700 dark:text-green-300">Optional</div>
                     </div>
-                    <div className="text-center p-3 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <div className="text-center p-3 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg dark:from-background dark:to-background">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-foreground">
                         {template._count?.assignments || 0}
                       </div>
-                      <div className="text-sm text-gray-700">Assignments</div>
+                      <div className="text-sm text-gray-700 dark:text-foreground">Assignments</div>
                     </div>
                   </div>
                 </CardContent>
@@ -511,7 +511,7 @@ export function TemplateViewModal({
                     "cursor-pointer text-sm py-1 px-3",
                     !selectedSiteType
                       ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100 dark:bg-card dark:text-foreground dark:border-border dark:hover:bg-muted"
                   )}
                 >
                   All ({totalSites})
@@ -536,7 +536,7 @@ export function TemplateViewModal({
                     >
                       <SiteTypeIcon type={type} size={14} />
                       <span className="ml-1.5 font-medium">{config.label}</span>
-                      <span className="ml-2 bg-white/60 px-1.5 rounded-full text-xs font-semibold">
+                      <span className="ml-2 bg-white/60 px-1.5 rounded-full text-xs font-semibold dark:bg-card/60">
                         {sites.length}
                       </span>
                     </Badge>
@@ -552,13 +552,13 @@ export function TemplateViewModal({
               </div>
 
               {!filteredSites?.length && (
-                <Card className="border-dashed border-2 border-gray-300 bg-white/50">
+                <Card className="border-dashed border-2 border-gray-300 bg-white/50 dark:border-border dark:bg-card/50">
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                    <Globe className="w-12 h-12 text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <Globe className="w-12 h-12 text-gray-400 mb-4 dark:text-muted-foreground" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 dark:text-foreground">
                       No Sites Found
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 dark:text-muted-foreground">
                       There are no sites matching the selected filter.
                     </p>
                   </CardContent>
@@ -582,7 +582,7 @@ export function TemplateViewModal({
                     return (
                       <Card
                         key={type}
-                        className="border-0 shadow-sm bg-white text-center hover:shadow-md transition-shadow"
+                        className="border-0 shadow-sm bg-white text-center hover:shadow-md transition-shadow dark:bg-card"
                       >
                         <CardContent className="p-4">
                           <div
@@ -590,10 +590,10 @@ export function TemplateViewModal({
                           >
                             <SiteTypeIcon type={type} size={20} />
                           </div>
-                          <div className="text-lg font-bold text-gray-900">
+                          <div className="text-lg font-bold text-gray-900 dark:text-foreground">
                             {sites.length}
                           </div>
-                          <div className="text-sm text-gray-600 font-medium">
+                          <div className="text-sm text-gray-600 font-medium dark:text-muted-foreground">
                             {config.label}
                           </div>
                         </CardContent>
@@ -610,13 +610,13 @@ export function TemplateViewModal({
               </div>
 
               {otherTasks.length === 0 && (
-                <Card className="border-dashed border-2 border-gray-300 bg-white/50">
+                <Card className="border-dashed border-2 border-gray-300 bg-white/50 dark:border-border dark:bg-card/50">
                   <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                    <Settings className="w-12 h-12 text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <Settings className="w-12 h-12 text-gray-400 mb-4 dark:text-muted-foreground" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 dark:text-foreground">
                       No Tasks Configured
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 dark:text-muted-foreground">
                       This template doesn't have any additional tasks yet.
                     </p>
                   </CardContent>

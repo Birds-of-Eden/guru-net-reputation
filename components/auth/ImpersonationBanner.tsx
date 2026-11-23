@@ -55,7 +55,7 @@ export default function ImpersonationBanner() {
   const actingAsRole = state.targetRole ? ` (${formatRole(state.targetRole)})` : "";
 
   return (
-    <div className="w-full bg-amber-100 text-amber-900 border-b border-amber-300 px-4 py-2 flex items-center justify-between">
+    <div className="w-full bg-amber-100 text-amber-900 border-b border-amber-300 px-4 py-2 flex items-center justify-between dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700">
       <div className="text-sm">
         <strong>Impersonating</strong> — You are acting as {actingAsName}
         {actingAsRole}.

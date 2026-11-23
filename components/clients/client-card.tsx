@@ -304,29 +304,29 @@ const ClientCardComponent = function ClientCard({
   if (deleted) return null;
   if (!client) {
     return (
-      <Card className="p-6 text-center text-gray-500">Invalid client data</Card>
+      <Card className="p-6 text-center text-gray-500 dark:text-muted-foreground">Invalid client data</Card>
     );
   }
 
   return (
     <Card
-      className={`overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white ${
+      className={`overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-xl hover:scale-[1.01] bg-white dark:bg-card ${
         shouldShowDraftAttention
-          ? "border-amber-300 shadow-amber-200/70 shadow-xl ring-1 ring-amber-200/80"
-          : "border-gray-100 shadow-lg"
+          ? "border-amber-300 shadow-amber-200/70 shadow-xl ring-1 ring-amber-200/80 dark:border-amber-700"
+          : "border-gray-100 shadow-lg dark:border-border"
       }`}
     >
       {/* Header */}
       <CardHeader
         className={`p-6 border-b ${
           shouldShowDraftAttention
-            ? "border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-yellow-50"
-            : "border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50"
+            ? "border-amber-200 bg-linear-to-r from-amber-50 via-orange-50 to-yellow-50 dark:border-amber-800 dark:from-amber-950/40 dark:via-orange-950/40 dark:to-yellow-950/40"
+            : "border-gray-100 bg-linear-to-r from-cyan-50 to-blue-50 dark:border-border dark:from-cyan-950/40 dark:to-blue-950/40"
         }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-4 border-white shadow-md">
+            <Avatar className="h-16 w-16 border-4 border-white shadow-md dark:border-border">
               <AvatarImage src={client.avatar || undefined} alt={client.name} />
               <AvatarFallback
                 className="text-white text-2xl font-bold"
@@ -336,9 +336,9 @@ const ClientCardComponent = function ClientCard({
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{client.name}</h2>
-              <p className="text-gray-600 text-sm">{client.company}</p>
-              <p className="text-gray-500 text-xs">{client.designation}</p>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-foreground">{client.name}</h2>
+              <p className="text-gray-600 text-sm dark:text-muted-foreground">{client.company}</p>
+              <p className="text-gray-500 text-xs dark:text-muted-foreground">{client.designation}</p>
             </div>
           </div>
 
@@ -359,8 +359,8 @@ const ClientCardComponent = function ClientCard({
                       onClick={() => onToggleFavorite?.(client.id)}
                       className={`p-2 rounded-full border transition-all ${
                         isFavorite
-                          ? "bg-rose-50 border-rose-200 text-rose-600"
-                          : "bg-white border-gray-200 text-gray-500 hover:text-gray-700"
+                          ? "bg-rose-50 border-rose-200 text-rose-600 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-400"
+                          : "bg-white border-gray-200 text-gray-500 hover:text-gray-700 dark:bg-card dark:border-border dark:text-muted-foreground dark:hover:text-foreground"
                       }`}
                     >
                       <Heart
@@ -380,10 +380,10 @@ const ClientCardComponent = function ClientCard({
             <Badge
               className={
                 client.status === "active"
-                  ? "bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full"
+                  ? "bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1.5 rounded-full dark:bg-emerald-900/40 dark:text-emerald-300"
                   : client.status === "inactive"
-                    ? "bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1.5 rounded-full"
-                    : "bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1.5 rounded-full"
+                    ? "bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1.5 rounded-full dark:bg-muted dark:text-foreground"
+                    : "bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1.5 rounded-full dark:bg-amber-900/40 dark:text-amber-300"
               }
             >
               {client.status || "Pending"}
@@ -391,9 +391,9 @@ const ClientCardComponent = function ClientCard({
 
             <Badge
               variant="outline"
-              className="bg-gray-50 text-gray-700 font-medium border-gray-200 px-3 py-1.5 rounded-full"
+              className="bg-gray-50 text-gray-700 font-medium border-gray-200 px-3 py-1.5 rounded-full dark:bg-muted/40 dark:text-foreground dark:border-border"
             >
-              <Package className="h-4 w-4 inline-block mr-1 text-cyan-600" />
+              <Package className="h-4 w-4 inline-block mr-1 text-cyan-600 dark:text-cyan-400" />
               {client.package?.name || client.packageId || "No Package"}
             </Badge>
           </div>
@@ -403,29 +403,29 @@ const ClientCardComponent = function ClientCard({
       {/* Content */}
       <CardContent className="p-2 space-y-5">
         <div className="pl-2">
-          <span className="font-medium text-gray-800">Account Manager:</span>{" "}
-          <span className="font-bold text-gray-800">
+          <span className="font-medium text-gray-800 dark:text-foreground">Account Manager:</span>{" "}
+          <span className="font-bold text-gray-800 dark:text-foreground">
             {client.accountManager?.name}
           </span>
         </div>
 
         {/* Timeline */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm">
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm dark:bg-muted/40 dark:border-border">
           <div className="flex items-center gap-2 mb-3">
-            <Calendar className="h-5 w-5 text-cyan-600" />
-            <h3 className="font-semibold text-gray-800">Package Timeline</h3>
+            <Calendar className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <h3 className="font-semibold text-gray-800 dark:text-foreground">Package Timeline</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-y-2 text-sm">
-            <div className="text-gray-600">Start Date:</div>
-            <div className="font-medium text-gray-800">
+            <div className="text-gray-600 dark:text-muted-foreground">Start Date:</div>
+            <div className="font-medium text-gray-800 dark:text-foreground">
               {formatDate(
                 (client as any)?.startDate || (client as any)?.createdAt,
               )}
             </div>
 
-            <div className="text-gray-600">End Date:</div>
-            <div className="font-medium text-gray-800">
+            <div className="text-gray-600 dark:text-muted-foreground">End Date:</div>
+            <div className="font-medium text-gray-800 dark:text-foreground">
               {formatDate((client as any)?.dueDate)}
             </div>
           </div>
@@ -434,14 +434,14 @@ const ClientCardComponent = function ClientCard({
         {/* Progress */}
         <div className="p-2">
           <div className="flex items-center justify-between text-sm mb-2 gap-2">
-            <span className="text-gray-700 font-medium whitespace-nowrap">
+            <span className="text-gray-700 font-medium whitespace-nowrap dark:text-foreground">
               Overall Progress
             </span>
-            <span className="font-bold text-gray-900 whitespace-nowrap">
+            <span className="font-bold text-gray-900 whitespace-nowrap dark:text-foreground">
               {client.overallProgress ?? 0}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mb-2 dark:bg-muted">
             <div
               className="h-2.5 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
               style={{ width: `${client.overallProgress ?? 0}%` }}
@@ -449,14 +449,14 @@ const ClientCardComponent = function ClientCard({
           </div>
 
           <div className="flex items-center justify-between text-sm mb-2 gap-2">
-            <span className="text-gray-700 font-medium whitespace-nowrap">
+            <span className="text-gray-700 font-medium whitespace-nowrap dark:text-foreground">
               This Month Progress
             </span>
-            <span className="font-bold text-gray-900 whitespace-nowrap">
+            <span className="font-bold text-gray-900 whitespace-nowrap dark:text-foreground">
               {client.monthProgress ?? 0}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden dark:bg-muted">
             <div
               className="h-2.5 bg-linear-to-r from-cyan-500 to-blue-500 rounded-full transition-all"
               style={{ width: `${client.monthProgress ?? 0}%` }}
@@ -465,44 +465,44 @@ const ClientCardComponent = function ClientCard({
         </div>
 
         {/* Task Summary */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm">
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm dark:bg-muted/40 dark:border-border">
           <div className="flex items-center gap-2 mb-3">
-            <FileText className="h-5 w-5 text-cyan-600" />
-            <h3 className="font-semibold text-gray-800">Task Summary</h3>
+            <FileText className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <h3 className="font-semibold text-gray-800 dark:text-foreground">Task Summary</h3>
           </div>
           {totalTasks > 0 ? (
             <div className="grid grid-cols-2 gap-y-2 text-sm">
-              <div className="text-gray-600">Total Tasks:</div>
-              <div className="font-medium text-gray-800">{totalTasks}</div>
+              <div className="text-gray-600 dark:text-muted-foreground">Total Tasks:</div>
+              <div className="font-medium text-gray-800 dark:text-foreground">{totalTasks}</div>
 
-              <div className="text-gray-600">Completed:</div>
-              <div className="font-medium text-emerald-700">
+              <div className="text-gray-600 dark:text-muted-foreground">Completed:</div>
+              <div className="font-medium text-emerald-700 dark:text-emerald-300">
                 {taskCounts.completed}
               </div>
 
-              <div className="text-gray-600">In Progress:</div>
-              <div className="font-medium text-blue-700">
+              <div className="text-gray-600 dark:text-muted-foreground">In Progress:</div>
+              <div className="font-medium text-blue-700 dark:text-blue-300">
                 {taskCounts.in_progress}
               </div>
 
-              <div className="text-gray-600">Pending:</div>
-              <div className="font-medium text-amber-700">
+              <div className="text-gray-600 dark:text-muted-foreground">Pending:</div>
+              <div className="font-medium text-amber-700 dark:text-amber-300">
                 {taskCounts.pending}
               </div>
 
-              <div className="text-gray-600">Overdue:</div>
-              <div className="font-medium text-red-700">
+              <div className="text-gray-600 dark:text-muted-foreground">Overdue:</div>
+              <div className="font-medium text-red-700 dark:text-red-300">
                 {taskCounts.overdue}
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 text-sm">No tasks assigned</p>
+            <p className="text-gray-500 text-sm dark:text-muted-foreground">No tasks assigned</p>
           )}
         </div>
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="border-t border-gray-100 bg-gray-50 p-6">
+      <CardFooter className="border-t border-gray-100 bg-gray-50 p-6 dark:border-border dark:bg-muted/40">
         <div className="flex flex-wrap gap-3 w-full">
           {canPublishClient && (
             <Button

@@ -201,12 +201,12 @@ export default function ReviewRemovalModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden dark:bg-card">
         {/* Modern Header with Gradient */}
         <div className="bg-linear-to-r from-red-500 via-pink-500 to-orange-500 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <Star className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -217,7 +217,7 @@ export default function ReviewRemovalModal({
                   <div className="text-white font-black text-xl truncate flex-1">
                     {task?.name}
                   </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm dark:bg-card/10">
                     <Calendar className="h-4 w-4 text-white/80" />
                     <span className="text-white font-mono font-bold text-sm">
                       {timerInfo?.formatDisplayTime || "00:00"}
@@ -235,23 +235,23 @@ export default function ReviewRemovalModal({
 
         <div className="px-6 pb-6 space-y-6">
           {/* Timer Display */}
-          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-500 p-2 rounded-xl">
                   <Calendar className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide">
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide dark:text-blue-300">
                     Time Tracking
                   </h3>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-blue-600 font-medium dark:text-blue-400">
                     Time spent on this completion
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-mono font-black text-blue-700">
+                <div className="text-2xl font-mono font-black text-blue-700 dark:text-blue-300">
                   {timerInfo
                     ? `${Math.floor(timerInfo.elapsedSeconds / 60)}:${(
                         timerInfo.elapsedSeconds % 60
@@ -260,7 +260,7 @@ export default function ReviewRemovalModal({
                         .padStart(2, "0")}`
                     : "00:00"}
                 </div>
-                <div className="text-xs text-blue-600 font-medium">
+                <div className="text-xs text-blue-600 font-medium dark:text-blue-400">
                   {timerInfo ? Math.ceil(timerInfo.elapsedSeconds / 60) : 0}{" "}
                   minutes
                 </div>
@@ -270,9 +270,9 @@ export default function ReviewRemovalModal({
 
           {/* Links Input Section */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-red-100 p-2 rounded-lg">
-                <LinkIcon className="h-4 w-4 text-red-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-red-100 p-2 rounded-lg dark:bg-red-900/40">
+                <LinkIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
               Review Removal Links *
             </label>
@@ -284,7 +284,7 @@ export default function ReviewRemovalModal({
                     placeholder={`https://example.com/review-${index + 1}`}
                     value={link}
                     onChange={(e) => updateLink(index, e.target.value)}
-                    className="flex-1 rounded-2xl h-14 border-2 border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all text-base font-medium px-5"
+                    className="flex-1 rounded-2xl h-14 border-2 border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all text-base font-medium px-5 dark:border-border"
                   />
                   {links.length > 1 && (
                     <Button
@@ -292,7 +292,7 @@ export default function ReviewRemovalModal({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeLink(index)}
-                      className="h-14 w-14 rounded-2xl hover:bg-red-100 hover:text-red-600 transition-all"
+                      className="h-14 w-14 rounded-2xl hover:bg-red-100 hover:text-red-600 transition-all dark:hover:bg-red-900/40 dark:hover:text-red-400"
                     >
                       <Trash2 className="h-5 w-5" />
                     </Button>
@@ -315,7 +315,7 @@ export default function ReviewRemovalModal({
         </div>
 
         {/* Footer with Modern Button Design */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

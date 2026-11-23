@@ -208,12 +208,12 @@ export default function CustomJobFormModal({
   };
 
   return (
-    <div className="mx-auto w-full border border-purple-200 bg-linear-to-br from-slate-50 via-sky-50 to-fuchsia-50 shadow-2xl md:p-8">
+    <div className="mx-auto w-full border border-purple-200 bg-linear-to-br from-slate-50 via-sky-50 to-fuchsia-50 shadow-2xl md:p-8 dark:border-purple-800 dark:from-background dark:via-sky-950/40 dark:to-fuchsia-950/40">
       <div className="space-y-2">
-        <h1 className="bg-linear-to-r from-indigo-600 via-fuchsia-600 to-sky-600 bg-clip-text text-2xl font-bold text-transparent md:text-3xl">
+        <h1 className="bg-linear-to-r from-indigo-600 via-fuchsia-600 to-sky-600 bg-clip-text text-2xl font-bold text-transparent md:text-3xl dark:from-indigo-400 dark:via-fuchsia-400 dark:to-sky-400">
           {editingJob ? "Edit Custom Job" : "Create Custom Job"}
         </h1>
-        <p className="text-slate-600">
+        <p className="text-slate-600 dark:text-muted-foreground">
           {editingJob
             ? "Update the custom job details below."
             : "Fill in the details to create a new custom job."}
@@ -223,7 +223,7 @@ export default function CustomJobFormModal({
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="date" className="font-semibold text-indigo-700">
+            <Label htmlFor="date" className="font-semibold text-indigo-700 dark:text-indigo-300">
               Date
             </Label>
             <Input
@@ -233,12 +233,12 @@ export default function CustomJobFormModal({
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, date: e.target.value }))
               }
-              className="border-indigo-200 bg-white/80 focus:border-indigo-500 focus:ring-indigo-500"
+              className="border-indigo-200 bg-white/80 focus:border-indigo-500 focus:ring-indigo-500 dark:border-indigo-800 dark:bg-card/80"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="client" className="font-semibold text-sky-700">
+            <Label htmlFor="client" className="font-semibold text-sky-700 dark:text-sky-300">
               Client
             </Label>
             <Popover
@@ -256,7 +256,7 @@ export default function CustomJobFormModal({
                   type="button"
                   variant="outline"
                   role="combobox"
-                  className="w-full justify-between border-sky-200 bg-white/80 hover:border-sky-400 hover:bg-sky-50"
+                  className="w-full justify-between border-sky-200 bg-white/80 hover:border-sky-400 hover:bg-sky-50 dark:border-sky-800 dark:bg-card/80 dark:hover:bg-sky-950/40"
                 >
                   <span className="truncate">
                     {selectedClient?.name || "Select client"}
@@ -314,7 +314,7 @@ export default function CustomJobFormModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="priority" className="font-semibold text-fuchsia-700">
+            <Label htmlFor="priority" className="font-semibold text-fuchsia-700 dark:text-fuchsia-300">
               Priority
             </Label>
             <Select
@@ -325,7 +325,7 @@ export default function CustomJobFormModal({
             >
               <SelectTrigger
                 id="priority"
-                className="border-fuchsia-200 bg-white/80 focus:border-fuchsia-500 focus:ring-fuchsia-500"
+                className="border-fuchsia-200 bg-white/80 focus:border-fuchsia-500 focus:ring-fuchsia-500 dark:border-fuchsia-800 dark:bg-card/80"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -341,7 +341,7 @@ export default function CustomJobFormModal({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="task" className="font-semibold text-emerald-700">
+          <Label htmlFor="task" className="font-semibold text-emerald-700 dark:text-emerald-300">
             Task
           </Label>
           <TinyMceEditor
@@ -355,7 +355,7 @@ export default function CustomJobFormModal({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes" className="font-semibold text-orange-700">
+          <Label htmlFor="notes" className="font-semibold text-orange-700 dark:text-orange-300">
             Notes
           </Label>
           <Textarea
@@ -364,7 +364,7 @@ export default function CustomJobFormModal({
             onChange={(e) =>
               setForm((prev) => ({ ...prev, notes: e.target.value }))
             }
-            className="min-h-[120px] resize-y border-orange-200 bg-white/80 focus:border-orange-500 focus:ring-orange-500"
+            className="min-h-[120px] resize-y border-orange-200 bg-white/80 focus:border-orange-500 focus:ring-orange-500 dark:border-orange-800 dark:bg-card/80"
           />
         </div>
 
@@ -372,7 +372,7 @@ export default function CustomJobFormModal({
           <Button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-red-200 bg-white/70 text-red-600 shadow-sm transition-all duration-200 hover:border-red-400 hover:bg-red-50 hover:text-red-700 hover:shadow-md"
+            className="rounded-xl border border-red-200 bg-white/70 text-red-600 shadow-sm transition-all duration-200 hover:border-red-400 hover:bg-red-50 hover:text-red-700 hover:shadow-md dark:border-red-800 dark:bg-card/70 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
           >
             Cancel
           </Button>

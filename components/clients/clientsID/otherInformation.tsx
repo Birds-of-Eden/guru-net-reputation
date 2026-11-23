@@ -451,7 +451,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
       <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-indigo-600" />
+            <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             <span>Other Information</span>
           </div>
           <Button
@@ -484,7 +484,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
             onClick={handleAddColumn}
             size="sm"
             variant="outline"
-            className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Column
@@ -494,26 +494,26 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
             onClick={() => setShowAddSheetDialog(true)}
             size="sm"
             variant="outline"
-            className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950/40"
           >
             <FileText className="mr-2 h-4 w-4" />
             Add Sheet
           </Button>
           <div className="flex-1" />
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-muted-foreground">
             {activeSheet.rows.length} rows × {activeSheet.columns.length} columns
           </span>
         </div>
 
         {/* Sheet Tabs */}
-        <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+        <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-border">
           {sheets.map((sheet, index) => (
             <div
               key={index}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm font-medium cursor-pointer transition-colors ${
                 index === activeSheetIndex
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0"
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0"
+                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700"
+                  : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-muted dark:border-border"
               }`}
               onClick={() => setActiveSheetIndex(index)}
             >
@@ -549,7 +549,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                  className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950/40"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteSheet(index);
@@ -563,17 +563,17 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
         </div>
 
         {/* Spreadsheet */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-[1550px]">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-[1550px] dark:border-border">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b-2 border-gray-200">
-                <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200">
+              <tr className="bg-gray-50 border-b-2 border-gray-200 dark:bg-muted/40 dark:border-border">
+                <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200 dark:text-muted-foreground dark:border-border">
                   #
                 </th>
                 {activeSheet.columns.map((col, colIndex) => (
                   <th
                     key={colIndex}
-                    className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group"
+                    className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group dark:text-foreground dark:border-border"
                   >
                     <div className="flex items-center gap-1">
                       {editingColumn === colIndex ? (
@@ -596,7 +596,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                       ) : (
                         <span
                           onClick={() => setEditingColumn(colIndex)}
-                          className="cursor-pointer hover:text-emerald-600 truncate"
+                          className="cursor-pointer hover:text-emerald-600 truncate dark:hover:text-emerald-400"
                           title="Click to rename"
                         >
                           {col}
@@ -607,7 +607,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
                           onClick={() => handleMoveColumn(colIndex, "up")}
                           disabled={colIndex === 0}
                         >
@@ -617,7 +617,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
                           onClick={() => handleMoveColumn(colIndex, "down")}
                           disabled={colIndex === activeSheet.columns.length - 1}
                         >
@@ -627,7 +627,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-5 w-5 text-red-400 hover:text-red-600"
+                          className="h-5 w-5 text-red-400 hover:text-red-600 dark:hover:text-red-400"
                           onClick={() => handleDeleteColumn(colIndex)}
                         >
                           <X className="h-3 w-3" />
@@ -636,22 +636,22 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                     </div>
                   </th>
                 ))}
-                <th className="w-12 px-3 py-2 border-l border-gray-200" />
+                <th className="w-12 px-3 py-2 border-l border-gray-200 dark:border-border" />
               </tr>
             </thead>
             <tbody>
               {activeSheet.rows.map((row, rowIndex) => (
                 <tr
                   key={rowIndex}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors dark:border-border dark:hover:bg-muted/40"
                 >
-                  <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center">
+                  <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center dark:text-muted-foreground dark:border-border">
                     {rowIndex + 1}
                   </td>
                   {row.map((cell, colIndex) => (
                     <td
                       key={colIndex}
-                      className="border-r border-gray-200 px-1 py-1"
+                      className="border-r border-gray-200 px-1 py-1 dark:border-border"
                     >
                       <Input
                         id={`cell-${rowIndex}-${colIndex}`}
@@ -666,12 +666,12 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                       />
                     </td>
                   ))}
-                  <td className="px-2 py-1 border-l border-gray-200 text-center">
+                  <td className="px-2 py-1 border-l border-gray-200 text-center dark:border-border">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950/40"
                       onClick={() => handleDeleteRow(rowIndex)}
                       disabled={activeSheet.rows.length <= 1}
                     >
@@ -686,10 +686,10 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
 
         {/* Empty State */}
         {activeSheet.rows.length === 0 && (
-          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-border">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               No data yet. Click{" "}
-              <span className="font-medium text-gray-900">Add Row</span> to get
+              <span className="font-medium text-gray-900 dark:text-foreground">Add Row</span> to get
               started.
             </p>
           </div>
@@ -699,12 +699,12 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
       {/* Add Sheet Dialog */}
       {showAddSheetDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md bg-white">
+          <Card className="w-full max-w-md bg-white dark:bg-card">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-4">Add New Sheet</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-foreground">
                     Sheet Name
                   </label>
                   <Input
@@ -743,31 +743,31 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
       {/* Delete Sheet Confirmation Dialog */}
       {showDeleteSheetDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md bg-white">
+          <Card className="w-full max-w-md bg-white dark:bg-card">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-red-600">
+              <h3 className="text-lg font-semibold mb-4 text-red-600 dark:text-red-400">
                 {deleteWarningStep === 1 ? "Warning: Delete Sheet" : "Final Warning"}
               </h3>
               <div className="space-y-4">
                 {deleteWarningStep === 1 ? (
                   <>
-                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                      <p className="text-sm text-yellow-800">
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 dark:bg-yellow-950/40">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-300">
                         <strong>Warning 1 of 2:</strong> You are about to delete the sheet "{sheetToDeleteIndex !== null ? sheets[sheetToDeleteIndex].name : ''}".
                       </p>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
                       This action cannot be undone. All data in this sheet will be permanently lost.
                     </p>
                   </>
                 ) : (
                   <>
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                      <p className="text-sm text-red-800">
+                    <div className="bg-red-50 border-l-4 border-red-400 p-4 dark:bg-red-950/40">
+                      <p className="text-sm text-red-800 dark:text-red-300">
                         <strong>Warning 2 of 2 (Final):</strong> Are you absolutely sure you want to delete "{sheetToDeleteIndex !== null ? sheets[sheetToDeleteIndex].name : ''}"?
                       </p>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">
                       This is your last chance to cancel. Once deleted, the data cannot be recovered.
                     </p>
                   </>
@@ -811,15 +811,15 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
       {/* Unsaved Changes Warning Dialog */}
       {showUnsavedWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md bg-white">
+          <Card className="w-full max-w-md bg-white dark:bg-card">
             <CardContent className="p-6">
               <div className="flex items-start gap-3 mb-4">
                 <AlertTriangle className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-foreground">
                     Unsaved Changes
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-1 dark:text-muted-foreground">
                     You have unsaved changes in Other Information. If you navigate away without saving, all your changes will be lost.
                   </p>
                 </div>
@@ -836,7 +836,7 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
                   type="button"
                   variant="outline"
                   onClick={handleDiscardChanges}
-                  className="border-red-300 text-red-700 hover:bg-red-50"
+                  className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-950/40"
                 >
                   Discard Changes
                 </Button>

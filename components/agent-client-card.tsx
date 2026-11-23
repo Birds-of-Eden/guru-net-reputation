@@ -43,26 +43,26 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
   const getStatusBadgeStyle = (status: string | null) => {
     switch (status) {
       case "active":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200"
+        return "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800"
       case "inactive":
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-muted dark:text-foreground dark:border-border"
       default:
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800"
     }
   }
 
   const getTaskStatusIcon = (type: string) => {
     switch (type) {
       case "pending":
-        return <Clock className="h-4 w-4 text-amber-600" />
+        return <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
       case "in_progress":
-        return <Play className="h-4 w-4 text-blue-600" />
+        return <Play className="h-4 w-4 text-blue-600 dark:text-blue-400" />
       case "completed":
-        return <CheckCircle className="h-4 w-4 text-emerald-600" />
+        return <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       case "overdue":
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
       case "cancelled":
-        return <XCircle className="h-4 w-4 text-gray-600" />
+        return <XCircle className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
       default:
         return null
     }
@@ -128,7 +128,7 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
               value={client.progress}
               className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
             />
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent rounded-full pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent rounded-full pointer-events-none dark:via-card/20" />
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export function AgentClientCard({ client, onViewTasks, onViewDetails }: AgentCli
           ) : (
             <div className="text-center py-4">
               <div className="w-12 h-12 mx-auto mb-3 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                <FileText className="h-6 w-6 text-slate-400" />
+                <FileText className="h-6 w-6 text-slate-400 dark:text-muted-foreground" />
               </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">No tasks assigned yet</p>
             </div>

@@ -417,14 +417,14 @@ export default function PackageUpgradeDialog({
         {/* Wrapper controls total height and layout */}
         <div className="flex max-h-[90vh] flex-col">
           {/* Header stays fixed */}
-          <DialogHeader className="border-b border-slate-100 px-6 pb-6 pt-6">
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <DialogHeader className="border-b border-slate-100 px-6 pb-6 pt-6 dark:border-border">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
               <div className="p-2 bg-linear-to-br from-blue-500 to-purple-500 rounded-xl text-white">
                 <TrendingUp className="h-6 w-6" />
               </div>
               Upgrade Client Package
             </DialogTitle>
-            <DialogDescription className="text-lg text-slate-600 mt-2">
+            <DialogDescription className="text-lg text-slate-600 mt-2 dark:text-muted-foreground">
               Select a new package and template to upgrade your client's plan.
               All existing work can be migrated seamlessly.
             </DialogDescription>
@@ -440,75 +440,75 @@ export default function PackageUpgradeDialog({
                     <div className="p-2 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
                       <Package className="h-5 w-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-800">
+                    <h3 className="text-xl font-semibold text-slate-800 dark:text-foreground">
                       Current Package Overview
                     </h3>
                   </div>
 
-                  <div className="bg-linear-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200/60 p-6">
+                  <div className="bg-linear-to-br from-slate-50 to-blue-50/30 rounded-2xl border border-slate-200/60 p-6 dark:from-background dark:to-blue-950/40 dark:border-border/60">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
+                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 dark:bg-card dark:border-border">
+                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1 dark:text-muted-foreground">
                           <Package className="h-4 w-4" />
                           Package
                         </div>
-                        <div className="font-semibold text-lg text-slate-800">
+                        <div className="font-semibold text-lg text-slate-800 dark:text-foreground">
                           {currentPackage?.name || "—"}
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
+                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 dark:bg-card dark:border-border">
+                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1 dark:text-muted-foreground">
                           <Clock className="h-4 w-4" />
                           Duration
                         </div>
-                        <div className="font-semibold text-lg text-slate-800">
+                        <div className="font-semibold text-lg text-slate-800 dark:text-foreground">
                           {currentPackage?.totalMonths || "—"} months
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
+                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 dark:bg-card dark:border-border">
+                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1 dark:text-muted-foreground">
                           <FileText className="h-4 w-4" />
                           Tasks
                         </div>
-                        <div className="font-semibold text-lg text-slate-800">
+                        <div className="font-semibold text-lg text-slate-800 dark:text-foreground">
                           {clientSnapshot?.taskCounts?.total ??
                             clientSnapshot?.tasks?.length ??
                             0}
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1">
+                      <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 dark:bg-card dark:border-border">
+                        <div className="flex items-center gap-2 text-slate-600 text-sm mb-1 dark:text-muted-foreground">
                           <TrendingUp className="h-4 w-4" />
                           Progress
                         </div>
-                        <div className="font-semibold text-lg text-emerald-600">
+                        <div className="font-semibold text-lg text-emerald-600 dark:text-emerald-400">
                           {clientSnapshot?.progress ?? 0}%
                         </div>
                       </div>
                     </div>
 
                     {Object.keys(tasksByCategory).length > 0 && (
-                      <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+                      <div className="bg-white rounded-xl border border-slate-100 overflow-hidden dark:bg-card dark:border-border">
                         <Accordion type="multiple" className="w-full">
                           {Object.entries(tasksByCategory).map(
                             ([cat, items]) => (
                               <AccordionItem
                                 key={cat}
                                 value={cat}
-                                className="border-b border-slate-100 last:border-b-0"
+                                className="border-b border-slate-100 last:border-b-0 dark:border-border"
                               >
-                                <AccordionTrigger className="px-6 py-4 hover:bg-slate-50/50 transition-colors">
+                                <AccordionTrigger className="px-6 py-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-muted/40">
                                   <div className="flex items-center gap-3">
                                     <Badge
                                       variant="secondary"
-                                      className="bg-blue-100 text-blue-700 font-medium"
+                                      className="bg-blue-100 text-blue-700 font-medium dark:bg-blue-900/40 dark:text-blue-300"
                                     >
                                       {cat}
                                     </Badge>
-                                    <span className="text-sm text-slate-500">
+                                    <span className="text-sm text-slate-500 dark:text-muted-foreground">
                                       {items.length} task
                                       {items.length !== 1 ? "s" : ""}
                                     </span>
@@ -519,10 +519,10 @@ export default function PackageUpgradeDialog({
                                     {items.map((t: any) => (
                                       <div
                                         key={t.id}
-                                        className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-3 transition-colors hover:bg-slate-100"
+                                        className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-3 transition-colors hover:bg-slate-100 dark:bg-muted/40 dark:hover:bg-muted"
                                       >
                                         <span
-                                          className="font-medium text-slate-700 truncate mr-4"
+                                          className="font-medium text-slate-700 truncate mr-4 dark:text-foreground"
                                           title={htmlToPlainText(t.name)}
                                         >
                                           {truncateWords(t.name, 5)}
@@ -536,7 +536,7 @@ export default function PackageUpgradeDialog({
                                           className={cn(
                                             "text-xs",
                                             t.status === "completed" &&
-                                              "bg-emerald-100 text-emerald-700"
+                                              "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                                           )}
                                         >
                                           {t.status}
@@ -553,9 +553,9 @@ export default function PackageUpgradeDialog({
                     )}
 
                     {Object.keys(tasksByCategory).length === 0 && (
-                      <div className="bg-white rounded-xl border border-slate-100 p-8 text-center">
+                      <div className="bg-white rounded-xl border border-slate-100 p-8 text-center dark:bg-card dark:border-border">
                         <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                        <p className="text-slate-500 font-medium">
+                        <p className="text-slate-500 font-medium dark:text-muted-foreground">
                           No tasks found for this package
                         </p>
                       </div>
@@ -569,24 +569,24 @@ export default function PackageUpgradeDialog({
                     <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-500 rounded-lg text-white">
                       <Search className="h-5 w-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-800">
+                    <h3 className="text-xl font-semibold text-slate-800 dark:text-foreground">
                       Select New Package
                     </h3>
                   </div>
 
                   <div className="space-y-4">
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-muted-foreground" />
                       <Input
                         placeholder="Search packages by name or description..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        className="pl-12 h-14 text-lg bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        className="pl-12 h-14 text-lg bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl dark:bg-card dark:border-border"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
                         <Badge
                           variant="secondary"
-                          className="bg-slate-100 text-slate-600"
+                          className="bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground"
                         >
                           {fetchingPkgs ? (
                             <div className="flex items-center gap-2">
@@ -602,8 +602,8 @@ export default function PackageUpgradeDialog({
 
                     {selectedPackageId &&
                       currentPackage?.totalMonths != null && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                          <div className="flex items-center gap-2 text-amber-800">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 dark:bg-amber-950/40 dark:border-amber-800">
+                          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
                             <AlertCircle className="h-4 w-4" />
                             <span className="font-medium">
                               Duration Change:
@@ -617,24 +617,24 @@ export default function PackageUpgradeDialog({
                               months
                             </span>
                           </div>
-                          <p className="text-amber-700 text-sm mt-1">
+                          <p className="text-amber-700 text-sm mt-1 dark:text-amber-300">
                             Missing task cycles will be automatically created
                             for the additional months.
                           </p>
                         </div>
                       )}
 
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden dark:bg-card dark:border-border">
                       {/* Inner list has its own scroll bound, but the main body also scrolls */}
                       <ScrollArea className="h-96">
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-slate-100 dark:divide-border">
                           {packages.length === 0 && !fetchingPkgs && (
                             <div className="p-12 text-center">
                               <Package className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                              <h4 className="text-lg font-semibold text-slate-600 mb-2">
+                              <h4 className="text-lg font-semibold text-slate-600 mb-2 dark:text-muted-foreground">
                                 No Packages Available
                               </h4>
-                              <p className="text-slate-500">
+                              <p className="text-slate-500 dark:text-muted-foreground">
                                 There are no other packages available for
                                 upgrade at this time.
                               </p>
@@ -649,9 +649,9 @@ export default function PackageUpgradeDialog({
                                 type="button"
                                 onClick={() => setSelectedPackageId(p.id)}
                                 className={cn(
-                                  "w-full text-left p-6 transition-all duration-200 hover:bg-blue-50/50 relative group",
+                                  "w-full text-left p-6 transition-all duration-200 hover:bg-blue-50/50 relative group dark:hover:bg-blue-950/40",
                                   isSelected &&
-                                    "bg-linear-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500"
+                                    "bg-linear-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500 dark:from-blue-950/40 dark:to-indigo-950/40"
                                 )}
                               >
                                 <div className="flex items-start justify-between gap-4">
@@ -662,12 +662,12 @@ export default function PackageUpgradeDialog({
                                           "p-2 rounded-lg transition-colors",
                                           isSelected
                                             ? "bg-blue-500 text-white"
-                                            : "bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                                            : "bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600 dark:bg-muted dark:text-muted-foreground dark:group-hover:bg-blue-900/40 dark:group-hover:text-blue-400"
                                         )}
                                       >
                                         <Package className="h-4 w-4" />
                                       </div>
-                                      <h4 className="text-lg font-bold text-slate-800">
+                                      <h4 className="text-lg font-bold text-slate-800 dark:text-foreground">
                                         {p.name}
                                       </h4>
                                       {isSelected && (
@@ -675,35 +675,35 @@ export default function PackageUpgradeDialog({
                                       )}
                                     </div>
 
-                                    <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+                                    <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed dark:text-muted-foreground">
                                       {p.description ||
                                         "No description available"}
                                     </p>
 
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                       <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4 text-slate-400" />
-                                        <span className="text-sm text-slate-600">
+                                        <Clock className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
+                                        <span className="text-sm text-slate-600 dark:text-muted-foreground">
                                           {p.totalMonths ?? "—"} months
                                         </span>
                                       </div>
                                       {p.stats && (
                                         <>
                                           <div className="flex items-center gap-2">
-                                            <LayoutTemplate className="h-4 w-4 text-slate-400" />
-                                            <span className="text-sm text-slate-600">
+                                            <LayoutTemplate className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
+                                            <span className="text-sm text-slate-600 dark:text-muted-foreground">
                                               {p.stats.templates} templates
                                             </span>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                            <Zap className="h-4 w-4 text-slate-400" />
-                                            <span className="text-sm text-slate-600">
+                                            <Zap className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
+                                            <span className="text-sm text-slate-600 dark:text-muted-foreground">
                                               {p.stats.activeTemplates} approved
                                             </span>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                            <FileText className="h-4 w-4 text-slate-400" />
-                                            <span className="text-sm text-slate-600">
+                                            <FileText className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
+                                            <span className="text-sm text-slate-600 dark:text-muted-foreground">
                                               {p.stats.sitesAssets} assets
                                             </span>
                                           </div>
@@ -727,12 +727,12 @@ export default function PackageUpgradeDialog({
                     <div className="p-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-lg text-white">
                       <LayoutTemplate className="h-5 w-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-800">
+                    <h3 className="text-xl font-semibold text-slate-800 dark:text-foreground">
                       Choose Template
                     </h3>
                     <Badge
                       variant="secondary"
-                      className="bg-slate-100 text-slate-600"
+                      className="bg-slate-100 text-slate-600 dark:bg-muted dark:text-muted-foreground"
                     >
                       {fetchingTpls ? (
                         <div className="flex items-center gap-1">
@@ -745,16 +745,16 @@ export default function PackageUpgradeDialog({
                     </Badge>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden dark:bg-card dark:border-border">
                     <ScrollArea className="h-80">
-                      <div className="divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100 dark:divide-border">
                         {!selectedPackageId && (
                           <div className="p-12 text-center">
                             <LayoutTemplate className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                            <h4 className="text-lg font-semibold text-slate-600 mb-2">
+                            <h4 className="text-lg font-semibold text-slate-600 mb-2 dark:text-muted-foreground">
                               Select a Package First
                             </h4>
-                            <p className="text-slate-500">
+                            <p className="text-slate-500 dark:text-muted-foreground">
                               Choose a package above to view its available
                               templates.
                             </p>
@@ -766,10 +766,10 @@ export default function PackageUpgradeDialog({
                           !fetchingTpls && (
                             <div className="p-12 text-center">
                               <LayoutTemplate className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                              <h4 className="text-lg font-semibold text-slate-600 mb-2">
+                              <h4 className="text-lg font-semibold text-slate-600 mb-2 dark:text-muted-foreground">
                                 No Templates Available
                               </h4>
-                              <p className="text-slate-500">
+                              <p className="text-slate-500 dark:text-muted-foreground">
                                 This package doesn't have any templates
                                 configured yet.
                               </p>
@@ -784,9 +784,9 @@ export default function PackageUpgradeDialog({
                               type="button"
                               onClick={() => setSelectedTemplateId(t.id)}
                               className={cn(
-                                "w-full text-left p-6 transition-all duration-200 hover:bg-purple-50/50 relative group",
+                                "w-full text-left p-6 transition-all duration-200 hover:bg-purple-50/50 relative group dark:hover:bg-purple-950/40",
                                 isSelected &&
-                                  "bg-linear-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500"
+                                  "bg-linear-to-r from-purple-50 to-pink-50 border-l-4 border-l-purple-500 dark:from-purple-950/40 dark:to-pink-950/40"
                               )}
                             >
                               <div className="flex items-start justify-between gap-4">
@@ -797,12 +797,12 @@ export default function PackageUpgradeDialog({
                                         "p-2 rounded-lg transition-colors",
                                         isSelected
                                           ? "bg-purple-500 text-white"
-                                          : "bg-slate-100 text-slate-600 group-hover:bg-purple-100 group-hover:text-purple-600"
+                                          : "bg-slate-100 text-slate-600 group-hover:bg-purple-100 group-hover:text-purple-600 dark:bg-muted dark:text-muted-foreground dark:group-hover:bg-purple-900/40 dark:group-hover:text-purple-400"
                                       )}
                                     >
                                       <LayoutTemplate className="h-4 w-4" />
                                     </div>
-                                    <h4 className="text-lg font-bold text-slate-800">
+                                    <h4 className="text-lg font-bold text-slate-800 dark:text-foreground">
                                       {t.name}
                                     </h4>
                                     {isSelected && (
@@ -810,7 +810,7 @@ export default function PackageUpgradeDialog({
                                     )}
                                   </div>
 
-                                  <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+                                  <p className="text-slate-600 mb-4 line-clamp-2 leading-relaxed dark:text-muted-foreground">
                                     {t.description ||
                                       "No description available"}
                                   </p>
@@ -820,18 +820,18 @@ export default function PackageUpgradeDialog({
                                       variant="secondary"
                                       className={cn(
                                         normalizeTemplateStatus(t.status) === "approved" &&
-                                          "bg-emerald-100 text-emerald-700"
+                                          "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                                       )}
                                     >
                                       {getTemplateStatusLabel(t.status)}
                                     </Badge>
-                                    <div className="flex items-center gap-2 text-slate-500">
+                                    <div className="flex items-center gap-2 text-slate-500 dark:text-muted-foreground">
                                       <FileText className="h-4 w-4" />
                                       <span className="text-sm">
                                         {t._count?.sitesAssets ?? 0} assets
                                       </span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-slate-500">
+                                    <div className="flex items-center gap-2 text-slate-500 dark:text-muted-foreground">
                                       <Users className="h-4 w-4" />
                                       <span className="text-sm">
                                         {t._count?.templateTeamMembers ?? 0}{" "}
@@ -855,18 +855,18 @@ export default function PackageUpgradeDialog({
                     <div className="p-2 bg-linear-to-br from-emerald-500 to-teal-500 rounded-lg text-white">
                       <ShieldCheck className="h-5 w-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-800">
+                    <h3 className="text-xl font-semibold text-slate-800 dark:text-foreground">
                       Asset Migration Preview
                     </h3>
                   </div>
 
                   {!selectedTemplateId ? (
-                    <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
+                    <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center dark:bg-muted/40 dark:border-border">
                       <ShieldCheck className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                      <h4 className="text-lg font-semibold text-slate-600 mb-2">
+                      <h4 className="text-lg font-semibold text-slate-600 mb-2 dark:text-muted-foreground">
                         Select Template to Preview
                       </h4>
-                      <p className="text-slate-500">
+                      <p className="text-slate-500 dark:text-muted-foreground">
                         Choose a template above to see how assets will be
                         migrated.
                       </p>
@@ -874,17 +874,17 @@ export default function PackageUpgradeDialog({
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Common Assets */}
-                      <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-6">
+                      <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-6 dark:from-emerald-950/40 dark:to-teal-950/40 dark:border-emerald-800">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="p-2 bg-emerald-500 rounded-lg text-white">
                             <CheckCircle2 className="h-4 w-4" />
                           </div>
-                          <h4 className="font-semibold text-emerald-800">
+                          <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">
                             Existing Assets
                           </h4>
                           <Badge
                             variant="secondary"
-                            className="bg-emerald-100 text-emerald-700"
+                            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                           >
                             {assetComparison?.common?.length ?? 0} items
                           </Badge>
@@ -895,14 +895,14 @@ export default function PackageUpgradeDialog({
                             assetComparison.common.map((a, index) => (
                               <div
                                 key={`${a.type}:${a.name}:${index}`}
-                                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-emerald-100"
+                                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-emerald-100 dark:bg-card dark:border-emerald-800"
                               >
-                                <span className="font-medium text-slate-700 truncate mr-3">
+                                <span className="font-medium text-slate-700 truncate mr-3 dark:text-foreground">
                                   {a.name}
                                 </span>
                                 <Badge
                                   variant="outline"
-                                  className="text-emerald-600 border-emerald-200 bg-emerald-50"
+                                  className="text-emerald-600 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/40"
                                 >
                                   {a.type}
                                 </Badge>
@@ -911,7 +911,7 @@ export default function PackageUpgradeDialog({
                           ) : (
                             <div className="text-center py-8">
                               <FileText className="h-12 w-12 text-emerald-300 mx-auto mb-3" />
-                              <p className="text-emerald-600 font-medium">
+                              <p className="text-emerald-600 font-medium dark:text-emerald-400">
                                 No common assets found
                               </p>
                             </div>
@@ -920,23 +920,23 @@ export default function PackageUpgradeDialog({
                       </div>
 
                       {/* New Assets */}
-                      <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6">
+                      <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
                         <div className="flex items-center gap-3 mb-4">
                           <div className="p-2 bg-blue-500 rounded-lg text-white">
                             <Star className="h-4 w-4" />
                           </div>
-                          <h4 className="font-semibold text-blue-800">
+                          <h4 className="font-semibold text-blue-800 dark:text-blue-300">
                             New Assets
                           </h4>
                           <Badge
                             variant="secondary"
-                            className="bg-blue-100 text-blue-700"
+                            className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                           >
                             {assetComparison?.onlyInNew?.length ?? 0} items
                           </Badge>
                         </div>
 
-                        <p className="text-blue-700 text-sm mb-4 bg-blue-100 rounded-lg p-3">
+                        <p className="text-blue-700 text-sm mb-4 bg-blue-100 rounded-lg p-3 dark:text-blue-300 dark:bg-blue-900/40">
                           These assets will get automated posting tasks created
                         </p>
 
@@ -945,14 +945,14 @@ export default function PackageUpgradeDialog({
                             assetComparison.onlyInNew.map((a, index) => (
                               <div
                                 key={`${a.type}:${a.name}:${index}`}
-                                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-100"
+                                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-blue-100 dark:bg-card dark:border-blue-800"
                               >
-                                <span className="font-medium text-slate-700 truncate mr-3">
+                                <span className="font-medium text-slate-700 truncate mr-3 dark:text-foreground">
                                   {a.name}
                                 </span>
                                 <Badge
                                   variant="outline"
-                                  className="text-blue-600 border-blue-200 bg-blue-50"
+                                  className="text-blue-600 border-blue-200 bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950/40"
                                 >
                                   {a.type}
                                 </Badge>
@@ -961,7 +961,7 @@ export default function PackageUpgradeDialog({
                           ) : (
                             <div className="text-center py-8">
                               <FileText className="h-12 w-12 text-blue-300 mx-auto mb-3" />
-                              <p className="text-blue-600 font-medium">
+                              <p className="text-blue-600 font-medium dark:text-blue-400">
                                 No new assets to add
                               </p>
                             </div>
@@ -978,7 +978,7 @@ export default function PackageUpgradeDialog({
                     <div className="p-2 bg-linear-to-br from-orange-500 to-red-500 rounded-lg text-white">
                       <Zap className="h-5 w-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-800">
+                    <h3 className="text-xl font-semibold text-slate-800 dark:text-foreground">
                       Migration Options
                     </h3>
                   </div>
@@ -989,8 +989,8 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           createAssignments
-                            ? "border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50"
-                            : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30"
+                            ? "border-emerald-200 bg-linear-to-br from-emerald-50 to-teal-50 dark:border-emerald-800 dark:from-emerald-950/40 dark:to-teal-950/40"
+                            : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 dark:border-border dark:bg-card dark:hover:border-emerald-800 dark:hover:bg-emerald-950/40"
                         )}
                       >
                         <div className="flex items-start gap-4">
@@ -1003,12 +1003,12 @@ export default function PackageUpgradeDialog({
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                              <h4 className="font-semibold text-slate-800">
+                              <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                              <h4 className="font-semibold text-slate-800 dark:text-foreground">
                                 Create Assignments
                               </h4>
                             </div>
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed dark:text-muted-foreground">
                               Automatically generate assignments for the new
                               package templates
                             </p>
@@ -1022,8 +1022,8 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           migrateCompleted
-                            ? "border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50"
-                            : "border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/30"
+                            ? "border-blue-200 bg-linear-to-br from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950/40 dark:to-indigo-950/40"
+                            : "border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/30 dark:border-border dark:bg-card dark:hover:border-blue-800 dark:hover:bg-blue-950/40"
                         )}
                       >
                         <div className="flex items-start gap-4">
@@ -1036,12 +1036,12 @@ export default function PackageUpgradeDialog({
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                              <h4 className="font-semibold text-slate-800">
+                              <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                              <h4 className="font-semibold text-slate-800 dark:text-foreground">
                                 Migrate Completed Work
                               </h4>
                             </div>
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed dark:text-muted-foreground">
                               Copy all completed tasks from the previous package
                             </p>
                           </div>
@@ -1054,8 +1054,8 @@ export default function PackageUpgradeDialog({
                         className={cn(
                           "rounded-2xl border-2 p-6 transition-all duration-200",
                           createPostingTasks
-                            ? "border-purple-200 bg-linear-to-br from-purple-50 to-pink-50"
-                            : "border-slate-200 bg-white hover:border-purple-200 hover:bg-purple-50/30"
+                            ? "border-purple-200 bg-linear-to-br from-purple-50 to-pink-50 dark:border-purple-800 dark:from-purple-950/40 dark:to-pink-950/40"
+                            : "border-slate-200 bg-white hover:border-purple-200 hover:bg-purple-50/30 dark:border-border dark:bg-card dark:hover:border-purple-800 dark:hover:bg-purple-950/40"
                         )}
                       >
                         <div className="flex items-start gap-4">
@@ -1068,12 +1068,12 @@ export default function PackageUpgradeDialog({
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <Zap className="h-5 w-5 text-purple-600" />
-                              <h4 className="font-semibold text-slate-800">
+                              <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                              <h4 className="font-semibold text-slate-800 dark:text-foreground">
                                 Auto-Create Tasks
                               </h4>
                             </div>
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed dark:text-muted-foreground">
                               Generate posting tasks for new template assets
                             </p>
                           </div>
@@ -1087,7 +1087,7 @@ export default function PackageUpgradeDialog({
           </div>
 
           {/* Footer stays fixed */}
-          <DialogFooter className="border-t border-slate-100 px-6 py-6">
+          <DialogFooter className="border-t border-slate-100 px-6 py-6 dark:border-border">
             <div className="flex items-center justify-between w-full gap-4">
               <Button
                 variant="outline"

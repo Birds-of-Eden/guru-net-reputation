@@ -222,7 +222,7 @@ export function PostingTaskGenerator({
             </div>
 
             {dueDate && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-muted-foreground">
                 Client Due Date:{" "}
                 <span className="font-semibold">{format(dueDate, "PPP")}</span>
               </p>
@@ -233,14 +233,14 @@ export function PostingTaskGenerator({
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 Preview ({preview.length} tasks)
               </h4>
-              <div className="border rounded-lg p-4 bg-slate-50 max-h-64 overflow-y-auto">
+              <div className="border rounded-lg p-4 bg-slate-50 max-h-64 overflow-y-auto dark:bg-muted/40">
                 {preview.map((task, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between border-b py-2"
                   >
                     <span className="text-sm">{task.name}</span>
-                    <span className="text-xs text-slate-500">{task.dueDate}</span>
+                    <span className="text-xs text-slate-500 dark:text-muted-foreground">{task.dueDate}</span>
                   </div>
                 ))}
               </div>

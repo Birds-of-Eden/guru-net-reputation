@@ -64,7 +64,7 @@ export function ExportPreview({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto border rounded-md bg-white p-6">
+      <div className="flex-1 overflow-auto border rounded-md bg-white p-6 dark:bg-card">
         {exportData.title && (
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold">{exportData.title}</h1>
@@ -185,10 +185,10 @@ export function ExportPreview({
                       variant="outline"
                       className={
                         task.status === "completed"
-                          ? "bg-green-50 text-green-700"
+                          ? "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300"
                           : task.status === "in-progress"
-                          ? "bg-blue-50 text-blue-700"
-                          : "bg-amber-50 text-amber-700"
+                          ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                          : "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
                       }
                     >
                       {task.status === "completed"
@@ -239,7 +239,7 @@ export function ExportPreview({
                     <div className="text-sm text-muted-foreground mt-1">
                       1 of 8 tasks completed
                     </div>
-                    <div className="text-xs text-green-600 mt-1">
+                    <div className="text-xs text-green-600 mt-1 dark:text-green-400">
                       +0.5% from last month
                     </div>
                   </div>

@@ -84,12 +84,12 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
-      <DialogContent className="sm:max-w-[750px] rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[750px] rounded-3xl border-0 bg-white shadow-2xl overflow-hidden dark:bg-card">
         {/* Header */}
         <div className="bg-linear-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <CheckCircle2 className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -112,9 +112,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         <div className="space-y-8 px-6 pb-6">
           {/* Completion Link */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-emerald-100 p-2 rounded-lg">
-                <LinkIcon className="h-4 w-4 text-emerald-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-emerald-100 p-2 rounded-lg dark:bg-emerald-900/40">
+                <LinkIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               Completion Link *
             </label>
@@ -122,49 +122,49 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com/your-completed-work"
-              className="rounded-2xl h-14 border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all text-base font-medium px-5"
+              className="rounded-2xl h-14 border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all text-base font-medium px-5 dark:border-border"
             />
           </div>
 
           {/* Credentials */}
           {!isSimpleTask(selected) && (
-            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
+            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner dark:from-amber-950/40 dark:via-orange-950/40 dark:to-yellow-950/40 dark:border-amber-800">
               <div className="flex items-center gap-3 mb-2">
                 <div className="bg-amber-500 p-2 rounded-xl">
                   <KeyRound className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="text-base font-black text-slate-800 uppercase tracking-wide">
+                <h3 className="text-base font-black text-slate-800 uppercase tracking-wide dark:text-foreground">
                   Account Credentials
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                     Email
                   </label>
                   <Input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={clientEmail || "email@example.com"}
-                    className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all font-medium"
+                    className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all font-medium dark:bg-card dark:border-amber-800"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                     Username
                   </label>
                   <Input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="username"
-                    className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all font-medium"
+                    className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all font-medium dark:bg-card dark:border-amber-800"
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                  <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                     Password
                   </label>
                   <div className="relative">
@@ -177,15 +177,15 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                           : "Enter password"
                       }
                       type="text"
-                      className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 font-mono pr-20 transition-all font-medium"
+                      className="rounded-2xl h-12 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 font-mono pr-20 transition-all font-medium dark:bg-card dark:border-amber-800"
                     />
                     {lastUsedPassword && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full">
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full dark:text-emerald-400 dark:bg-emerald-900/40">
                         SAVED
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 mt-2 font-medium">
+                  <p className="text-xs text-slate-600 mt-2 font-medium dark:text-muted-foreground">
                     {lastUsedPassword
                       ? "✓ Using your last saved password. You can edit it above."
                       : "Password will be saved for next use."}
@@ -198,9 +198,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
           {/* Agent + Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <UserRound className="h-4 w-4 text-blue-600" />
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+                <div className="bg-blue-100 p-2 rounded-lg dark:bg-blue-900/40">
+                  <UserRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 Done by (Agent) *
               </label>
@@ -211,16 +211,16 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                   setLastUsedAgent?.(value);
                 }}
               >
-                <SelectTrigger className="rounded-2xl h-14 border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-base font-medium">
+                <SelectTrigger className="rounded-2xl h-14 border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-base font-medium dark:border-border">
                   <SelectValue placeholder="Select agent..." />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-gray-200 shadow-lg p-3 w-[300px]">
+                <SelectContent className="rounded-xl border-gray-200 shadow-lg p-3 w-[300px] dark:border-border">
                   <div className="mb-3">
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-muted-foreground" />
                       <Input
                         placeholder="Search agents by name..."
-                        className="pl-12 h-12 text-base border-2 border-white"
+                        className="pl-12 h-12 text-base border-2 border-white dark:border-border"
                         value={agentSearchTerm}
                         onChange={(e) => setAgentSearchTerm(e.target.value)}
                         onClick={(e) => {
@@ -248,9 +248,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                         <SelectItem
                           key={agent.id}
                           value={agent.id}
-                          className="rounded-lg py-2 px-2 my-1 hover:bg-gray-100 focus:bg-blue-50 transition-colors"
+                          className="rounded-lg py-2 px-2 my-1 hover:bg-gray-100 focus:bg-blue-50 transition-colors dark:hover:bg-muted dark:focus:bg-blue-950/40"
                         >
-                          <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-muted/40">
                             <div
                               className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                                 agent.id === doneBy
@@ -270,9 +270,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <Calendar className="h-4 w-4 text-purple-600" />
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+                <div className="bg-purple-100 p-2 rounded-lg dark:bg-purple-900/40">
+                  <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 Completed At *
               </label>
@@ -288,7 +288,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                 showYearDropdown
                 dropdownMode="select"
                 placeholderText="Select completion date"
-                className="w-full border-2 border-slate-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all font-medium"
+                className="w-full border-2 border-slate-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all font-medium dark:border-border"
                 maxDate={new Date()}
               />
             </div>
@@ -296,7 +296,7 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

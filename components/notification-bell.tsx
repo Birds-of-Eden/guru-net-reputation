@@ -122,7 +122,7 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
   // header right controls
   const HeaderControls = () => (
     <div className="flex items-center gap-2">
-      <label className="text-xs text-gray-600 inline-flex items-center">
+      <label className="text-xs text-gray-600 inline-flex items-center dark:text-muted-foreground">
         <input
           type="checkbox"
           checked={soundEnabled}
@@ -160,7 +160,7 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
           variant="ghost"
           size="icon"
           aria-label="Open notifications"
-          className="relative h-7 w-7 text-gray-400 hover:text-gray-600"
+          className="relative h-7 w-7 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
         >
           <Bell className="h-3 w-3" />
           {count > 0 && (
@@ -179,32 +179,32 @@ export function NotificationBell({ apiBase = "/api/notifications" }: Notificatio
 
         {/* states */}
         {countError || listError ? (
-          <div className="p-4 text-sm text-red-600">
+          <div className="p-4 text-sm text-red-600 dark:text-red-400">
             Failed to load notifications.
           </div>
         ) : listLoading && countLoading ? (
-          <div className="p-4 text-sm text-gray-500">Loading…</div>
+          <div className="p-4 text-sm text-gray-500 dark:text-muted-foreground">Loading…</div>
         ) : (
           <div className="max-h-80 overflow-y-auto">
             {items.length === 0 ? (
-              <div className="p-4 text-sm text-gray-500">No notifications</div>
+              <div className="p-4 text-sm text-gray-500 dark:text-muted-foreground">No notifications</div>
             ) : (
               items.map((n: any) => (
                 <button
                   key={n.id}
                   onClick={() => openNotification(n)}
-                  className={`w-full text-left p-3 hover:bg-gray-50 border-b ${
-                    n.isRead ? "" : "bg-blue-50"
+                  className={`w-full text-left p-3 hover:bg-gray-50 border-b dark:hover:bg-muted/40 ${
+                    n.isRead ? "" : "bg-blue-50 dark:bg-blue-950/40"
                   }`}
                 >
                   <div
                     className={`text-sm ${
-                      n.isRead ? "text-gray-700" : "font-medium"
+                      n.isRead ? "text-gray-700 dark:text-foreground" : "font-medium"
                     }`}
                   >
                     {truncateWords(htmlToText(n.message), 10)}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 dark:text-muted-foreground">
                     {new Date(n.createdAt).toLocaleString()}
                   </div>
                 </button>

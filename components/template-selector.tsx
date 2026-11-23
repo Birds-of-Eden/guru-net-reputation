@@ -66,7 +66,7 @@ export function TemplateSelector({
             <div className="flex items-center gap-3 text-left">
               <div className="flex-1">
                 <div className="font-medium">{selectedTemplate.name}</div>
-                <div className="text-xs text-gray-500 truncate">{selectedTemplate.description}</div>
+                <div className="text-xs text-gray-500 truncate dark:text-muted-foreground">{selectedTemplate.description}</div>
                 <div className="flex items-center gap-2 mt-1">
                   {selectedTemplate.sitesAssets.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
@@ -109,7 +109,7 @@ export function TemplateSelector({
                     <Check className={cn("h-4 w-4 shrink-0", value === template.id ? "opacity-100" : "opacity-0")} />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{template.name}</div>
-                      <div className="text-xs text-gray-500 line-clamp-2">{template.description}</div>
+                      <div className="text-xs text-gray-500 line-clamp-2 dark:text-muted-foreground">{template.description}</div>
                       <div className="flex items-center gap-2 mt-2">
                         {template.sitesAssets.length > 0 && (
                           <Badge variant="outline" className="text-xs">
@@ -126,16 +126,16 @@ export function TemplateSelector({
                       </div>
                       {template.templateTeamMembers.length > 0 && (
                         <div className="flex items-center gap-1 mt-2">
-                          <span className="text-xs text-gray-500">Recommended:</span>
+                          <span className="text-xs text-gray-500 dark:text-muted-foreground">Recommended:</span>
                           <div className="flex -space-x-1">
                             {template.templateTeamMembers.slice(0, 3).map((member) => (
-                              <Avatar key={member.id} className="h-5 w-5 border border-white">
+                              <Avatar key={member.id} className="h-5 w-5 border border-white dark:border-border">
                                 <AvatarImage src={member.agent.image || "/placeholder.svg"} alt={member.agent.name} />
                                 <AvatarFallback className="text-xs">{member.agent.name.substring(0, 2)}</AvatarFallback>
                               </Avatar>
                             ))}
                             {template.templateTeamMembers.length > 3 && (
-                              <div className="h-5 w-5 rounded-full bg-gray-200 border border-white flex items-center justify-center text-xs">
+                              <div className="h-5 w-5 rounded-full bg-gray-200 border border-white flex items-center justify-center text-xs dark:bg-muted dark:border-border">
                                 +{template.templateTeamMembers.length - 3}
                               </div>
                             )}

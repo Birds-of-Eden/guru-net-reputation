@@ -163,14 +163,14 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
 
   if (!client) {
     return (
-      <div className="p-6 text-center text-gray-600">Client not found.</div>
+      <div className="p-6 text-center text-gray-600 dark:text-muted-foreground">Client not found.</div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white via-slate-50 to-slate-100">
+    <div className="min-h-screen bg-linear-to-b from-white via-slate-50 to-slate-100 dark:from-card dark:via-background dark:to-background">
       {/* Page Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200 dark:bg-card/80 dark:border-border">
         <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
@@ -184,7 +184,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               </Link>
             </Button>
             <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 ring-4 ring-white shadow border border-slate-200">
+              <Avatar className="h-12 w-12 ring-4 ring-white shadow border border-slate-200 dark:border-border">
                 <AvatarImage
                   src={
                     client.avatar ||
@@ -198,10 +198,10 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-foreground">
                   {client.name}
                 </h1>
-                <p className="text-slate-600 flex items-center gap-2">
+                <p className="text-slate-600 flex items-center gap-2 dark:text-muted-foreground">
                   <Building2 className="h-4 w-4" /> {client.company} •{" "}
                   {client.designation}
                 </p>
@@ -233,15 +233,15 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {/* Personal Information */}
         <Section
           title="Personal Information"
-          icon={<User className="h-5 w-5 text-slate-700" />}
+          icon={<User className="h-5 w-5 text-slate-700 dark:text-foreground" />}
           open={expandedSections.personalInfo}
           onToggle={() => toggleSection("personalInfo")}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
             {client.birthdate && (
               <InfoCard
-                iconBg="bg-rose-100"
-                icon={<Cake className="h-4 w-4 text-rose-600" />}
+                iconBg="bg-rose-100 dark:bg-rose-900/40"
+                icon={<Cake className="h-4 w-4 text-rose-600 dark:text-rose-400" />}
                 label="Birthdate"
               >
                 {format(new Date(client.birthdate), "MMM d, yyyy")}
@@ -249,25 +249,25 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             )}
             {client.location && (
               <InfoCard
-                iconBg="bg-fuchsia-100"
-                icon={<MapPin className="h-4 w-4 text-fuchsia-600" />}
+                iconBg="bg-fuchsia-100 dark:bg-fuchsia-900/40"
+                icon={<MapPin className="h-4 w-4 text-fuchsia-600 dark:text-fuchsia-400" />}
                 label="Location"
               >
                 {client.location}
               </InfoCard>
             )}
             <InfoCard
-              iconBg="bg-teal-100"
-              icon={<Shield className="h-4 w-4 text-teal-600" />}
+              iconBg="bg-teal-100 dark:bg-teal-900/40"
+              icon={<Shield className="h-4 w-4 text-teal-600 dark:text-teal-400" />}
               label="Status"
             >
               <Badge
                 className={
                   client.status === "active"
-                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800 dark:hover:bg-emerald-900/40"
                     : client.status === "inactive"
-                      ? "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      : "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100"
+                      ? "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-muted dark:text-foreground dark:border-border dark:hover:bg-muted"
+                      : "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800 dark:hover:bg-amber-900/40"
                 }
               >
                 {client.status || "Pending"}
@@ -275,8 +275,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             </InfoCard>
             {client.phone && (
               <InfoCard
-                iconBg="bg-blue-100"
-                icon={<Phone className="h-4 w-4 text-blue-600" />}
+                iconBg="bg-blue-100 dark:bg-blue-900/40"
+                icon={<Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                 label="Phone"
               >
                 {client.phone}
@@ -284,8 +284,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             )}
             {client.email && (
               <InfoCard
-                iconBg="bg-violet-100"
-                icon={<Mail className="h-4 w-4 text-violet-600" />}
+                iconBg="bg-violet-100 dark:bg-violet-900/40"
+                icon={<Mail className="h-4 w-4 text-violet-600 dark:text-violet-400" />}
                 label="Email"
               >
                 {client.email}
@@ -294,8 +294,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             {client.address && (
               <InfoCard
                 className="md:col-span-2"
-                iconBg="bg-orange-100"
-                icon={<Home className="h-4 w-4 text-orange-600" />}
+                iconBg="bg-orange-100 dark:bg-orange-900/40"
+                icon={<Home className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
                 label="Address"
               >
                 {client.address}
@@ -303,8 +303,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             )}
             {client.category && (
               <InfoCard
-                iconBg="bg-indigo-100"
-                icon={<Briefcase className="h-4 w-4 text-indigo-600" />}
+                iconBg="bg-indigo-100 dark:bg-indigo-900/40"
+                icon={<Briefcase className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
                 label="Category"
               >
                 {client.category}
@@ -313,7 +313,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
           </div>
           <Separator className="my-4" />
           <div>
-            <h4 className="text-sm text-slate-500 font-medium mb-3">
+            <h4 className="text-sm text-slate-500 font-medium mb-3 dark:text-muted-foreground">
               Name Keywords
             </h4>
             <div className="flex flex-wrap items-center gap-2">
@@ -323,7 +323,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                 </Badge>
               ))}
               {!client.keywords?.length && (
-                <p className="text-sm text-slate-500">No keywords assigned.</p>
+                <p className="text-sm text-slate-500 dark:text-muted-foreground">No keywords assigned.</p>
               )}
               <Button
                 variant="outline"
@@ -341,15 +341,15 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {/* Project Timeline */}
         <Section
           title="Project Timeline"
-          icon={<Calendar className="h-5 w-5 text-slate-700" />}
+          icon={<Calendar className="h-5 w-5 text-slate-700 dark:text-foreground" />}
           open={expandedSections.projectTimeline}
           onToggle={() => toggleSection("projectTimeline")}
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
             {client.startDate && (
               <InfoCard
-                iconBg="bg-emerald-100"
-                icon={<Flag className="h-4 w-4 text-emerald-600" />}
+                iconBg="bg-emerald-100 dark:bg-emerald-900/40"
+                icon={<Flag className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
                 label="Start Date"
               >
                 {format(new Date(client.startDate), "MMM d, yyyy")}
@@ -357,16 +357,16 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
             )}
             {client.dueDate && (
               <InfoCard
-                iconBg="bg-red-100"
-                icon={<Clock className="h-4 w-4 text-red-600" />}
+                iconBg="bg-red-100 dark:bg-red-900/40"
+                icon={<Clock className="h-4 w-4 text-red-600 dark:text-red-400" />}
                 label="Due Date"
               >
                 {format(new Date(client.dueDate), "MMM d, yyyy")}
               </InfoCard>
             )}
             <InfoCard
-              iconBg="bg-indigo-100"
-              icon={<Package className="h-4 w-4 text-indigo-600" />}
+              iconBg="bg-indigo-100 dark:bg-indigo-900/40"
+              icon={<Package className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />}
               label="Package"
             >
               {client.package?.name || "None"}
@@ -377,19 +377,19 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {/* Task Summary */}
         <Section
           title="Task Summary"
-          icon={<ListChecks className="h-5 w-5 text-slate-700" />}
+          icon={<ListChecks className="h-5 w-5 text-slate-700 dark:text-foreground" />}
           open={expandedSections.taskSummary}
           onToggle={() => toggleSection("taskSummary")}
         >
           <div className="space-y-6 mt-2">
             {client.tasks && client.tasks.length > 0 ? (
               <>
-                <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
+                <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 dark:bg-muted/40 dark:border-border">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-slate-700 font-semibold">
+                    <span className="text-slate-700 font-semibold dark:text-foreground">
                       Completion Rate
                     </span>
-                    <span className="font-bold text-2xl text-slate-900">
+                    <span className="font-bold text-2xl text-slate-900 dark:text-foreground">
                       {client.progress || 0}%
                     </span>
                   </div>
@@ -403,39 +403,39 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                   {Object.entries(taskCounts).map(([status, count]) => {
                     const map = {
                       completed: {
-                        color: "bg-emerald-100",
-                        text: "text-emerald-700",
-                        icon: "text-emerald-600",
+                        color: "bg-emerald-100 dark:bg-emerald-900/40",
+                        text: "text-emerald-700 dark:text-emerald-300",
+                        icon: "text-emerald-600 dark:text-emerald-400",
                       },
                       in_progress: {
-                        color: "bg-blue-100",
-                        text: "text-blue-700",
-                        icon: "text-blue-600",
+                        color: "bg-blue-100 dark:bg-blue-900/40",
+                        text: "text-blue-700 dark:text-blue-300",
+                        icon: "text-blue-600 dark:text-blue-400",
                       },
                       pending: {
-                        color: "bg-amber-100",
-                        text: "text-amber-700",
-                        icon: "text-amber-600",
+                        color: "bg-amber-100 dark:bg-amber-900/40",
+                        text: "text-amber-700 dark:text-amber-300",
+                        icon: "text-amber-600 dark:text-amber-400",
                       },
                       overdue: {
-                        color: "bg-red-100",
-                        text: "text-red-700",
-                        icon: "text-red-600",
+                        color: "bg-red-100 dark:bg-red-900/40",
+                        text: "text-red-700 dark:text-red-300",
+                        icon: "text-red-600 dark:text-red-400",
                       },
                       cancelled: {
-                        color: "bg-slate-100",
-                        text: "text-slate-700",
-                        icon: "text-slate-600",
+                        color: "bg-slate-100 dark:bg-muted",
+                        text: "text-slate-700 dark:text-foreground",
+                        icon: "text-slate-600 dark:text-muted-foreground",
                       },
                     } as const;
                     const cfg = map[status as keyof typeof map] ?? map.pending;
                     return (
                       <div
                         key={status}
-                        className={`${cfg.color} p-4 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200`}
+                        className={`${cfg.color} p-4 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200 dark:border-border`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <div className={`p-2 bg-white rounded-lg shadow-sm`}>
+                          <div className={`p-2 bg-white rounded-lg shadow-sm dark:bg-card`}>
                             <Target className={`h-4 w-4 ${cfg.icon}`} />
                           </div>
                           <span className={`text-2xl font-bold ${cfg.text}`}>
@@ -452,21 +452,21 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                   })}
                 </div>
 
-                <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
-                  <h4 className="font-semibold text-slate-900 mb-4">
+                <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 dark:bg-muted/40 dark:border-border">
+                  <h4 className="font-semibold text-slate-900 mb-4 dark:text-foreground">
                     Recent Tasks
                   </h4>
                   <div className="space-y-3">
                     {client.tasks.slice(0, 5).map((task) => (
                       <div
                         key={task.id}
-                        className="flex items-center justify-between p-4 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200"
+                        className="flex items-center justify-between p-4 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200 dark:bg-card dark:border-border"
                       >
                         <div>
-                          <p className="font-semibold text-slate-900">
+                          <p className="font-semibold text-slate-900 dark:text-foreground">
                             {task.name}
                           </p>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-slate-500 dark:text-muted-foreground">
                             {task.templateSiteAsset?.type} •{" "}
                             {task.templateSiteAsset?.name}
                           </p>
@@ -474,14 +474,14 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                         <Badge
                           className={
                             task.status === "completed"
-                              ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800 dark:hover:bg-emerald-900/40"
                               : task.status === "in_progress"
-                                ? "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                ? "bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/40"
                                 : task.status === "pending"
-                                  ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100"
+                                  ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800 dark:hover:bg-amber-900/40"
                                   : task.status === "overdue"
-                                    ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-100"
-                                    : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                    ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800 dark:hover:bg-red-900/40"
+                                    : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-muted dark:text-foreground dark:border-border dark:hover:bg-muted"
                           }
                         >
                           {task.status.replace("_", " ")}
@@ -492,8 +492,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                 </div>
               </>
             ) : (
-              <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center">
-                <p className="text-slate-500">
+              <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center dark:bg-muted/40 dark:border-border">
+                <p className="text-slate-500 dark:text-muted-foreground">
                   No tasks assigned to this client yet.
                 </p>
               </div>
@@ -504,7 +504,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {/* Team Members */}
         <Section
           title="Team Members"
-          icon={<Users className="h-5 w-5 text-slate-700" />}
+          icon={<Users className="h-5 w-5 text-slate-700 dark:text-foreground" />}
           open={expandedSections.teamMembers}
           onToggle={() => toggleSection("teamMembers")}
           badge={client.teamMembers?.length}
@@ -514,10 +514,10 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               {client.teamMembers.map((member) => (
                 <div
                   key={member.agentId}
-                  className="bg-slate-50 p-5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all duration-200"
+                  className="bg-slate-50 p-5 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all duration-200 dark:bg-muted/40 dark:border-border dark:hover:bg-muted"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm border border-slate-200">
+                    <Avatar className="h-12 w-12 ring-2 ring-white shadow-sm border border-slate-200 dark:border-border">
                       <AvatarImage
                         src={member.agent?.image || "/placeholder.svg"}
                         alt={member.agent?.name || ""}
@@ -528,19 +528,19 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-foreground">
                         {member.agent?.name || "Unknown"}
                       </p>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-600 dark:text-muted-foreground">
                         {member.agent?.role?.name || member.role || "Member"}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs hover:bg-blue-100">
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/40">
                       {member.teamId || "No Team"}
                     </Badge>
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs hover:bg-emerald-100">
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800 dark:hover:bg-emerald-900/40">
                       {member.assignedTasks || 0} tasks
                     </Badge>
                   </div>
@@ -548,8 +548,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               ))}
             </div>
           ) : (
-            <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center">
-              <p className="text-slate-500">
+            <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center dark:bg-muted/40 dark:border-border">
+              <p className="text-slate-500 dark:text-muted-foreground">
                 No team members assigned to this client yet.
               </p>
             </div>
@@ -559,7 +559,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {/* Assignments */}
         <Section
           title="Assignments"
-          icon={<Briefcase className="h-5 w-5 text-slate-700" />}
+          icon={<Briefcase className="h-5 w-5 text-slate-700 dark:text-foreground" />}
           open={expandedSections.assignments}
           onToggle={() => toggleSection("assignments")}
           badge={client.assignments?.length}
@@ -569,26 +569,26 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               {client.assignments.map((assignment) => (
                 <div
                   key={assignment.id}
-                  className="bg-slate-50 p-6 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all duration-200"
+                  className="bg-slate-50 p-6 rounded-lg border border-slate-100 hover:bg-slate-100 transition-all duration-200 dark:bg-muted/40 dark:border-border dark:hover:bg-muted"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-slate-900 text-lg">
+                    <h4 className="font-semibold text-slate-900 text-lg dark:text-foreground">
                       {assignment.template?.name || "Unnamed Assignment"}
                     </h4>
-                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
+                    <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/40">
                       {assignment.status || "Unknown Status"}
                     </Badge>
                   </div>
-                  <p className="text-slate-600 mb-4 leading-relaxed">
+                  <p className="text-slate-600 mb-4 leading-relaxed dark:text-muted-foreground">
                     {assignment.template?.description ||
                       "No description available"}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="bg-white p-4 rounded-lg border border-slate-200">
-                      <p className="text-xs text-slate-500 font-medium mb-1">
+                    <div className="bg-white p-4 rounded-lg border border-slate-200 dark:bg-card dark:border-border">
+                      <p className="text-xs text-slate-500 font-medium mb-1 dark:text-muted-foreground">
                         Assigned At
                       </p>
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-foreground">
                         {assignment.assignedAt
                           ? format(
                               new Date(assignment.assignedAt),
@@ -597,11 +597,11 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                           : "Not specified"}
                       </p>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-slate-200">
-                      <p className="text-xs text-slate-500 font-medium mb-1">
+                    <div className="bg-white p-4 rounded-lg border border-slate-200 dark:bg-card dark:border-border">
+                      <p className="text-xs text-slate-500 font-medium mb-1 dark:text-muted-foreground">
                         Tasks
                       </p>
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-foreground">
                         {assignment.tasks?.length || 0} tasks
                       </p>
                     </div>
@@ -609,14 +609,14 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                   {assignment.template?.sitesAssets &&
                     assignment.template.sitesAssets.length > 0 && (
                       <div>
-                        <p className="text-sm text-slate-600 font-medium mb-3">
+                        <p className="text-sm text-slate-600 font-medium mb-3 dark:text-muted-foreground">
                           Assets
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {assignment.template.sitesAssets.map((asset) => (
                             <Badge
                               key={asset.id}
-                              className="bg-indigo-100 text-indigo-700 border-indigo-200 capitalize hover:bg-indigo-100"
+                              className="bg-indigo-100 text-indigo-700 border-indigo-200 capitalize hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800 dark:hover:bg-indigo-900/40"
                             >
                               {asset.type.replace("_", " ")}: {asset.name}
                             </Badge>
@@ -628,8 +628,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               ))}
             </div>
           ) : (
-            <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center">
-              <p className="text-slate-500">
+            <div className="bg-slate-50 p-8 rounded-lg border border-slate-100 text-center dark:bg-muted/40 dark:border-border">
+              <p className="text-slate-500 dark:text-muted-foreground">
                 No assignments for this client yet.
               </p>
             </div>
@@ -640,22 +640,22 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {(client.companywebsite || client.companyaddress) && (
           <Section
             title="Proffessional Background"
-            icon={<Building2 className="h-5 w-5 text-slate-700" />}
+            icon={<Building2 className="h-5 w-5 text-slate-700 dark:text-foreground" />}
             open={expandedSections.companyInfo}
             onToggle={() => toggleSection("companyInfo")}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               {client.companywebsite && (
                 <InfoCard
-                  iconBg="bg-blue-100"
-                  icon={<Globe className="h-4 w-4 text-blue-600" />}
+                  iconBg="bg-blue-100 dark:bg-blue-900/40"
+                  icon={<Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                   label="Website"
                 >
                   <a
                     href={client.companywebsite}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="font-semibold text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     {client.companywebsite}
                   </a>
@@ -663,8 +663,8 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
               )}
               {client.companyaddress && (
                 <InfoCard
-                  iconBg="bg-emerald-100"
-                  icon={<MapPin className="h-4 w-4 text-emerald-600" />}
+                  iconBg="bg-emerald-100 dark:bg-emerald-900/40"
+                  icon={<MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
                   label="Address"
                 >
                   {client.companyaddress}
@@ -678,12 +678,12 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
         {client.biography && (
           <Section
             title="Biography"
-            icon={<BookOpen className="h-5 w-5 text-slate-700" />}
+            icon={<BookOpen className="h-5 w-5 text-slate-700 dark:text-foreground" />}
             open={expandedSections.biography}
             onToggle={() => toggleSection("biography")}
           >
-            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 mt-2">
-              <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 mt-2 dark:bg-muted/40 dark:border-border">
+              <p className="text-slate-700 leading-relaxed whitespace-pre-line dark:text-foreground">
                 {client.biography}
               </p>
             </div>
@@ -692,22 +692,22 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
 
         {/* Image Drive Link */}
         {(driveData.driveLink || driveData.items.length > 0) && (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 dark:bg-card dark:border-border">
             <div className="p-6 space-y-4">
-              <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3">
-                <div className="p-2.5 bg-slate-100 rounded-lg">
-                  <ImageIcon className="h-5 w-5 text-slate-700" />
+              <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3 dark:text-foreground">
+                <div className="p-2.5 bg-slate-100 rounded-lg dark:bg-muted">
+                  <ImageIcon className="h-5 w-5 text-slate-700 dark:text-foreground" />
                 </div>
                 Image Drive Link
               </h3>
 
               {driveData.driveLink && (
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 dark:bg-muted/40 dark:border-border">
                   <a
                     href={driveData.driveLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700 hover:underline font-medium flex items-center gap-2"
+                    className="text-blue-600 hover:text-blue-700 hover:underline font-medium flex items-center gap-2 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     <ImageIcon className="h-4 w-4" />
                     {driveData.driveLink}
@@ -720,11 +720,11 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                   {driveData.items.map((item, idx) => (
                     <div
                       key={`${item?.link || item?.title || "link"}-${idx}`}
-                      className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-lg p-3"
+                      className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-lg p-3 dark:bg-muted/40 dark:border-border"
                     >
-                      <ImageIcon className="h-4 w-4 text-slate-600 mt-0.5" />
+                      <ImageIcon className="h-4 w-4 text-slate-600 mt-0.5 dark:text-muted-foreground" />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">
+                        <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                           {item?.title || "(Untitled)"}
                         </p>
                         {item?.link && (
@@ -732,7 +732,7 @@ export default function ClientDetailsPage({ clientId }: { clientId: string }) {
                             href={item.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline break-all"
+                            className="text-xs text-blue-600 hover:underline break-all dark:text-blue-400"
                           >
                             {item.link}
                           </a>
@@ -789,13 +789,13 @@ function Section({
   onToggle: () => void;
 }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-between p-6 border-b border-slate-100">
-        <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3">
-          <div className="p-2.5 bg-slate-100 rounded-lg">{icon}</div>
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 dark:bg-card dark:border-border">
+      <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-border">
+        <h3 className="font-semibold text-xl text-slate-900 flex items-center gap-3 dark:text-foreground">
+          <div className="p-2.5 bg-slate-100 rounded-lg dark:bg-muted">{icon}</div>
           {title}
           {typeof badge === "number" && (
-            <Badge className="bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100">
+            <Badge className="bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-muted dark:text-foreground dark:border-border dark:hover:bg-muted">
               {badge}
             </Badge>
           )}
@@ -805,12 +805,12 @@ function Section({
             <Button
               variant="ghost"
               size="sm"
-              className="w-9 h-9 p-0 hover:bg-slate-100 rounded-lg"
+              className="w-9 h-9 p-0 hover:bg-slate-100 rounded-lg dark:hover:bg-muted"
             >
               {open ? (
-                <ChevronUp className="h-4 w-4 text-slate-600" />
+                <ChevronUp className="h-4 w-4 text-slate-600 dark:text-muted-foreground" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-slate-600" />
+                <ChevronDown className="h-4 w-4 text-slate-600 dark:text-muted-foreground" />
               )}
             </Button>
           </CollapsibleTrigger>
@@ -840,13 +840,13 @@ function InfoCard({
 }) {
   return (
     <div
-      className={`bg-slate-50 p-4 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors ${className}`}
+      className={`bg-slate-50 p-4 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors dark:bg-muted/40 dark:border-border dark:hover:bg-muted ${className}`}
     >
       <div className="flex items-start gap-3">
         <div className={`p-2 ${iconBg} rounded-lg`}>{icon}</div>
         <div className="flex-1">
-          <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
-          <p className="font-semibold text-slate-900 text-sm leading-tight">
+          <p className="text-xs text-slate-500 font-medium mb-1 dark:text-muted-foreground">{label}</p>
+          <p className="font-semibold text-slate-900 text-sm leading-tight dark:text-foreground">
             {children}
           </p>
         </div>

@@ -45,10 +45,10 @@ export default function TemplateDetailsInPackagePage() {
       <p className="text-muted-foreground">
         Description: {template.description || "N/A"}
       </p>
-      <p className="text-sm text-amber-600">
+      <p className="text-sm text-amber-600 dark:text-amber-400">
         Status: {template.status || "N/A"}
       </p>
-      <p className="text-sm text-blue-600">
+      <p className="text-sm text-blue-600 dark:text-blue-400">
         Package: {template.package?.name || "No Package"}
       </p>
     </div>

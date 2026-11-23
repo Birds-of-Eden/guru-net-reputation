@@ -151,14 +151,14 @@ export default function TaskCategoriesPage() {
   return (
     <div className="py-8 px-4 md:px-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <h1 className="text-3xl font-bold text-gray-800">Task Categories</h1>
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 dark:bg-card dark:border-border">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-foreground">Task Categories</h1>
         <div className="flex gap-4 flex-wrap items-center">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-muted-foreground" />
             <Input
               placeholder="Search categories..."
-              className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
+              className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-border"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -178,7 +178,7 @@ export default function TaskCategoriesPage() {
 
       {/* Categories Grid */}
       {filteredCategories.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 dark:text-muted-foreground dark:bg-card dark:border-border">
           <p className="text-lg font-medium mb-2">No categories found.</p>
           <p className="text-sm">Try adjusting your search.</p>
         </div>
@@ -298,7 +298,7 @@ export default function TaskCategoriesPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               This will permanently delete the category.
             </p>
           </AlertDialogHeader>
@@ -327,21 +327,21 @@ function CategoryCard({
   onDelete: () => void;
 }) {
   return (
-    <Card className="overflow-hidden border border-gray-100 shadow-md bg-white hover:shadow-lg transition">
-      <CardHeader className="p-4 border-b bg-linear-to-r from-cyan-50 to-blue-50 flex justify-between">
-        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-cyan-600" /> {category.name}
+    <Card className="overflow-hidden border border-gray-100 shadow-md bg-white hover:shadow-lg transition dark:border-border dark:bg-card">
+      <CardHeader className="p-4 border-b bg-linear-to-r from-cyan-50 to-blue-50 flex justify-between dark:from-cyan-950/40 dark:to-blue-950/40">
+        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2 dark:text-foreground">
+          <ListChecks className="h-5 w-5 text-cyan-600 dark:text-cyan-400" /> {category.name}
         </h3>
       </CardHeader>
       <CardContent className="p-4 space-y-2">
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 text-sm dark:text-muted-foreground">
           {category.description || "No description"}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-muted-foreground">
           {category.tasks?.length || 0} tasks in this category
         </p>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2 border-t bg-gray-50 p-3">
+      <CardFooter className="flex justify-end gap-2 border-t bg-gray-50 p-3 dark:bg-muted/40">
         <Button size="icon" variant="outline" onClick={onEdit}>
           <Edit className="h-4 w-4" />
         </Button>

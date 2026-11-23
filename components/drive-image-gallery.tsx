@@ -368,7 +368,7 @@ export function DriveImageGallery({
             <div className="flex items-center justify-center py-16">
               <Card className="border-dashed border-2 border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                 <CardContent className="py-12 px-8 text-center">
-                  <Images className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <Images className="h-12 w-12 text-gray-400 mx-auto mb-4 dark:text-muted-foreground" />
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                     No Files Found
                   </h3>
@@ -409,7 +409,7 @@ export function DriveImageGallery({
                               size="sm"
                               variant="secondary"
                               disabled
-                              className="bg-green-100 text-green-800 border-green-200"
+                              className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800"
                             >
                               <Check className="h-4 w-4 mr-1" />
                               Copied
@@ -420,7 +420,7 @@ export function DriveImageGallery({
                               variant="secondary"
                               onClick={() => handleCopy(img)}
                               disabled={isBusy}
-                              className="bg-white/90 hover:bg-white text-gray-900 shadow-sm"
+                              className="bg-white/90 hover:bg-white text-gray-900 shadow-sm dark:bg-card/90 dark:hover:bg-card dark:text-foreground"
                             >
                               {isBusy ? (
                                 <>

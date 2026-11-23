@@ -280,7 +280,7 @@ export default function Notifications({
           </div>
 
           {pagination && !isLoading && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-muted-foreground">
               Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
               {Math.min(
                 pagination.currentPage * pagination.limit,
@@ -379,7 +379,7 @@ export default function Notifications({
 
       <CardContent>
         {error && (
-          <div className="text-red-600">Failed to load notifications.</div>
+          <div className="text-red-600 dark:text-red-400">Failed to load notifications.</div>
         )}
         
         {isLoading && (
@@ -413,14 +413,14 @@ export default function Notifications({
         )}
 
         {!isLoading && !error && notifications.length === 0 && (
-          <div className="text-gray-500">No notifications found.</div>
+          <div className="text-gray-500 dark:text-muted-foreground">No notifications found.</div>
         )}
 
         {!isLoading &&
           !error &&
           Object.entries(grouped).map(([dateLabel, items]) => (
             <div key={dateLabel} className="mb-6">
-              <div className="text-xs font-semibold text-gray-500 mb-2">
+              <div className="text-xs font-semibold text-gray-500 mb-2 dark:text-muted-foreground">
                 {dateLabel}
               </div>
               <div className="divide-y rounded-lg border">
@@ -428,12 +428,12 @@ export default function Notifications({
                   <div
                     key={n.id}
                     className={`p-3 flex items-start justify-between ${
-                      n.isRead ? "" : "bg-blue-50/60"
+                      n.isRead ? "" : "bg-blue-50/60 dark:bg-blue-950/40"
                     }`}
                   >
                     <div className="pr-3">
                       <div className="text-sm">{truncateWords(htmlToText(n.message), 20)}</div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 mt-1 dark:text-muted-foreground">
                         {new Date(n.createdAt).toLocaleString()}
                       </div>
                       <div className="mt-1">
@@ -521,7 +521,7 @@ export default function Notifications({
               </Button>
             </div>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-muted-foreground">
               Page {pagination.currentPage} of {pagination.totalPages}
             </div>
           </div>

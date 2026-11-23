@@ -129,28 +129,28 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg mb-4">
           <User className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-violet-400 dark:via-purple-400 dark:to-fuchsia-400">
           General Information
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Let's start with some basic information about you or your business.
         </p>
       </div>
 
       {/* Personal Information Card */}
-      <div className="bg-linear-to-br from-white to-violet-50/30 rounded-2xl shadow-xl border border-violet-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-violet-50/30 rounded-2xl shadow-xl border border-violet-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-violet-950/40 dark:border-violet-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
             <User className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Personal Details</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">Personal Details</h2>
         </div>
 
         <div className="space-y-6">
           <div className="group">
             <Label
               htmlFor="name"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <User className="w-4 h-4 text-violet-500" />
               Full Name *
@@ -160,7 +160,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.name || ""}
               onChange={(e) => updateFormData({ name: e.target.value })}
               placeholder="Enter your full name"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl dark:border-border"
               required
             />
           </div>
@@ -168,12 +168,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <KeywordInput formData={formData} updateFormData={updateFormData} />
 
           <div className="group">
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-foreground">
               Profile Picture
             </Label>
             <div className="flex items-center gap-6">
               <div className="relative">
-                <div className="relative h-28 w-28 rounded-2xl overflow-hidden border-4 border-white shadow-xl ring-2 ring-violet-200 group-hover:ring-violet-400 transition-all duration-300">
+                <div className="relative h-28 w-28 rounded-2xl overflow-hidden border-4 border-white shadow-xl ring-2 ring-violet-200 group-hover:ring-violet-400 transition-all duration-300 dark:border-border">
                   {previewUrl ? (
                     <Image
                       src={previewUrl || "/placeholder.svg"}
@@ -182,13 +182,13 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full bg-linear-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center">
+                    <div className="h-full w-full bg-linear-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center dark:from-violet-900/40 dark:to-fuchsia-900/40">
                       <User className="w-12 h-12 text-violet-400" />
                     </div>
                   )}
                 </div>
                 {previewUrl && (
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center dark:border-border">
                     <svg
                       className="w-4 h-4 text-white"
                       fill="currentColor"
@@ -204,13 +204,13 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 )}
               </div>
               <label className="cursor-pointer flex-1">
-                <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-violet-300 rounded-xl hover:border-violet-500 hover:bg-violet-50 transition-all duration-200 group">
+                <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-violet-300 rounded-xl hover:border-violet-500 hover:bg-violet-50 transition-all duration-200 group dark:border-violet-700 dark:hover:bg-violet-950/40">
                   <Upload className="w-5 h-5 text-violet-500 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
-                    <span className="block text-sm font-semibold text-gray-700">
+                    <span className="block text-sm font-semibold text-gray-700 dark:text-foreground">
                       Upload Photo
                     </span>
-                    <span className="block text-xs text-gray-500">
+                    <span className="block text-xs text-gray-500 dark:text-muted-foreground">
                       PNG, JPG up to 10MB
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
             <div className="group">
               <Label
                 htmlFor="birthdate"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
               >
                 <Calendar className="w-4 h-4 text-violet-500" />
                 Birth Date
@@ -249,7 +249,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                   showYearDropdown
                   dropdownMode="select"
                   placeholderText="Select birth date"
-                  className="w-full h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl px-4 py-2"
+                  className="w-full h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl px-4 py-2 dark:border-border"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
             <div className="group">
               <Label
                 htmlFor="gender"
-                className="text-sm font-semibold text-gray-700"
+                className="text-sm font-semibold text-gray-700 dark:text-foreground"
               >
                 Gender
               </Label>
@@ -272,7 +272,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                     | "other";
                   updateFormData({ gender: value || undefined });
                 }}
-                className="mt-2 flex h-12 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200"
+                className="mt-2 flex h-12 w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-sm focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 dark:border-border dark:bg-card"
               >
                 <option disabled value="">
                   Select gender
@@ -286,7 +286,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
             <div className="group">
               <Label
                 htmlFor="location"
-                className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
               >
                 <MapPin className="w-4 h-4 text-violet-500" />
                 Location
@@ -296,7 +296,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 value={formData.location || ""}
                 onChange={(e) => updateFormData({ location: e.target.value })}
                 placeholder="Enter your location"
-                className="mt-2 h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl"
+                className="mt-2 h-12 border-2 border-gray-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 transition-all duration-200 rounded-xl dark:border-border"
               />
             </div>
           </div>
@@ -304,12 +304,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Proffessional Background Card */}
-      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-blue-950/40 dark:border-blue-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
             <Building2 className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">
             Proffessional Background
           </h2>
         </div>
@@ -318,7 +318,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="company"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Building2 className="w-4 h-4 text-blue-500" />
               Company
@@ -328,14 +328,14 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.company || ""}
               onChange={(e) => updateFormData({ company: e.target.value })}
               placeholder="Enter your company"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl dark:border-border"
             />
           </div>
 
           <div className="group">
             <Label
               htmlFor="designation"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Briefcase className="w-4 h-4 text-blue-500" />
               Designation
@@ -345,14 +345,14 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.designation || ""}
               onChange={(e) => updateFormData({ designation: e.target.value })}
               placeholder="Enter your designation"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl dark:border-border"
             />
           </div>
 
           <div className="group">
             <Label
               htmlFor="companyaddress"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <MapPin className="w-4 h-4 text-blue-500" />
               Company Address
@@ -364,14 +364,14 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 updateFormData({ companyaddress: e.target.value })
               }
               placeholder="Enter company address"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl dark:border-border"
             />
           </div>
 
           <div className="group">
             <Label
               htmlFor="companywebsite"
-              className="text-sm font-semibold text-gray-700"
+              className="text-sm font-semibold text-gray-700 dark:text-foreground"
             >
               Company Website
             </Label>
@@ -382,7 +382,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 updateFormData({ companywebsite: e.target.value })
               }
               placeholder="https://company.com"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl dark:border-border"
               inputMode="url"
             />
           </div>
@@ -390,12 +390,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Account Management Card */}
-      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-emerald-950/40 dark:border-emerald-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">
             Account Management
           </h2>
         </div>
@@ -404,7 +404,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="amId"
-              className="text-sm font-semibold text-gray-700"
+              className="text-sm font-semibold text-gray-700 dark:text-foreground"
             >
               Account Manager (AM)
             </Label>
@@ -418,7 +418,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               disabled={isAM}
             >
               <SelectTrigger
-                className="mt-2 h-12 border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all duration-200 rounded-xl"
+                className="mt-2 h-12 border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all duration-200 rounded-xl dark:border-border"
                 id="amId"
                 aria-label="Select account manager"
               >
@@ -453,10 +453,10 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               </SelectContent>
             </Select>
             {amsError && (
-              <p className="text-sm text-red-600 mt-1">{amsError}</p>
+              <p className="text-sm text-red-600 mt-1 dark:text-red-400">{amsError}</p>
             )}
             {isAM && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1 dark:text-muted-foreground">
                 As an Account Manager, this field is locked to your account.
               </p>
             )}
@@ -465,7 +465,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="status"
-              className="text-sm font-semibold text-gray-700"
+              className="text-sm font-semibold text-gray-700 dark:text-foreground"
             >
               Status
             </Label>
@@ -473,7 +473,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.status || ""}
               onValueChange={(value) => updateFormData({ status: value })}
             >
-              <SelectTrigger className="mt-2 h-12 border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all duration-200 rounded-xl">
+              <SelectTrigger className="mt-2 h-12 border-2 border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all duration-200 rounded-xl dark:border-border">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -487,17 +487,17 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       </div>
 
       {/* Contact Information Card */}
-      <div className="bg-linear-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-amber-50/30 rounded-2xl shadow-xl border border-amber-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-amber-950/40 dark:border-amber-800">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
               <Lock className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">
               Contact Information
             </h2>
           </div>
-          <span className="px-4 py-1.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded-full">
+          <span className="px-4 py-1.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded-full dark:bg-amber-900/40 dark:text-amber-300">
             Optional
           </span>
         </div>
@@ -506,7 +506,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="email"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Mail className="w-4 h-4 text-amber-500" />
               Client Email
@@ -517,7 +517,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.email || ""}
               onChange={(e) => updateFormData({ email: e.target.value })}
               placeholder="client@example.com"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl dark:border-border"
               autoComplete="email"
               inputMode="email"
             />
@@ -526,7 +526,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="phone"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Phone className="w-4 h-4 text-amber-500" />
               Client Phone
@@ -537,7 +537,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.phone || ""}
               onChange={(e) => updateFormData({ phone: e.target.value })}
               placeholder="+1XXXXXXXXX"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl dark:border-border"
               autoComplete="tel"
               inputMode="tel"
             />
@@ -546,7 +546,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="password"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Lock className="w-4 h-4 text-amber-500" />
               Password
@@ -557,7 +557,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
               value={formData.password || ""}
               onChange={(e) => updateFormData({ password: e.target.value })}
               placeholder="Set a password"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl dark:border-border"
               autoComplete="new-password"
             />
           </div>
@@ -565,7 +565,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
           <div className="group">
             <Label
               htmlFor="recoveryEmail"
-              className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+              className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Shield className="w-4 h-4 text-amber-500" />
               Recovery Email
@@ -578,7 +578,7 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
                 updateFormData({ recoveryEmail: e.target.value })
               }
               placeholder="recovery@example.com"
-              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl"
+              className="mt-2 h-12 border-2 border-gray-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 transition-all duration-200 rounded-xl dark:border-border"
               autoComplete="email"
               inputMode="email"
             />

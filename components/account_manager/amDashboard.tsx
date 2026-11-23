@@ -86,11 +86,11 @@ const CHART_COLORS = {
 };
 
 const GRADIENTS = {
-  indigo: "bg-linear-to-br from-indigo-50 via-white to-indigo-100/70",
-  emerald: "bg-linear-to-br from-emerald-50 via-white to-emerald-100/70",
-  amber: "bg-linear-to-br from-amber-50 via-white to-amber-100/70",
-  blue: "bg-linear-to-br from-blue-50 via-white to-blue-100/70",
-  slate: "bg-linear-to-br from-slate-50 via-white to-slate-100/70",
+  indigo: "bg-linear-to-br from-indigo-50 via-white to-indigo-100/70 dark:from-indigo-950/40 dark:via-card dark:to-indigo-900/40",
+  emerald: "bg-linear-to-br from-emerald-50 via-white to-emerald-100/70 dark:from-emerald-950/40 dark:via-card dark:to-emerald-900/40",
+  amber: "bg-linear-to-br from-amber-50 via-white to-amber-100/70 dark:from-amber-950/40 dark:via-card dark:to-amber-900/40",
+  blue: "bg-linear-to-br from-blue-50 via-white to-blue-100/70 dark:from-blue-950/40 dark:via-card dark:to-blue-900/40",
+  slate: "bg-linear-to-br from-slate-50 via-white to-slate-100/70 dark:from-background dark:via-card dark:to-background/70",
 };
 
 // Fetcher for packages
@@ -302,14 +302,14 @@ const AMDashboardComponent = function AMDashboard({
   );
 
   return (
-    <div className="space-y-6 px-4 bg-linear-to-br from-slate-50 to-gray-100 min-h-screen">
+    <div className="space-y-6 px-4 bg-linear-to-br from-slate-50 to-gray-100 min-h-screen dark:from-background dark:to-background">
       {/* Enhanced Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-6">
         <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent dark:from-white dark:to-slate-300">
             AM Dashboard
           </h1>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-sm text-slate-600 font-medium dark:text-muted-foreground">
             {amLabel} • {totalClients} total clients
           </p>
         </div>
@@ -408,7 +408,7 @@ const AMDashboardComponent = function AMDashboard({
           </Card>
         </div>
       ) : clients.error ? (
-        <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border">
+        <div className="flex items-center justify-center gap-3 py-16 text-rose-600 bg-white rounded-xl shadow-sm border dark:text-rose-400 dark:bg-card">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <span className="font-medium">{clients.error}</span>
         </div>
@@ -422,13 +422,13 @@ const AMDashboardComponent = function AMDashboard({
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
                       Total Clients
                     </p>
-                    <p className="text-3xl font-bold text-slate-800">
+                    <p className="text-3xl font-bold text-slate-800 dark:text-foreground">
                       {totalClients}
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-muted-foreground">
                       <TrendingUp className="w-3 h-3 text-emerald-500" />
                       <span>Portfolio size</span>
                     </div>
@@ -446,13 +446,13 @@ const AMDashboardComponent = function AMDashboard({
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
                       Active Clients
                     </p>
-                    <p className="text-3xl font-bold text-slate-800">
+                    <p className="text-3xl font-bold text-slate-800 dark:text-foreground">
                       {activeClients}
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-muted-foreground">
                       <Activity className="w-3 h-3 text-emerald-500" />
                       <span>Currently engaged</span>
                     </div>
@@ -470,13 +470,13 @@ const AMDashboardComponent = function AMDashboard({
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
                       Due in 7 Days
                     </p>
-                    <p className="text-3xl font-bold text-slate-800">
+                    <p className="text-3xl font-bold text-slate-800 dark:text-foreground">
                       {dueIn7Days}
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-muted-foreground">
                       <CalendarDays className="w-3 h-3 text-amber-500" />
                       <span>Upcoming deadlines</span>
                     </div>
@@ -496,7 +496,7 @@ const AMDashboardComponent = function AMDashboard({
               className={`border-0 shadow-lg ${GRADIENTS.slate} hover:shadow-xl transition-all duration-300`}
             >
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
+                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold dark:text-foreground">
                   <div className="p-2 bg-indigo-500 rounded-lg shadow-md">
                     <PieChartIcon className="w-5 h-5 text-white" />
                   </div>
@@ -555,8 +555,8 @@ const AMDashboardComponent = function AMDashboard({
                           "Count",
                         ]}
                         contentStyle={{
-                          backgroundColor: "#f8fafc",
-                          border: "1px solid #e2e8f0",
+                          backgroundColor: "var(--popover)", color: "var(--popover-foreground)",
+                          border: "1px solid var(--border)",
                           borderRadius: "8px",
                           boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                         }}
@@ -564,7 +564,7 @@ const AMDashboardComponent = function AMDashboard({
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-sm text-slate-500 font-medium">
+                  <div className="h-full flex items-center justify-center text-sm text-slate-500 font-medium dark:text-muted-foreground">
                     No status data available
                   </div>
                 )}
@@ -576,7 +576,7 @@ const AMDashboardComponent = function AMDashboard({
               className={`border-0 shadow-lg ${GRADIENTS.emerald} hover:shadow-xl transition-all duration-300`}
             >
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
+                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold dark:text-foreground">
                   <div className="p-2 bg-emerald-500 rounded-lg shadow-md">
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
@@ -628,8 +628,8 @@ const AMDashboardComponent = function AMDashboard({
                     />
                     <RTooltip
                       contentStyle={{
-                        backgroundColor: "#f8fafc",
-                        border: "1px solid #e2e8f0",
+                        backgroundColor: "var(--popover)", color: "var(--popover-foreground)",
+                        border: "1px solid var(--border)",
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
@@ -659,7 +659,7 @@ const AMDashboardComponent = function AMDashboard({
               className={`border-0 shadow-lg ${GRADIENTS.blue} hover:shadow-xl transition-all duration-300`}
             >
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
+                <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold dark:text-foreground">
                   <div className="p-2 bg-blue-500 rounded-lg shadow-md">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
@@ -725,8 +725,8 @@ const AMDashboardComponent = function AMDashboard({
                     />
                     <RTooltip
                       contentStyle={{
-                        backgroundColor: "#f8fafc",
-                        border: "1px solid #e2e8f0",
+                        backgroundColor: "var(--popover)", color: "var(--popover-foreground)",
+                        border: "1px solid var(--border)",
                         borderRadius: "8px",
                         boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                       }}
@@ -752,28 +752,28 @@ const AMDashboardComponent = function AMDashboard({
             className={`border-0 shadow-lg ${GRADIENTS.amber} hover:shadow-xl transition-all duration-300 mb-8`}
           >
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold">
+              <CardTitle className="flex items-center gap-3 text-slate-800 font-semibold dark:text-foreground">
                 <div className="p-2 bg-amber-500 rounded-lg shadow-md">
                   <CalendarDays className="w-5 h-5 text-white" />
                 </div>
                 <span>Upcoming Deliverables</span>
                 <Badge
                   variant="secondary"
-                  className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium"
+                  className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-200 font-medium dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-800/50"
                 >
                   {upcomingDueList.length}
                 </Badge>
-                <span className="ml-auto text-sm text-slate-500 font-medium hidden lg:block">
+                <span className="ml-auto text-sm text-slate-500 font-medium hidden lg:block dark:text-muted-foreground">
                   Viewing: {amLabel}
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
               {upcomingDueList.length ? (
-                <div className="rounded-lg overflow-hidden border border-slate-200">
+                <div className="rounded-lg overflow-hidden border border-slate-200 dark:border-border">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200">
+                      <tr className="bg-slate-50/80 text-left text-slate-600 border-b border-slate-200 dark:bg-muted/40 dark:text-muted-foreground dark:border-border">
                         <th className="py-4 px-6 font-semibold text-xs uppercase tracking-wider">
                           Client
                         </th>
@@ -792,22 +792,22 @@ const AMDashboardComponent = function AMDashboard({
                       {upcomingDueList.map((c, index) => (
                         <tr
                           key={c.id}
-                          className={`border-t border-slate-100 hover:bg-white/70 transition-colors duration-150 ${
-                            index % 2 === 0 ? "bg-white" : "bg-slate-50/50"
+                          className={`border-t border-slate-100 hover:bg-white/70 transition-colors duration-150 dark:border-border dark:hover:bg-card/70 ${
+                            index % 2 === 0 ? "bg-white dark:bg-card" : "bg-slate-50/50 dark:bg-muted/40"
                           }`}
                         >
-                          <td className="py-4 px-6 font-semibold text-slate-800">
+                          <td className="py-4 px-6 font-semibold text-slate-800 dark:text-foreground">
                             {c.name}
                           </td>
                           <td className="py-4 px-6">
                             <Badge
                               variant="outline"
-                              className="border-slate-300 text-slate-700 bg-white font-medium capitalize px-3 py-1"
+                              className="border-slate-300 text-slate-700 bg-white font-medium capitalize px-3 py-1 dark:border-border dark:text-foreground dark:bg-card"
                             >
                               {(c.status ?? "—").toString().replace(/_/g, " ")}
                             </Badge>
                           </td>
-                          <td className="py-4 px-6 text-slate-600 font-medium">
+                          <td className="py-4 px-6 text-slate-600 font-medium dark:text-muted-foreground">
                             {c.packageId
                               ? (pkgMap[c.packageId] ??
                                 (pkgLoading ? "Loading…" : c.packageId))
@@ -816,7 +816,7 @@ const AMDashboardComponent = function AMDashboard({
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-2">
                               <CalendarDays className="w-4 h-4 text-amber-500" />
-                              <span className="font-medium text-slate-700">
+                              <span className="font-medium text-slate-700 dark:text-foreground">
                                 {formatDate(c.dueDate)}
                               </span>
                             </div>
@@ -827,10 +827,10 @@ const AMDashboardComponent = function AMDashboard({
                   </table>
                 </div>
               ) : (
-                <div className="py-16 text-center text-slate-500 font-medium">
+                <div className="py-16 text-center text-slate-500 font-medium dark:text-muted-foreground">
                   <CalendarDays className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                   <p>No upcoming deliverables found</p>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <p className="text-sm text-slate-400 mt-1 dark:text-muted-foreground">
                     All clients are up to date
                   </p>
                 </div>

@@ -238,7 +238,7 @@ export default function AllAgentsPage() {
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent py-1">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent py-1 dark:from-blue-400 dark:via-purple-400 dark:to-blue-400">
                 All Agents
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
@@ -342,7 +342,7 @@ export default function AllAgentsPage() {
                       variant="outline"
                       size="sm"
                       disabled
-                      className="border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
+                      className="border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent dark:text-muted-foreground"
                     >
                       Previous
                     </Button>
@@ -350,7 +350,7 @@ export default function AllAgentsPage() {
                       variant="outline"
                       size="sm"
                       disabled
-                      className="border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
+                      className="border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent dark:text-muted-foreground"
                     >
                       Next
                     </Button>

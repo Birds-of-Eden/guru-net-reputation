@@ -187,46 +187,46 @@ async function copyToClipboard(v?: string | null, label?: string) {
 /* Status / priority / category color helpers */
 const statusColor = (s: Task["status"]) =>
   ({
-    pending: "bg-amber-100 text-amber-800 border-amber-200",
-    in_progress: "bg-sky-100 text-sky-800 border-sky-200",
-    completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    overdue: "bg-rose-100 text-rose-800 border-rose-200",
-    cancelled: "bg-slate-100 text-slate-700 border-slate-200",
-    reassigned: "bg-purple-100 text-purple-800 border-purple-200",
-    qc_approved: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  }[s] || "bg-slate-100 text-slate-700 border-slate-200");
+    pending: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
+    in_progress: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/40 dark:text-sky-300 dark:border-sky-800",
+    completed: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800",
+    overdue: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800",
+    cancelled: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border",
+    reassigned: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800",
+    qc_approved: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800",
+  }[s] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border");
 
 const priorityColor = (p: Task["priority"]) =>
   ({
-    low: "bg-slate-100 text-slate-700 border-slate-200",
-    medium: "bg-blue-100 text-blue-800 border-blue-200",
-    high: "bg-orange-100 text-orange-800 border-orange-200",
-    urgent: "bg-red-100 text-red-800 border-red-200",
-  }[p] || "bg-slate-100 text-slate-700 border-slate-200");
+    low: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border",
+    medium: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800",
+    high: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-800",
+    urgent: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
+  }[p] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border");
 
 const categoryColor = (c?: string) =>
   ({
-    "Social Activity": "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
-    "Blog Posting": "bg-cyan-100 text-cyan-800 border-cyan-200",
-    "Social Communication": "bg-indigo-100 text-indigo-800 border-indigo-200",
-    "Content Writing": "bg-emerald-100 text-emerald-800 border-emerald-200",
-    "Guest Posting": "bg-rose-100 text-rose-800 border-rose-200",
-    "Content Studio": "bg-violet-100 text-violet-800 border-violet-200",
-    Backlinks: "bg-amber-100 text-amber-800 border-amber-200",
-    "Completed Communication": "bg-slate-100 text-slate-800 border-slate-200",
-    "YouTube Video Optimization": "bg-red-100 text-red-800 border-red-200",
-    Monitoring: "bg-teal-100 text-teal-800 border-teal-200",
-    "Review Removal": "bg-lime-100 text-lime-800 border-lime-200",
-    "Summary Report": "bg-pink-100 text-pink-800 border-pink-200",
-  }[c ?? ""] || "bg-slate-100 text-slate-700 border-slate-200");
+    "Social Activity": "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200 dark:bg-fuchsia-900/40 dark:text-fuchsia-300 dark:border-fuchsia-800",
+    "Blog Posting": "bg-cyan-100 text-cyan-800 border-cyan-200 dark:bg-cyan-900/40 dark:text-cyan-300 dark:border-cyan-800",
+    "Social Communication": "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800",
+    "Content Writing": "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800",
+    "Guest Posting": "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800",
+    "Content Studio": "bg-violet-100 text-violet-800 border-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:border-violet-800",
+    Backlinks: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
+    "Completed Communication": "bg-slate-100 text-slate-800 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border",
+    "YouTube Video Optimization": "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800",
+    Monitoring: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:border-teal-800",
+    "Review Removal": "bg-lime-100 text-lime-800 border-lime-200 dark:bg-lime-900/40 dark:text-lime-300 dark:border-lime-800",
+    "Summary Report": "bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/40 dark:text-pink-300 dark:border-pink-800",
+  }[c ?? ""] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border");
 
 /* Lighter cycle header gradients */
 const cycleGrad = (n: number) => {
   const palette = [
-    "from-indigo-100 via-fuchsia-100 to-cyan-100",
-    "from-emerald-100 via-teal-100 to-cyan-100",
-    "from-rose-100 via-orange-100 to-amber-100",
-    "from-blue-100 via-violet-100 to-pink-100",
+    "from-indigo-100 via-fuchsia-100 to-cyan-100 dark:from-indigo-900/40 dark:via-fuchsia-900/40 dark:to-cyan-900/40",
+    "from-emerald-100 via-teal-100 to-cyan-100 dark:from-emerald-900/40 dark:via-teal-900/40 dark:to-cyan-900/40",
+    "from-rose-100 via-orange-100 to-amber-100 dark:from-rose-900/40 dark:via-orange-900/40 dark:to-amber-900/40",
+    "from-blue-100 via-violet-100 to-pink-100 dark:from-blue-900/40 dark:via-violet-900/40 dark:to-pink-900/40",
   ];
   return palette[(n - 1) % palette.length];
 };
@@ -424,18 +424,18 @@ export default function CreatedTasksPage() {
   const goBack = () => router.push(distributionBasePath);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-violet-50 via-white to-cyan-50">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-white to-cyan-50 dark:from-violet-950/40 dark:via-card dark:to-cyan-950/40">
       <div>
         {/* Lighter Header */}
-        <Card className="border-0 shadow-2xl overflow-hidden bg-white/90 backdrop-blur">
-          <CardHeader className="relative text-slate-800 border-b border-slate-200/60 bg-sky-50">
+        <Card className="border-0 shadow-2xl overflow-hidden bg-white/90 backdrop-blur dark:bg-card/90">
+          <CardHeader className="relative text-slate-800 border-b border-slate-200/60 bg-sky-50 dark:text-foreground dark:border-border/60 dark:bg-sky-950/40">
             <div className="p-6">
               {/* Top-left Back button */}
               <div className="mb-4">
                 <Button
                   variant="ghost"
                   onClick={goBack}
-                  className="h-9 px-3 -ml-2 text-slate-700 hover:bg-slate-100"
+                  className="h-9 px-3 -ml-2 text-slate-700 hover:bg-slate-100 dark:text-foreground dark:hover:bg-muted"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -445,7 +445,7 @@ export default function CreatedTasksPage() {
               {/* Client information (below back button) */}
               {client && (
                 <div className="flex items-start gap-4 mb-4">
-                  <Avatar className="h-14 w-14 ring-2 ring-slate-200">
+                  <Avatar className="h-14 w-14 ring-2 ring-slate-200 dark:ring-border">
                     {client.avatar ? (
                       <AvatarImage src={client.avatar} alt={client.name} />
                     ) : (
@@ -460,7 +460,7 @@ export default function CreatedTasksPage() {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">
+                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 truncate dark:text-foreground">
                         {client.name}
                       </h2>
 
@@ -469,8 +469,8 @@ export default function CreatedTasksPage() {
                           variant="outline"
                           className={`rounded-full text-xs border ${
                             client.status === "active"
-                              ? "text-emerald-700 border-emerald-300"
-                              : "text-slate-600 border-slate-300"
+                              ? "text-emerald-700 border-emerald-300 dark:text-emerald-300 dark:border-emerald-700"
+                              : "text-slate-600 border-slate-300 dark:text-muted-foreground dark:border-border"
                           }`}
                         >
                           {client.status}
@@ -480,7 +480,7 @@ export default function CreatedTasksPage() {
                       {client.package?.name && (
                         <Badge
                           variant="outline"
-                          className="rounded-full text-xs border border-indigo-300 text-indigo-700"
+                          className="rounded-full text-xs border border-indigo-300 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300"
                         >
                           <Package className="h-3 w-3 mr-1" />
                           {client.package.name}
@@ -488,8 +488,8 @@ export default function CreatedTasksPage() {
                       )}
                     </div>
 
-                    <div className="mt-1.5 text-sm text-slate-600 flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-slate-400" />
+                    <div className="mt-1.5 text-sm text-slate-600 flex items-center gap-2 dark:text-muted-foreground">
+                      <Building2 className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                       <span className="truncate">
                         {client.company || "No company"}
                       </span>
@@ -501,9 +501,9 @@ export default function CreatedTasksPage() {
               <div className="flex items-center justify-between">
                 {/* Title & subtitle */}
                 <div className="space-y-1">
-                  <CardTitle className="text-3xl font-bold flex items-center gap-3 text-slate-800">
-                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center">
-                      <LayoutList className="h-6 w-6 text-slate-700" />
+                  <CardTitle className="text-3xl font-bold flex items-center gap-3 text-slate-800 dark:text-foreground">
+                    <div className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center dark:border-border">
+                      <LayoutList className="h-6 w-6 text-slate-700 dark:text-foreground" />
                     </div>
                     Created Tasks — Cycle View
                   </CardTitle>
@@ -525,7 +525,7 @@ export default function CreatedTasksPage() {
             {/* Top Filters */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="md:col-span-2 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -597,21 +597,21 @@ export default function CreatedTasksPage() {
 
             {/* Summary Widgets */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <Card className="rounded-xl border-2 border-indigo-100 bg-indigo-50/60">
+              <Card className="rounded-xl border-2 border-indigo-100 bg-indigo-50/60 dark:border-indigo-800 dark:bg-indigo-950/40">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
-                    <div className="text-sm text-indigo-700">Total Tasks</div>
-                    <div className="text-2xl font-bold text-indigo-900">
+                    <div className="text-sm text-indigo-700 dark:text-indigo-300">Total Tasks</div>
+                    <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">
                       {summary?.total ?? (loadingHeaders ? "…" : 0)}
                     </div>
                   </div>
-                  <ListTodo className="h-10 w-10 text-indigo-600" />
+                  <ListTodo className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                 </CardContent>
               </Card>
 
-              <Card className="rounded-xl border-2 border-fuchsia-100 bg-fuchsia-50/60">
+              <Card className="rounded-xl border-2 border-fuchsia-100 bg-fuchsia-50/60 dark:border-fuchsia-800 dark:bg-fuchsia-950/40">
                 <CardContent className="p-4">
-                  <div className="text-sm text-fuchsia-700 mb-2 flex items-center gap-2">
+                  <div className="text-sm text-fuchsia-700 mb-2 flex items-center gap-2 dark:text-fuchsia-300">
                     <Filter className="h-4 w-4" />
                     By Status
                   </div>
@@ -621,22 +621,22 @@ export default function CreatedTasksPage() {
                         <Badge
                           key={s}
                           variant="outline"
-                          className="bg-white text-fuchsia-800 border-fuchsia-200"
+                          className="bg-white text-fuchsia-800 border-fuchsia-200 dark:bg-card dark:text-fuchsia-300 dark:border-fuchsia-800"
                         >
                           {s.replaceAll("_", " ")}:{" "}
                           <span className="ml-1 font-semibold">{n}</span>
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-fuchsia-700/70">—</span>
+                      <span className="text-fuchsia-700/70 dark:text-fuchsia-300/70">—</span>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-xl border-2 border-cyan-100 bg-cyan-50/60">
+              <Card className="rounded-xl border-2 border-cyan-100 bg-cyan-50/60 dark:border-cyan-800 dark:bg-cyan-950/40">
                 <CardContent className="p-4">
-                  <div className="text-sm text-cyan-700 mb-2 flex items-center gap-2">
+                  <div className="text-sm text-cyan-700 mb-2 flex items-center gap-2 dark:text-cyan-300">
                     <BarChart3 className="h-4 w-4" />
                     By Priority
                   </div>
@@ -646,13 +646,13 @@ export default function CreatedTasksPage() {
                         <Badge
                           key={p}
                           variant="outline"
-                          className="bg-white text-cyan-800 border-cyan-200"
+                          className="bg-white text-cyan-800 border-cyan-200 dark:bg-card dark:text-cyan-300 dark:border-cyan-800"
                         >
                           {p}: <span className="ml-1 font-semibold">{n}</span>
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-cyan-700/70">—</span>
+                      <span className="text-cyan-700/70 dark:text-cyan-300/70">—</span>
                     )}
                   </div>
                 </CardContent>
@@ -677,22 +677,22 @@ export default function CreatedTasksPage() {
                 {loadingHeaders ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent" />
-                    <span className="ml-4 text-lg text-slate-600">
+                    <span className="ml-4 text-lg text-slate-600 dark:text-muted-foreground">
                       Loading cycle headers…
                     </span>
                   </div>
                 ) : headersError ? (
                   <div className="text-center py-16">
-                    <div className="text-red-600 mb-4">Error loading cycles</div>
+                    <div className="text-red-600 mb-4 dark:text-red-400">Error loading cycles</div>
                     <Button onClick={refreshTasks}>Retry</Button>
                   </div>
                 ) : cycleHeaders.length === 0 ? (
                   <div className="text-center py-16">
-                    <LayoutList className="h-16 w-16 mx-auto mb-6 text-slate-400" />
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                    <LayoutList className="h-16 w-16 mx-auto mb-6 text-slate-400 dark:text-muted-foreground" />
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2 dark:text-foreground">
                       No tasks found
                     </h3>
-                    <p className="text-slate-600">
+                    <p className="text-slate-600 dark:text-muted-foreground">
                       Try adjusting your filters or search.
                     </p>
                   </div>
@@ -754,25 +754,25 @@ export default function CreatedTasksPage() {
                           <section
                             key={key}
                             id={`cycle-${key}`}
-                            className="rounded-2xl overflow-hidden border border-slate-200 shadow-xl"
+                            className="rounded-2xl overflow-hidden border border-slate-200 shadow-xl dark:border-border"
                           >
                             {/* Lighter Section Header */}
                             <div
                               className={cn(
-                                "px-6 py-5 text-slate-800 bg-linear-to-r",
+                                "px-6 py-5 text-slate-800 bg-linear-to-r dark:text-foreground",
                                 cycleGrad(Math.max(1, idx + 1))
                               )}
                             >
                               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-white/70 border border-slate-200 flex items-center justify-center">
-                                    <Bookmark className="h-5 w-5 text-slate-700" />
+                                  <div className="w-10 h-10 rounded-xl bg-white/70 border border-slate-200 flex items-center justify-center dark:bg-card/70 dark:border-border">
+                                    <Bookmark className="h-5 w-5 text-slate-700 dark:text-foreground" />
                                   </div>
                                   <div>
                                     <div className="text-xl font-bold leading-5">
                                       {label}
                                     </div>
-                                    <div className="text-slate-600 text-sm">
+                                    <div className="text-slate-600 text-sm dark:text-muted-foreground">
                                       {count} task{count !== 1 ? "s" : ""}
                                     </div>
                                   </div>
@@ -783,7 +783,7 @@ export default function CreatedTasksPage() {
                                     <Badge
                                       key={s}
                                       variant="outline"
-                                      className="border border-slate-300 bg-white/70 text-slate-700 capitalize"
+                                      className="border border-slate-300 bg-white/70 text-slate-700 capitalize dark:border-border dark:bg-card/70 dark:text-foreground"
                                     >
                                       {s.replaceAll("_", " ")}:{" "}
                                       <span className="ml-1 font-semibold">
@@ -793,7 +793,7 @@ export default function CreatedTasksPage() {
                                   ))}
                                   <Button
                                     variant="outline"
-                                    className="bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                                    className="bg-white text-slate-700 border-slate-300 hover:bg-slate-50 dark:bg-card dark:text-foreground dark:border-border dark:hover:bg-muted/40"
                                     onClick={() => toggleCycle(key)}
                                   >
                                     {open ? "Collapse" : "Expand"}
@@ -810,14 +810,14 @@ export default function CreatedTasksPage() {
 
                             {/* Section Body */}
                             {open && (
-                              <div className="p-6 bg-white">
+                              <div className="p-6 bg-white dark:bg-card">
                                 {loadingCycle === key ? (
                                   <div className="flex items-center justify-center py-10">
                                     <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mr-3" />
-                                    <span className="text-slate-600">Loading tasks...</span>
+                                    <span className="text-slate-600 dark:text-muted-foreground">Loading tasks...</span>
                                   </div>
                                 ) : items.length === 0 ? (
-                                  <div className="text-center py-10 text-slate-500">
+                                  <div className="text-center py-10 text-slate-500 dark:text-muted-foreground">
                                     No tasks found for this cycle
                                   </div>
                                 ) : (
@@ -829,7 +829,7 @@ export default function CreatedTasksPage() {
                                       return (
                                         <Card
                                           key={task.id}
-                                          className="group border-2 hover:border-indigo-300 rounded-2xl transition-all bg-white/90"
+                                          className="group border-2 hover:border-indigo-300 rounded-2xl transition-all bg-white/90 dark:hover:border-indigo-700 dark:bg-card/90"
                                         >
                                           <CardContent className="p-5">
                                             {/* Title & Badges */}
@@ -872,7 +872,7 @@ export default function CreatedTasksPage() {
                                                   </Badge>
                                                 </div>
                                                 <div
-                                                  className="font-semibold text-slate-900 text-base truncate"
+                                                  className="font-semibold text-slate-900 text-base truncate dark:text-foreground"
                                                   title={task.name}
                                                 >
                                                   {task.name}
@@ -881,7 +881,7 @@ export default function CreatedTasksPage() {
                                             </div>
 
                                             {/* Meta */}
-                                            <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600">
+                                            <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-muted-foreground">
                                               <div className="flex items-center gap-2">
                                                 <CalendarDays className="h-4 w-4" />
                                                 <span title={task.dueDate ?? ""}>
@@ -924,7 +924,7 @@ export default function CreatedTasksPage() {
                                             {/* Credentials (URL / Username / Email / Password) */}
                                             <div className="mt-4 space-y-2 text-sm">
                                               <div className="flex items-center justify-between gap-2">
-                                                <span className="text-slate-500">
+                                                <span className="text-slate-500 dark:text-muted-foreground">
                                                   URL
                                                 </span>
                                                 <div className="flex items-center gap-2">
@@ -934,7 +934,7 @@ export default function CreatedTasksPage() {
                                                         href={task.completionLink}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
+                                                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium dark:text-indigo-400 dark:hover:text-indigo-300"
                                                       >
                                                         <Link2 className="h-4 w-4 mr-1" />
                                                         Open
@@ -955,7 +955,7 @@ export default function CreatedTasksPage() {
                                                       </Button>
                                                     </>
                                                   ) : (
-                                                    <span className="text-slate-400">
+                                                    <span className="text-slate-400 dark:text-muted-foreground">
                                                       —
                                                     </span>
                                                   )}
@@ -963,7 +963,7 @@ export default function CreatedTasksPage() {
                                               </div>
 
                                               <div className="flex items-center justify-between gap-2">
-                                                <span className="text-slate-500">
+                                                <span className="text-slate-500 dark:text-muted-foreground">
                                                   Username
                                                 </span>
                                                 <div className="flex items-center gap-2">
@@ -993,7 +993,7 @@ export default function CreatedTasksPage() {
                                               </div>
 
                                               <div className="flex items-center justify-between gap-2">
-                                                <span className="text-slate-500">
+                                                <span className="text-slate-500 dark:text-muted-foreground">
                                                   Email
                                                 </span>
                                                 <div className="flex items-center gap-2">
@@ -1023,7 +1023,7 @@ export default function CreatedTasksPage() {
                                               </div>
 
                                               <div className="flex items-center justify-between gap-2">
-                                                <span className="text-slate-500">
+                                                <span className="text-slate-500 dark:text-muted-foreground">
                                                   Password
                                                 </span>
                                                 <div className="flex items-center gap-2">
@@ -1084,7 +1084,7 @@ export default function CreatedTasksPage() {
                                                       </Button>
                                                     </>
                                                   ) : (
-                                                    <span className="text-slate-400">
+                                                    <span className="text-slate-400 dark:text-muted-foreground">
                                                       —
                                                     </span>
                                                   )}
@@ -1094,8 +1094,8 @@ export default function CreatedTasksPage() {
 
                                             {/* Notes */}
                                             {task.notes ? (
-                                              <div className="mt-4 text-sm text-slate-700">
-                                                <div className="text-slate-500 mb-1">
+                                              <div className="mt-4 text-sm text-slate-700 dark:text-foreground">
+                                                <div className="text-slate-500 mb-1 dark:text-muted-foreground">
                                                   Notes
                                                 </div>
                                                 <div className="line-clamp-3">

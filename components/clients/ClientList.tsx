@@ -55,9 +55,9 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors group">
+    <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors group dark:hover:bg-muted/40">
       <div className="flex items-center gap-4 flex-1">
-        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shrink-0 dark:bg-muted">
           {client.profilePicture &&
           typeof client.profilePicture === "object" &&
           client.profilePicture instanceof File ? (
@@ -69,7 +69,7 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
               className="object-cover"
             />
           ) : (
-            <User className="h-5 w-5 text-gray-500" />
+            <User className="h-5 w-5 text-gray-500 dark:text-muted-foreground" />
           )}
         </div>
 
@@ -81,7 +81,7 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-muted-foreground">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 shrink-0" />
               <span className="truncate">{formatDate(client.birthDate)}</span>
@@ -130,7 +130,7 @@ export function ClientListItem({ client, onClick, onDelete, onEdit }: ClientList
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete} className="text-red-600">
+            <DropdownMenuItem onClick={onDelete} className="text-red-600 dark:text-red-400">
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

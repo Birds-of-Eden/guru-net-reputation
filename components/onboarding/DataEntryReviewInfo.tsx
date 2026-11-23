@@ -112,7 +112,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       id: "personal",
       icon: User,
       title: "Personal & Work Information",
-      gradient: "from-blue-50 to-cyan-50",
+      gradient: "from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40",
       items: [
         { label: "Full Name", value: formData.name, icon: User },
         {
@@ -149,7 +149,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       id: "websites",
       icon: Globe,
       title: "Website Information",
-      gradient: "from-purple-50 to-violet-50",
+      gradient: "from-purple-50 to-violet-50 dark:from-purple-950/40 dark:to-violet-950/40",
       items: [
         ...websiteList.map((url: string, idx: number) => ({
           label: websiteList.length > 1 ? `Website ${idx + 1}` : "Website",
@@ -174,7 +174,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       id: "project",
       icon: Package,
       title: "Project Details",
-      gradient: "from-green-50 to-emerald-50",
+      gradient: "from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40",
       items: [
         {
           label: "Package",
@@ -225,16 +225,16 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         id: "articleCategories",
         icon: FileText,
         title: "Article Categories from CQ",
-        gradient: "from-orange-50 to-red-50",
+        gradient: "from-orange-50 to-red-50 dark:from-orange-950/40 dark:to-red-950/40",
         items: [],
         render: (
           <div className="space-y-4">
             {formData.articleCategories.map((category: any, catIdx: number) => (
               <div
                 key={catIdx}
-                className="bg-white rounded-xl border-2 border-orange-200 p-5"
+                className="bg-white rounded-xl border-2 border-orange-200 p-5 dark:bg-card dark:border-orange-800"
               >
-                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2 dark:text-orange-300">
                   <FileText className="w-5 h-5" />
                   {category.category}
                   <Badge variant="secondary" className="ml-2">
@@ -246,22 +246,22 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                   {category.titles.map((title: any, titleIdx: number) => (
                     <div
                       key={titleIdx}
-                      className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+                      className="bg-orange-50 rounded-lg p-4 border border-orange-200 dark:bg-orange-950/40 dark:border-orange-800"
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            <p className="font-semibold text-slate-900">
+                            <p className="font-semibold text-slate-900 dark:text-foreground">
                               {title.title}
                             </p>
                           </div>
                           <Badge
                             className={
                               title.draftStatus === "Approved"
-                                ? "bg-green-100 text-green-800 border-green-200"
+                                ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800"
                                 : title.draftStatus === "Revision"
-                                  ? "bg-amber-100 text-amber-800 border-amber-200"
-                                  : "bg-blue-100 text-blue-800 border-blue-200"
+                                  ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800"
+                                  : "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
                             }
                           >
                             {title.draftStatus}
@@ -272,7 +272,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                             href={title.draftLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm dark:text-indigo-400 dark:hover:text-indigo-300"
                           >
                             <LinkIcon className="h-3 w-3" />
                             {title.draftLink}
@@ -294,7 +294,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
       id: "contact",
       icon: BookUser,
       title: "Contact & Credentials",
-      gradient: "from-amber-50 to-orange-50",
+      gradient: "from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40",
       items: [
         { label: "Email", value: formData.email, icon: Mail },
         { label: "Phone", value: formData.phone, icon: Phone },
@@ -486,21 +486,21 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12 font-[Inter] text-slate-800">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12 font-[Inter] text-slate-800 dark:bg-card dark:text-foreground">
         <div className="text-center max-w-md mx-auto space-y-8">
           {/* Minimal Icon Container */}
           <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 flex items-center justify-center rounded-full border-2 border-green-500 bg-green-50">
-              <CheckCircle className="h-16 w-16 text-green-600" />
+            <div className="w-24 h-24 flex items-center justify-center rounded-full border-2 border-green-500 bg-green-50 dark:bg-green-950/40">
+              <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
             </div>
           </div>
 
           <div className="space-y-3">
             {/* Simplified Title */}
-            <h2 className="text-4xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-foreground">
               Submission Successful!
             </h2>
-            <p className="text-lg text-slate-600 leading-relaxed">
+            <p className="text-lg text-slate-600 leading-relaxed dark:text-muted-foreground">
               Thank you for completing the onboarding process. Your client
               information has been saved successfully.
             </p>
@@ -525,15 +525,15 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
     icon: Icon,
     title,
     children,
-    gradient = "from-blue-50 to-indigo-50",
+    gradient = "from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40",
   }: any) => (
-    <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
+    <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300 dark:border-indigo-800 dark:from-card dark:to-indigo-950/40">
       <CardHeader className="relative space-y-0 py-6 px-8 border-b-0">
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
             <Icon className="w-5 h-5 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-foreground">
             {title}
           </CardTitle>
         </div>
@@ -546,17 +546,17 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
     if (!value) return null;
 
     return (
-      <div className="group flex items-start gap-3 p-4 rounded-xl bg-white border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200">
+      <div className="group flex items-start gap-3 p-4 rounded-xl bg-white border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 dark:bg-card dark:border-border dark:hover:border-indigo-700">
         {Icon && (
-          <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-            <Icon className="w-4 h-4 text-indigo-600" />
+          <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors dark:bg-indigo-900/40 dark:group-hover:bg-indigo-800/50">
+            <Icon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">
+          <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block dark:text-muted-foreground">
             {label}
           </span>
-          <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word">
+          <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word dark:text-foreground">
             {value}
           </span>
         </div>
@@ -571,10 +571,10 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 shadow-lg mb-4">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400">
           Review Client Information
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed dark:text-muted-foreground">
           Please review all the information below carefully. This will be used
           to create the client profile and assign the template.
         </p>
@@ -611,10 +611,10 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
             <ReviewSectionCard
               icon={FileText}
               title="Biography"
-              gradient="from-cyan-50 to-blue-50"
+              gradient="from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40"
             >
               <div
-                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none dark:text-foreground dark:bg-card dark:border-border"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(formData.biography, {
                     USE_PROFILES: { html: true },
@@ -629,7 +629,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
             <ReviewSectionCard
               icon={Share2}
               title="Social Media Profiles"
-              gradient="from-rose-50 to-pink-50"
+              gradient="from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40"
             >
               <div className="space-y-3">
                 {formData.socialLinks.map(
@@ -637,27 +637,27 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                     link.url && (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-rose-100 shadow-sm"
+                        className="flex items-center justify-between p-4 bg-white rounded-xl border-2 border-rose-100 shadow-sm dark:bg-card dark:border-rose-800"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-lg bg-rose-100 text-rose-700">
+                          <div className="p-2 rounded-lg bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
                             <Share2 className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-800 truncate">
+                            <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                               {link.platform || "Social"}
                             </p>
                             <a
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-rose-600 hover:underline break-all"
+                              className="text-xs text-rose-600 hover:underline break-all dark:text-rose-400"
                             >
                               {link.url}
                             </a>
                           </div>
                         </div>
-                        <Badge variant="secondary" className="bg-rose-50 text-rose-700">
+                        <Badge variant="secondary" className="bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
                           {link.username || link.email || "Profile"}
                         </Badge>
                       </div>
@@ -672,15 +672,15 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
             <ReviewSectionCard
               icon={ImageIcon}
               title="Image Drive Link"
-              gradient="from-amber-50 to-orange-50"
+              gradient="from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40"
             >
               <div className="space-y-4">
                 {avatarPreviewUrl && (
                   <div className="text-center">
-                    <h4 className="text-sm font-medium text-slate-600 mb-3">
+                    <h4 className="text-sm font-medium text-slate-600 mb-3 dark:text-muted-foreground">
                       Profile Picture
                     </h4>
-                    <div className="inline-flex p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div className="inline-flex p-2 bg-white rounded-2xl shadow-sm border border-slate-200 dark:bg-card dark:border-border">
                       <img
                         src={avatarPreviewUrl}
                         alt="Profile preview"
@@ -710,14 +710,14 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                       <div className="space-y-3">
                         {driveLink && (
                           <div>
-                            <h4 className="text-sm font-medium text-slate-600 mb-2">
+                            <h4 className="text-sm font-medium text-slate-600 mb-2 dark:text-muted-foreground">
                               Image Gallery
                             </h4>
                             <a
                               href={driveLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
+                              className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full dark:text-indigo-400 dark:hover:text-indigo-300 dark:bg-card dark:border-border"
                             >
                               <LinkIcon className="h-4 w-4 shrink-0" />
                               <span className="truncate text-sm">{driveLink}</span>
@@ -727,18 +727,18 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
 
                         {items.length > 0 && (
                           <div>
-                            <h4 className="text-sm font-medium text-slate-600 mb-2">
+                            <h4 className="text-sm font-medium text-slate-600 mb-2 dark:text-muted-foreground">
                               Added Links
                             </h4>
                             <ul className="space-y-2">
                               {items.map((item: any, idx: number) => (
                                 <li
                                   key={`${item?.link || "link"}-${idx}`}
-                                  className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3"
+                                  className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3 dark:bg-card dark:border-border"
                                 >
-                                  <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5" />
+                                  <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5 dark:text-indigo-400" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-slate-800 truncate">
+                                    <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                                       {item?.title || "(Untitled)"}
                                     </p>
                                     {item?.link && (
@@ -746,7 +746,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
                                         href={item.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-indigo-600 hover:underline break-all"
+                                        className="text-xs text-indigo-600 hover:underline break-all dark:text-indigo-400"
                                       >
                                         {item.link}
                                       </a>
@@ -771,7 +771,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         <ReviewSectionCard
           icon={Package}
           title="Template Assignment Preview"
-          gradient="from-indigo-50 to-blue-50"
+          gradient="from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40"
         >
           <AssignmentPreview
             templateId={formData.templateId}
@@ -786,7 +786,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl dark:hover:from-indigo-950/40 dark:hover:to-purple-950/40 dark:hover:text-indigo-300"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Previous
@@ -800,7 +800,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
           >
             {isSaving ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 dark:border-border" />
                 Creating Client...
               </>
             ) : (

@@ -16,9 +16,9 @@ export function ClientsByPackageChart({
 }) {
   if (isLoading) {
     return (
-      <Card className="border-0 shadow-md ring-1 ring-slate-200/60">
+      <Card className="border-0 shadow-md ring-1 ring-slate-200/60 dark:ring-border/60">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-foreground">
             Clients by Package (Status Breakdown)
           </CardTitle>
         </CardHeader>
@@ -31,9 +31,9 @@ export function ClientsByPackageChart({
 
   if (!byPackage?.length) {
     return (
-      <Card className="border-0 shadow-md ring-1 ring-slate-200/60">
+      <Card className="border-0 shadow-md ring-1 ring-slate-200/60 dark:ring-border/60">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-foreground">
             Clients by Package (Status Breakdown)
           </CardTitle>
         </CardHeader>
@@ -140,7 +140,7 @@ export function ClientsByPackageChart({
   ];
 
   return (
-    <Card className="border-0 shadow-lg ring-1 ring-slate-200/60 rounded-3xl bg-linear-to-br from-white via-slate-50 to-cyan-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden">
+    <Card className="border-0 shadow-lg ring-1 ring-slate-200/60 rounded-3xl bg-linear-to-br from-white via-slate-50 to-cyan-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 backdrop-blur-md overflow-hidden dark:ring-border/60">
       <CardHeader>
         <CardTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-between">
           <span>📊 Clients by Package (Status Breakdown)</span>

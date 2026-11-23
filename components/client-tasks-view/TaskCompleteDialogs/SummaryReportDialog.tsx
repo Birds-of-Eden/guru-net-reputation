@@ -201,12 +201,12 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden dark:bg-card">
         {/* Modern Header with Gradient */}
         <div className="bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <ClipboardPlus className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -217,7 +217,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
                   <div className="text-white font-black text-xl truncate flex-1">
                     {task?.name}
                   </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm dark:bg-card/10">
                     <Calendar className="h-4 w-4 text-white/80" />
                     <span className="text-white font-mono font-bold text-sm">
                       {timerInfo?.formatDisplayTime || "00:00"}
@@ -236,9 +236,9 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
         <div className="px-6 pb-6 space-y-6 flex-1 overflow-y-auto">
           {/* Title Input */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <Type className="h-4 w-4 text-green-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-green-100 p-2 rounded-lg dark:bg-green-900/40">
+                <Type className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               Report Title *
             </label>
@@ -252,32 +252,32 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
 
           {/* PDF Upload */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-emerald-100 p-2 rounded-lg">
-                <FileDown className="h-4 w-4 text-emerald-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-emerald-100 p-2 rounded-lg dark:bg-emerald-900/40">
+                <FileDown className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               Upload PDF File (Optional)
             </label>
             <label
               htmlFor="pdf-upload"
-              className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl py-8 cursor-pointer hover:bg-linear-to-br hover:from-green-50 hover:to-emerald-50 hover:border-green-400 transition-all group"
+              className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-2xl py-8 cursor-pointer hover:bg-linear-to-br hover:from-green-50 hover:to-emerald-50 hover:border-green-400 transition-all group dark:border-border dark:hover:from-green-950/40 dark:hover:to-emerald-950/40"
             >
-              <Upload className="h-8 w-8 text-slate-400 group-hover:text-green-600 mb-3 transition-colors" />
+              <Upload className="h-8 w-8 text-slate-400 group-hover:text-green-600 mb-3 transition-colors dark:text-muted-foreground dark:group-hover:text-green-400" />
               {pdfFile ? (
                 <div className="text-center">
-                  <span className="font-bold text-green-700 text-lg">
+                  <span className="font-bold text-green-700 text-lg dark:text-green-300">
                     {pdfFile.name}
                   </span>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1 dark:text-muted-foreground">
                     Click to change file
                   </p>
                 </div>
               ) : (
                 <div className="text-center">
-                  <span className="text-slate-600 font-semibold">
+                  <span className="text-slate-600 font-semibold dark:text-muted-foreground">
                     Click to upload PDF
                   </span>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1 dark:text-muted-foreground">
                     or drag and drop your file here
                   </p>
                 </div>
@@ -296,13 +296,13 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
 
           {/* Rich Text Editor */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-teal-100 p-2 rounded-lg">
-                <FileText className="h-4 w-4 text-teal-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-teal-100 p-2 rounded-lg dark:bg-teal-900/40">
+                <FileText className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               </div>
               Summary Text *
             </label>
-            <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm dark:border-border">
               <TinyMceEditor
                 initialValue={text}
                 onContentChange={(content: any) => setText(content)}
@@ -314,7 +314,7 @@ const SummaryReportModal: React.FC<SummaryReportModalProps> = ({
         </div>
 
         {/* Footer with Modern Button Design */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

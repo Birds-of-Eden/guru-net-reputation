@@ -9,7 +9,7 @@ export default function ChatByIdPage() {
 
   if (!conversationId) {
     return (
-      <div className="h-[calc(100vh-64px)] grid place-items-center text-gray-500">
+      <div className="h-[calc(100vh-64px)] grid place-items-center text-gray-500 dark:text-muted-foreground">
         Invalid conversation.
       </div>
     );

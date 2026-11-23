@@ -403,17 +403,17 @@ export function OtherInfo({
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg ring-1 ring-black/5">
           <TableIcon className="h-7 w-7 text-white" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-foreground">
           Campaign Resources
         </h1>
-        <p className="mx-auto max-w-2xl text-balance text-sm text-gray-600">
+        <p className="mx-auto max-w-2xl text-balance text-sm text-gray-600 dark:text-muted-foreground">
           Add and manage your data in an Excel-like spreadsheet. Add columns,
           rows, and edit cells directly.
         </p>
       </div>
 
       {/* Main Card */}
-      <Card className="border-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] ring-1 ring-black/5 backdrop-blur bg-white">
+      <Card className="border-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] ring-1 ring-black/5 backdrop-blur bg-white dark:bg-card">
         <CardContent className="p-6 md:p-8">
           {/* Toolbar */}
           <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -431,7 +431,7 @@ export function OtherInfo({
               onClick={handleAddColumn}
               size="sm"
               variant="outline"
-              className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+              className="rounded-lg border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add Column
@@ -441,27 +441,27 @@ export function OtherInfo({
               onClick={() => setShowAddSheetDialog(true)}
               size="sm"
               variant="outline"
-              className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="rounded-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950/40"
             >
               <FileText className="mr-2 h-4 w-4" />
               Add Sheet
             </Button>
             <div className="flex-1" />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-muted-foreground">
               {activeSheet.rows.length} rows × {activeSheet.columns.length}{" "}
               columns
             </span>
           </div>
 
           {/* Sheet Tabs */}
-          <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+          <div className="mb-4 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-border">
             {sheets.map((sheet, index) => (
               <div
                 key={index}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-t-lg text-sm font-medium cursor-pointer transition-colors ${
                   index === activeSheetIndex
-                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0"
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300 border-b-0 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200 border-b-0 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-muted dark:border-border"
                 }`}
                 onClick={() => setActiveSheetIndex(index)}
               >
@@ -505,7 +505,7 @@ export function OtherInfo({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                    className="h-4 w-4 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950/40"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteSheet(index);
@@ -519,17 +519,17 @@ export function OtherInfo({
           </div>
 
           {/* Spreadsheet */}
-          <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-[1490px]">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-[1490px] dark:border-border">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b-2 border-gray-200">
-                  <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200">
+                <tr className="bg-gray-50 border-b-2 border-gray-200 dark:bg-muted/40 dark:border-border">
+                  <th className="w-12 px-3 py-2 text-xs font-medium text-gray-500 border-r border-gray-200 dark:text-muted-foreground dark:border-border">
                     #
                   </th>
                   {activeSheet.columns.map((col, colIndex) => (
                     <th
                       key={colIndex}
-                      className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group"
+                      className="min-w-[150px] px-3 py-2 text-xs font-medium text-gray-700 border-r border-gray-200 relative group dark:text-foreground dark:border-border"
                     >
                       <div className="flex items-center gap-1">
                         {editingColumn === colIndex ? (
@@ -558,7 +558,7 @@ export function OtherInfo({
                         ) : (
                           <span
                             onClick={() => setEditingColumn(colIndex)}
-                            className="cursor-pointer hover:text-emerald-600 truncate"
+                            className="cursor-pointer hover:text-emerald-600 truncate dark:hover:text-emerald-400"
                             title="Click to rename"
                           >
                             {col}
@@ -569,7 +569,7 @@ export function OtherInfo({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                            className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
                             onClick={() => handleMoveColumn(colIndex, "up")}
                             disabled={colIndex === 0}
                           >
@@ -579,7 +579,7 @@ export function OtherInfo({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                            className="h-5 w-5 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
                             onClick={() => handleMoveColumn(colIndex, "down")}
                             disabled={
                               colIndex === activeSheet.columns.length - 1
@@ -591,7 +591,7 @@ export function OtherInfo({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-red-400 hover:text-red-600"
+                            className="h-5 w-5 text-red-400 hover:text-red-600 dark:hover:text-red-400"
                             onClick={() => handleDeleteColumn(colIndex)}
                           >
                             <X className="h-3 w-3" />
@@ -600,22 +600,22 @@ export function OtherInfo({
                       </div>
                     </th>
                   ))}
-                  <th className="w-12 px-3 py-2 border-l border-gray-200" />
+                  <th className="w-12 px-3 py-2 border-l border-gray-200 dark:border-border" />
                 </tr>
               </thead>
               <tbody>
                 {activeSheet.rows.map((row, rowIndex) => (
                   <tr
                     key={rowIndex}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors dark:border-border dark:hover:bg-muted/40"
                   >
-                    <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center">
+                    <td className="px-3 py-2 text-xs text-gray-400 border-r border-gray-200 text-center dark:text-muted-foreground dark:border-border">
                       {rowIndex + 1}
                     </td>
                     {row.map((cell, colIndex) => (
                       <td
                         key={colIndex}
-                        className="border-r border-gray-200 px-1 py-1"
+                        className="border-r border-gray-200 px-1 py-1 dark:border-border"
                       >
                         <Input
                           id={`cell-${rowIndex}-${colIndex}`}
@@ -632,12 +632,12 @@ export function OtherInfo({
                         />
                       </td>
                     ))}
-                    <td className="px-2 py-1 border-l border-gray-200 text-center">
+                    <td className="px-2 py-1 border-l border-gray-200 text-center dark:border-border">
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950/40"
                         onClick={() => handleDeleteRow(rowIndex)}
                         disabled={activeSheet.rows.length <= 1}
                       >
@@ -652,10 +652,10 @@ export function OtherInfo({
 
           {/* Empty State */}
           {activeSheet.rows.length === 0 && (
-            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center dark:border-border">
+              <p className="text-sm text-gray-600 dark:text-muted-foreground">
                 No data yet. Click{" "}
-                <span className="font-medium text-gray-900">Add Row</span> to
+                <span className="font-medium text-gray-900 dark:text-foreground">Add Row</span> to
                 get started.
               </p>
             </div>
@@ -669,7 +669,7 @@ export function OtherInfo({
           type="button"
           variant="outline"
           onClick={onPrevious}
-          className="h-12 rounded-xl border-2 transition-all hover:bg-linear-to-r hover:from-emerald-50 hover:to-teal-50 hover:text-emerald-700 hover:shadow-sm"
+          className="h-12 rounded-xl border-2 transition-all hover:bg-linear-to-r hover:from-emerald-50 hover:to-teal-50 hover:text-emerald-700 hover:shadow-sm dark:hover:from-emerald-950/40 dark:hover:to-teal-950/40 dark:hover:text-emerald-300"
         >
           <svg
             className="mr-2 h-5 w-5"
@@ -712,12 +712,12 @@ export function OtherInfo({
       {/* Add Sheet Dialog */}
       {showAddSheetDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md bg-white">
+          <Card className="w-full max-w-md bg-white dark:bg-card">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-4">Add New Sheet</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-foreground">
                     Sheet Name
                   </label>
                   <Input

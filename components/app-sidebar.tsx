@@ -716,7 +716,7 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <div className="relative">
       {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-0 bg-white/70 backdrop-blur border-b border-gray-200">
+      <div className="md:hidden sticky top-0 z-0 bg-white/70 backdrop-blur border-b border-gray-200 dark:bg-card/70 dark:border-border">
         <div className="flex items-center justify-between px-4 py-2">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -802,14 +802,14 @@ export function AppSidebar({ className }: { className?: string }) {
         transition={{ type: "spring", damping: 22, stiffness: 220 }}
         className={cn(
           "hidden md:flex fixed top-0 left-0 h-screen w-64 z-0 flex-col",
-          "bg-linear-to-b from-slate-50 via-white to-slate-50",
-          "border-r border-gray-200/80 shadow-xl",
+          "bg-linear-to-b from-slate-50 via-white to-slate-50 dark:from-background dark:via-card dark:to-background",
+          "border-r border-gray-200/80 shadow-xl dark:border-border/80",
           className,
         )}
         aria-label="Sidebar"
       >
         {/* Header */}
-        <div className="p-5 border-b border-gray-200/60">
+        <div className="p-5 border-b border-gray-200/60 dark:border-border/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 bg-linear-to-tr from-cyan-500 via-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -832,7 +832,7 @@ export function AppSidebar({ className }: { className?: string }) {
               {isImpersonating && (
                 <Badge
                   variant="secondary"
-                  className="bg-amber-100 text-amber-900 border-amber-200"
+                  className="bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800"
                 >
                   Acting
                 </Badge>
@@ -939,10 +939,10 @@ function GroupItem({
         className={cn(
           "w-full cursor-pointer p-2.5 rounded-lg flex items-center justify-between",
           "transition-all duration-200 group",
-          "hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100/50",
-          "hover:shadow-sm hover:border-gray-200/50 border border-transparent text-left",
+          "hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100/50 dark:hover:from-background dark:hover:to-background/50",
+          "hover:shadow-sm hover:border-gray-200/50 border border-transparent text-left dark:hover:border-border/50",
           isActive &&
-            "bg-linear-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm",
+            "bg-linear-to-r from-cyan-50 to-blue-50 border-cyan-200/50 shadow-sm dark:from-cyan-950/40 dark:to-blue-950/40 dark:border-cyan-800/50",
         )}
         aria-expanded={open}
         aria-controls={`section-${item.title}`}
@@ -950,7 +950,7 @@ function GroupItem({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "p-2 rounded-lg transition-all duration-200 bg-linear-to-br from-gray-100 to-gray-200",
+              "p-2 rounded-lg transition-all duration-200 bg-linear-to-br from-gray-100 to-gray-200 dark:from-background dark:to-muted",
               isActive && "from-cyan-500 to-blue-500 text-white shadow-md",
             )}
           >
@@ -958,8 +958,8 @@ function GroupItem({
           </div>
           <span
             className={cn(
-              "font-medium transition-colors duration-200 text-gray-700 group-hover:text-gray-900",
-              isActive && "text-cyan-700",
+              "font-medium transition-colors duration-200 text-gray-700 group-hover:text-gray-900 dark:text-foreground dark:group-hover:text-foreground",
+              isActive && "text-cyan-700 dark:text-cyan-300",
             )}
           >
             {item.title}
@@ -1031,16 +1031,16 @@ function LeafItem({
       href={item.url}
       className={cn(
         "flex items-center gap-3 p-2.5 rounded-lg",
-        "transition-all duration-200 hover:bg-gray-50",
+        "transition-all duration-200 hover:bg-gray-50 dark:hover:bg-muted/40",
         isActive &&
-          "bg-cyan-100 text-cyan-800 font-semibold ring-1 ring-inset ring-cyan-300",
+          "bg-cyan-100 text-cyan-800 font-semibold ring-1 ring-inset ring-cyan-300 dark:bg-cyan-900/40 dark:text-cyan-300",
       )}
       aria-current={isActive ? "page" : undefined}
     >
       <div
         className={cn(
-          "p-1.5 rounded-md bg-gray-100",
-          isActive && "bg-cyan-100 text-cyan-700",
+          "p-1.5 rounded-md bg-gray-100 dark:bg-muted",
+          isActive && "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
         )}
       >
         {ICONS[item.title] ?? <FileText className="h-4 w-4" />}
@@ -1048,7 +1048,7 @@ function LeafItem({
       <span
         className={cn(
           "text-sm font-medium",
-          isActive ? "text-cyan-800" : "text-gray-700",
+          isActive ? "text-cyan-800 dark:text-cyan-300" : "text-gray-700 dark:text-foreground",
         )}
       >
         {item.title}
@@ -1083,11 +1083,11 @@ function MobileItem({
   const open = !!expanded[item.title];
   const isActive = groupHasActive(item, active);
   return (
-    <div className="rounded-lg border border-gray-200/60 overflow-hidden mb-1">
+    <div className="rounded-lg border border-gray-200/60 overflow-hidden mb-1 dark:border-border/60">
       <button
         className={cn(
-          "w-full flex items-center justify-between px-3 py-2 bg-white",
-          isActive && "bg-cyan-50",
+          "w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-card",
+          isActive && "bg-cyan-50 dark:bg-cyan-950/40",
         )}
         onClick={() =>
           setExpanded((s) => ({ ...s, [item.title]: !s[item.title] }))
@@ -1097,8 +1097,8 @@ function MobileItem({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "p-2 rounded-lg bg-gray-100",
-              isActive && "bg-cyan-100 text-cyan-700",
+              "p-2 rounded-lg bg-gray-100 dark:bg-muted",
+              isActive && "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300",
             )}
           >
             {ICONS[item.title] ?? <Folder className="h-4 w-4" />}
@@ -1115,7 +1115,7 @@ function MobileItem({
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
-            className="bg-white"
+            className="bg-white dark:bg-card"
           >
             <div className="px-3 py-2 space-y-1">
               {item.children.map((child, idx) =>
@@ -1180,17 +1180,17 @@ function SidebarFooter({
   const roleLabel = role?.toUpperCase?.() || "USER";
 
   return (
-    <div className="p-4 border-t border-gray-200/50 bg-linear-to-r from-gray-50/50 to-white/50">
+    <div className="p-4 border-t border-gray-200/50 bg-linear-to-r from-gray-50/50 to-white/50 dark:border-border/50 dark:from-background/50 dark:to-card/50">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             className={cn(
-              "w-full flex items-center gap-3 p-3 rounded-xl bg-white/60 backdrop-blur-sm",
-              "border border-gray-200/50 shadow-sm hover:shadow transition",
+              "w-full flex items-center gap-3 p-3 rounded-xl bg-white/60 backdrop-blur-sm dark:bg-card/60",
+              "border border-gray-200/50 shadow-sm hover:shadow transition dark:border-border/50",
             )}
             aria-label="Account menu"
           >
-            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+            <Avatar className="h-10 w-10 border-2 border-white shadow-sm dark:border-border">
               <AvatarImage src={userImage} alt={userName} />
               <AvatarFallback className="bg-linear-to-tr from-cyan-500 to-blue-500 text-white font-semibold">
                 {initials}
@@ -1198,7 +1198,7 @@ function SidebarFooter({
             </Avatar>
 
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-1.5">
+              <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-1.5 dark:text-foreground">
                 {userName}
                 <Badge
                   variant="secondary"
@@ -1209,7 +1209,7 @@ function SidebarFooter({
                 {isImpersonating && (
                   <Badge
                     variant="secondary"
-                    className="h-5 px-1.5 py-0 text-[10px] bg-amber-100 text-amber-900 border-amber-200"
+                    className="h-5 px-1.5 py-0 text-[10px] bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800"
                     title={
                       startedBy ? `Started by ${startedBy}` : "Impersonating"
                     }
@@ -1218,7 +1218,7 @@ function SidebarFooter({
                   </Badge>
                 )}
               </p>
-              <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+              <p className="text-xs text-gray-500 truncate dark:text-muted-foreground">{userEmail}</p>
             </div>
           </button>
         </DropdownMenuTrigger>
@@ -1250,7 +1250,7 @@ function SidebarFooter({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={onExitImpersonation}
-                className="text-amber-700 focus:text-amber-800"
+                className="text-amber-700 focus:text-amber-800 dark:text-amber-300 dark:focus:text-amber-300"
                 title={
                   startedBy ? `Started by ${startedBy}` : "Exit impersonation"
                 }
@@ -1265,7 +1265,7 @@ function SidebarFooter({
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            className="text-red-600 focus:text-red-700"
+            className="text-red-600 focus:text-red-700 dark:text-red-400 dark:focus:text-red-300"
             onClick={onSignOut}
           >
             <History className="hidden" />
@@ -1296,7 +1296,7 @@ function SettingsMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-gray-400 hover:text-gray-600"
+          className="h-7 w-7 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
           aria-label="Settings"
           title="Settings"
         >
@@ -1344,7 +1344,7 @@ function SidebarSkeleton() {
   return (
     <div className="space-y-2 p-2">
       {Array.from({ length: 7 }).map((_, i) => (
-        <div key={i} className="h-8 bg-gray-100 rounded-md animate-pulse" />
+        <div key={i} className="h-8 bg-gray-100 rounded-md animate-pulse dark:bg-muted" />
       ))}
     </div>
   );

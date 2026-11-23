@@ -98,30 +98,30 @@ export default function OnboardingPage() {
         onClearDraft={clearDraft}
       />
 
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
+      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-orange-50 py-12 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-orange-950/40">
         <div>
           <StepIndicator
             steps={steps}
             currentStep={currentStep}
             onStepClick={goToStep}
           />
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12 dark:bg-card/80 dark:border-border/20">
             {/* ⚡ OPTIMIZED: Suspense wrapper for lazy-loaded components with skeleton */}
             <Suspense fallback={
               <div className="space-y-6 animate-pulse py-8">
                 {/* Form Fields Skeleton */}
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div key={`field-${index}`} className="space-y-2">
-                    <div className="h-4 w-32 bg-gray-200 rounded" />
-                    <div className="h-10 w-full bg-gray-200 rounded-md" />
+                    <div className="h-4 w-32 bg-gray-200 rounded dark:bg-muted" />
+                    <div className="h-10 w-full bg-gray-200 rounded-md dark:bg-muted" />
                   </div>
                 ))}
                 {/* Buttons Skeleton */}
                 <div className="flex justify-between pt-6">
-                  <div className="h-11 w-32 bg-gray-200 rounded-md" />
+                  <div className="h-11 w-32 bg-gray-200 rounded-md dark:bg-muted" />
                   <div className="flex gap-3">
-                    <div className="h-11 w-28 bg-gray-200 rounded-md" />
-                    <div className="h-11 w-28 bg-gray-200 rounded-md" />
+                    <div className="h-11 w-28 bg-gray-200 rounded-md dark:bg-muted" />
+                    <div className="h-11 w-28 bg-gray-200 rounded-md dark:bg-muted" />
                   </div>
                 </div>
               </div>

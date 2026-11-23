@@ -359,7 +359,7 @@ export default function TaskViews({
                         <TooltipContent
                           side="top"
                           align="start"
-                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
+                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100 dark:border-border"
                         >
                           {(() => {
                             const r = (task?.qcReview as any) || {};
@@ -454,7 +454,7 @@ export default function TaskViews({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <h3
-                            className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer"
+                            className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-lg [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                             dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
                           />
                         </TooltipTrigger>
@@ -462,7 +462,7 @@ export default function TaskViews({
                           className="max-w-md p-4 rounded-xl shadow-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                         >
                           <p 
-                            className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                            className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                             dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.name) }}
                           />
                         </TooltipContent>
@@ -521,7 +521,7 @@ export default function TaskViews({
                         }
                         title="View reassign note"
                       >
-                        <Eye className="h-3 w-3 text-violet-600" />
+                        <Eye className="h-3 w-3 text-violet-600 dark:text-violet-400" />
                       </Button>
                     )}
                   </div>
@@ -568,9 +568,9 @@ export default function TaskViews({
                       title={reveal ? "Copy email" : "Start timer to view"}
                     >
                       {emailCopied ? (
-                        <Check className="h-3 w-3 text-emerald-600" />
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Copy className="h-3 w-3 text-gray-600" />
+                        <Copy className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
                       )}
                     </Button>
                   )}
@@ -602,9 +602,9 @@ export default function TaskViews({
                       title={reveal ? "Copy username" : "Start timer to view"}
                     >
                       {usernameCopied ? (
-                        <Check className="h-3 w-3 text-emerald-600" />
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <Copy className="h-3 w-3 text-gray-600" />
+                        <Copy className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
                       )}
                     </Button>
                   )}
@@ -654,9 +654,9 @@ export default function TaskViews({
                         }
                       >
                         {isPasswordVisible(task.id) ? (
-                          <EyeOff className="h-3 w-3 text-gray-600" />
+                          <EyeOff className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
                         ) : (
-                          <Eye className="h-3 w-3 text-gray-600" />
+                          <Eye className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
                         )}
                       </Button>
 
@@ -682,9 +682,9 @@ export default function TaskViews({
                         title={reveal ? "Copy password" : "Start timer to view"}
                       >
                         {passwordCopied ? (
-                          <Check className="h-3 w-3 text-emerald-600" />
+                          <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                         ) : (
-                          <Copy className="h-3 w-3 text-gray-600" />
+                          <Copy className="h-3 w-3 text-gray-600 dark:text-muted-foreground" />
                         )}
                       </Button>
                     </>
@@ -735,9 +735,9 @@ export default function TaskViews({
                             title={reveal ? "Copy URL" : "Start timer to view"}
                           >
                             {urlCopied ? (
-                              <Check className="h-3 w-3 text-emerald-600" />
+                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             ) : (
-                              <Copy className="h-3 w-3 text-blue-600" />
+                              <Copy className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                             )}
                           </Button>
                         )}
@@ -823,7 +823,7 @@ export default function TaskViews({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <h3
-                                className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer"
+                                className="min-w-0 flex-1 truncate font-bold text-gray-900 dark:text-gray-50 text-xl [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 cursor-pointer dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(getTruncatedTaskName(task.name)) }}
                               />
                             </TooltipTrigger>
@@ -831,7 +831,7 @@ export default function TaskViews({
                               className="max-w-md p-4 rounded-xl shadow-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                             >
                               <p 
-                                className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                                className="text-sm font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.name) }}
                               />
                             </TooltipContent>
@@ -876,7 +876,7 @@ export default function TaskViews({
                             }
                             title="View reassign note"
                           >
-                            <Eye className="h-4 w-4 text-violet-600" />
+                            <Eye className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                           </Button>
                         )}
                       </div>
@@ -948,9 +948,9 @@ export default function TaskViews({
                             title={reveal ? "Copy URL" : "Start timer to view"}
                           >
                             {urlCopied ? (
-                              <Check className="h-4 w-4 text-emerald-600" />
+                              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                             ) : (
-                              <Copy className="h-4 w-4 text-blue-600" />
+                              <Copy className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             )}
                           </Button>
                         )}
@@ -982,9 +982,9 @@ export default function TaskViews({
                         title={reveal ? "Copy email" : "Start timer to view"}
                       >
                         {emailCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                         ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
+                          <Copy className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
                         )}
                       </Button>
                     )}
@@ -1012,9 +1012,9 @@ export default function TaskViews({
                         title={reveal ? "Copy username" : "Start timer to view"}
                       >
                         {usernameCopied ? (
-                          <Check className="h-4 w-4 text-emerald-600" />
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                         ) : (
-                          <Copy className="h-4 w-4 text-gray-600" />
+                          <Copy className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
                         )}
                       </Button>
                     )}
@@ -1058,9 +1058,9 @@ export default function TaskViews({
                           }
                         >
                           {isPasswordVisible(task.id) ? (
-                            <EyeOff className="h-4 w-4 text-gray-600" />
+                            <EyeOff className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
                           ) : (
-                            <Eye className="h-4 w-4 text-gray-600" />
+                            <Eye className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
                           )}
                         </Button>
 
@@ -1079,9 +1079,9 @@ export default function TaskViews({
                           }
                         >
                           {passwordCopied ? (
-                            <Check className="h-4 w-4 text-emerald-600" />
+                            <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                           ) : (
-                            <Copy className="h-4 w-4 text-gray-600" />
+                            <Copy className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
                           )}
                         </Button>
                       </>
@@ -1117,7 +1117,7 @@ export default function TaskViews({
                         <TooltipContent
                           side="top"
                           align="start"
-                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100"
+                          className="w-[400px] p-0 rounded-xl shadow-xl border border-gray-200 bg-gray-800 text-gray-100 dark:border-border"
                         >
                           {(() => {
                             const r = (task?.qcReview as any) || {};
@@ -1218,7 +1218,7 @@ export default function TaskViews({
     return (
       <div className="py-16 text-center">
         <div className="mx-auto w-32 h-32 bg-linear-to-br from-gray-100 to-slate-100 dark:from-gray-800/30 dark:to-slate-800/30 rounded-3xl flex items-center justify-center mb-6 shadow-2xl border-2 border-gray-200 dark:border-gray-700">
-          <EmptyIcon className="h-12 w-12 text-gray-500" />
+          <EmptyIcon className="h-12 w-12 text-gray-500 dark:text-muted-foreground" />
         </div>
         <p className="text-gray-600 dark:text-gray-300 text-xl font-bold mb-2">
           {emptyText[0]}

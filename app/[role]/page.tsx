@@ -69,7 +69,7 @@ export default async function RoleBasedPage(_props: any) {
       if (!user.id) {
         return (
           <div className="flex items-center justify-center min-h-[300px]">
-            <p className="text-sm text-red-600">
+            <p className="text-sm text-red-600 dark:text-red-400">
               Could not determine agent ID. Please re-login.
             </p>
           </div>

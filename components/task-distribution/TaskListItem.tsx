@@ -144,7 +144,7 @@ export const TaskListItem = memo(function TaskListItem({
     siteTypeIcons[siteType as keyof typeof siteTypeIcons] || DefaultIcon;
   const siteTone =
     siteTypeColors[siteType as keyof typeof siteTypeColors] ??
-    "bg-slate-50 text-slate-700 border-slate-200";
+    "bg-slate-50 text-slate-700 border-slate-200 dark:bg-muted/40 dark:text-foreground dark:border-border";
 
   const shouldDisableDropdown =
     isMultipleSelected && isSelected && !isFirstSelectedTask;
@@ -187,38 +187,38 @@ export const TaskListItem = memo(function TaskListItem({
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
         <Badge
           variant="outline"
-          className="border-slate-200 bg-white text-slate-700"
+          className="border-slate-200 bg-white text-slate-700 dark:border-border dark:bg-card dark:text-foreground"
         >
           {active} active
         </Badge>
         <Badge
           variant="outline"
-          className="border-amber-200 bg-amber-50 text-amber-700"
+          className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
         >
           W:{weighted}
         </Badge>
-        <div className="mx-1 h-3.5 w-px bg-slate-200" />
+        <div className="mx-1 h-3.5 w-px bg-slate-200 dark:bg-muted" />
         <Badge
           variant="outline"
-          className="border-slate-200 bg-white text-slate-700"
+          className="border-slate-200 bg-white text-slate-700 dark:border-border dark:bg-card dark:text-foreground"
         >
           P:{P}
         </Badge>
         <Badge
           variant="outline"
-          className="border-indigo-200 bg-indigo-50 text-indigo-700"
+          className="border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
         >
           IP:{IP}
         </Badge>
         <Badge
           variant="outline"
-          className="border-rose-200 bg-rose-50 text-rose-700"
+          className="border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300"
         >
           O:{O}
         </Badge>
         <Badge
           variant="outline"
-          className="border-orange-200 bg-orange-50 text-orange-700"
+          className="border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300"
         >
           R:{R}
         </Badge>
@@ -257,11 +257,11 @@ export const TaskListItem = memo(function TaskListItem({
   return (
     <Card
       className={[
-        "transition-all duration-200 shadow-sm border bg-white",
+        "transition-all duration-200 shadow-sm border bg-white dark:bg-card",
         isNested ? "rounded-lg" : "rounded-xl",
         isSelected
-          ? "border-blue-300 ring-2 ring-blue-100"
-          : "border-slate-200 hover:border-slate-300",
+          ? "border-blue-300 ring-2 ring-blue-100 dark:border-blue-700"
+          : "border-slate-200 hover:border-slate-300 dark:border-border dark:hover:border-border",
       ].join(" ")}
     >
       <CardContent className="p-5 max-h-[calc(100vh-12rem)] overflow-y-auto pr-2">
@@ -271,7 +271,7 @@ export const TaskListItem = memo(function TaskListItem({
             onCheckedChange={(checked) =>
               onTaskSelection(task.id, checked as boolean)
             }
-            className="mt-1 w-4 h-4 rounded border border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"
+            className="mt-1 w-4 h-4 rounded border border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:border-border"
           />
 
           <div className={`p-2 rounded-lg border ${siteTone}`}>
@@ -280,7 +280,7 @@ export const TaskListItem = memo(function TaskListItem({
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-              <h3 className="text-sm font-semibold text-slate-900 truncate">
+              <h3 className="text-sm font-semibold text-slate-900 truncate dark:text-foreground">
                 {task.name}
               </h3>
               <div className="flex items-center space-x-2">
@@ -304,7 +304,7 @@ export const TaskListItem = memo(function TaskListItem({
                   disabled={shouldDisablePriority}
                 >
                   <SelectTrigger
-                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm"
+                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm dark:border-blue-800 dark:bg-card"
                     title={
                       isPriorityLocked
                         ? "Priority locked for completed/QC approved tasks"
@@ -344,28 +344,28 @@ export const TaskListItem = memo(function TaskListItem({
             </div>
 
             {task.templateSiteAsset?.description && (
-              <p className="text-xs text-slate-600 mt-1 truncate">
+              <p className="text-xs text-slate-600 mt-1 truncate dark:text-muted-foreground">
                 {task.templateSiteAsset.description}
               </p>
             )}
 
-            <div className="flex items-center flex-wrap gap-3 mt-2 text-xs text-slate-600">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50">
-                <CalendarDays className="h-3.5 w-3.5 text-slate-600" />
+            <div className="flex items-center flex-wrap gap-3 mt-2 text-xs text-slate-600 dark:text-muted-foreground">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 dark:border-border dark:bg-muted/40">
+                <CalendarDays className="h-3.5 w-3.5 text-slate-600 dark:text-muted-foreground" />
                 <span className="font-medium">
                   {new Date(task.dueDate).toLocaleDateString()}
                 </span>
               </div>
               {task.idealDurationMinutes && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50">
-                  <Clock className="h-3.5 w-3.5 text-slate-600" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 dark:border-border dark:bg-muted/40">
+                  <Clock className="h-3.5 w-3.5 text-slate-600 dark:text-muted-foreground" />
                   <span className="font-medium">
                     {task.idealDurationMinutes}min
                   </span>
                 </div>
               )}
               {task.templateSiteAsset?.isRequired && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50 text-amber-700">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                   <AlertCircle className="h-3.5 w-3.5" />
                   <span className="font-medium">Required</span>
                 </div>
@@ -382,7 +382,7 @@ export const TaskListItem = memo(function TaskListItem({
                   null;
 
                 return (
-                  <div className="flex items-center gap-2 p-3 rounded-lg border border-emerald-300 bg-emerald-50">
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/40">
                     <AvatarWithFallback
                       name={assignedDisplayName}
                       image={(resolvedAgent as any)?.image || undefined}
@@ -391,16 +391,16 @@ export const TaskListItem = memo(function TaskListItem({
                       textClass="text-xs"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-emerald-800 truncate">
+                      <p className="text-xs font-semibold text-emerald-800 truncate dark:text-emerald-300">
                         {assignedDisplayName}
                       </p>
                     </div>
-                    <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 dark:text-emerald-300" />
                   </div>
                 );
               })()
             ) : assignment ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-300 bg-blue-50">
+              <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/40">
                 <AvatarWithFallback
                   name={previewDisplayName}
                   image={previewAgent?.image || undefined}
@@ -409,11 +409,11 @@ export const TaskListItem = memo(function TaskListItem({
                   textClass="text-xs"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-blue-800 truncate">
+                  <p className="text-xs font-semibold text-blue-800 truncate dark:text-blue-300">
                     {previewDisplayName}
                   </p>
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-blue-700 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-blue-700 shrink-0 dark:text-blue-300" />
               </div>
             ) : (
               <>
@@ -422,7 +422,7 @@ export const TaskListItem = memo(function TaskListItem({
                     {/* Top row: Source select + available count + (optional) Bulk chip */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="flex items-center gap-2 sm:flex-1">
-                        <span className="text-xs font-semibold text-slate-700 shrink-0">
+                        <span className="text-xs font-semibold text-slate-700 shrink-0 dark:text-foreground">
                           Choose Agent List:
                         </span>
 
@@ -435,7 +435,7 @@ export const TaskListItem = memo(function TaskListItem({
                           <SelectTrigger
                             disabled={isLinkedToFirst}
                             className={[
-                              "border border-slate-300 hover:border-slate-400 h-9 text-xs sm:text-sm w-full sm:max-w-[180px] rounded-lg bg-white",
+                              "border border-slate-300 hover:border-slate-400 h-9 text-xs sm:text-sm w-full sm:max-w-[180px] rounded-lg bg-white dark:border-border dark:hover:border-input dark:bg-card",
                               isLinkedToFirst
                                 ? "opacity-60 cursor-not-allowed"
                                 : "",
@@ -455,21 +455,21 @@ export const TaskListItem = memo(function TaskListItem({
                           </SelectContent>
                         </Select>
 
-                        <span className="text-[11px] text-slate-600 px-2 py-1 rounded-full bg-slate-100 border border-slate-200">
+                        <span className="text-[11px] text-slate-600 px-2 py-1 rounded-full bg-slate-100 border border-slate-200 dark:text-muted-foreground dark:bg-muted dark:border-border">
                           {agentSource === "team"
                             ? teamAgents.length
                             : allAgents.length}{" "}
                           available
                         </span>
                         {isLinkedToFirst && (
-                          <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                          <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800">
                             Linked
                           </span>
                         )}
                       </div>
 
                       {isFirstSelectedTask && isMultipleSelected && (
-                        <span className="inline-flex items-center self-start sm:self-auto gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                        <span className="inline-flex items-center self-start sm:self-auto gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800">
                           Bulk
                         </span>
                       )}
@@ -490,8 +490,8 @@ export const TaskListItem = memo(function TaskListItem({
                           className={[
                             "h-10 text-sm w-full rounded-lg transition-all duration-150 shadow-sm",
                             shouldDisableDropdown
-                              ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                              : "border-slate-300 hover:border-slate-400 bg-white",
+                              ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed dark:border-border dark:bg-muted/40 dark:text-muted-foreground"
+                              : "border-slate-300 hover:border-slate-400 bg-white dark:border-border dark:hover:border-input dark:bg-card",
                           ].join(" ")}
                         >
                           <SelectValue
@@ -511,9 +511,9 @@ export const TaskListItem = memo(function TaskListItem({
                           onCloseAutoFocus={(e) => e.preventDefault()}
                         >
                           {/* ✅ Sticky header: legend + search stays fixed while list scrolls */}
-                          <div className="sticky top-0 z-10 bg-white pt-1">
+                          <div className="sticky top-0 z-10 bg-white pt-1 dark:bg-card">
                             {/* Legend bar */}
-                            <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div className="px-3 py-2 mb-2 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg dark:text-muted-foreground dark:bg-muted/40 dark:border-border">
                               <div className="flex items-center gap-3">
                                 <span className="inline-flex items-center gap-1">
                                   <span className="h-2 w-2 rounded-full bg-slate-400" />{" "}
@@ -540,20 +540,20 @@ export const TaskListItem = memo(function TaskListItem({
                             {/* Search box */}
                             <div className="px-2 pb-2">
                               <div
-                                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5"
+                                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 dark:border-border dark:bg-card"
                                 // ✅ stop propagation so Radix Select doesn't steal typing
                                 onPointerDown={(e) => e.stopPropagation()}
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <Search className="h-4 w-4 text-slate-500" />
+                                <Search className="h-4 w-4 text-slate-500 dark:text-muted-foreground" />
                                 <input
                                   value={agentSearch}
                                   onChange={(e) =>
                                     setAgentSearch(e.target.value)
                                   }
                                   placeholder="Search agent by name or email..."
-                                  className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+                                  className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400 dark:placeholder:text-muted-foreground"
                                   autoComplete="off"
                                   autoCorrect="off"
                                   spellCheck={false}
@@ -565,14 +565,14 @@ export const TaskListItem = memo(function TaskListItem({
                                   <button
                                     type="button"
                                     onClick={() => setAgentSearch("")}
-                                    className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                    className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-border dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-muted"
                                   >
                                     Clear
                                   </button>
                                 ) : null}
                               </div>
 
-                              <div className="mt-1 text-[11px] text-slate-500 px-1">
+                              <div className="mt-1 text-[11px] text-slate-500 px-1 dark:text-muted-foreground">
                                 Showing {filteredAgentsWithSearch.length} of{" "}
                                 {filteredAgents.length}
                               </div>
@@ -601,7 +601,7 @@ export const TaskListItem = memo(function TaskListItem({
                                   <SelectItem
                                     key={agent.id}
                                     value={agent.id}
-                                    className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50"
+                                    className="rounded-lg m-0 px-2 py-2 hover:bg-slate-50 dark:hover:bg-muted/40"
                                   >
                                     <div className="flex items-start gap-2">
                                       <Avatar className="h-7 w-7 ring-2 ring-blue-200 shadow-sm">
@@ -619,7 +619,7 @@ export const TaskListItem = memo(function TaskListItem({
                                         </AvatarFallback>
                                       </Avatar>
                                       <div className="flex-1 min-w-0">
-                                        <div className="text-[13px] font-semibold text-slate-900 truncate">
+                                        <div className="text-[13px] font-semibold text-slate-900 truncate dark:text-foreground">
                                           {display}
                                         </div>
                                         <LoadChips {...agent} />
@@ -629,7 +629,7 @@ export const TaskListItem = memo(function TaskListItem({
                                 );
                               })
                             ) : (
-                              <div className="px-3 py-6 text-center text-sm text-slate-500">
+                              <div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-muted-foreground">
                                 No agents found.
                               </div>
                             )}
@@ -640,9 +640,9 @@ export const TaskListItem = memo(function TaskListItem({
                   </div>
                 ) : (
                   /* Not selected yet */
-                  <div className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-slate-50">
-                    <User className="h-4 w-4 text-slate-600" />
-                    <span className="text-xs text-slate-700 font-medium">
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-slate-50 dark:border-border dark:bg-muted/40">
+                    <User className="h-4 w-4 text-slate-600 dark:text-muted-foreground" />
+                    <span className="text-xs text-slate-700 font-medium dark:text-foreground">
                       Select to assign
                     </span>
                   </div>
@@ -656,7 +656,7 @@ export const TaskListItem = memo(function TaskListItem({
         <div className="mt-4 space-y-2">
           <label
             htmlFor={`note-${task.id}`}
-            className="text-xs font-semibold text-slate-800"
+            className="text-xs font-semibold text-slate-800 dark:text-foreground"
           >
             Task Notes
           </label>
@@ -666,7 +666,7 @@ export const TaskListItem = memo(function TaskListItem({
               id={`note-${task.id}`}
               rows={2}
               placeholder="Add your notes here..."
-              className="w-full text-sm p-3 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-300 resize-none transition-all duration-150 placeholder-slate-400 text-slate-800"
+              className="w-full text-sm p-3 rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-300 resize-none transition-all duration-150 placeholder-slate-400 text-slate-800 dark:border-border dark:bg-card dark:focus:border-border dark:placeholder-muted-foreground dark:text-foreground"
               value={note}
               onChange={(e) => {
                 if (e.target.value.length <= 500) {
@@ -675,7 +675,7 @@ export const TaskListItem = memo(function TaskListItem({
               }}
             />
             <div className="absolute bottom-2 right-2 flex items-center gap-1">
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-xs text-slate-400 font-medium dark:text-muted-foreground">
                 {note?.length || 0}/500
               </span>
             </div>

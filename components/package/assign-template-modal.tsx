@@ -39,10 +39,10 @@ function titleStatus(status?: string | null) {
 // Map a status to badge classes
 function statusClasses(status?: string | null) {
   const s = (status ?? "").toString();
-  if (s === "active") return "bg-green-50 text-green-700 border-green-200";
-  if (s === "pending") return "bg-amber-50 text-amber-700 border-amber-200";
+  if (s === "active") return "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800";
+  if (s === "pending") return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800";
   // fallback bucket
-  return "bg-gray-50 text-gray-700 border-gray-200";
+  return "bg-gray-50 text-gray-700 border-gray-200 dark:bg-muted/40 dark:text-foreground dark:border-border";
 }
 
 export function AssignTemplateModal({
@@ -207,7 +207,7 @@ export function AssignTemplateModal({
           </div>
 
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-muted-foreground" />
             <Input
               placeholder="Search clients..."
               className="pl-9"
@@ -235,7 +235,7 @@ export function AssignTemplateModal({
           ) : (
             <ScrollArea className="h-[300px] pr-4">
               {filteredClients.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                   No clients found matching your search
                 </div>
               ) : (
@@ -250,7 +250,7 @@ export function AssignTemplateModal({
                         key={client.id}
                         className={`p-3 rounded-md border flex items-center gap-3 transition-colors relative cursor-pointer ${
                           isAssigned
-                            ? "bg-green-50 border-green-200 cursor-not-allowed opacity-60"
+                            ? "bg-green-50 border-green-200 cursor-not-allowed opacity-60 dark:bg-green-950/40 dark:border-green-800"
                             : isSelected
                             ? "border-primary bg-primary/5"
                             : "hover:bg-muted"
@@ -288,7 +288,7 @@ export function AssignTemplateModal({
                         </div>
 
                         {isAssigned ? (
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800">
                             Assigned
                           </Badge>
                         ) : isSelected ? (

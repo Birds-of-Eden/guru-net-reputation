@@ -277,7 +277,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
         <div className="shrink-0 bg-linear-to-r from-sky-600 to-cyan-600 px-4 py-5 sm:px-6 text-white">
           <SheetHeader className="p-0 pr-8">
             <SheetTitle className="text-lg sm:text-2xl font-bold flex items-center gap-3 text-white">
-              <div className="p-2 bg-white/20 rounded-lg shrink-0">
+              <div className="p-2 bg-white/20 rounded-lg shrink-0 dark:bg-card/20">
                 <ListTodo className="h-5 w-5" />
               </div>
               <span className="truncate">Create Posting Tasks Manually</span>
@@ -293,7 +293,7 @@ export function CreateNewTaskModal({ isOpen, onClose, onSuccess, clientId }: Cre
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
-                  <ListTodo className="w-5 h-5 text-sky-600" />
+                  <ListTodo className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                 </div>
                 <span className="text-sm font-semibold text-sky-900 dark:text-sky-100">
                   Total Posting Tasks

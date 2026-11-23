@@ -191,7 +191,7 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+            <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Add New User
           </DialogTitle>
         </DialogHeader>
@@ -264,7 +264,7 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
                     </Select>
                     {validationErrors.role && <ErrorText text={validationErrors.role} />}
                     {selectedRoleData && (
-                      <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded flex items-center gap-2">
+                      <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded flex items-center gap-2 dark:text-blue-400 dark:bg-blue-950/40">
                         <Shield className="h-3 w-3" />
                         {selectedRoleData.name} requires {requiredPasswordLength}+ character password
                       </div>

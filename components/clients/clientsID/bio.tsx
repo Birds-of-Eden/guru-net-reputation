@@ -24,7 +24,7 @@ export function Bio({ clientData }: BioProps) {
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
       <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
         <CardTitle className="flex items-center space-x-2">
-          <FileText className="h-5 w-5 text-indigo-600" />
+          <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           <span>Biography - {clientData.name}</span>
         </CardTitle>
       </CardHeader>
@@ -40,7 +40,7 @@ export function Bio({ clientData }: BioProps) {
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-full mb-4">
-              <User className="h-8 w-8 text-slate-400" />
+              <User className="h-8 w-8 text-slate-400 dark:text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
               No Biography Available

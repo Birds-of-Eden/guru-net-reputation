@@ -71,19 +71,19 @@ export function CustomizationHistory({
     const badges: Record<string, { label: string; className: string }> = {
       customize_template: {
         label: "Customized",
-        className: "bg-purple-100 text-purple-700",
+        className: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
       },
       sync_template: {
         label: "Switched",
-        className: "bg-blue-100 text-blue-700",
+        className: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
       },
       create_assignment: {
         label: "Created",
-        className: "bg-green-100 text-green-700",
+        className: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
       },
     };
     
-    const badge = badges[action] || { label: action, className: "bg-slate-100 text-slate-700" };
+    const badge = badges[action] || { label: action, className: "bg-slate-100 text-slate-700 dark:bg-muted dark:text-foreground" };
     return <Badge className={badge.className}>{badge.label}</Badge>;
   };
 
@@ -91,7 +91,7 @@ export function CustomizationHistory({
     <Card className="shadow-lg border-0">
       <CardHeader className="bg-linear-to-r from-slate-500/10 to-purple-500/10">
         <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-slate-600" />
+          <History className="h-5 w-5 text-slate-600 dark:text-muted-foreground" />
           Recent Changes
         </CardTitle>
       </CardHeader>

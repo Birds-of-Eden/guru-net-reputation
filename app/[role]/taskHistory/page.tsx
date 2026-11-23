@@ -42,7 +42,7 @@ export default function Page() {
   if (meLoading || (agentId && rowsLoading)) {
     return (
       <div className="min-h-[40vh] flex flex-col items-center justify-center gap-2">
-        <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+        <Loader2 className="h-5 w-5 animate-spin text-gray-500 dark:text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
           Loading your Task History…
         </p>
@@ -54,7 +54,7 @@ export default function Page() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-600 dark:text-red-400">
             Could not resolve your agent session.
           </p>
           <p className="text-xs text-muted-foreground mt-1">

@@ -229,7 +229,7 @@ export default function AssetTypesPage() {
   if (!canManage) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="rounded-lg border bg-white p-6">
+        <div className="rounded-lg border bg-white p-6 dark:bg-card">
           <h1 className="text-2xl font-bold">Task Category Management</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             You do not have permission to manage Task Category Management.
@@ -302,7 +302,7 @@ export default function AssetTypesPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border bg-white">
+        <div className="rounded-lg border bg-white dark:bg-card">
           <Table>
             <TableHeader>
               <TableRow>

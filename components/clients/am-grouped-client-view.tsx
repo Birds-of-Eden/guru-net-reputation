@@ -189,21 +189,21 @@ export function AmGroupedClientView({
       {/* ----------------------------- */}
       {favoriteClients.length > 0 && (
         <section
-          className={`overflow-hidden rounded-xl border border-amber-200 bg-amber-50 shadow-sm transition-all duration-300 ${
+          className={`overflow-hidden rounded-xl border border-amber-200 bg-amber-50 shadow-sm transition-all duration-300 dark:border-amber-800 dark:bg-amber-950/40 ${
             favHovered ? "shadow-md" : "shadow-sm"
           }`}
           onMouseEnter={handleFavEnter}
           onMouseLeave={handleFavLeave}
         >
           {/* Header stays visible; body reveals on hover */}
-          <header className="flex items-center justify-between p-4 md:p-6 bg-amber-50">
+          <header className="flex items-center justify-between p-4 md:p-6 bg-amber-50 dark:bg-amber-950/40">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-amber-100 text-amber-700 ring-2 ring-amber-300">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-amber-100 text-amber-700 ring-2 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-300">
                 <Heart className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-amber-800">Favorites</h2>
-                <p className="text-sm text-amber-700">
+                <h2 className="text-xl font-bold text-amber-800 dark:text-amber-300">Favorites</h2>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
                   Quick access to clients you starred
                 </p>
               </div>
@@ -213,8 +213,8 @@ export function AmGroupedClientView({
             <span
               className={`text-xs font-medium px-2 py-1 rounded-full border transition ${
                 favHovered
-                  ? "bg-white/70 border-amber-300 text-amber-700"
-                  : "bg-white/40 border-amber-200 text-amber-600"
+                  ? "bg-white/70 border-amber-300 text-amber-700 dark:bg-card/70 dark:border-amber-700 dark:text-amber-300"
+                  : "bg-white/40 border-amber-200 text-amber-600 dark:bg-card/40 dark:border-amber-800 dark:text-amber-400"
               }`}
             >
               Hover to expand
@@ -282,11 +282,11 @@ export function AmGroupedClientView({
           if (active && payload && payload.length) {
             const p = payload[0];
             return (
-              <div className="rounded-md bg-white p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5">
+              <div className="rounded-md bg-white p-2 text-sm shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-card">
                 <p className="font-semibold" style={{ color: p.payload.color }}>
                   {label}
                 </p>
-                <p className="text-gray-700">{p.value}</p>
+                <p className="text-gray-700 dark:text-foreground">{p.value}</p>
               </div>
             );
           }
@@ -298,33 +298,33 @@ export function AmGroupedClientView({
             key={amId}
             className={`overflow-hidden rounded-xl border transition duration-300 ${
               isOpen
-                ? "border-cyan-300 bg-white shadow-xl"
-                : "border-gray-200 bg-white shadow-sm hover:shadow-md"
+                ? "border-cyan-300 bg-white shadow-xl dark:border-cyan-700 dark:bg-card"
+                : "border-gray-200 bg-white shadow-sm hover:shadow-md dark:border-border dark:bg-card"
             }`}
           >
             {/* Header */}
             <header
               aria-expanded={isOpen}
               className={`flex items-stretch justify-between transition duration-300 p-4 md:p-6 ${
-                isOpen ? "bg-white" : "bg-gray-50 hover:bg-white"
+                isOpen ? "bg-white dark:bg-card" : "bg-gray-50 hover:bg-white dark:bg-muted/40 dark:hover:bg-card"
               }`}
             >
               <div
                 className="flex items-center gap-4 cursor-pointer"
                 onClick={() => toggleOpen(amId)}
               >
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-linear-to-br from-cyan-100 to-teal-100 text-cyan-700 ring-2 ring-cyan-300">
+                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-linear-to-br from-cyan-100 to-teal-100 text-cyan-700 ring-2 ring-cyan-300 dark:from-cyan-900/40 dark:to-teal-900/40 dark:text-cyan-300">
                   <span className="text-lg font-bold">
                     {avatarText(group.am)}
                   </span>
                 </div>
                 <div className="min-w-0">
-                  <h2 className="truncate text-xl font-bold text-gray-900 leading-snug">
+                  <h2 className="truncate text-xl font-bold text-gray-900 leading-snug dark:text-foreground">
                     {getAmLabel(group.am)}
                   </h2>
-                  <p className="mt-0.5 text-sm text-gray-600">
+                  <p className="mt-0.5 text-sm text-gray-600 dark:text-muted-foreground">
                     Account Manager • ID:{" "}
-                    <span className="font-mono font-medium text-cyan-700">
+                    <span className="font-mono font-medium text-cyan-700 dark:text-cyan-300">
                       {amId}
                     </span>
                   </p>
@@ -359,22 +359,22 @@ export function AmGroupedClientView({
 
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 md:gap-4 shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-medium text-slate-800">
-                      <Users className="w-4 h-4 mr-1 text-slate-500" />
+                    <span className="flex items-center rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-medium text-slate-800 dark:border-border dark:bg-muted dark:text-foreground">
+                      <Users className="w-4 h-4 mr-1 text-slate-500 dark:text-muted-foreground" />
                       {totalCount} Clients
                     </span>
-                    <span className="flex items-center rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-800">
+                    <span className="flex items-center rounded-full border border-cyan-300 bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-800 dark:border-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
                       <Package className="w-4 h-4 mr-1 text-cyan-500" />
                       {salesCount} Sales
                     </span>
                   </div>
 
                   {(activeCount > 0 || expiredCount > 0) && (
-                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                      <span className="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-foreground">
+                      <span className="rounded-full bg-emerald-100 text-emerald-800 px-3 py-1 dark:bg-emerald-900/40 dark:text-emerald-300">
                         Active: {activeCount}
                       </span>
-                      <span className="rounded-full bg-rose-100 text-rose-800 px-3 py-1">
+                      <span className="rounded-full bg-rose-100 text-rose-800 px-3 py-1 dark:bg-rose-900/40 dark:text-rose-300">
                         Expired: {expiredCount}
                       </span>
                     </div>
@@ -392,13 +392,13 @@ export function AmGroupedClientView({
                 <button
                   type="button"
                   onClick={() => toggleOpen(amId)}
-                  className="p-2 rounded-full text-gray-500 hover:text-gray-700 transition duration-150"
+                  className="p-2 rounded-full text-gray-500 hover:text-gray-700 transition duration-150 dark:text-muted-foreground dark:hover:text-foreground"
                   aria-label={isOpen ? "Collapse" : "Expand"}
                   title="Click to lock/unlock"
                 >
                   <ChevronDown
                     className={`w-6 h-6 transform transition-transform ${
-                      isOpen ? "rotate-180 text-cyan-600" : "rotate-0"
+                      isOpen ? "rotate-180 text-cyan-600 dark:text-cyan-400" : "rotate-0"
                     }`}
                   />
                 </button>
@@ -406,7 +406,7 @@ export function AmGroupedClientView({
             </header>
 
             <div
-              className={`h-px w-full bg-linear-to-r from-transparent via-gray-200 to-transparent ${
+              className={`h-px w-full bg-linear-to-r from-transparent via-gray-200 to-transparent dark:via-muted ${
                 isOpen ? "opacity-100" : "opacity-0"
               } transition duration-300`}
             />
@@ -414,7 +414,7 @@ export function AmGroupedClientView({
             {isOpen && (
               <div className="p-4 md:p-6 transition-all duration-300 ease-out">
                 {totalCount === 0 ? (
-                  <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
+                  <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500 dark:border-border dark:bg-muted/40 dark:text-muted-foreground">
                     <Package className="w-6 h-6 mx-auto mb-2" />
                     <p className="font-medium">
                       No clients assigned to this manager yet (based on current

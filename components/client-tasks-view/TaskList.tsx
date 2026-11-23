@@ -525,7 +525,7 @@ export default function TaskList({
                     className={`rounded-xl h-12 w-12 transition-all duration-300 ${
                       viewMode === "list"
                         ? "bg-linear-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
-                        : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50"
+                        : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50 dark:text-violet-400"
                     }`}
                   >
                     <List className="h-5 w-5" />
@@ -537,7 +537,7 @@ export default function TaskList({
                     className={`rounded-xl h-12 w-12 transition-all duration-300 ${
                       viewMode === "grid"
                         ? "bg-linear-to-r from-violet-600 via-purple-600 to-pink-600 text-white shadow-lg"
-                        : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50"
+                        : "text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50 dark:text-violet-400"
                     }`}
                   >
                     <Grid3X3 className="h-5 w-5" />
@@ -608,7 +608,7 @@ export default function TaskList({
                 {taskGroups.today.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
+                    className="ml-1 bg-white text-violet-600 dark:bg-card dark:text-violet-400"
                   >
                     {taskGroups.today.length}
                   </Badge>
@@ -624,7 +624,7 @@ export default function TaskList({
                 {taskGroups.tomorrow.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
+                    className="ml-1 bg-white text-violet-600 dark:bg-card dark:text-violet-400"
                   >
                     {taskGroups.tomorrow.length}
                   </Badge>
@@ -640,7 +640,7 @@ export default function TaskList({
                 {taskGroups.upcoming.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
+                    className="ml-1 bg-white text-violet-600 dark:bg-card dark:text-violet-400"
                   >
                     {taskGroups.upcoming.length}
                   </Badge>
@@ -672,7 +672,7 @@ export default function TaskList({
                 {reassignedTasks.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
+                    className="ml-1 bg-white text-violet-600 dark:bg-card dark:text-violet-400"
                   >
                     {reassignedTasks.length}
                   </Badge>
@@ -688,7 +688,7 @@ export default function TaskList({
                 {allCompletedTasks.length > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 bg-white text-violet-600"
+                    className="ml-1 bg-white text-violet-600 dark:bg-card dark:text-violet-400"
                   >
                     {allCompletedTasks.length}
                   </Badge>

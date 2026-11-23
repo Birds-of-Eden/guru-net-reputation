@@ -892,13 +892,13 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
 
   return (
     <div className="flex flex-col">
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 dark:bg-card">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
           <h2 className="text-xl font-semibold">{packageId} Templates</h2>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-muted-foreground" />
               <Input
                 placeholder="Search templates..."
                 className="pl-9 w-[250px]"
@@ -926,7 +926,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
           </div>
         </div>
 
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-gray-500 dark:text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-amber-400"></div>
@@ -946,15 +946,15 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 h-full overflow-hidden">
         <div className="flex flex-col h-full">
-          <div className="bg-amber-50 border-amber-200 border rounded-t-lg p-3 flex justify-between items-center">
-            <h3 className="font-medium text-amber-800">Pending</h3>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800">
+          <div className="bg-amber-50 border-amber-200 border rounded-t-lg p-3 flex justify-between items-center dark:bg-amber-950/40 dark:border-amber-800">
+            <h3 className="font-medium text-amber-800 dark:text-amber-300">Pending</h3>
+            <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
               {pendingTemplates.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-amber-50 border-amber-200 border-x border-b rounded-b-lg p-3 space-y-3">
+          <div className="flex-1 overflow-y-auto bg-amber-50 border-amber-200 border-x border-b rounded-b-lg p-3 space-y-3 dark:bg-amber-950/40 dark:border-amber-800">
             {pendingTemplates.length === 0 ? (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-gray-500 dark:text-muted-foreground">
                 <p>No pending templates found</p>
               </div>
             ) : (
@@ -976,15 +976,15 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
         </div>
 
         <div className="flex flex-col h-full">
-          <div className="bg-blue-50 border-blue-200 border rounded-t-lg p-3 flex justify-between items-center">
-            <h3 className="font-medium text-blue-800">In Progress</h3>
-            <Badge variant="outline" className="bg-blue-100 text-blue-800">
+          <div className="bg-blue-50 border-blue-200 border rounded-t-lg p-3 flex justify-between items-center dark:bg-blue-950/40 dark:border-blue-800">
+            <h3 className="font-medium text-blue-800 dark:text-blue-300">In Progress</h3>
+            <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
               {inProgressTemplates.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-blue-50 border-blue-200 border-x border-b rounded-b-lg p-3 space-y-3">
+          <div className="flex-1 overflow-y-auto bg-blue-50 border-blue-200 border-x border-b rounded-b-lg p-3 space-y-3 dark:bg-blue-950/40 dark:border-blue-800">
             {inProgressTemplates.length === 0 ? (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-gray-500 dark:text-muted-foreground">
                 <p>No in-progress templates found</p>
               </div>
             ) : (
@@ -1006,18 +1006,18 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
         </div>
 
         <div className="flex flex-col h-full">
-          <div className="bg-emerald-50 border-emerald-200 border rounded-t-lg p-3 flex justify-between items-center">
-            <h3 className="font-medium text-emerald-800">Completed</h3>
+          <div className="bg-emerald-50 border-emerald-200 border rounded-t-lg p-3 flex justify-between items-center dark:bg-emerald-950/40 dark:border-emerald-800">
+            <h3 className="font-medium text-emerald-800 dark:text-emerald-300">Completed</h3>
             <Badge
               variant="outline"
-              className="bg-emerald-100 text-emerald-800"
+              className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
             >
               {completedTemplates.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-emerald-50 border-emerald-200 border-x border-b rounded-b-lg p-3 space-y-3">
+          <div className="flex-1 overflow-y-auto bg-emerald-50 border-emerald-200 border-x border-b rounded-b-lg p-3 space-y-3 dark:bg-emerald-950/40 dark:border-emerald-800">
             {completedTemplates.length === 0 ? (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-gray-500 dark:text-muted-foreground">
                 <p>No completed templates found</p>
               </div>
             ) : (
@@ -1043,17 +1043,17 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
       {selectedTemplate && (
         <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
           <DialogContent className="sm:max-w-[800px] p-0 max-h-[90vh] overflow-visible flex flex-col">
-            <DialogHeader className="p-6 pb-2 sticky top-0 bg-white z-10 border-b">
+            <DialogHeader className="p-6 pb-2 sticky top-0 bg-white z-10 border-b dark:bg-card">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Badge
                       className={
                         selectedTemplate.status === "completed"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                           : selectedTemplate.status === "in-progress"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-amber-100 text-amber-800"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                       }
                     >
                       {selectedTemplate.status === "completed"
@@ -1064,7 +1064,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="bg-white text-xs font-normal"
+                      className="bg-white text-xs font-normal dark:bg-card"
                     >
                       Due:{" "}
                       {new Date(selectedTemplate.dueDate).toLocaleDateString()}
@@ -1111,14 +1111,14 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
                       <CardHeader className="pb-2">
-                        <h3 className="text-sm font-medium text-gray-500">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
                           Project Summary
                         </h3>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Progress</span>
+                            <span className="text-gray-500 dark:text-muted-foreground">Progress</span>
                             <span className="font-medium">
                               {selectedTemplate.progress}%
                             </span>
@@ -1130,32 +1130,32 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="text-gray-500">Total Tasks:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">Total Tasks:</div>
                           <div className="font-medium">
                             {getTotalTasks(selectedTemplate)}
                           </div>
 
-                          <div className="text-gray-500">Completed:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">Completed:</div>
                           <div className="font-medium">
                             {getCompletedTasks(selectedTemplate)}
                           </div>
 
-                          <div className="text-gray-500">In Progress:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">In Progress:</div>
                           <div className="font-medium">
                             {getInProgressTasks(selectedTemplate)}
                           </div>
 
-                          <div className="text-gray-500">Pending:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">Pending:</div>
                           <div className="font-medium">
                             {getPendingTasks(selectedTemplate)}
                           </div>
 
-                          <div className="text-gray-500">Unassigned:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">Unassigned:</div>
                           <div className="font-medium">
                             {getUnassignedTasks(selectedTemplate)}
                           </div>
 
-                          <div className="text-gray-500">Near Deadline:</div>
+                          <div className="text-gray-500 dark:text-muted-foreground">Near Deadline:</div>
                           <div className="font-medium">
                             {getTasksNearDeadline(selectedTemplate)}
                           </div>
@@ -1165,7 +1165,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
 
                     <Card>
                       <CardHeader className="pb-2">
-                        <h3 className="text-sm font-medium text-gray-500">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
                           Task Distribution
                         </h3>
                       </CardHeader>
@@ -1189,7 +1189,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   selectedTemplate.tasks.social.length) *
                                 100
                               }
-                              className="h-2 bg-gray-100 [&>div]:bg-emerald-400"
+                              className="h-2 bg-gray-100 [&>div]:bg-emerald-400 dark:bg-muted"
                             />
                           </div>
 
@@ -1211,7 +1211,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   selectedTemplate.tasks.content.length) *
                                 100
                               }
-                              className="h-2 bg-gray-100 [&>div]:bg-blue-400"
+                              className="h-2 bg-gray-100 [&>div]:bg-blue-400 dark:bg-muted"
                             />
                           </div>
 
@@ -1233,7 +1233,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   selectedTemplate.tasks.design.length) *
                                 100
                               }
-                              className="h-2 bg-gray-100 [&>div]:bg-purple-400"
+                              className="h-2 bg-gray-100 [&>div]:bg-purple-400 dark:bg-muted"
                             />
                           </div>
                         </div>
@@ -1242,7 +1242,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
 
                     <Card>
                       <CardHeader className="pb-2">
-                        <h3 className="text-sm font-medium text-gray-500">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
                           Team Members
                         </h3>
                       </CardHeader>
@@ -1266,7 +1266,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                 <div className="font-medium text-sm">
                                   {member.name}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-muted-foreground">
                                   {member.role}
                                 </div>
                               </div>
@@ -1286,11 +1286,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-amber-100 p-2 rounded-full">
-                            <Clock className="h-5 w-5 text-amber-600" />
+                          <div className="bg-amber-100 p-2 rounded-full dark:bg-amber-900/40">
+                            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">Pending</div>
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">Pending</div>
                             <div className="text-xl font-bold">
                               {getPendingTasks(selectedTemplate)}
                             </div>
@@ -1298,11 +1298,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-blue-100 p-2 rounded-full">
-                            <ClockIcon className="h-5 w-5 text-blue-600" />
+                          <div className="bg-blue-100 p-2 rounded-full dark:bg-blue-900/40">
+                            <ClockIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               In Progress
                             </div>
                             <div className="text-xl font-bold">
@@ -1312,11 +1312,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-emerald-100 p-2 rounded-full">
-                            <CheckCircle className="h-5 w-5 text-emerald-600" />
+                          <div className="bg-emerald-100 p-2 rounded-full dark:bg-emerald-900/40">
+                            <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Completed
                             </div>
                             <div className="text-xl font-bold">
@@ -1326,11 +1326,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-red-100 p-2 rounded-full">
-                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                          <div className="bg-red-100 p-2 rounded-full dark:bg-red-900/40">
+                            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Near Deadline
                             </div>
                             <div className="text-xl font-bold">
@@ -1340,11 +1340,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-gray-100 p-2 rounded-full">
-                            <Users className="h-5 w-5 text-gray-600" />
+                          <div className="bg-gray-100 p-2 rounded-full dark:bg-muted">
+                            <Users className="h-5 w-5 text-gray-600 dark:text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Unassigned
                             </div>
                             <div className="text-xl font-bold">
@@ -1354,11 +1354,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3 p-3 border rounded-md">
-                          <div className="bg-purple-100 p-2 rounded-full">
-                            <Calendar className="h-5 w-5 text-purple-600" />
+                          <div className="bg-purple-100 p-2 rounded-full dark:bg-purple-900/40">
+                            <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Due Date
                             </div>
                             <div className="text-lg font-bold">
@@ -1381,7 +1381,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         <span>Social Media Tasks</span>
                       </h3>
                       <div className="border rounded-md overflow-hidden">
-                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500">
+                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500 dark:bg-muted/40 dark:text-muted-foreground">
                           <div>Task Name</div>
                           <div className="w-24 text-center">Status</div>
                           <div className="w-24 text-center">Due Date</div>
@@ -1398,10 +1398,10 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                               <Badge
                                 className={
                                   task.status === "completed"
-                                    ? "bg-emerald-100 text-emerald-800"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                                     : task.status === "in-progress"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-amber-100 text-amber-800"
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                                 }
                               >
                                 {task.status === "completed"
@@ -1438,7 +1438,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   </AvatarFallback>
                                 </Avatar>
                               ) : (
-                                <Badge variant="outline" className="bg-gray-50">
+                                <Badge variant="outline" className="bg-gray-50 dark:bg-muted/40">
                                   Unassigned
                                 </Badge>
                               )}
@@ -1454,7 +1454,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         <span>Content Tasks</span>
                       </h3>
                       <div className="border rounded-md overflow-hidden">
-                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500">
+                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500 dark:bg-muted/40 dark:text-muted-foreground">
                           <div>Task Name</div>
                           <div className="w-24 text-center">Status</div>
                           <div className="w-24 text-center">Due Date</div>
@@ -1471,10 +1471,10 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                               <Badge
                                 className={
                                   task.status === "completed"
-                                    ? "bg-emerald-100 text-emerald-800"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                                     : task.status === "in-progress"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-amber-100 text-amber-800"
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                                 }
                               >
                                 {task.status === "completed"
@@ -1511,7 +1511,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   </AvatarFallback>
                                 </Avatar>
                               ) : (
-                                <Badge variant="outline" className="bg-gray-50">
+                                <Badge variant="outline" className="bg-gray-50 dark:bg-muted/40">
                                   Unassigned
                                 </Badge>
                               )}
@@ -1527,7 +1527,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         <span>Design Tasks</span>
                       </h3>
                       <div className="border rounded-md overflow-hidden">
-                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500">
+                        <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 bg-gray-50 p-3 text-xs font-medium text-gray-500 dark:bg-muted/40 dark:text-muted-foreground">
                           <div>Task Name</div>
                           <div className="w-24 text-center">Status</div>
                           <div className="w-24 text-center">Due Date</div>
@@ -1544,10 +1544,10 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                               <Badge
                                 className={
                                   task.status === "completed"
-                                    ? "bg-emerald-100 text-emerald-800"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                                     : task.status === "in-progress"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-amber-100 text-amber-800"
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                                 }
                               >
                                 {task.status === "completed"
@@ -1584,7 +1584,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                   </AvatarFallback>
                                 </Avatar>
                               ) : (
-                                <Badge variant="outline" className="bg-gray-50">
+                                <Badge variant="outline" className="bg-gray-50 dark:bg-muted/40">
                                   Unassigned
                                 </Badge>
                               )}
@@ -1613,7 +1613,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                             </Avatar>
                             <div>
                               <h3 className="font-medium">{member.name}</h3>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 dark:text-muted-foreground">
                                 {member.role}
                               </p>
                             </div>
@@ -1622,7 +1622,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         <CardContent>
                           <div className="space-y-3">
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">
+                              <span className="text-gray-500 dark:text-muted-foreground">
                                 Assigned Tasks
                               </span>
                               <span className="font-medium">
@@ -1638,7 +1638,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                             </div>
 
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Completed</span>
+                              <span className="text-gray-500 dark:text-muted-foreground">Completed</span>
                               <span className="font-medium">
                                 {
                                   Object.values(selectedTemplate.tasks)
@@ -1653,7 +1653,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                             </div>
 
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">In Progress</span>
+                              <span className="text-gray-500 dark:text-muted-foreground">In Progress</span>
                               <span className="font-medium">
                                 {
                                   Object.values(selectedTemplate.tasks)
@@ -1668,7 +1668,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                             </div>
 
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">Pending</span>
+                              <span className="text-gray-500 dark:text-muted-foreground">Pending</span>
                               <span className="font-medium">
                                 {
                                   Object.values(selectedTemplate.tasks)
@@ -1683,7 +1683,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                             </div>
 
                             <div className="pt-2">
-                              <div className="text-sm text-gray-500 mb-1">
+                              <div className="text-sm text-gray-500 mb-1 dark:text-muted-foreground">
                                 Completion Rate
                               </div>
                               <Progress
@@ -1737,11 +1737,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-blue-100 p-2 rounded-full">
-                            <Calendar className="h-5 w-5 text-blue-600" />
+                          <div className="bg-blue-100 p-2 rounded-full dark:bg-blue-900/40">
+                            <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Start Date
                             </div>
                             <div className="font-medium">
@@ -1759,11 +1759,11 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="bg-purple-100 p-2 rounded-full">
-                            <Calendar className="h-5 w-5 text-purple-600" />
+                          <div className="bg-purple-100 p-2 rounded-full dark:bg-purple-900/40">
+                            <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-muted-foreground">
                               Due Date
                             </div>
                             <div className="font-medium">
@@ -1801,8 +1801,8 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                       new Date(task.dueDate).getTime() -
                                         new Date().getTime() <
                                       7 * 24 * 60 * 60 * 1000
-                                        ? "bg-red-100 p-2 rounded-full"
-                                        : "bg-amber-100 p-2 rounded-full"
+                                        ? "bg-red-100 p-2 rounded-full dark:bg-red-900/40"
+                                        : "bg-amber-100 p-2 rounded-full dark:bg-amber-900/40"
                                     }
                                   >
                                     <Clock
@@ -1810,8 +1810,8 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                         new Date(task.dueDate).getTime() -
                                           new Date().getTime() <
                                         7 * 24 * 60 * 60 * 1000
-                                          ? "h-4 w-4 text-red-600"
-                                          : "h-4 w-4 text-amber-600"
+                                          ? "h-4 w-4 text-red-600 dark:text-red-400"
+                                          : "h-4 w-4 text-amber-600 dark:text-amber-400"
                                       }
                                     />
                                   </div>
@@ -1819,7 +1819,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                     <div className="font-medium text-sm">
                                       {task.name}
                                     </div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-xs text-gray-500 dark:text-muted-foreground">
                                       Due:{" "}
                                       {new Date(
                                         task.dueDate
@@ -1853,7 +1853,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
                                 ) : (
                                   <Badge
                                     variant="outline"
-                                    className="bg-gray-50"
+                                    className="bg-gray-50 dark:bg-muted/40"
                                   >
                                     Unassigned
                                   </Badge>
@@ -1868,7 +1868,7 @@ export function KanbanBoard({ packageId }: { packageId: string }) {
               </div>
             </Tabs>
 
-            <DialogFooter className="p-4 border-t bg-white z-10 mt-auto">
+            <DialogFooter className="p-4 border-t bg-white z-10 mt-auto dark:bg-card">
               <Button
                 variant="outline"
                 onClick={() => setIsDetailsModalOpen(false)}
@@ -1948,7 +1948,7 @@ function TemplateCard({
               </Avatar>
             ))}
             {template.teamMembers.length > 3 && (
-              <div className="flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-[10px] font-medium border-2 border-background">
+              <div className="flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-[10px] font-medium border-2 border-background dark:bg-muted">
                 +{template.teamMembers.length - 3}
               </div>
             )}
@@ -1958,38 +1958,38 @@ function TemplateCard({
       <CardContent className="p-3 pt-0">
         <div className="mt-2 space-y-2">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-500">Progress</span>
+            <span className="text-gray-500 dark:text-muted-foreground">Progress</span>
             <span className="font-medium">{template.progress}%</span>
           </div>
           <Progress value={template.progress} className="h-1.5" />
 
           <div className="grid grid-cols-3 gap-1 mt-3">
-            <div className="flex flex-col items-center p-1 rounded bg-amber-50">
-              <span className="text-xs text-amber-700 font-medium">
+            <div className="flex flex-col items-center p-1 rounded bg-amber-50 dark:bg-amber-950/40">
+              <span className="text-xs text-amber-700 font-medium dark:text-amber-300">
                 {getPendingTasks(template)}
               </span>
-              <span className="text-[10px] text-amber-600">Pending</span>
+              <span className="text-[10px] text-amber-600 dark:text-amber-400">Pending</span>
             </div>
-            <div className="flex flex-col items-center p-1 rounded bg-blue-50">
-              <span className="text-xs text-blue-700 font-medium">
+            <div className="flex flex-col items-center p-1 rounded bg-blue-50 dark:bg-blue-950/40">
+              <span className="text-xs text-blue-700 font-medium dark:text-blue-300">
                 {getInProgressTasks(template)}
               </span>
-              <span className="text-[10px] text-blue-600">In Progress</span>
+              <span className="text-[10px] text-blue-600 dark:text-blue-400">In Progress</span>
             </div>
-            <div className="flex flex-col items-center p-1 rounded bg-emerald-50">
-              <span className="text-xs text-emerald-700 font-medium">
+            <div className="flex flex-col items-center p-1 rounded bg-emerald-50 dark:bg-emerald-950/40">
+              <span className="text-xs text-emerald-700 font-medium dark:text-emerald-300">
                 {getCompletedTasks(template)}
               </span>
-              <span className="text-[10px] text-emerald-600">Completed</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Completed</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between mt-2 text-xs">
-            <div className="flex items-center gap-1 text-red-600">
+            <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
               <AlertCircle className="h-3 w-3" />
               <span>{getTasksNearDeadline(template)} near deadline</span>
             </div>
-            <div className="flex items-center gap-1 text-gray-500">
+            <div className="flex items-center gap-1 text-gray-500 dark:text-muted-foreground">
               <Calendar className="h-3 w-3" />
               <span>
                 Due: {new Date(template.dueDate).toLocaleDateString()}

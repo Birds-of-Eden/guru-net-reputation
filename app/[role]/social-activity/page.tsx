@@ -156,7 +156,7 @@ function StepPill({
       className={`${
         className ? className + " " : ""
       }px-2.5 py-1 rounded-full text-sm font-medium ${
-        active ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700"
+        active ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700 dark:bg-muted dark:text-foreground"
       }`}
     >
       {children}
@@ -166,13 +166,13 @@ function StepPill({
 
 function StatusBadge({ status }: { status: TaskStatus }) {
   const map: Record<TaskStatus, string> = {
-    pending: "bg-slate-200 text-slate-700",
-    in_progress: "bg-blue-100 text-blue-800",
-    overdue: "bg-rose-100 text-rose-800",
-    reassigned: "bg-amber-100 text-amber-800",
-    completed: "bg-emerald-100 text-emerald-800",
-    qc_approved: "bg-purple-100 text-purple-800",
-    cancelled: "bg-slate-300 text-slate-700",
+    pending: "bg-slate-200 text-slate-700 dark:bg-muted dark:text-foreground",
+    in_progress: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+    overdue: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+    reassigned: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+    completed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    qc_approved: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+    cancelled: "bg-slate-300 text-slate-700 dark:bg-accent dark:text-foreground",
   };
   return (
     <Badge className={`${map[status]} border-none`}>
@@ -575,7 +575,7 @@ export default function SocialCommunicationTasksPage() {
               <CardTitle className="text-sm font-medium text-blue-100">
                 Total Tasks
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <svg
                   className="h-5 w-5 text-white"
                   viewBox="0 0 24 24"
@@ -602,7 +602,7 @@ export default function SocialCommunicationTasksPage() {
               <CardTitle className="text-sm font-medium text-emerald-100">
                 Completed Today
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <CheckCircle className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -619,7 +619,7 @@ export default function SocialCommunicationTasksPage() {
               <CardTitle className="text-sm font-medium text-amber-100">
                 In Progress
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <svg
                   className="h-5 w-5 text-white"
                   viewBox="0 0 24 24"
@@ -648,7 +648,7 @@ export default function SocialCommunicationTasksPage() {
               <CardTitle className="text-sm font-medium text-red-100">
                 Overdue
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <svg
                   className="h-5 w-5 text-white"
                   viewBox="0 0 24 24"
@@ -676,7 +676,7 @@ export default function SocialCommunicationTasksPage() {
               <CardTitle className="text-sm font-medium text-purple-100">
                 QC Approved
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <svg
                   className="h-5 w-5 text-white"
                   viewBox="0 0 24 24"
@@ -718,9 +718,9 @@ export default function SocialCommunicationTasksPage() {
                     placeholder="Search by task/client..."
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="h-11 pl-10 rounded-xl border-gray-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="h-11 pl-10 rounded-xl border-gray-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-border dark:bg-card"
                   />
-                  <ListFilter className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ListFilter className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none dark:text-muted-foreground" />
                 </div>
               </div>
 
@@ -730,7 +730,7 @@ export default function SocialCommunicationTasksPage() {
                   value={statusFilter}
                   onValueChange={(v) => setStatusFilter(v as any)}
                 >
-                  <SelectTrigger className="w-full h-11 rounded-xl border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-blue-500">
+                  <SelectTrigger className="w-full h-11 rounded-xl border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 dark:border-border dark:bg-card">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-lg w-[var(--radix-select-trigger-width)]">
@@ -752,7 +752,7 @@ export default function SocialCommunicationTasksPage() {
                   value={clientFilter}
                   onValueChange={(v) => setClientFilter(v as any)}
                 >
-                  <SelectTrigger className="w-full h-11 rounded-xl border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-blue-500">
+                  <SelectTrigger className="w-full h-11 rounded-xl border-gray-200 bg-white shadow-sm focus:ring-2 focus:ring-blue-500 dark:border-border dark:bg-card">
                     <SelectValue placeholder="Filter by client" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-lg max-h-72 w-[var(--radix-select-trigger-width)]">
@@ -782,10 +782,10 @@ export default function SocialCommunicationTasksPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="p-10 text-center text-slate-500">Loading…</div>
+          <div className="p-10 text-center text-slate-500 dark:text-muted-foreground">Loading…</div>
         ) : filtered.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="p-10 text-center text-slate-500">
+            <CardContent className="p-10 text-center text-slate-500 dark:text-muted-foreground">
               No Social Communication tasks found.
             </CardContent>
           </Card>
@@ -811,7 +811,7 @@ export default function SocialCommunicationTasksPage() {
               return (
                 <Card
                   key={t.id}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition-all hover:-translate-y-[1px] hover:border-slate-300 hover:shadow-md"
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm transition-all hover:-translate-y-[1px] hover:border-slate-300 hover:shadow-md dark:border-border/70 dark:bg-card dark:hover:border-border"
                 >
                   {/* subtle top accent bar */}
                   <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-violet-500 opacity-80" />
@@ -819,20 +819,20 @@ export default function SocialCommunicationTasksPage() {
                   <CardHeader className="pb-3 pt-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 flex-col">
-                        <CardTitle className="truncate text-[15px] font-semibold leading-6 text-slate-900">
+                        <CardTitle className="truncate text-[15px] font-semibold leading-6 text-slate-900 dark:text-foreground">
                           {t.name}
                         </CardTitle>
 
                         <CardDescription className="mt-1 flex items-center gap-2">
                           {t.client?.name ? (
                             <>
-                              <span className="text-slate-500">Client</span>
-                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-teal-100 px-2.5 py-[2px] text-xs font-medium text-slate-700">
+                              <span className="text-slate-500 dark:text-muted-foreground">Client</span>
+                              <span className="inline-flex items-center rounded-full border border-slate-200 bg-teal-100 px-2.5 py-[2px] text-xs font-medium text-slate-700 dark:border-border dark:bg-teal-900/40 dark:text-foreground">
                                 {t.client.name}
                               </span>
                             </>
                           ) : (
-                            <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-[2px] text-xs font-medium text-amber-800">
+                            <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-[2px] text-xs font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                               No client
                             </span>
                           )}
@@ -848,9 +848,9 @@ export default function SocialCommunicationTasksPage() {
 
                   <CardContent className="pt-0">
                     {/* info row */}
-                    <div className="mb-3 grid grid-cols-1 gap-2 text-[13px] text-slate-700 sm:grid-cols-2">
+                    <div className="mb-3 grid grid-cols-1 gap-2 text-[13px] text-slate-700 sm:grid-cols-2 dark:text-foreground">
                       <div className="flex items-center gap-2">
-                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
+                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600 dark:border-border dark:bg-muted/40 dark:text-muted-foreground">
                           Due
                         </span>
                         <span className="font-medium">
@@ -859,7 +859,7 @@ export default function SocialCommunicationTasksPage() {
                       </div>
 
                       <div className="flex items-center justify-start gap-2 sm:justify-end">
-                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
+                        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600 dark:border-border dark:bg-muted/40 dark:text-muted-foreground">
                           Ideal
                         </span>
                         {t.idealDurationMinutes ? (
@@ -867,14 +867,14 @@ export default function SocialCommunicationTasksPage() {
                             {t.idealDurationMinutes}m
                           </span>
                         ) : (
-                          <span className="text-slate-400">No timer</span>
+                          <span className="text-slate-400 dark:text-muted-foreground">No timer</span>
                         )}
                       </div>
                     </div>
 
                     {/* cooldown banner */}
                     {locked && (
-                      <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                      <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                         Completed today. Available again in <b>{daysLeft}</b>{" "}
                         day
                         {daysLeft !== 1 ? "s" : ""}.
@@ -882,19 +882,19 @@ export default function SocialCommunicationTasksPage() {
                     )}
 
                     {/* divider */}
-                    <div className="my-3 h-px w-full bg-slate-100" />
+                    <div className="my-3 h-px w-full bg-slate-100 dark:bg-muted" />
 
                     {/* credentials */}
-                    <div className="rounded-xl border border-slate-200 bg-linear-to-b from-white to-slate-50/60 p-3">
+                    <div className="rounded-xl border border-slate-200 bg-linear-to-b from-white to-slate-50/60 p-3 dark:border-border dark:from-card dark:to-background/60">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-slate-900">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-foreground">
                           Agent Access
                         </div>
                         <Badge
                           className={`${
                             credsMissing
-                              ? "border-none bg-amber-100 text-amber-800"
-                              : "border-none bg-emerald-100 text-emerald-800"
+                              ? "border-none bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                              : "border-none bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                           }`}
                         >
                           {credsMissing ? "Missing" : "Ready"}
@@ -904,7 +904,7 @@ export default function SocialCommunicationTasksPage() {
                       <div className="mt-3 grid grid-cols-12 gap-3">
                         {/* Username */}
                         <div className="col-span-12 md:col-span-6">
-                          <label className="mb-1 block text-[11px] font-medium text-slate-600">
+                          <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                             Username
                           </label>
                           <div className="flex gap-2">
@@ -912,7 +912,7 @@ export default function SocialCommunicationTasksPage() {
                               readOnly
                               value={t.username ?? ""}
                               placeholder="—"
-                              className="bg-slate-50 text-[13px]"
+                              className="bg-slate-50 text-[13px] dark:bg-muted/40"
                             />
                             <Button
                               type="button"
@@ -920,7 +920,7 @@ export default function SocialCommunicationTasksPage() {
                               size="icon"
                               onClick={() => copy("Username", t.username)}
                               title="Copy username"
-                              className="hover:border-slate-300"
+                              className="hover:border-slate-300 dark:hover:border-border"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -929,7 +929,7 @@ export default function SocialCommunicationTasksPage() {
 
                         {/* Email */}
                         <div className="col-span-12 md:col-span-6">
-                          <label className="mb-1 block text-[11px] font-medium text-slate-600">
+                          <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                             Email
                           </label>
                           <div className="flex gap-2">
@@ -937,7 +937,7 @@ export default function SocialCommunicationTasksPage() {
                               readOnly
                               value={t.email ?? ""}
                               placeholder="—"
-                              className="bg-slate-50 text-[13px]"
+                              className="bg-slate-50 text-[13px] dark:bg-muted/40"
                             />
                             <Button
                               type="button"
@@ -945,7 +945,7 @@ export default function SocialCommunicationTasksPage() {
                               size="icon"
                               onClick={() => copy("Email", t.email)}
                               title="Copy email"
-                              className="hover:border-slate-300"
+                              className="hover:border-slate-300 dark:hover:border-border"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -954,7 +954,7 @@ export default function SocialCommunicationTasksPage() {
 
                         {/* Password */}
                         <div className="col-span-12 md:col-span-6">
-                          <label className="mb-1 block text-[11px] font-medium text-slate-600">
+                          <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                             Password
                           </label>
                           <div className="flex gap-2">
@@ -963,7 +963,7 @@ export default function SocialCommunicationTasksPage() {
                               type={showPw[t.id] ? "text" : "password"}
                               value={t.password ?? ""}
                               placeholder="—"
-                              className="bg-slate-50 text-[13px]"
+                              className="bg-slate-50 text-[13px] dark:bg-muted/40"
                             />
                             <Button
                               type="button"
@@ -975,7 +975,7 @@ export default function SocialCommunicationTasksPage() {
                               title={
                                 showPw[t.id] ? "Hide password" : "Show password"
                               }
-                              className="hover:border-slate-300"
+                              className="hover:border-slate-300 dark:hover:border-border"
                             >
                               {showPw[t.id] ? (
                                 <EyeOff className="h-4 w-4" />
@@ -989,7 +989,7 @@ export default function SocialCommunicationTasksPage() {
                               size="icon"
                               onClick={() => copy("Password", t.password)}
                               title="Copy password"
-                              className="hover:border-slate-300"
+                              className="hover:border-slate-300 dark:hover:border-border"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -998,7 +998,7 @@ export default function SocialCommunicationTasksPage() {
 
                         {/* Primary URL */}
                         <div className="col-span-12 md:col-span-6">
-                          <label className="mb-1 block text-[11px] font-medium text-slate-600">
+                          <label className="mb-1 block text-[11px] font-medium text-slate-600 dark:text-muted-foreground">
                             URL
                           </label>
                           <div className="flex gap-2">
@@ -1006,7 +1006,7 @@ export default function SocialCommunicationTasksPage() {
                               readOnly
                               value={url ?? ""}
                               placeholder="—"
-                              className="bg-slate-50 text-[13px]"
+                              className="bg-slate-50 text-[13px] dark:bg-muted/40"
                             />
                             <Button
                               type="button"
@@ -1014,7 +1014,7 @@ export default function SocialCommunicationTasksPage() {
                               size="icon"
                               onClick={() => copy("URL", url)}
                               title="Copy URL"
-                              className="hover:border-slate-300"
+                              className="hover:border-slate-300 dark:hover:border-border"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -1029,7 +1029,7 @@ export default function SocialCommunicationTasksPage() {
                                 size="icon"
                                 disabled={!url}
                                 title={url ? "Open link" : "No URL"}
-                                className="hover:border-slate-300"
+                                className="hover:border-slate-300 dark:hover:border-border"
                               >
                                 <Link2 className="h-4 w-4" />
                               </Button>
@@ -1062,7 +1062,7 @@ export default function SocialCommunicationTasksPage() {
                       >
                         <Button
                           variant="outline"
-                          className="w-full rounded-xl border-slate-300 bg-white font-semibold hover:border-slate-400"
+                          className="w-full rounded-xl border-slate-300 bg-white font-semibold hover:border-slate-400 dark:border-border dark:bg-card dark:hover:border-input"
                         >
                           Open Task
                         </Button>
@@ -1078,27 +1078,27 @@ export default function SocialCommunicationTasksPage() {
         {/* Modal: 3-step wizard (UI-only refresh; logic unchanged) */}
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 overflow-hidden rounded-xl border shadow-xl">
-            <div className="bg-linear-to-r from-slate-50 via-gray-50 to-slate-100 p-6 border-b border-slate-200">
+            <div className="bg-linear-to-r from-slate-50 via-gray-50 to-slate-100 p-6 border-b border-slate-200 dark:from-background dark:via-background dark:to-background dark:border-border">
               <DialogHeader className="space-y-3">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
-                    <span className="font-semibold text-lg text-slate-700">
+                  <div className="h-12 w-12 rounded-xl bg-white shadow-sm border border-slate-200 flex items-center justify-center dark:bg-card dark:border-border">
+                    <span className="font-semibold text-lg text-slate-700 dark:text-foreground">
                       SC
                     </span>
                   </div>
-                  <DialogTitle className="text-2xl font-semibold text-slate-800">
+                  <DialogTitle className="text-2xl font-semibold text-slate-800 dark:text-foreground">
                     {currentTask?.name || "Social Communication"}
                   </DialogTitle>
                 </div>
-                <DialogDescription className="text-slate-600 leading-relaxed">
+                <DialogDescription className="text-slate-600 leading-relaxed dark:text-muted-foreground">
                   Add Like / Comment / Follow / Share links. Starts with{" "}
-                  <span className="font-medium text-slate-700">5 inputs</span>{" "}
+                  <span className="font-medium text-slate-700 dark:text-foreground">5 inputs</span>{" "}
                   by default.
                 </DialogDescription>
               </DialogHeader>
             </div>
 
-            <div className="px-6 pt-4 pb-3 bg-white border-b border-slate-100">
+            <div className="px-6 pt-4 pb-3 bg-white border-b border-slate-100 dark:bg-card dark:border-border">
               <div className="flex items-center gap-2 mb-4">
                 <StepPill
                   active={step === 1}
@@ -1126,20 +1126,20 @@ export default function SocialCommunicationTasksPage() {
             <div className="max-h-[45vh] overflow-y-auto px-6 space-y-4">
               {step === 1 && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-                    <p className="text-sm text-blue-800 leading-relaxed">
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 dark:bg-blue-950/40 dark:border-blue-800">
+                    <p className="text-sm text-blue-800 leading-relaxed dark:text-blue-300">
                       This task opens with <strong>5 input rows</strong>. You
                       can add or remove rows anytime.
                     </p>
                   </div>
-                  <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                  <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm dark:bg-card dark:border-border">
+                    <p className="text-sm text-slate-600 leading-relaxed dark:text-muted-foreground">
                       Use{" "}
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-slate-800 dark:text-foreground">
                         Add Row
                       </span>{" "}
                       to include more links, or{" "}
-                      <span className="font-medium text-slate-800">Remove</span>{" "}
+                      <span className="font-medium text-slate-800 dark:text-foreground">Remove</span>{" "}
                       to keep it tidy.
                     </p>
                   </div>
@@ -1151,14 +1151,14 @@ export default function SocialCommunicationTasksPage() {
                   {rows.map((row, i) => (
                     <div
                       key={i}
-                      className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
+                      className="rounded-xl border border-slate-200 p-4 bg-white shadow-sm hover:shadow-md transition-shadow dark:border-border dark:bg-card"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <div className="h-7 w-7 rounded-lg bg-slate-700 text-white text-xs flex items-center justify-center font-semibold">
                             {i + 1}
                           </div>
-                          <span className="text-sm font-semibold text-slate-800">
+                          <span className="text-sm font-semibold text-slate-800 dark:text-foreground">
                             Link Item
                           </span>
                         </div>
@@ -1167,7 +1167,7 @@ export default function SocialCommunicationTasksPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => removeRow(i)}
-                          className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                          className="h-8 px-3 text-xs border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:border-red-700"
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Remove
@@ -1182,7 +1182,7 @@ export default function SocialCommunicationTasksPage() {
                               setRow(i, { type: v as SCRow["type"] })
                             }
                           >
-                            <SelectTrigger className="h-9 text-xs border-slate-200 focus:border-slate-300">
+                            <SelectTrigger className="h-9 text-xs border-slate-200 focus:border-slate-300 dark:border-border dark:focus:border-border">
                               <SelectValue placeholder="Type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1204,14 +1204,14 @@ export default function SocialCommunicationTasksPage() {
                             placeholder="https://…"
                             value={row.url}
                             onChange={(e) => setRow(i, { url: e.target.value })}
-                            className={`h-9 text-xs border-slate-200 focus:border-slate-300 ${
+                            className={`h-9 text-xs border-slate-200 focus:border-slate-300 dark:border-border dark:focus:border-border ${
                               !row.url || isHttpUrl(row.url)
                                 ? ""
                                 : "border-red-400 focus:border-red-400"
                             }`}
                           />
                           {!!row.url && !isHttpUrl(row.url) && (
-                            <div className="text-[11px] text-red-600 mt-1.5">
+                            <div className="text-[11px] text-red-600 mt-1.5 dark:text-red-400">
                               Enter a valid URL
                             </div>
                           )}
@@ -1224,7 +1224,7 @@ export default function SocialCommunicationTasksPage() {
                               setRow(i, { notes: e.target.value })
                             }
                             placeholder="Notes (optional)"
-                            className="h-9 text-xs border-slate-200 focus:border-slate-300"
+                            className="h-9 text-xs border-slate-200 focus:border-slate-300 dark:border-border dark:focus:border-border"
                           />
                         </div>
                       </div>
@@ -1237,12 +1237,12 @@ export default function SocialCommunicationTasksPage() {
                       variant="outline"
                       size="sm"
                       onClick={addRow}
-                      className="h-9 text-xs border-slate-300 hover:bg-slate-50"
+                      className="h-9 text-xs border-slate-300 hover:bg-slate-50 dark:border-border dark:hover:bg-muted/40"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       Add Row
                     </Button>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-slate-500 dark:text-muted-foreground">
                       At least one valid URL required
                     </div>
                   </div>
@@ -1251,24 +1251,24 @@ export default function SocialCommunicationTasksPage() {
 
               {step === 3 && (
                 <div className="space-y-4">
-                  <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                    <p className="text-sm text-emerald-800 leading-relaxed">
+                  <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-800">
+                    <p className="text-sm text-emerald-800 leading-relaxed dark:text-emerald-300">
                       <strong>{entries.length}</strong> valid link
                       {entries.length !== 1 ? "s" : ""} ready to submit.
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 bg-white shadow-sm">
+                  <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 bg-white shadow-sm dark:border-border dark:divide-border dark:bg-card">
                     {entries.map((e, idx) => (
                       <div key={idx} className="p-4 text-sm">
-                        <div className="font-semibold capitalize text-slate-800 mb-1">
+                        <div className="font-semibold capitalize text-slate-800 mb-1 dark:text-foreground">
                           {e.type}
                         </div>
-                        <div className="truncate text-slate-600 text-xs mb-1">
+                        <div className="truncate text-slate-600 text-xs mb-1 dark:text-muted-foreground">
                           {e.url}
                         </div>
                         {e.notes && (
-                          <div className="text-slate-500 text-xs">
+                          <div className="text-slate-500 text-xs dark:text-muted-foreground">
                             {e.notes}
                           </div>
                         )}
@@ -1279,7 +1279,7 @@ export default function SocialCommunicationTasksPage() {
               )}
             </div>
 
-            <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex gap-3">
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex gap-3 dark:bg-muted/40 dark:border-border">
               <Button
                 variant="outline"
                 size="sm"
@@ -1287,7 +1287,7 @@ export default function SocialCommunicationTasksPage() {
                   setStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2 | 3)))
                 }
                 disabled={step === 1}
-                className="h-10 text-xs border-slate-300 hover:bg-white disabled:opacity-50"
+                className="h-10 text-xs border-slate-300 hover:bg-white disabled:opacity-50 dark:border-border dark:hover:bg-card"
               >
                 <ChevronLeft className="w-3 h-3 mr-1" />
                 Back

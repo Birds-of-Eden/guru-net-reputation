@@ -102,14 +102,14 @@ export function EditTemplateModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Edit3 className="w-5 h-5 text-orange-600" />
+            <div className="p-2 bg-orange-100 rounded-lg dark:bg-orange-900/40">
+              <Edit3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
               <DialogTitle className="text-xl font-semibold">
                 Edit Template
               </DialogTitle>
-              <DialogDescription className="text-sm text-gray-500">
+              <DialogDescription className="text-sm text-gray-500 dark:text-muted-foreground">
                 Update the template information below.
               </DialogDescription>
             </div>
@@ -120,7 +120,7 @@ export function EditTemplateModal({
           <div className="space-y-2">
             <Label
               htmlFor="edit-name"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700 dark:text-foreground"
             >
               Template Name *
             </Label>
@@ -137,7 +137,7 @@ export function EditTemplateModal({
           <div className="space-y-2">
             <Label
               htmlFor="edit-description"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700 dark:text-foreground"
             >
               Description
             </Label>
@@ -154,7 +154,7 @@ export function EditTemplateModal({
           <div className="space-y-2">
             <Label
               htmlFor="edit-status"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700 dark:text-foreground"
             >
               Status
             </Label>

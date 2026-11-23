@@ -431,10 +431,10 @@ export function ClientDashboard({
                     Package Timeline
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+                    <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
                       Start: {startDisplay}
                     </Badge>
-                    <Badge className="bg-purple-50 text-purple-700 border border-purple-200">
+                    <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
                       End: {dueDisplay}
                     </Badge>
                   </div>

@@ -492,7 +492,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent p-3">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent p-3 dark:from-blue-400 dark:to-purple-400">
             My Clients
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -569,7 +569,7 @@ export default function AgentDashboard({ agentId }: AgentDashboardProps) {
           {/* Filters */}
           <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 dark:text-muted-foreground" />
               <Input
                 placeholder="Search clients by name or company..."
                 value={searchTerm}
@@ -1030,21 +1030,21 @@ function StatCard({
         shadow-[0_2px_8px_rgba(0,0,0,0.04)]
         hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]
         transition-all duration-300 
-        p-6
+        p-6 dark:bg-card dark:border-border
       "
     >
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
-          <span className="text-sm text-gray-600 font-semibold tracking-wide">
+          <span className="text-sm text-gray-600 font-semibold tracking-wide dark:text-muted-foreground">
             {title}
           </span>
 
-          <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight">
+          <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight dark:text-foreground">
             {value}
           </span>
 
           {subtitle && (
-            <span className="text-xs mt-1 text-gray-500">{subtitle}</span>
+            <span className="text-xs mt-1 text-gray-500 dark:text-muted-foreground">{subtitle}</span>
           )}
         </div>
 
@@ -1055,7 +1055,7 @@ function StatCard({
             rounded-xl 
             bg-gray-100 
             border border-gray-200
-            text-gray-700
+            text-gray-700 dark:bg-muted dark:border-border dark:text-foreground
           "
         >
           {icon}
@@ -1070,7 +1070,7 @@ function EmptyClients() {
     <div className="col-span-full text-center py-12">
       <div className="flex flex-col items-center gap-4">
         <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full">
-          <Activity className="h-8 w-8 text-gray-400" />
+          <Activity className="h-8 w-8 text-gray-400 dark:text-muted-foreground" />
         </div>
         <div className="space-y-2">
           <p className="text-lg font-medium text-gray-900 dark:text-gray-50">

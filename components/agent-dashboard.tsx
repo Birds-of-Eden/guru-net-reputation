@@ -297,10 +297,10 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 to-blue-50">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 to-blue-50 dark:from-background dark:to-blue-950/40">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600 mb-4">
+            <div className="flex items-center gap-2 text-red-600 mb-4 dark:text-red-400">
               <AlertCircle className="h-5 w-5" />
               <span className="font-medium">Error Loading Dashboard</span>
             </div>
@@ -316,11 +316,11 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen dark:from-background dark:to-blue-950/40">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-bold bg-linear-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent pa-3">
+          <h2 className="text-4xl font-bold bg-linear-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent pa-3 dark:from-blue-400 dark:to-indigo-400">
             Agent Performance Dashboard
           </h2>
           <p className="text-muted-foreground mt-2">
@@ -330,7 +330,7 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
 
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center w-full md:w-auto">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-full sm:w-[180px] border-slate-300">
+            <SelectTrigger className="w-full sm:w-[180px] border-slate-300 dark:border-border">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
             <SelectContent>
@@ -387,22 +387,22 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
       {/* Middle section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Task Status Overview */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/50 to-indigo-50/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/50 backdrop-blur-sm dark:from-card dark:to-blue-950/40">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/50 to-indigo-50/50 dark:border-border/70 dark:from-blue-950/40 dark:to-indigo-950/40">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                  <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Task Status Overview
                 </CardTitle>
-                <CardDescription className="text-slate-500">
+                <CardDescription className="text-slate-500 dark:text-muted-foreground">
                   Your current task distribution
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1 text-slate-600"
+                className="h-8 gap-1 text-slate-600 dark:text-muted-foreground"
               >
                 View details <ChevronDown className="h-4 w-4" />
               </Button>
@@ -446,22 +446,22 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         </Card>
 
         {/* Client Campaign Progress  (QC-based) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/50 to-violet-50/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/50 backdrop-blur-sm dark:from-card dark:to-purple-950/40">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/50 to-violet-50/50 dark:border-border/70 dark:from-purple-950/40 dark:to-violet-950/40">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                  <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   Client Campaign Progress
                 </CardTitle>
-                <CardDescription className="text-slate-500">
+                <CardDescription className="text-slate-500 dark:text-muted-foreground">
                   QC approved progress across clients
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1 text-slate-600"
+                className="h-8 gap-1 text-slate-600 dark:text-muted-foreground"
               >
                 View details <ChevronDown className="h-4 w-4" />
               </Button>
@@ -474,16 +474,16 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                 .map((client) => (
                   <div key={client.id} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 dark:text-foreground">
                         {client.name}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-slate-500 dark:text-muted-foreground">
                         {client._qcProgress}% QC approved
                       </span>
                     </div>
                     <Progress
                       value={client._qcProgress}
-                      className="h-2 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-purple-500 [&>div]:to-violet-500 [&>div]:rounded-full"
+                      className="h-2 bg-slate-200 [&>div]:bg-linear-to-r [&>div]:from-purple-500 [&>div]:to-violet-500 [&>div]:rounded-full dark:bg-muted"
                     />
                   </div>
                 ))}
@@ -495,22 +495,22 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
       {/* Bottom section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Assigned Clients (QC-based progress) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm dark:from-card dark:to-background/50">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50 dark:border-border/70 dark:from-background/50 dark:to-background/50">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                  <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Assigned Clients
                 </CardTitle>
-                <CardDescription className="text-slate-500">
+                <CardDescription className="text-slate-500 dark:text-muted-foreground">
                   QC approval status per client
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1 text-slate-600"
+                className="h-8 gap-1 text-slate-600 dark:text-muted-foreground"
               >
                 View all <ChevronDown className="h-4 w-4" />
               </Button>
@@ -522,24 +522,24 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                 const status = (client.status ?? "pending").toLowerCase();
                 const badgeCls =
                   status === "active"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-medium"
-                    : "bg-slate-100 text-slate-700 border-slate-200 font-medium";
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-medium dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-slate-100 text-slate-700 border-slate-200 font-medium dark:bg-muted dark:text-foreground dark:border-border";
                 return (
                   <div
                     key={client.id}
-                    className="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-slate-100/50"
+                    className="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-slate-100/50 dark:hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                        <AvatarFallback className="bg-linear-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium">
+                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm dark:border-border">
+                        <AvatarFallback className="bg-linear-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium dark:from-blue-900/40 dark:to-cyan-900/40 dark:text-blue-300">
                           {client.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-slate-800">
+                        <p className="font-medium text-slate-800 dark:text-foreground">
                           {client.name}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">
                           {client.package?.name || "No package"} •{" "}
                           {client._counts.total} tasks
                         </p>
@@ -547,10 +547,10 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
-                        <p className="text-sm font-medium text-slate-700">
+                        <p className="text-sm font-medium text-slate-700 dark:text-foreground">
                           {client._qcProgress}%
                         </p>
-                        <p className="text-xs text-slate-500">QC approved</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">QC approved</p>
                       </div>
                       <Badge variant="outline" className={badgeCls}>
                         {client.status || "unknown"}
@@ -564,22 +564,22 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
         </Card>
 
         {/* High Priority Summary (same as before) */}
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50">
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm dark:from-card dark:to-background/50">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-slate-50/50 to-slate-100/50 dark:border-border/70 dark:from-background/50 dark:to-background/50">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                  <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   High Priority Tasks
                 </CardTitle>
-                <CardDescription className="text-slate-500">
+                <CardDescription className="text-slate-500 dark:text-muted-foreground">
                   Clients with high/urgent workload
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1 text-slate-600"
+                className="h-8 gap-1 text-slate-600 dark:text-muted-foreground"
               >
                 View all <ChevronDown className="h-4 w-4" />
               </Button>
@@ -590,10 +590,10 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
               {(dashboardData?.highPrioritySummary ?? []).length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-slate-600 dark:text-muted-foreground">
                     No high priority tasks pending
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-muted-foreground">
                     Great job staying on top of your work!
                   </p>
                 </div>
@@ -603,14 +603,14 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                   return (
                     <div
                       key={item.clientId}
-                      className="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-slate-100/50"
+                      className="flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:bg-slate-100/50 dark:hover:bg-muted/50"
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={`h-10 w-10 rounded-full flex items-center justify-center shadow-sm ${
                             hasUrgent
-                              ? "bg-red-100 text-red-600"
-                              : "bg-orange-100 text-orange-600"
+                              ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
+                              : "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400"
                           }`}
                         >
                           {hasUrgent ? (
@@ -620,10 +620,10 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-800">
+                          <p className="font-medium text-slate-800 dark:text-foreground">
                             {item.clientName}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-slate-500 dark:text-muted-foreground">
                             High: {item.high} • Urgent: {item.urgent}
                           </p>
                         </div>
@@ -632,8 +632,8 @@ export function AgentDashboard({ agentId }: AgentDashboardProps) {
                         variant="outline"
                         className={
                           hasUrgent
-                            ? "bg-red-50 text-red-700 border-red-200 font-medium"
-                            : "bg-orange-50 text-orange-700 border-orange-200 font-medium"
+                            ? "bg-red-50 text-red-700 border-red-200 font-medium dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
+                            : "bg-orange-50 text-orange-700 border-orange-200 font-medium dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800"
                         }
                       >
                         {hasUrgent ? "NEEDS ACTION" : "HIGH PRIORITY"}
@@ -672,7 +672,7 @@ function MetricCard({
 }) {
   if (loading) {
     return (
-      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50 dark:from-card dark:to-background/50">
         <CardContent className="p-6">
           <Skeleton className="h-12 w-12 rounded-xl mb-4" />
           <Skeleton className="h-8 w-20 mb-2" />
@@ -683,7 +683,7 @@ function MetricCard({
     );
   }
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm group">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50 backdrop-blur-sm group dark:from-card dark:to-background/50">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div
@@ -695,8 +695,8 @@ function MetricCard({
             variant="outline"
             className={
               trend === "up"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-medium group-hover:shadow-sm"
-                : "bg-red-50 text-red-700 border-red-200 font-medium group-hover:shadow-sm"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-medium group-hover:shadow-sm dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                : "bg-red-50 text-red-700 border-red-200 font-medium group-hover:shadow-sm dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
             }
           >
             {change}{" "}
@@ -704,10 +704,10 @@ function MetricCard({
           </Badge>
         </div>
         <div className="mt-5">
-          <h3 className="text-3xl font-bold text-slate-900">{value}</h3>
-          <p className="text-sm text-slate-600 mt-1 font-medium">{title}</p>
+          <h3 className="text-3xl font-bold text-slate-900 dark:text-foreground">{value}</h3>
+          <p className="text-sm text-slate-600 mt-1 font-medium dark:text-muted-foreground">{title}</p>
         </div>
-        <p className="text-xs text-slate-500 mt-4">{description}</p>
+        <p className="text-xs text-slate-500 mt-4 dark:text-muted-foreground">{description}</p>
       </CardContent>
     </Card>
   );
@@ -754,15 +754,15 @@ function BarRow({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className={`h-3 w-3 rounded-full ${barClass}`}></div>
-          <span className="text-sm font-medium text-slate-700">{label}</span>
+          <span className="text-sm font-medium text-slate-700 dark:text-foreground">{label}</span>
         </div>
-        <span className="text-sm font-medium text-slate-900">
+        <span className="text-sm font-medium text-slate-900 dark:text-foreground">
           {value} {total ? ` / ${total}` : ""}
         </span>
       </div>
       <Progress
         value={total ? (value / total) * 100 : 0}
-        className={`h-2.5 bg-slate-200 ${innerColorClass} [&>div]:rounded-full`}
+        className={`h-2.5 bg-slate-200 dark:bg-muted ${innerColorClass} [&>div]:rounded-full`}
       />
     </div>
   );
@@ -770,7 +770,7 @@ function BarRow({
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen">
+    <div className="space-y-8 p-6 bg-linear-to-br from-slate-50 to-blue-50 min-h-screen dark:from-background dark:to-blue-950/40">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <Skeleton className="h-9 w-64 mb-2" />
@@ -789,7 +789,7 @@ function DashboardSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <Card
             key={i}
-            className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50"
+            className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/50 dark:from-card dark:to-background/50"
           >
             <CardContent className="p-6">
               <Skeleton className="h-12 w-12 rounded-xl mb-4" />
@@ -803,7 +803,7 @@ function DashboardSkeleton() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-slate-200/70 py-5">
+          <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
             <Skeleton className="h-5 w-48 mb-2" />
             <Skeleton className="h-4 w-64" />
           </CardHeader>
@@ -823,7 +823,7 @@ function DashboardSkeleton() {
         </Card>
 
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-slate-200/70 py-5">
+          <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
             <Skeleton className="h-5 w-48 mb-2" />
             <Skeleton className="h-4 w-64" />
           </CardHeader>
@@ -845,7 +845,7 @@ function DashboardSkeleton() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-slate-200/70 py-5">
+          <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
             <Skeleton className="h-5 w-48 mb-2" />
             <Skeleton className="h-4 w-64" />
           </CardHeader>
@@ -868,7 +868,7 @@ function DashboardSkeleton() {
         </Card>
 
         <Card className="border-0 shadow-lg rounded-2xl overflow-hidden">
-          <CardHeader className="border-b border-slate-200/70 py-5">
+          <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
             <Skeleton className="h-5 w-48 mb-2" />
             <Skeleton className="h-4 w-64" />
           </CardHeader>

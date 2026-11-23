@@ -132,7 +132,7 @@ export default function NotificationDetailsPage() {
 
       {!loading && error && (
         <Card className="border-0 shadow-md">
-          <CardContent className="p-6 text-sm text-red-600">
+          <CardContent className="p-6 text-sm text-red-600 dark:text-red-400">
             {error}
           </CardContent>
         </Card>
@@ -152,10 +152,10 @@ export default function NotificationDetailsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="text-sm text-gray-800">{notification.message}</div>
-            <div className="text-xs text-gray-500">{formattedDate}</div>
+            <div className="text-sm text-gray-800 dark:text-foreground">{notification.message}</div>
+            <div className="text-xs text-gray-500 dark:text-muted-foreground">{formattedDate}</div>
             {notification.taskId && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-muted-foreground">
                 Task ID: {notification.taskId}
               </div>
             )}

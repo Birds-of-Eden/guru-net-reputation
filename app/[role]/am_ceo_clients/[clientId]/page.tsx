@@ -72,12 +72,12 @@ export default function AMCEOClientPage({
   if (error) {
     return (
       <div className="min-h-screen p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 dark:bg-red-950/40 dark:border-red-800">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 dark:text-red-400" />
             <div>
-              <h3 className="font-semibold text-red-800">Error Loading Client</h3>
-              <p className="text-sm text-red-600 mt-1">{error}</p>
+              <h3 className="font-semibold text-red-800 dark:text-red-300">Error Loading Client</h3>
+              <p className="text-sm text-red-600 mt-1 dark:text-red-400">{error}</p>
             </div>
           </div>
         </div>
@@ -89,12 +89,12 @@ export default function AMCEOClientPage({
   if (!clientData) {
     return (
       <div className="min-h-screen p-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 dark:bg-yellow-950/40 dark:border-yellow-800">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 dark:text-yellow-400" />
             <div>
-              <h3 className="font-semibold text-yellow-800">Client Not Found</h3>
-              <p className="text-sm text-yellow-600 mt-1">
+              <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">Client Not Found</h3>
+              <p className="text-sm text-yellow-600 mt-1 dark:text-yellow-400">
                 The requested client could not be found.
               </p>
             </div>

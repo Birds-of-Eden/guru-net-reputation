@@ -117,25 +117,25 @@ const performanceGradients = {
 const performanceConfig = {
   Excellent: {
     color:
-      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300",
+      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800",
     icon: "🏆",
     score: 100,
   },
   Good: {
     color:
-      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300",
+      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800",
     icon: "⭐",
     score: 80,
   },
   Average: {
     color:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300",
+      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-800",
     icon: "🎯",
     score: 60,
   },
   Lazy: {
     color:
-      "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300",
+      "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800",
     icon: "⚠️",
     score: 30,
   },
@@ -199,13 +199,13 @@ function StarRating({
 }) {
   return (
     <div
-      className={`flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 transition-colors ${
-        disabled ? "opacity-70 cursor-not-allowed" : "hover:bg-slate-50"
+      className={`flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-md px-2 py-1 transition-colors dark:bg-muted/40 dark:border-border ${
+        disabled ? "opacity-70 cursor-not-allowed" : "hover:bg-slate-50 dark:hover:bg-muted/40"
       }`}
     >
       <label
         htmlFor={id}
-        className="text-xs font-medium text-slate-600 select-none truncate"
+        className="text-xs font-medium text-slate-600 select-none truncate dark:text-muted-foreground"
       >
         {label}
       </label>
@@ -366,7 +366,7 @@ export function TaskCard({
               {/* Left: title + badges */}
               <div className="space-y-2">
                 <h3 
-                  className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                  className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                   dangerouslySetInnerHTML={{ __html: truncateTaskName(task.name) }}
                 />
                 <div className="flex items-center gap-2 flex-wrap">
@@ -391,7 +391,7 @@ export function TaskCard({
               </div>
 
               {/* ⭐ Middle: QC star ratings (minimal design) */}
-              <div className="w-full bg-slate-25 rounded-lg p-2 border border-slate-100">
+              <div className="w-full bg-slate-25 rounded-lg p-2 border border-slate-100 dark:border-border">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
                   <StarRating
                     label="Keyword Optimization"
@@ -436,7 +436,7 @@ export function TaskCard({
                     disabled={isQCApprovedTab}
                   />
                 </div>
-                <div className="mt-1 text-right text-xs text-slate-500 font-medium">
+                <div className="mt-1 text-right text-xs text-slate-500 font-medium dark:text-muted-foreground">
                   QC: {manualTotal}/30
                 </div>
               </div>
@@ -516,7 +516,7 @@ export function TaskCard({
                     </Dialog>
                   </div>
                 ) : (
-                  <span className="text-slate-400 italic text-xs">
+                  <span className="text-slate-400 italic text-xs dark:text-muted-foreground">
                     Not assigned
                   </span>
                 )}
@@ -555,7 +555,7 @@ export function TaskCard({
                     )}
                   </div>
                 ) : (
-                  <span className="text-slate-400 italic text-xs">
+                  <span className="text-slate-400 italic text-xs dark:text-muted-foreground">
                     Unassigned
                   </span>
                 )}
@@ -718,10 +718,10 @@ export function TaskCard({
                     <div
                       className={`text-xs font-bold mt-1 ${
                         efficiency.status === "Efficient"
-                          ? "text-green-600"
+                          ? "text-green-600 dark:text-green-400"
                           : efficiency.status === "Acceptable"
-                            ? "text-yellow-600"
-                            : "text-red-600"
+                            ? "text-yellow-600 dark:text-yellow-400"
+                            : "text-red-600 dark:text-red-400"
                       }`}
                     >
                       {efficiency.status}
@@ -763,7 +763,7 @@ export function TaskCard({
                     isQCApprovedTab
                       ? "bg-green-600 text-white hover:bg-green-600 shadow-md cursor-not-allowed"
                       : isApproved
-                        ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md cursor-not-allowed"
+                        ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 shadow-md cursor-not-allowed dark:hover:bg-green-900/40"
                         : `bg-linear-to-r ${cardGradient} hover:opacity-90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105`
                   }`}
                 >
@@ -782,7 +782,7 @@ export function TaskCard({
                   disabled={isQCApprovedTab || !canReview}
                   className={`flex-1 border font-bold text-xs py-2 shadow-md hover:shadow-lg transition-all duration-200 ${
                     isQCApprovedTab
-                      ? "border-orange-300 text-orange-600 opacity-60 cursor-not-allowed"
+                      ? "border-orange-300 text-orange-600 opacity-60 cursor-not-allowed dark:border-orange-700 dark:text-orange-400"
                       : "border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30"
                   }`}
                 >

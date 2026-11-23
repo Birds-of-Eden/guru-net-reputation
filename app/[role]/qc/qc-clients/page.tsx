@@ -350,7 +350,7 @@ export default function QCClientsPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
       <div className="space-y-2 pl-2">
-        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
           QC Clients
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -420,13 +420,13 @@ export default function QCClientsPage() {
                 </div>
               </div>
 
-              <Badge variant="outline" className="bg-white/70 rounded-xl">
+              <Badge variant="outline" className="bg-white/70 rounded-xl dark:bg-card/70">
                 Showing{" "}
-                <span className="mx-1 font-bold text-slate-900">
+                <span className="mx-1 font-bold text-slate-900 dark:text-foreground">
                   {filtered.length}
                 </span>
                 of{" "}
-                <span className="ml-1 font-bold text-slate-900">
+                <span className="ml-1 font-bold text-slate-900 dark:text-foreground">
                   {statsByClient.length}
                 </span>
               </Badge>
@@ -437,7 +437,7 @@ export default function QCClientsPage() {
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5 dark:text-muted-foreground" />
               <Input
                 placeholder="Search clients by name or company..."
                 value={query}
@@ -451,7 +451,7 @@ export default function QCClientsPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   aria-label="Clear search"
                 >
-                  <X className="h-4 w-4 text-gray-500" />
+                  <X className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                 </button>
               )}
             </div>
@@ -650,18 +650,18 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <Card className="bg-white border border-gray-200 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition-all duration-300 p-6">
+    <Card className="bg-white border border-gray-200 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition-all duration-300 p-6 dark:bg-card dark:border-border">
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
-          <span className="text-sm text-gray-600 font-semibold tracking-wide">
+          <span className="text-sm text-gray-600 font-semibold tracking-wide dark:text-muted-foreground">
             {title}
           </span>
-          <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight">
+          <span className="mt-2 text-4xl font-bold text-gray-900 leading-tight dark:text-foreground">
             {value}
           </span>
-          {subtitle && <span className="text-xs mt-1 text-gray-500">{subtitle}</span>}
+          {subtitle && <span className="text-xs mt-1 text-gray-500 dark:text-muted-foreground">{subtitle}</span>}
         </div>
-        <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 border border-gray-200 text-gray-700">
+        <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-gray-100 border border-gray-200 text-gray-700 dark:bg-muted dark:border-border dark:text-foreground">
           {icon}
         </div>
       </div>
@@ -673,12 +673,12 @@ function EmptyClients({ onReset }: { onReset: () => void }) {
   return (
     <div className="text-center py-16">
       <div className="flex flex-col items-center gap-6">
-        <div className="p-4 bg-linear-to-br from-slate-100 to-slate-200 rounded-2xl">
-          <Search className="h-12 w-12 text-slate-400" />
+        <div className="p-4 bg-linear-to-br from-slate-100 to-slate-200 rounded-2xl dark:from-background dark:to-muted">
+          <Search className="h-12 w-12 text-slate-400 dark:text-muted-foreground" />
         </div>
         <div className="space-y-2 max-w-md">
-          <h3 className="text-xl font-semibold text-slate-900">No clients found</h3>
-          <p className="text-slate-600">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-foreground">No clients found</h3>
+          <p className="text-slate-600 dark:text-muted-foreground">
             Try adjusting your filters or clearing the search
           </p>
         </div>

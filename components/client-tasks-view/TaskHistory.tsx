@@ -53,7 +53,7 @@ function formatMinutes(m: number | null | undefined) {
 }
 
 function diffBadge(actual: number | null | undefined, ideal: number | null | undefined) {
-  if (actual == null || ideal == null) return <span className="text-gray-400">—</span>;
+  if (actual == null || ideal == null) return <span className="text-gray-400 dark:text-muted-foreground">—</span>;
   const delta = actual - ideal;
   const abs = Math.abs(delta);
   // Changed '−' to '-' for standard character consistency, though '−' is correct minus sign.
@@ -61,17 +61,17 @@ function diffBadge(actual: number | null | undefined, ideal: number | null | und
   // Updated badge classes for a slightly cleaner look
   const base = "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium tabular-nums";
   if (delta > 0) {
-    return <span className={`${base} bg-red-100 text-red-700 border border-red-200`}>{label}</span>;
+    return <span className={`${base} bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800`}>{label}</span>;
   }
   if (delta < 0) {
-    return <span className={`${base} bg-green-100 text-green-700 border border-green-200`}>{label}</span>;
+    return <span className={`${base} bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800`}>{label}</span>;
   }
-  return <span className={`${base} bg-blue-50 text-blue-700 border border-blue-200`}>On Time</span>;
+  return <span className={`${base} bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800`}>On Time</span>;
 }
 
 // QC score bar (0–100) - Improved visual design
 function qcScoreBar(score: number | null) {
-  if (score == null) return <span className="text-gray-400">—</span>;
+  if (score == null) return <span className="text-gray-400 dark:text-muted-foreground">—</span>;
   const val = Math.max(0, Math.min(100, score));
   // More subtle color gradient based on score
   let colorClass = "bg-amber-500";
@@ -83,13 +83,13 @@ function qcScoreBar(score: number | null) {
   return (
     <div className="flex items-center gap-3 min-w-[140px]">
       {/* Bar style update: slightly thicker, softer background */}
-      <div className="relative h-2.5 w-28 rounded-full bg-gray-100 overflow-hidden">
+      <div className="relative h-2.5 w-28 rounded-full bg-gray-100 overflow-hidden dark:bg-muted">
         <div
           className={`absolute left-0 top-0 h-2.5 rounded-full ${colorClass} transition-all duration-500`}
           style={{ width: `${val}%` }}
         />
       </div>
-      <span className="text-xs tabular-nums text-gray-700 font-semibold w-10 text-right">
+      <span className="text-xs tabular-nums text-gray-700 font-semibold w-10 text-right dark:text-foreground">
         {val.toFixed(0)}%
       </span>
     </div>
@@ -230,13 +230,13 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
   // --- Render ---
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans dark:bg-muted/40">
       {/* Header */}
-      <header className="mb-8 pb-4 border-b border-gray-200">
+      <header className="mb-8 pb-4 border-b border-gray-200 dark:border-border">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">Task History</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-foreground">Task History</h1>
+            <p className="text-sm text-gray-500 mt-1 dark:text-muted-foreground">
               Analyzing task performance across selected criteria.
             </p>
           </div>
@@ -245,7 +245,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
             {areFiltersActive && (
               <button
                 onClick={clearAllFilters}
-                className="flex items-center text-sm font-medium text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg border border-gray-300 hover:border-red-300 bg-white shadow-sm transition-all duration-200"
+                className="flex items-center text-sm font-medium text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg border border-gray-300 hover:border-red-300 bg-white shadow-sm transition-all duration-200 dark:text-muted-foreground dark:hover:text-red-400 dark:border-border dark:hover:border-red-700 dark:bg-card"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -258,8 +258,8 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={`flex items-center text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition-all duration-300 ${
                 isFilterOpen
-                  ? 'bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/40'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-card dark:text-foreground dark:border-border dark:hover:bg-muted'
               }`}
             >
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -275,20 +275,20 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
       {/* Filter Panel - More defined card style */}
       {isFilterOpen && (
-        <div className="mb-8 bg-white rounded-xl border border-gray-200 shadow-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-5 border-b pb-3">
+        <div className="mb-8 bg-white rounded-xl border border-gray-200 shadow-lg p-6 dark:bg-card dark:border-border">
+          <h3 className="text-xl font-semibold text-gray-800 mb-5 border-b pb-3 dark:text-foreground">
             Refine Data View
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Task Name Search */}
             <div>
-              <label htmlFor="taskNameFilter" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="taskNameFilter" className="block text-sm font-medium text-gray-700 mb-2 dark:text-foreground">
                 Task Name Keywords
               </label>
               <div className="relative rounded-lg shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-gray-400 dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -298,12 +298,12 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                   value={taskNameFilter}
                   onChange={(e) => setTaskNameFilter(e.target.value)}
                   placeholder="e.g., 'Facebook Task'"
-                  className="block w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  className="block w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors dark:border-border"
                 />
                 {taskNameFilter && (
                   <button
                     onClick={() => setTaskNameFilter("")}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors dark:text-muted-foreground dark:hover:text-muted-foreground"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -315,7 +315,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
             {/* Status Filter - Enhanced dropdown look */}
             <div>
-              <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-2 dark:text-foreground">
                 Status Selection
               </label>
               <div className="relative">
@@ -323,7 +323,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                   id="statusFilter"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="block w-full py-2.5 pl-3 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white shadow-sm transition-colors cursor-pointer"
+                  className="block w-full py-2.5 pl-3 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white shadow-sm transition-colors cursor-pointer dark:border-border dark:bg-card"
                 >
                   <option value="qc_approved,completed">Default: QC Approved & Completed</option>
                   <option value="qc_approved">QC Approved Only</option>
@@ -331,7 +331,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                   <option value="">All Statuses</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-gray-400 dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -340,7 +340,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
             {/* Date Range Filter - Use modern icons */}
             <div>
-              <label htmlFor="dateRangeFilter" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="dateRangeFilter" className="block text-sm font-medium text-gray-700 mb-2 dark:text-foreground">
                 Time Period
               </label>
               <div className="relative">
@@ -348,7 +348,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                   id="dateRangeFilter"
                   value={dateRangeFilter}
                   onChange={(e) => setDateRangeFilter(e.target.value)}
-                  className="block w-full py-2.5 pl-3 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white shadow-sm transition-colors cursor-pointer"
+                  className="block w-full py-2.5 pl-3 pr-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white shadow-sm transition-colors cursor-pointer dark:border-border dark:bg-card"
                 >
                   <option value="today">Today</option>
                   <option value="lastWeek">Last 7 Days</option>
@@ -357,7 +357,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                   <option value="all">All Time</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-gray-400 dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
@@ -367,15 +367,15 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
           {/* Active Filters Badges - Cleaner look with subtle colors */}
           {areFiltersActive && (
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Active Filters</h4>
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-border">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3 dark:text-foreground">Active Filters</h4>
               <div className="flex flex-wrap gap-2">
                 {taskNameFilter && (
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 transition-colors">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 transition-colors dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
                     Task: {taskNameFilter}
                     <button
                       onClick={() => setTaskNameFilter("")}
-                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 focus:outline-none transition-colors"
+                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 focus:outline-none transition-colors dark:hover:bg-indigo-800/50 dark:hover:text-indigo-400"
                     >
                       <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                         <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
@@ -387,14 +387,14 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                 {statusFilter.split(',').filter(s => s).map(status => {
                   const statusLabel = statusOptions.find(opt => opt.value === status)?.label || status;
                   return (
-                    <span key={status} className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 transition-colors">
+                    <span key={status} className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 transition-colors dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
                       Status: {statusLabel.replaceAll("_", " ")}
                       <button
                         onClick={() => {
                           const newStatuses = statusFilter.split(',').filter(s => s !== status);
                           setStatusFilter(newStatuses.join(','));
                         }}
-                        className="ml-2 rounded-full shrink-0 flex items-center justify-center text-purple-400 hover:bg-purple-200 hover:text-purple-600 focus:outline-none transition-colors"
+                        className="ml-2 rounded-full shrink-0 flex items-center justify-center text-purple-400 hover:bg-purple-200 hover:text-purple-600 focus:outline-none transition-colors dark:hover:bg-purple-800/50 dark:hover:text-purple-400"
                       >
                         <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                           <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
@@ -405,11 +405,11 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                 })}
 
                 {dateRangeFilter && dateRangeFilter !== "today" && (
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition-colors">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition-colors dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
                     Time: {formatRangeDisplay(dateRangeFilter)}
                     <button
                       onClick={() => setDateRangeFilter("today")}
-                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-amber-400 hover:bg-amber-200 hover:text-amber-600 focus:outline-none transition-colors"
+                      className="ml-2 rounded-full shrink-0 flex items-center justify-center text-amber-400 hover:bg-amber-200 hover:text-amber-600 focus:outline-none transition-colors dark:hover:bg-amber-800/50 dark:hover:text-amber-400"
                     >
                       <svg className="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                         <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
@@ -425,64 +425,64 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
 
       {/* Summary Cards - Use a clean card elevation */}
       <div className="mb-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300 dark:border-border dark:bg-card">
           <div className="flex items-center">
-            <div className="rounded-xl bg-indigo-100 p-3 mr-4">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-xl bg-indigo-100 p-3 mr-4 dark:bg-indigo-900/40">
+              <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Total Tasks</p>
-              <p className="text-3xl font-bold text-gray-900">{total}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Total Tasks</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-foreground">{total}</p>
             </div>
           </div>
         </div>
 
         {/* Avg QC Score */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300 dark:border-border dark:bg-card">
           <div className="flex items-center">
-            <div className="rounded-xl bg-amber-100 p-3 mr-4">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-xl bg-amber-100 p-3 mr-4 dark:bg-amber-900/40">
+              <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Avg. QC Score</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Avg. QC Score</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
                 {avgQc !== null ? avgQc.toFixed(1) : "N/A"}
-                <span className="text-sm font-normal text-gray-400 ml-1">/100</span>
+                <span className="text-sm font-normal text-gray-400 ml-1 dark:text-muted-foreground">/100</span>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300 dark:border-border dark:bg-card">
           <div className="flex items-center">
-            <div className="rounded-xl bg-purple-100 p-3 mr-4">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-xl bg-purple-100 p-3 mr-4 dark:bg-purple-900/40">
+              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Avg. Time (Actual)</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Avg. Time (Actual)</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-foreground">
                 {avgActual !== null ? formatMinutes(Math.round(avgActual)) : "—"}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300">
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-md hover:shadow-lg transition-shadow duration-300 dark:border-border dark:bg-card">
           <div className="flex items-center">
-            <div className="rounded-xl bg-green-100 p-3 mr-4">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-xl bg-green-100 p-3 mr-4 dark:bg-green-900/40">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Efficiency Score</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Efficiency Score</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-foreground">
                 {efficiency.toFixed(0)}%
               </p>
             </div>
@@ -491,53 +491,53 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
       </div>
 
       {/* Table - Minimalist and clear */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-xl">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100 sticky top-0 z-10">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-xl dark:border-border">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-border">
+          <thead className="bg-gray-100 sticky top-0 z-10 dark:bg-muted">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[25%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[25%] dark:text-muted-foreground">
                 Task & Client
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden sm:table-cell w-[15%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden sm:table-cell w-[15%] dark:text-muted-foreground">
                 Client
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%] dark:text-muted-foreground">
                 Status
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden md:table-cell w-[12%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden md:table-cell w-[12%] dark:text-muted-foreground">
                 Completion Date
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider w-[8%]">
+              <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider w-[8%] dark:text-muted-foreground">
                 Ideal
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider w-[8%]">
+              <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider w-[8%] dark:text-muted-foreground">
                 Actual
               </th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%]">
+              <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%] dark:text-muted-foreground">
                 Time Δ
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[15%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[15%] dark:text-muted-foreground">
                 QC Score
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%]">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider w-[10%] dark:text-muted-foreground">
                 Perf. Rating
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody className="bg-white divide-y divide-gray-100 dark:bg-card dark:divide-border">
             {filteredRows.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-6 py-10 text-center">
-                  <div className="flex flex-col items-center justify-center text-gray-400">
+                  <div className="flex flex-col items-center justify-center text-gray-400 dark:text-muted-foreground">
                     <svg className="w-14 h-14 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-lg font-medium text-gray-600">No Tasks Match Your Criteria</p>
-                    <p className="text-sm text-gray-500 mt-1">Try adjusting your filters or clear them to view all data.</p>
+                    <p className="text-lg font-medium text-gray-600 dark:text-muted-foreground">No Tasks Match Your Criteria</p>
+                    <p className="text-sm text-gray-500 mt-1 dark:text-muted-foreground">Try adjusting your filters or clear them to view all data.</p>
                     {areFiltersActive && (
                       <button
                         onClick={clearAllFilters}
-                        className="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 rounded-md transition-colors"
+                        className="mt-3 text-sm font-medium text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 rounded-md transition-colors dark:text-indigo-400 dark:hover:text-indigo-300 dark:bg-indigo-950/40"
                       >
                         Reset All Filters
                       </button>
@@ -547,38 +547,38 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
               </tr>
             ) : (
               filteredRows.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-50 transition-colors duration-150">
+                <tr key={r.id} className="hover:bg-gray-50 transition-colors duration-150 dark:hover:bg-muted/40">
                   {/* Task & Client */}
                   <td className="px-6 py-3">
-                    <div className="font-semibold text-gray-900">{truncateText(sanitizeHtml(r.name))}</div>
-                    <div className="text-xs text-gray-500 mt-0.5 sm:hidden">{r.clientName}</div>
+                    <div className="font-semibold text-gray-900 dark:text-foreground">{truncateText(sanitizeHtml(r.name))}</div>
+                    <div className="text-xs text-gray-500 mt-0.5 sm:hidden dark:text-muted-foreground">{r.clientName}</div>
                   </td>
                   {/* Client (Desktop) */}
-                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
+                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell dark:text-muted-foreground">
                     {r.clientName}
                   </td>
                   {/* Status */}
                   <td className="px-6 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${
                       r.status === 'qc_approved'
-                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800'
                         : r.status === 'completed'
-                        ? 'bg-green-100 text-green-700 border border-green-200'
-                        : 'bg-gray-100 text-gray-600 border border-gray-200'
+                        ? 'bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800'
+                        : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-muted dark:text-muted-foreground dark:border-border'
                     }`}>
                       {r.status.replaceAll("_", " ")}
                     </span>
                   </td>
                   {/* Date (Desktop) */}
-                  <td className="px-6 py-3 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell">
+                  <td className="px-6 py-3 whitespace-nowrap text-xs text-gray-500 hidden md:table-cell dark:text-muted-foreground">
                     {formatDate(r.date)}
                   </td>
                   {/* Ideal Duration */}
-                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 text-right tabular-nums">
+                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 text-right tabular-nums dark:text-foreground">
                     {formatMinutes(r.idealDurationMinutes ?? null)}
                   </td>
                   {/* Actual Duration */}
-                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 text-right tabular-nums">
+                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 text-right tabular-nums dark:text-foreground">
                     {formatMinutes(r.actualDurationMinutes ?? null)}
                   </td>
                   {/* Time Delta */}
@@ -590,7 +590,7 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
                     {qcScoreBar(r.qcTotalScore ?? null)}
                   </td>
                   {/* Performance Rating (Raw) */}
-                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 font-mono">
+                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-700 font-mono dark:text-foreground">
                     {r.performanceRating ?? "—"}
                   </td>
                 </tr>
@@ -601,14 +601,14 @@ export default function TaskHistory({ rows }: { rows: TaskHistoryRow[] }) {
       </div>
 
       {/* Footer / Info Bar */}
-      <div className="mt-3 flex justify-between items-center text-xs text-gray-500 px-1">
+      <div className="mt-3 flex justify-between items-center text-xs text-gray-500 px-1 dark:text-muted-foreground">
         <div className="flex flex-wrap gap-x-4 gap-y-1">
-          <span className="font-medium text-gray-600">Time Delta Key:</span>
-          <span className="text-green-700 font-medium">− Time Saved</span>
-          <span className="text-red-700 font-medium">/ Overdue</span>
+          <span className="font-medium text-gray-600 dark:text-muted-foreground">Time Delta Key:</span>
+          <span className="text-green-700 font-medium dark:text-green-300">− Time Saved</span>
+          <span className="text-red-700 font-medium dark:text-red-300">/ Overdue</span>
         </div>
         <div>
-          Displaying <strong className="text-gray-700">{filteredRows.length}</strong> of <span className="font-medium">{rows.length}</span> tasks.
+          Displaying <strong className="text-gray-700 dark:text-foreground">{filteredRows.length}</strong> of <span className="font-medium">{rows.length}</span> tasks.
         </div>
       </div>
     </div>

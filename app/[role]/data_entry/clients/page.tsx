@@ -333,12 +333,12 @@ export default function DataEntryDashboardPage() {
   if (loading) {
     return (
       <div className="py-8 px-4 md:px-6">
-        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
-          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4" />
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 dark:bg-card dark:border-border">
+          <div className="h-12 bg-gray-200 rounded animate-pulse mb-4 dark:bg-muted" />
           <div className="flex gap-4 mb-4">
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted" />
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted" />
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted" />
           </div>
         </div>
 
@@ -355,7 +355,7 @@ export default function DataEntryDashboardPage() {
   return (
     <div className="py-8 px-4 md:px-6">
       {/* Header + Summary */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 dark:bg-card dark:border-border">
         <ClientOverviewHeader
           searchQuery={searchQuery}
           setSearchQuery={handleSearchChange}
@@ -377,13 +377,13 @@ export default function DataEntryDashboardPage() {
       </div>
 
       {/* Data Entry Client Stats */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 dark:bg-card dark:border-border">
         <DataEntryClientStats clients={clients} />
       </div>
 
       {/* Clients list + pagination */}
       {filteredClients.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 dark:text-muted-foreground dark:bg-card dark:border-border">
           <p className="text-lg font-medium mb-2">
             No clients found matching your criteria.
           </p>
@@ -395,7 +395,7 @@ export default function DataEntryDashboardPage() {
             <div className="mt-6 flex justify-center">
               <button
                 onClick={handleClearFilters}
-                className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all"
+                className="rounded-2xl h-12 px-6 font-semibold border-2 hover:bg-slate-100 transition-all dark:hover:bg-muted"
               >
                 Clear filters
               </button>
@@ -426,7 +426,7 @@ export default function DataEntryDashboardPage() {
 
           {/* Pagination controls */}
           <div className="mt-6 flex items-center justify-between gap-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-muted-foreground">
               Page <span className="font-semibold">{pagination.page}</span> of{" "}
               <span className="font-semibold">{pagination.totalPages}</span> •{" "}
               <span className="font-semibold">
@@ -438,14 +438,14 @@ export default function DataEntryDashboardPage() {
               <button
                 onClick={handlePrevPage}
                 disabled={page <= 1}
-                className="px-4 py-2 rounded-lg border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed dark:bg-card"
               >
                 Previous
               </button>
               <button
                 onClick={handleNextPage}
                 disabled={page >= pagination.totalPages}
-                className="px-4 py-2 rounded-lg border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg border bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed dark:bg-card"
               >
                 Next
               </button>

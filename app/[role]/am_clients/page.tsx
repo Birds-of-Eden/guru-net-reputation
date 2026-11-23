@@ -196,7 +196,7 @@ export default function AmClientsPage() {
     return (
       <>
         {!hasClients ? (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="text-center py-12 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 dark:text-muted-foreground dark:bg-card dark:border-border">
             <p className="text-lg font-medium mb-2">
               No clients found matching your criteria.
             </p>
@@ -232,7 +232,7 @@ export default function AmClientsPage() {
                 <button
                   onClick={prevPage}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 dark:bg-muted"
                 >
                   Previous
                 </button>
@@ -244,7 +244,7 @@ export default function AmClientsPage() {
                 <button
                   onClick={nextPage}
                   disabled={page === pagination.totalPages}
-                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 dark:bg-muted"
                 >
                   Next
                 </button>
@@ -259,7 +259,7 @@ export default function AmClientsPage() {
   return (
     <div className="py-8 px-4 md:px-6">
       {/* Header + Summary - No refresh */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 dark:bg-card dark:border-border">
         <ClientOverviewHeader
           searchQuery={search}
           setSearchQuery={setSearch}

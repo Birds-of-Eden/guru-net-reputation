@@ -276,13 +276,13 @@ export default function AssignmentManagement() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
       case "in-progress":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
       case "pending":
-        return "bg-orange-100 text-orange-800"
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground"
     }
   }
 
@@ -293,24 +293,24 @@ export default function AssignmentManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-linear-to-br from-purple-50 to-blue-50 p-4 dark:from-purple-950/40 dark:to-blue-950/40">
       <div className="max-w-full mx-auto">
         {/* Header */}
-        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+        <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100 dark:bg-card dark:border-border">
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Assignment Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight dark:text-foreground">Assignment Management</h1>
             <div className="flex flex-wrap items-center gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-muted-foreground" />
                 <Input
                   placeholder="Search assignments..."
-                  className="pl-10 w-[280px] h-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200"
+                  className="pl-10 w-[280px] h-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200 dark:border-border"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px] h-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200">
+                <SelectTrigger className="w-[180px] h-10 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-200 dark:border-border">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -332,7 +332,7 @@ export default function AssignmentManagement() {
                 onValueChange={(value) => setViewMode(value as "grid" | "list")}
                 className="hidden md:block"
               >
-                <TabsList className="h-10 bg-gray-100 rounded-lg p-1">
+                <TabsList className="h-10 bg-gray-100 rounded-lg p-1 dark:bg-muted">
                   <TabsTrigger
                     value="grid"
                     className="px-4 py-2 rounded-md data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200"
@@ -351,7 +351,7 @@ export default function AssignmentManagement() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center text-sm text-gray-600 mb-2 font-medium">
+          <div className="flex items-center text-sm text-gray-600 mb-2 font-medium dark:text-muted-foreground">
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm"></div>
@@ -384,8 +384,8 @@ export default function AssignmentManagement() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] p-4 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:bg-card dark:border-border">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] p-4 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700 uppercase tracking-wider dark:bg-muted/40 dark:border-border dark:text-foreground">
               <div>Assignment</div>
               <div className="text-center w-24">Status</div>
               <div className="text-center w-24">Template</div>
@@ -396,21 +396,21 @@ export default function AssignmentManagement() {
             {filteredAssignments.map((assignment, index) => (
               <div
                 key={assignment.id}
-                className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] p-4 border-b border-gray-100 items-center transition-colors duration-200 ${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } hover:bg-purple-50`}
+                className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto] p-4 border-b border-gray-100 items-center transition-colors duration-200 dark:border-border ${
+                  index % 2 === 0 ? "bg-white dark:bg-card" : "bg-gray-50 dark:bg-muted/40"
+                } hover:bg-purple-50 dark:hover:bg-purple-950/40`}
               >
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12 border-2 border-purple-200">
+                  <Avatar className="h-12 w-12 border-2 border-purple-200 dark:border-purple-800">
                     <AvatarImage src={assignment.client?.avatar || "/placeholder.svg"} alt={assignment.client?.name} />
-                    <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                    <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold dark:bg-purple-900/40 dark:text-purple-300">
                       {assignment.client?.name.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-lg">{assignment.client?.name}</h3>
-                    <p className="text-sm text-gray-600">{assignment.client?.company}</p>
-                    <p className="text-xs text-gray-500">ID: {assignment.id.substring(0, 12)}...</p>
+                    <h3 className="font-bold text-gray-900 text-lg dark:text-foreground">{assignment.client?.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-muted-foreground">{assignment.client?.company}</p>
+                    <p className="text-xs text-gray-500 dark:text-muted-foreground">ID: {assignment.id.substring(0, 12)}...</p>
                   </div>
                 </div>
                 <div className="text-center w-24">
@@ -421,24 +421,24 @@ export default function AssignmentManagement() {
                   </Badge>
                 </div>
                 <div className="text-center w-24">
-                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+                  <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300 dark:bg-muted dark:text-foreground dark:border-border">
                     {assignment.template?.name || "No Template"}
                   </Badge>
                 </div>
-                <div className="text-center w-24 text-sm text-gray-700 font-medium">
+                <div className="text-center w-24 text-sm text-gray-700 font-medium dark:text-foreground">
                   {new Date(assignment.assignedAt).toLocaleDateString()}
                 </div>
                 <div className="w-24">
                   <div className="flex items-center gap-2">
-                    <Progress value={getProgressPercentage(assignment)} className="h-2 w-full bg-gray-200" />
-                    <span className="text-sm font-semibold text-gray-800">{getProgressPercentage(assignment)}%</span>
+                    <Progress value={getProgressPercentage(assignment)} className="h-2 w-full bg-gray-200 dark:bg-muted" />
+                    <span className="text-sm font-semibold text-gray-800 dark:text-foreground">{getProgressPercentage(assignment)}%</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-2 w-24">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-full text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+                    className="h-9 w-9 rounded-full text-blue-600 hover:bg-blue-100 transition-colors duration-200 dark:text-blue-400 dark:hover:bg-blue-900/40"
                     onClick={() => handleViewAssignment(assignment)}
                   >
                     <Eye className="h-5 w-5" />
@@ -446,7 +446,7 @@ export default function AssignmentManagement() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 rounded-full text-red-600 hover:bg-red-100 transition-colors duration-200"
+                    className="h-9 w-9 rounded-full text-red-600 hover:bg-red-100 transition-colors duration-200 dark:text-red-400 dark:hover:bg-red-900/40"
                     onClick={() => handleDeleteAssignment(assignment.id)}
                   >
                     <Trash2 className="h-5 w-5" />
@@ -499,9 +499,9 @@ export default function AssignmentManagement() {
                       <SelectItem key={template.id} value={template.id}>
                         <div className="flex flex-col">
                           <span className="font-medium">{template.name}</span>
-                          <span className="text-xs text-gray-500 truncate">{template.description}</span>
+                          <span className="text-xs text-gray-500 truncate dark:text-muted-foreground">{template.description}</span>
                           {template.sitesAssets && template.sitesAssets.length > 0 && (
-                            <span className="text-xs text-blue-600">{template.sitesAssets.length} assets included</span>
+                            <span className="text-xs text-blue-600 dark:text-blue-400">{template.sitesAssets.length} assets included</span>
                           )}
                         </div>
                       </SelectItem>
@@ -588,29 +588,29 @@ export default function AssignmentManagement() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Status:</span>
+                          <span className="text-gray-600 dark:text-muted-foreground">Status:</span>
                           <Badge className={getStatusColor(selectedAssignment.status)}>
                             {selectedAssignment.status}
                           </Badge>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Assigned:</span>
+                          <span className="text-gray-600 dark:text-muted-foreground">Assigned:</span>
                           <span>{new Date(selectedAssignment.assignedAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Template:</span>
+                          <span className="text-gray-600 dark:text-muted-foreground">Template:</span>
                           <div className="text-right">
                             <span className="font-medium">{selectedAssignment.template?.name || "No Template"}</span>
                             {selectedAssignment.template?.sitesAssets &&
                               selectedAssignment.template.sitesAssets.length > 0 && (
-                                <div className="text-xs text-blue-600">
+                                <div className="text-xs text-blue-600 dark:text-blue-400">
                                   {selectedAssignment.template.sitesAssets.length} assets
                                 </div>
                               )}
                           </div>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Progress:</span>
+                          <span className="text-gray-600 dark:text-muted-foreground">Progress:</span>
                           <span>{getProgressPercentage(selectedAssignment)}%</span>
                         </div>
                       </CardContent>
@@ -628,8 +628,8 @@ export default function AssignmentManagement() {
                           </Avatar>
                           <div>
                             <div className="font-semibold">{selectedAssignment.client?.name}</div>
-                            <div className="text-sm text-gray-600">{selectedAssignment.client?.company}</div>
-                            <div className="text-xs text-gray-500">{selectedAssignment.client?.designation}</div>
+                            <div className="text-sm text-gray-600 dark:text-muted-foreground">{selectedAssignment.client?.company}</div>
+                            <div className="text-xs text-gray-500 dark:text-muted-foreground">{selectedAssignment.client?.designation}</div>
                           </div>
                         </div>
                       </CardContent>
@@ -643,25 +643,25 @@ export default function AssignmentManagement() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <h4 className="font-medium text-sm text-gray-700 mb-2">{selectedAssignment.template.name}</h4>
-                          <p className="text-sm text-gray-600">{selectedAssignment.template.description}</p>
+                          <h4 className="font-medium text-sm text-gray-700 mb-2 dark:text-foreground">{selectedAssignment.template.name}</h4>
+                          <p className="text-sm text-gray-600 dark:text-muted-foreground">{selectedAssignment.template.description}</p>
                         </div>
 
                         {selectedAssignment.template.sitesAssets &&
                           selectedAssignment.template.sitesAssets.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-700 mb-2">
+                              <h4 className="font-medium text-sm text-gray-700 mb-2 dark:text-foreground">
                                 Site Assets ({selectedAssignment.template.sitesAssets.length})
                               </h4>
                               <div className="space-y-2 max-h-32 overflow-y-auto">
                                 {selectedAssignment.template.sitesAssets.map((asset) => (
                                   <div
                                     key={asset.id}
-                                    className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs"
+                                    className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs dark:bg-muted/40"
                                   >
                                     <div>
                                       <span className="font-medium">{asset.name}</span>
-                                      <span className="text-gray-500 ml-2">({asset.type})</span>
+                                      <span className="text-gray-500 ml-2 dark:text-muted-foreground">({asset.type})</span>
                                       {asset.isRequired && (
                                         <Badge variant="outline" className="ml-2 text-xs">
                                           Required
@@ -669,7 +669,7 @@ export default function AssignmentManagement() {
                                       )}
                                     </div>
                                     {asset.defaultPostingFrequency && (
-                                      <span className="text-gray-600">{asset.defaultPostingFrequency}</span>
+                                      <span className="text-gray-600 dark:text-muted-foreground">{asset.defaultPostingFrequency}</span>
                                     )}
                                   </div>
                                 ))}
@@ -680,12 +680,12 @@ export default function AssignmentManagement() {
                         {selectedAssignment.template.templateTeamMembers &&
                           selectedAssignment.template.templateTeamMembers.length > 0 && (
                             <div>
-                              <h4 className="font-medium text-sm text-gray-700 mb-2">Recommended Team Members</h4>
+                              <h4 className="font-medium text-sm text-gray-700 mb-2 dark:text-foreground">Recommended Team Members</h4>
                               <div className="flex flex-wrap gap-2">
                                 {selectedAssignment.template.templateTeamMembers.map((member) => (
                                   <div
                                     key={member.id}
-                                    className="flex items-center gap-2 bg-blue-50 px-2 py-1 rounded text-xs"
+                                    className="flex items-center gap-2 bg-blue-50 px-2 py-1 rounded text-xs dark:bg-blue-950/40"
                                   >
                                     <Avatar className="h-5 w-5">
                                       <AvatarImage
@@ -713,7 +713,7 @@ export default function AssignmentManagement() {
                     </CardHeader>
                     <CardContent>
                       {selectedAssignment.tasks.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No agents assigned yet</p>
+                        <p className="text-gray-500 text-center py-4 dark:text-muted-foreground">No agents assigned yet</p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {selectedAssignment.tasks.map((task) => (
@@ -725,7 +725,7 @@ export default function AssignmentManagement() {
                                 <div className="font-medium">
                                   {task.assignedTo.firstName} {task.assignedTo.lastName}
                                 </div>
-                                <div className="text-sm text-gray-600">{task.assignedTo.category}</div>
+                                <div className="text-sm text-gray-600 dark:text-muted-foreground">{task.assignedTo.category}</div>
                               </div>
                               <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
                             </div>
@@ -763,20 +763,20 @@ function AssignmentCard({
   getProgressPercentage: (assignment: Assignment) => number
 }) {
   return (
-    <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-purple-50 to-blue-50">
+    <Card className="overflow-hidden rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300 dark:border-border">
+      <CardHeader className="p-6 border-b border-gray-100 bg-linear-to-r from-purple-50 to-blue-50 dark:border-border dark:from-purple-950/40 dark:to-blue-950/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-4 border-white shadow-md">
+            <Avatar className="h-16 w-16 border-4 border-white shadow-md dark:border-border">
               <AvatarImage src={assignment.client?.avatar || "/placeholder.svg"} alt={assignment.client?.name} />
-              <AvatarFallback className="bg-purple-200 text-purple-800 font-bold text-xl">
+              <AvatarFallback className="bg-purple-200 text-purple-800 font-bold text-xl dark:bg-purple-800/50 dark:text-purple-300">
                 {assignment.client?.name.substring(0, 2)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{assignment.client?.name}</h2>
-              <p className="text-gray-700 text-sm">{assignment.client?.company}</p>
-              <p className="text-gray-600 text-xs">{assignment.client?.designation}</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-foreground">{assignment.client?.name}</h2>
+              <p className="text-gray-700 text-sm dark:text-foreground">{assignment.client?.company}</p>
+              <p className="text-gray-600 text-xs dark:text-muted-foreground">{assignment.client?.designation}</p>
             </div>
           </div>
           <Badge className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(assignment.status)}`}>
@@ -784,45 +784,45 @@ function AssignmentCard({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-6 bg-white">
+      <CardContent className="p-6 bg-white dark:bg-card">
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-2 font-medium text-gray-700">
+            <div className="flex justify-between text-sm mb-2 font-medium text-gray-700 dark:text-foreground">
               <span>Progress</span>
-              <span className="font-bold text-gray-900">{getProgressPercentage(assignment)}%</span>
+              <span className="font-bold text-gray-900 dark:text-foreground">{getProgressPercentage(assignment)}%</span>
             </div>
-            <Progress value={getProgressPercentage(assignment)} className="h-2 bg-gray-200" />
+            <Progress value={getProgressPercentage(assignment)} className="h-2 bg-gray-200 dark:bg-muted" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 dark:bg-muted/40 dark:border-border">
               <div className="flex items-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-purple-600" />
-                <h3 className="font-semibold text-sm text-gray-800">Agents</h3>
+                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <h3 className="font-semibold text-sm text-gray-800 dark:text-foreground">Agents</h3>
               </div>
-              <div className="text-lg font-bold text-gray-900">{assignment.tasks.length}</div>
+              <div className="text-lg font-bold text-gray-900 dark:text-foreground">{assignment.tasks.length}</div>
             </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 dark:bg-muted/40 dark:border-border">
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <h3 className="font-semibold text-sm text-gray-800">Assigned</h3>
+                <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-sm text-gray-800 dark:text-foreground">Assigned</h3>
               </div>
-              <div className="text-sm font-medium text-gray-900">
+              <div className="text-sm font-medium text-gray-900 dark:text-foreground">
                 {new Date(assignment.assignedAt).toLocaleDateString()}
               </div>
             </div>
           </div>
 
           {assignment.template && (
-            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-1">
-                <FileText className="h-4 w-4 text-blue-600" />
-                <h3 className="font-semibold text-sm text-blue-800">Template</h3>
+                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-sm text-blue-800 dark:text-blue-300">Template</h3>
               </div>
-              <div className="text-sm text-blue-700 font-medium">{assignment.template.name}</div>
+              <div className="text-sm text-blue-700 font-medium dark:text-blue-300">{assignment.template.name}</div>
               {assignment.template.sitesAssets && assignment.template.sitesAssets.length > 0 && (
-                <div className="text-xs text-blue-600 mt-1">
+                <div className="text-xs text-blue-600 mt-1 dark:text-blue-400">
                   {assignment.template.sitesAssets.length} site assets included
                 </div>
               )}
@@ -830,10 +830,10 @@ function AssignmentCard({
           )}
         </div>
       </CardContent>
-      <CardFooter className="border-t border-gray-100 grid grid-cols-2 p-0 bg-gray-50">
+      <CardFooter className="border-t border-gray-100 grid grid-cols-2 p-0 bg-gray-50 dark:border-border dark:bg-muted/40">
         <Button
           variant="ghost"
-          className="rounded-bl-xl rounded-tr-none h-12 text-blue-700 hover:bg-blue-100 transition-colors duration-200 font-semibold"
+          className="rounded-bl-xl rounded-tr-none h-12 text-blue-700 hover:bg-blue-100 transition-colors duration-200 font-semibold dark:text-blue-300 dark:hover:bg-blue-900/40"
           onClick={onView}
         >
           <Eye className="h-4 w-4 mr-2" />
@@ -841,7 +841,7 @@ function AssignmentCard({
         </Button>
         <Button
           variant="ghost"
-          className="rounded-br-xl rounded-tl-none h-12 border-l border-gray-100 text-red-700 hover:bg-red-100 transition-colors duration-200 font-semibold"
+          className="rounded-br-xl rounded-tl-none h-12 border-l border-gray-100 text-red-700 hover:bg-red-100 transition-colors duration-200 font-semibold dark:border-border dark:text-red-300 dark:hover:bg-red-900/40"
           onClick={onDelete}
         >
           <Trash2 className="h-4 w-4 mr-2" />

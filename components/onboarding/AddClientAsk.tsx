@@ -133,9 +133,9 @@ export function AddClientAskPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden dark:bg-muted/40">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-linear-to-br from-slate-100 via-white to-slate-100" />
+      <div className="absolute inset-0 bg-linear-to-br from-slate-100 via-white to-slate-100 dark:from-background dark:via-card dark:to-background" />
 
       <div className="relative z-10 py-16">
         <motion.div
@@ -145,7 +145,7 @@ export function AddClientAskPage() {
           className="mx-auto w-full max-w-5xl px-4"
         >
           {/* Question Card */}
-          <Card className="border border-slate-200 bg-white/95 shadow-lg backdrop-blur">
+          <Card className="border border-slate-200 bg-white/95 shadow-lg backdrop-blur dark:border-border dark:bg-card/95">
             <CardContent className="p-8 md:p-12">
               <div className="space-y-10">
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -154,10 +154,10 @@ export function AddClientAskPage() {
                       <HelpCircle className="h-6 w-6" />
                     </div>
                     <div className="space-y-3">
-                      <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 leading-tight">
+                      <h1 className="text-2xl md:text-3xl font-semibold text-slate-900 leading-tight dark:text-foreground">
                         Manage client onboarding with confidence
                       </h1>
-                      <p className="text-sm md:text-base text-slate-600 max-w-2xl">
+                      <p className="text-sm md:text-base text-slate-600 max-w-2xl dark:text-muted-foreground">
                         Decide whether you’re creating a fresh client profile or
                         continuing an existing engagement. We’ll guide you
                         directly to the correct workflow.
@@ -167,7 +167,7 @@ export function AddClientAskPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-sm font-medium text-slate-700">
+                  <p className="text-sm font-medium text-slate-700 dark:text-foreground">
                     How would you like to proceed?
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -200,17 +200,17 @@ export function AddClientAskPage() {
                       transition={{ duration: 0.2 }}
                     >
                       <Separator className="mb-8" />
-                      <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 md:p-7 shadow-sm">
+                      <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 md:p-7 shadow-sm dark:border-border dark:bg-card/90">
                         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                           <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500 text-white shadow-sm">
                               <UserPlus2 className="h-6 w-6" />
                             </div>
                             <div className="space-y-1">
-                              <p className="text-lg font-semibold text-slate-900">
+                              <p className="text-lg font-semibold text-slate-900 dark:text-foreground">
                                 New client onboarding
                               </p>
-                              <p className="text-sm text-slate-600">
+                              <p className="text-sm text-slate-600 dark:text-muted-foreground">
                                 Create a fresh profile and move through the
                                 guided onboarding journey.
                               </p>
@@ -237,16 +237,16 @@ export function AddClientAskPage() {
                       transition={{ duration: 0.2 }}
                     >
                       <Separator className="mb-8" />
-                      <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 md:p-7 shadow-sm space-y-6">
+                      <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 md:p-7 shadow-sm space-y-6 dark:border-border dark:bg-card/90">
                         <div className="flex items-start gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
                             <Users className="h-6 w-6" />
                           </div>
                           <div className="space-y-1">
-                            <p className="text-lg font-semibold text-slate-900">
+                            <p className="text-lg font-semibold text-slate-900 dark:text-foreground">
                               Continue with an existing client
                             </p>
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm text-slate-600 dark:text-muted-foreground">
                               Search your roster and select the client whose
                               onboarding you’d like to resume.
                             </p>
@@ -255,19 +255,19 @@ export function AddClientAskPage() {
 
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                           <div className="relative flex-1">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                             <Input
                               value={q}
                               onChange={(e) => setQ(e.target.value)}
                               placeholder="Search by name, company, email…"
-                              className="h-11 rounded-xl border-slate-200 pl-9 focus:border-emerald-500 focus:ring-emerald-100"
+                              className="h-11 rounded-xl border-slate-200 pl-9 focus:border-emerald-500 focus:ring-emerald-100 dark:border-border"
                             />
                           </div>
                           <Select
                             value={statusFilter}
                             onValueChange={setStatusFilter}
                           >
-                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 md:w-44">
+                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 md:w-44 dark:border-border">
                               <Filter className="mr-2 h-4 w-4" />
                               <SelectValue placeholder="Status" />
                             </SelectTrigger>
@@ -282,45 +282,45 @@ export function AddClientAskPage() {
 
                         {loading ? (
                           <div className="flex items-center justify-center py-12">
-                            <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+                            <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500 dark:border-border" />
                           </div>
                         ) : filtered.length === 0 ? (
-                          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-500">
+                          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center text-sm text-slate-500 dark:border-border dark:bg-muted/40 dark:text-muted-foreground">
                             No clients match your filters.
                           </div>
                         ) : (
-                          <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                          <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white dark:divide-border dark:border-border dark:bg-card">
                             {filtered.slice(0, 20).map((c) => (
                               <li
                                 key={c.id}
-                                className="flex flex-col gap-3 p-4 transition-colors duration-150 hover:bg-emerald-50/60 md:flex-row md:items-center md:justify-between"
+                                className="flex flex-col gap-3 p-4 transition-colors duration-150 hover:bg-emerald-50/60 md:flex-row md:items-center md:justify-between dark:hover:bg-emerald-950/40"
                               >
                                 <div className="min-w-0 space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <p className="truncate font-medium text-slate-900">
+                                    <p className="truncate font-medium text-slate-900 dark:text-foreground">
                                       {c.name}
                                     </p>
                                     {c.status && (
                                       <span
                                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                           c.status === "active"
-                                            ? "bg-emerald-50 text-emerald-700"
+                                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                                             : c.status === "inactive"
-                                            ? "bg-rose-50 text-rose-700"
-                                            : "bg-amber-50 text-amber-700"
+                                            ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                                            : "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
                                         }`}
                                       >
                                         {c.status}
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-600 truncate">
+                                  <p className="text-xs text-slate-600 truncate dark:text-muted-foreground">
                                     {c.company ?? "—"} • {c.email ?? "—"}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {c.package?.name && (
-                                    <span className="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                    <span className="whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600 dark:bg-muted dark:text-muted-foreground">
                                       {c.package.name}
                                     </span>
                                   )}
@@ -337,7 +337,7 @@ export function AddClientAskPage() {
                             ))}
                           </ul>
                         )}
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">
                           Showing up to 20 results. Refine your search to narrow
                           the list.
                         </p>
@@ -346,7 +346,7 @@ export function AddClientAskPage() {
                   )}
                 </AnimatePresence>
 
-                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-border dark:bg-muted/40 dark:text-muted-foreground">
                   <span className="font-medium">Keyboard shortcuts:</span>
                   <Kbd>N</Kbd> for New, <Kbd>E</Kbd> for Existing.
                 </div>
@@ -377,12 +377,12 @@ function AnswerChip({
   onClick: () => void;
 }) {
   const base =
-    "flex items-center justify-between rounded-2xl border bg-white px-5 py-4 text-left transition-all duration-150 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "flex items-center justify-between rounded-2xl border bg-white px-5 py-4 text-left transition-all duration-150 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 dark:bg-card";
   const activeCls =
     color === "cyan"
       ? "border-violet-400 shadow-lg ring-2 ring-violet-200"
       : "border-emerald-400 shadow-lg ring-2 ring-emerald-200";
-  const inactiveCls = "border-slate-200 hover:border-slate-300";
+  const inactiveCls = "border-slate-200 hover:border-slate-300 dark:border-border dark:hover:border-border";
   const iconWrap = color === "cyan" ? "bg-violet-500" : "bg-emerald-500";
 
   return (
@@ -399,8 +399,8 @@ function AnswerChip({
           <Icon className="h-5 w-5" />
         </div>
         <div className="space-y-1">
-          <p className="text-base font-semibold text-slate-900">{label}</p>
-          <p className="text-xs text-slate-500">Press {hotkey} to select</p>
+          <p className="text-base font-semibold text-slate-900 dark:text-foreground">{label}</p>
+          <p className="text-xs text-slate-500 dark:text-muted-foreground">Press {hotkey} to select</p>
         </div>
       </div>
       <Kbd>{hotkey}</Kbd>
@@ -410,7 +410,7 @@ function AnswerChip({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded-lg border-2 border-gray-300 bg-white px-2.5 py-1 text-xs font-bold shadow-sm">
+    <kbd className="rounded-lg border-2 border-gray-300 bg-white px-2.5 py-1 text-xs font-bold shadow-sm dark:border-border dark:bg-card">
       {children}
     </kbd>
   );

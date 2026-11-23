@@ -133,10 +133,10 @@ export function ExportHistory({ onDownload, onDelete }: ExportHistoryProps) {
                       variant="outline"
                       className={
                         exp.type === "PDF"
-                          ? "bg-red-50 text-red-700"
+                          ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
                           : exp.type === "Excel"
-                          ? "bg-green-50 text-green-700"
-                          : "bg-blue-50 text-blue-700"
+                          ? "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300"
+                          : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
                       }
                     >
                       {exp.type}
@@ -175,7 +175,7 @@ export function ExportHistory({ onDownload, onDelete }: ExportHistoryProps) {
                             <span>Download</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600"
+                            className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                             onClick={() => onDelete(exp.id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />

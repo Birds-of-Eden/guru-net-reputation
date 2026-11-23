@@ -36,13 +36,13 @@ export function TaskCard({
           {task.name}
         </CardTitle>
         <div className="mt-2 flex flex-wrap gap-2">
-          <Badge className="bg-blue-50 text-blue-700 border border-blue-200">
+          <Badge className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
             {task.category?.name ?? "N/A"}
           </Badge>
-          <Badge className="bg-slate-50 text-slate-700 border border-slate-200">
+          <Badge className="bg-slate-50 text-slate-700 border border-slate-200 dark:bg-muted/40 dark:text-foreground dark:border-border">
             {task.templateSiteAsset?.name ?? "N/A"}
           </Badge>
-          <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
             {task.priority}
           </Badge>
         </div>
@@ -51,7 +51,7 @@ export function TaskCard({
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Performance</span>
+            <span className="text-xs text-slate-500 dark:text-muted-foreground">Performance</span>
             {performanceBadge}
           </div>
           <div className="text-sm font-medium text-slate-800 dark:text-slate-300">
@@ -74,7 +74,7 @@ export function TaskCard({
               {url}
             </a>
           ) : (
-            <span className="text-sm text-slate-400">N/A</span>
+            <span className="text-sm text-slate-400 dark:text-muted-foreground">N/A</span>
           )}
 
           {/* Single action group only */}
@@ -82,7 +82,7 @@ export function TaskCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+              className="h-8 w-8 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:text-muted-foreground dark:hover:text-emerald-400 dark:hover:bg-emerald-950/40"
               onClick={onComplete}
               disabled={completeDisabled}
               title="Mark as Completed"
@@ -94,7 +94,7 @@ export function TaskCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:text-muted-foreground dark:hover:text-blue-400 dark:hover:bg-blue-950/40"
                 onClick={() => {
                   navigator.clipboard.writeText(url!);
                   toast.success("URL copied to clipboard");

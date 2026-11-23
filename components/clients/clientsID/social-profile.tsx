@@ -138,13 +138,13 @@ export function SocialProfile({ clientData }: SocialProfileProps) {
                               href={link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline break-all inline-flex items-center gap-1"
+                              className="text-blue-600 hover:underline break-all inline-flex items-center gap-1 dark:text-blue-400"
                             >
                               {link}
                               <ExternalLink className="h-3.5 w-3.5" />
                             </a>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-slate-400 dark:text-muted-foreground">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 font-mono">{task.username ?? "—"}</td>
@@ -186,21 +186,21 @@ export function SocialProfile({ clientData }: SocialProfileProps) {
       {renderTableSection(
         "Social Assets",
         socialSites,
-        <Share2 className="h-5 w-5 text-blue-600" />,
+        <Share2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />,
         "from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20"
       )}
 
       {renderTableSection(
         "Web 2.0 Assets",
         web2Sites,
-        <Globe className="h-5 w-5 text-green-600" />,
+        <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />,
         "from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20"
       )}
 
       {renderTableSection(
         "Additional Supporting Assets",
         otherAssets,
-        <Plus className="h-5 w-5 text-purple-600" />,
+        <Plus className="h-5 w-5 text-purple-600 dark:text-purple-400" />,
         "from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20"
       )}
     </div>

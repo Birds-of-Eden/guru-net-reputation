@@ -115,7 +115,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center dark:bg-muted">
                 {client.profilePicture &&
                 typeof client.profilePicture === "object" &&
                 client.profilePicture instanceof File ? (
@@ -127,7 +127,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                     className="object-cover"
                   />
                 ) : (
-                  <User className="h-5 w-5 text-gray-500" />
+                  <User className="h-5 w-5 text-gray-500 dark:text-muted-foreground" />
                 )}
               </div>
               <div>
@@ -146,7 +146,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                 <h3 className="text-lg font-semibold mb-3">General Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Calendar className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                     <span className="text-sm">
                       <strong>Birth Date:</strong> {formatDate(client.birthDate)}
                     </span>
@@ -154,25 +154,25 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                   {client.clientType === "business" && (
                     <>
                       <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4 text-gray-500" />
+                        <Building className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                         <span className="text-sm">
                           <strong>Company:</strong> {client.companyName || "Not provided"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <MapPin className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                         <span className="text-sm">
                           <strong>Address:</strong> {client.companyAddress || "Not provided"}
                         </span>
                       </div>
                       {client.companyWebsite && (
                         <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-gray-500" />
+                          <Globe className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                           <a
                             href={client.companyWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                            className="text-sm text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400"
                           >
                             {client.companyWebsite}
                             <ExternalLink className="h-3 w-3" />
@@ -216,7 +216,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                         href={client.websiteUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-blue-600 hover:underline dark:text-blue-400"
                       >
                         {client.websiteUrl}
                       </a>
@@ -238,7 +238,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                   <div>
                     <h3 className="text-lg font-semibold mb-3">Biography</h3>
                     <div
-                      className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg"
+                      className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg dark:bg-muted/40"
                       dangerouslySetInnerHTML={{ __html: client.biography }}
                     />
                   </div>
@@ -259,7 +259,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline truncate"
+                            className="text-sm text-blue-600 hover:underline truncate dark:text-blue-400"
                           >
                             {url}
                           </a>
@@ -279,7 +279,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {client.driveImages.slice(0, 8).map((image) => (
                         <div key={image.id} className="space-y-1">
-                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-muted">
                             <Image
                               src={image.url || "/placeholder.svg"}
                               alt={image.name}
@@ -288,12 +288,12 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <p className="text-xs text-gray-600 truncate">{image.name}</p>
+                          <p className="text-xs text-gray-600 truncate dark:text-muted-foreground">{image.name}</p>
                         </div>
                       ))}
                       {client.driveImages.length > 8 && (
-                        <div className="aspect-square rounded-lg bg-gray-100 flex items-center justify-center">
-                          <span className="text-sm text-gray-500">+{client.driveImages.length - 8} more</span>
+                        <div className="aspect-square rounded-lg bg-gray-100 flex items-center justify-center dark:bg-muted">
+                          <span className="text-sm text-gray-500 dark:text-muted-foreground">+{client.driveImages.length - 8} more</span>
                         </div>
                       )}
                     </div>
@@ -305,7 +305,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
               {/* Metadata */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Metadata</h3>
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-gray-600 space-y-1 dark:text-muted-foreground">
                   <p>
                     <strong>Created:</strong> {formatDate(client.createdAt)}
                   </p>

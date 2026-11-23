@@ -216,12 +216,12 @@ export default function ReviewRemovalModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden dark:bg-card">
         {/* Modern Header with Gradient */}
         <div className="bg-linear-to-r from-red-500 via-pink-500 to-orange-500 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <Star className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -242,9 +242,9 @@ export default function ReviewRemovalModal({
         <div className="px-6 pb-6 space-y-6">
           {/* Links Input Section */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-red-100 p-2 rounded-lg">
-                <LinkIcon className="h-4 w-4 text-red-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-red-100 p-2 rounded-lg dark:bg-red-900/40">
+                <LinkIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
               Review Removal Links *
             </label>
@@ -256,7 +256,7 @@ export default function ReviewRemovalModal({
                     placeholder={`https://example.com/review-${index + 1}`}
                     value={link}
                     onChange={(e) => updateLink(index, e.target.value)}
-                    className="flex-1 rounded-2xl h-14 border-2 border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all text-base font-medium px-5"
+                    className="flex-1 rounded-2xl h-14 border-2 border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all text-base font-medium px-5 dark:border-border"
                   />
                   {links.length > 1 && (
                     <Button
@@ -264,7 +264,7 @@ export default function ReviewRemovalModal({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeLink(index)}
-                      className="h-14 w-14 rounded-2xl hover:bg-red-100 hover:text-red-600 transition-all"
+                      className="h-14 w-14 rounded-2xl hover:bg-red-100 hover:text-red-600 transition-all dark:hover:bg-red-900/40 dark:hover:text-red-400"
                     >
                       <Trash2 className="h-5 w-5" />
                     </Button>
@@ -288,23 +288,23 @@ export default function ReviewRemovalModal({
           {/* Agent and Date Section - Modern Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <UserRound className="h-4 w-4 text-blue-600" />
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+                <div className="bg-blue-100 p-2 rounded-lg dark:bg-blue-900/40">
+                  <UserRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 Done by (Agent) *
               </label>
               <Select value={doneBy} onValueChange={setDoneBy}>
-                <SelectTrigger className="rounded-2xl h-14 border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-base font-medium">
+                <SelectTrigger className="rounded-2xl h-14 border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-base font-medium dark:border-border">
                   <SelectValue placeholder="Select agent..." />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-gray-200 shadow-lg p-3 w-[300px]">
+                <SelectContent className="rounded-xl border-gray-200 shadow-lg p-3 w-[300px] dark:border-border">
                   <div className="mb-3">
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-muted-foreground" />
                       <Input
                         placeholder="Search agents by name..."
-                        className="pl-12 h-12 text-base border-2 border-white"
+                        className="pl-12 h-12 text-base border-2 border-white dark:border-border"
                         value={agentSearchTerm}
                         onChange={(e) => setAgentSearchTerm(e.target.value)}
                         onClick={(e) => {
@@ -332,9 +332,9 @@ export default function ReviewRemovalModal({
                         <SelectItem
                           key={a.id}
                           value={a.id}
-                          className="rounded-lg py-2 px-2 my-1 hover:bg-gray-100 focus:bg-blue-50 transition-colors"
+                          className="rounded-lg py-2 px-2 my-1 hover:bg-gray-100 focus:bg-blue-50 transition-colors dark:hover:bg-muted dark:focus:bg-blue-950/40"
                         >
-                          <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-4 w-full p-2 rounded-lg hover:bg-gray-50 transition-colors dark:hover:bg-muted/40">
                             <div
                               className={`w-3.5 h-3.5 rounded-full shrink-0 ${
                                 a.id === doneBy ? "bg-blue-500" : "bg-green-500"
@@ -352,9 +352,9 @@ export default function ReviewRemovalModal({
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <Calendar className="h-4 w-4 text-purple-600" />
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+                <div className="bg-purple-100 p-2 rounded-lg dark:bg-purple-900/40">
+                  <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 Completed At *
               </label>
@@ -366,7 +366,7 @@ export default function ReviewRemovalModal({
                 showYearDropdown
                 dropdownMode="select"
                 placeholderText="Select completion date"
-                className="w-full border-2 border-slate-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all font-medium"
+                className="w-full border-2 border-slate-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all font-medium dark:border-border"
                 maxDate={new Date()}
               />
             </div>
@@ -374,7 +374,7 @@ export default function ReviewRemovalModal({
         </div>
 
         {/* Footer with Modern Button Design */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={closeModal}

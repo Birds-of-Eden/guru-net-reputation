@@ -86,7 +86,7 @@ export function ReassignModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
+          <DialogTitle className="text-xl font-bold text-gray-900 dark:text-foreground">
             🔄 Reassign Tasks
           </DialogTitle>
           <DialogDescription>
@@ -96,35 +96,35 @@ export function ReassignModal({
 
         <div className="space-y-6">
           {/* Selected Tasks Summary */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-950/40 dark:border-blue-800">
+            <h4 className="font-semibold text-blue-900 mb-3 dark:text-blue-300">
               📋 Selected Tasks ({selectedTasks.length})
             </h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {selectedTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between bg-white rounded-md p-2 border border-blue-100"
+                  className="flex items-center justify-between bg-white rounded-md p-2 border border-blue-100 dark:bg-card dark:border-blue-800"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 truncate dark:text-foreground">
                       {task.name}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge
                         className={`text-xs ${
                           task.priority === 'urgent'
-                            ? 'bg-red-100 text-red-800'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
                             : task.priority === 'high'
-                            ? 'bg-orange-100 text-orange-800'
+                            ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300'
                             : task.priority === 'medium'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
                         }`}
                       >
                         {task.priority}
                       </Badge>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-gray-600 dark:text-muted-foreground">
                         {task.dueDate && format(new Date(task.dueDate), 'MMM dd')}
                       </span>
                     </div>
@@ -137,7 +137,7 @@ export function ReassignModal({
                           {task.assignedTo.name?.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-gray-600 dark:text-muted-foreground">
                         {task.assignedTo.name}
                       </span>
                     </div>
@@ -149,8 +149,8 @@ export function ReassignModal({
 
           {/* Agent Selection */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
+            <label className="text-sm font-semibold text-gray-900 flex items-center gap-2 dark:text-foreground">
+              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               Select New Agent
             </label>
             <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
@@ -168,8 +168,8 @@ export function ReassignModal({
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-gray-900">{agent.name}</p>
-                        <p className="text-xs text-gray-600 capitalize">
+                        <p className="font-medium text-gray-900 dark:text-foreground">{agent.name}</p>
+                        <p className="text-xs text-gray-600 capitalize dark:text-muted-foreground">
                           {agent.category} Team
                         </p>
                       </div>
@@ -226,7 +226,7 @@ export function ReassignModal({
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 dark:border-border" />
                   Reassigning...
                 </>
               ) : (

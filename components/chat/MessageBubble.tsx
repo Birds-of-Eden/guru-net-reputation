@@ -119,7 +119,7 @@ const MessageBubbleComponent = function MessageBubble({
       <div className="flex items-end gap-2 max-w-[75%]">
         {!mine && (
           <div
-            className="h-7 w-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-medium"
+            className="h-7 w-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-medium dark:bg-muted"
             aria-hidden
             title={displayName}
           >
@@ -130,28 +130,28 @@ const MessageBubbleComponent = function MessageBubble({
         <div className="group relative">
           {/* optional sender name above bubble (for non-DM/group) */}
           {showSenderName && !mine && (
-            <div className="text-[10px] text-gray-500 mb-0.5">
+            <div className="text-[10px] text-gray-500 mb-0.5 dark:text-muted-foreground">
               {displayName}
             </div>
           )}
 
           <div
             className={`rounded-2xl px-3 py-2 ${
-              mine ? "bg-black text-white" : "bg-gray-100"
+              mine ? "bg-black text-white" : "bg-gray-100 dark:bg-muted"
             }`}
           >
             {isForwarded && (
               <div className="mb-1">
                 <div
                   className={`text-[10px] uppercase tracking-wide ${
-                    mine ? "text-emerald-300" : "text-emerald-700"
+                    mine ? "text-emerald-300" : "text-emerald-700 dark:text-emerald-300"
                   }`}
                 >
                   Forwarded
                 </div>
                 <div
                   className={`text-[11px] ${
-                    mine ? "text-white/70" : "text-gray-600"
+                    mine ? "text-white/70" : "text-gray-600 dark:text-muted-foreground"
                   }`}
                 >
                   by <span className="font-medium">{forwardedByName}</span>
@@ -171,7 +171,7 @@ const MessageBubbleComponent = function MessageBubble({
             {/* time + status */}
             <div
               className={`text-[10px] opacity-60 mt-1 flex items-center gap-2 ${
-                mine ? "text-white" : "text-gray-600"
+                mine ? "text-white" : "text-gray-600 dark:text-muted-foreground"
               }`}
             >
               <span>
@@ -214,7 +214,7 @@ const MessageBubbleComponent = function MessageBubble({
 
             {/* Seen-by list for team/group chats (showSenderName is generally true there) */}
             {showSenderName && seenUsers.length > 0 && (
-              <div className={`mt-1 flex items-center gap-1 ${mine ? "text-white/70" : "text-gray-500"} text-[10px]`}>
+              <div className={`mt-1 flex items-center gap-1 ${mine ? "text-white/70" : "text-gray-500 dark:text-muted-foreground"} text-[10px]`}>
                 <Eye className="h-3 w-3" />
                 <span className="truncate">
                   Seen by {seenUsers.slice(0, 3).map((u) => u.name || u.email || "User").join(", ")}
@@ -234,8 +234,8 @@ const MessageBubbleComponent = function MessageBubble({
                   onClick={() => toggleReaction(r.emoji)}
                   className={`text-xs px-1.5 py-0.5 rounded-full border transition-colors ${
                     iReacted
-                      ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                      : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300"
+                      : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-card dark:border-border dark:text-foreground dark:hover:bg-muted/40"
                   }`}
                   title={
                     iReacted
@@ -253,7 +253,7 @@ const MessageBubbleComponent = function MessageBubble({
             {onForward && (
               <button
                 onClick={() => onForward(msg.id)}
-                className="h-7 px-2 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow transition"
+                className="h-7 px-2 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow transition dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-muted/40"
                 title="Forward"
                 aria-label="Forward message"
               >
@@ -266,7 +266,7 @@ const MessageBubbleComponent = function MessageBubble({
             <div className="relative">
               <button
                 onClick={() => setPickerOpen((v) => !v)}
-                className="h-7 w-7 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow transition"
+                className="h-7 w-7 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow transition dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-muted/40"
                 title="Add reaction"
                 aria-label="Add reaction"
               >
@@ -275,7 +275,7 @@ const MessageBubbleComponent = function MessageBubble({
 
               {pickerOpen && (
                 <div
-                  className="absolute z-20 mt-1 p-1 bg-white border border-gray-200 rounded-lg shadow-lg"
+                  className="absolute z-20 mt-1 p-1 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-card dark:border-border"
                   onMouseLeave={() => setPickerOpen(false)}
                 >
                   <div className="flex gap-1">
@@ -283,7 +283,7 @@ const MessageBubbleComponent = function MessageBubble({
                       <button
                         key={e}
                         onClick={() => toggleReaction(e)}
-                        className="text-base hover:bg-gray-100 rounded px-1"
+                        className="text-base hover:bg-gray-100 rounded px-1 dark:hover:bg-muted"
                         title={`React ${e}`}
                       >
                         {e}

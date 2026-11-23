@@ -364,43 +364,43 @@ const getStatusBadge = (status: string) => {
   const statusConfig = {
     pending: {
       className:
-        "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/50 dark:text-slate-400 border-slate-300 dark:border-slate-700",
+        "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800/50 dark:text-slate-400 border-slate-300 dark:border-slate-700 dark:hover:bg-muted",
       icon: Clock,
       label: "Pending",
     },
     in_progress: {
       className:
-        "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300 dark:border-blue-800",
+        "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 border-blue-300 dark:border-blue-800 dark:hover:bg-blue-800/50",
       icon: Play,
       label: "In Progress",
     },
     completed: {
       className:
-        "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800",
+        "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 dark:hover:bg-emerald-800/50",
       icon: CheckCircle,
       label: "Completed",
     },
     qc_approved: {
       className:
-        "bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300 dark:border-purple-800",
+        "bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 border-purple-300 dark:border-purple-800 dark:hover:bg-purple-800/50",
       icon: ShieldCheck,
       label: "QC Approved",
     },
     overdue: {
       className:
-        "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 border-red-300 dark:border-red-800",
+        "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 border-red-300 dark:border-red-800 dark:hover:bg-red-800/50",
       icon: AlertCircle,
       label: "Overdue",
     },
     cancelled: {
       className:
-        "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-400 border-gray-300 dark:border-gray-700",
+        "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-400 border-gray-300 dark:border-gray-700 dark:hover:bg-accent",
       icon: XCircle,
       label: "Cancelled",
     },
     reassigned: {
       className:
-        "bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300 dark:border-amber-800",
+        "bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300 dark:border-amber-800 dark:hover:bg-amber-800/50",
       icon: TrendingUp,
       label: "Reassigned",
     },
@@ -2314,12 +2314,12 @@ export function ClientTasksView({
 
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-blue-500 to-blue-600 text-white">
-            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-100">
                 Total Tasks
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <Activity className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -2330,12 +2330,12 @@ export function ClientTasksView({
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-emerald-500 to-emerald-600 text-white">
-            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-emerald-100">
                 Completed
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <CheckCircle className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -2347,12 +2347,12 @@ export function ClientTasksView({
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-amber-500 to-amber-600 text-white">
-            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-amber-100">
                 In Progress
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <Play className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -2367,12 +2367,12 @@ export function ClientTasksView({
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-red-500 to-red-600 text-white">
-            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-red-100">
                 Overdue
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <AlertCircle className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -2387,12 +2387,12 @@ export function ClientTasksView({
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-br from-purple-500 to-purple-600 text-white">
-            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
             <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-purple-100">
                 QC Approved
               </CardTitle>
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                 <ShieldCheck className="h-5 w-5 text-white" />
               </div>
             </CardHeader>

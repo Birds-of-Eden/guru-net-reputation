@@ -67,19 +67,19 @@ const truncateToWords = (text: string, maxWords = 10): string => {
 
 const FilterSkeleton = memo(function FilterSkeleton() {
   return (
-    <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6">
+    <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6 dark:bg-card/80 dark:border-border/60">
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-10 bg-slate-200 rounded animate-pulse" />
+          <div key={i} className="h-10 bg-slate-200 rounded animate-pulse dark:bg-muted" />
         ))}
       </div>
-      <div className="h-10 bg-slate-200 rounded animate-pulse" />
+      <div className="h-10 bg-slate-200 rounded animate-pulse dark:bg-muted" />
     </div>
   );
 });
 
 const TaskCardSkeleton = memo(function TaskCardSkeleton() {
-  return <div className="h-32 bg-slate-200 rounded-xl animate-pulse" />;
+  return <div className="h-32 bg-slate-200 rounded-xl animate-pulse dark:bg-muted" />;
 });
 
 /* =========================
@@ -818,7 +818,7 @@ export const QCReview = memo(function QCReview({
   }, [searchParams]);
 
   return (
-    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen">
+    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen dark:from-background dark:via-card dark:to-background">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -826,10 +826,10 @@ export const QCReview = memo(function QCReview({
               <Eye className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent dark:from-white dark:to-slate-300">
                 QC Review
               </h1>
-              <p className="text-slate-600 font-medium">
+              <p className="text-slate-600 font-medium dark:text-muted-foreground">
                 Review completed tasks assigned to your agents and approve or
                 reassign with precision
               </p>
@@ -859,7 +859,7 @@ export const QCReview = memo(function QCReview({
     <span className="font-semibold">Open Bulk All Completion Links</span>
 
     {bulkCompletionLinks.length ? (
-      <span className="ml-2 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white">
+      <span className="ml-2 inline-flex items-center rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-card/15">
         {bulkCompletionLinks.length}
       </span>
     ) : null}
@@ -870,26 +870,26 @@ export const QCReview = memo(function QCReview({
 
       </div>
 
-      <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
-        <CardHeader className="pb-4 bg-linear-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80">
+      <Card className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden dark:bg-card/80 dark:border-border/60">
+        <CardHeader className="pb-4 bg-linear-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100/80 dark:from-background dark:via-card dark:to-background dark:border-border/80">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-sm">
                 <TrendingUp className="h-5 w-5 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-semibold text-slate-900">
+                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-foreground">
                   Task Results
                 </CardTitle>
-                <CardDescription className="text-slate-600 font-medium">
+                <CardDescription className="text-slate-600 font-medium dark:text-muted-foreground">
                   Quality control dashboard for your completed tasks
                 </CardDescription>
               </div>
             </div>
  
-            <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-              <Award className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-700">
+            <div className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
+              <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
                 {allRelevantTasks.length} total tasks
               </span>
             </div>
@@ -898,17 +898,17 @@ export const QCReview = memo(function QCReview({
 
         <CardContent className="p-6">
           <Tabs defaultValue="completed" className="w-full space-y-4">
-            <TabsList className="grid w-full grid-cols-2 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg">
+            <TabsList className="grid w-full grid-cols-2 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 backdrop-blur-md border border-slate-200/60 rounded-2xl p-2 shadow-lg dark:from-card/90 dark:via-background/80 dark:to-card/90 dark:border-border/60">
               <TabsTrigger
                 value="completed"
-                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Completed ({completedTasks.length})
               </TabsTrigger>
               <TabsTrigger
                 value="qc-approved"
-                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+                className="rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
               >
                 <CheckSquare className="h-4 w-4 mr-2" />
                 QC Approved ({qcApprovedTasks.length})
@@ -921,12 +921,12 @@ export const QCReview = memo(function QCReview({
                 <div className="flex items-center justify-center py-16">
                   <div className="text-center space-y-4">
                     <div className="relative">
-                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse dark:border-border" />
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-slate-700 font-medium">Loading tasks...</p>
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-slate-700 font-medium dark:text-foreground">Loading tasks...</p>
+                      <p className="text-slate-500 text-sm dark:text-muted-foreground">
                         Please wait while we fetch the latest data
                       </p>
                     </div>
@@ -935,14 +935,14 @@ export const QCReview = memo(function QCReview({
               ) : filteredTasks.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="flex flex-col items-center gap-6">
-                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
+                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl dark:from-emerald-900/40 dark:to-green-900/40">
                       <CheckCircle className="h-12 w-12 text-emerald-500" />
                     </div>
                     <div className="space-y-2 max-w-md">
-                      <h3 className="text-xl font-semibold text-slate-900">
+                      <h3 className="text-xl font-semibold text-slate-900 dark:text-foreground">
                         🎉 All Tasks Reviewed!
                       </h3>
-                      <p className="text-slate-600">
+                      <p className="text-slate-600 dark:text-muted-foreground">
                         Great job! You've successfully completed QC review for all
                         available tasks. Take a well-deserved break!
                       </p>
@@ -981,12 +981,12 @@ export const QCReview = memo(function QCReview({
                 <div className="flex items-center justify-center py-16">
                   <div className="text-center space-y-4">
                     <div className="relative">
-                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse dark:border-border" />
                       <Loader2 className="h-8 w-8 animate-spin text-blue-500 absolute top-4 left-4" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-slate-700 font-medium">Loading completed tasks...</p>
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-slate-700 font-medium dark:text-foreground">Loading completed tasks...</p>
+                      <p className="text-slate-500 text-sm dark:text-muted-foreground">
                         Please wait while we fetch the latest data
                       </p>
                     </div>
@@ -995,14 +995,14 @@ export const QCReview = memo(function QCReview({
               ) : completedTasks.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="flex flex-col items-center gap-6">
-                    <div className="p-4 bg-linear-to-br from-blue-100 to-cyan-100 rounded-2xl">
+                    <div className="p-4 bg-linear-to-br from-blue-100 to-cyan-100 rounded-2xl dark:from-blue-900/40 dark:to-cyan-900/40">
                       <CheckCircle className="h-12 w-12 text-blue-500" />
                     </div>
                     <div className="space-y-2 max-w-md">
-                      <h3 className="text-xl font-semibold text-slate-900">
+                      <h3 className="text-xl font-semibold text-slate-900 dark:text-foreground">
                         No Completed Tasks
                       </h3>
-                      <p className="text-slate-600">
+                      <p className="text-slate-600 dark:text-muted-foreground">
                         There are no completed tasks available for QC review at the moment.
                       </p>
                     </div>
@@ -1040,12 +1040,12 @@ export const QCReview = memo(function QCReview({
                 <div className="flex items-center justify-center py-16">
                   <div className="text-center space-y-4">
                     <div className="relative">
-                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse" />
+                      <div className="w-16 h-16 border-4 border-slate-200 rounded-full animate-pulse dark:border-border" />
                       <Loader2 className="h-8 w-8 animate-spin text-green-500 absolute top-4 left-4" />
                     </div>
                     <div className="space-y-2">
-                      <p className="text-slate-700 font-medium">Loading QC approved tasks...</p>
-                      <p className="text-slate-500 text-sm">
+                      <p className="text-slate-700 font-medium dark:text-foreground">Loading QC approved tasks...</p>
+                      <p className="text-slate-500 text-sm dark:text-muted-foreground">
                         Please wait while we fetch the latest data
                       </p>
                     </div>
@@ -1054,14 +1054,14 @@ export const QCReview = memo(function QCReview({
               ) : qcApprovedTasks.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="flex flex-col items-center gap-6">
-                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl">
+                    <div className="p-4 bg-linear-to-br from-emerald-100 to-green-100 rounded-2xl dark:from-emerald-900/40 dark:to-green-900/40">
                       <CheckSquare className="h-12 w-12 text-emerald-500" />
                     </div>
                     <div className="space-y-2 max-w-md">
-                      <h3 className="text-xl font-semibold text-slate-900">
+                      <h3 className="text-xl font-semibold text-slate-900 dark:text-foreground">
                         No QC Approved Tasks
                       </h3>
-                      <p className="text-slate-600">
+                      <p className="text-slate-600 dark:text-muted-foreground">
                         No tasks have been QC approved yet. Complete and approve tasks to see them here.
                       </p>
                     </div>
@@ -1069,12 +1069,12 @@ export const QCReview = memo(function QCReview({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 dark:bg-emerald-950/40 dark:border-emerald-800">
                     <div className="flex items-center gap-3">
-                      <CheckSquare className="h-5 w-5 text-emerald-600" />
+                      <CheckSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                       <div>
-                        <h4 className="font-semibold text-emerald-800">QC Approved Tasks</h4>
-                        <p className="text-sm text-emerald-600">
+                        <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">QC Approved Tasks</h4>
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400">
                           These tasks have passed QC review and are marked as approved.
                         </p>
                       </div>
@@ -1114,13 +1114,13 @@ export const QCReview = memo(function QCReview({
         open={approveDialog.open}
         onOpenChange={(open) => setApproveDialog((p) => ({ ...p, open }))}
       >
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
-          <DialogHeader className="pb-2 border-b border-slate-100">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl dark:bg-card/95 dark:border-border">
+          <DialogHeader className="pb-2 border-b border-slate-100 dark:border-border">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-green-500 to-emerald-600 rounded-xl shadow-sm">
                 <CheckCircle className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle className="text-xl font-semibold text-slate-900">
+              <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-foreground">
                 Approve Task
               </DialogTitle>
             </div>
@@ -1128,26 +1128,26 @@ export const QCReview = memo(function QCReview({
 
           {approveDialog.task && (
             <div className="space-y-4 py-1">
-              <div className="rounded-2xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50 shadow-sm">
+              <div className="rounded-2xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50 shadow-sm dark:border-border dark:from-background dark:via-card dark:to-background">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 
-                      className="text-lg font-semibold text-slate-900 mb-2 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                      className="text-lg font-semibold text-slate-900 mb-2 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:text-foreground dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(approveDialog.task.name)) }}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                        <span className="text-slate-600">Agent:</span>
-                        <span className="font-medium text-slate-900">
+                        <span className="text-slate-600 dark:text-muted-foreground">Agent:</span>
+                        <span className="font-medium text-slate-900 dark:text-foreground">
                           {approveDialog.task.assignedTo?.name ||
                             approveDialog.task.assignedTo?.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                        <span className="text-slate-600">Client:</span>
-                        <span className="font-medium text-slate-900">
+                        <span className="text-slate-600 dark:text-muted-foreground">Client:</span>
+                        <span className="font-medium text-slate-900 dark:text-foreground">
                           {approveDialog.task.client?.name}
                         </span>
                       </div>
@@ -1158,7 +1158,7 @@ export const QCReview = memo(function QCReview({
                           onClick={() => handleOpenCompletionLink(approveDialog.task!)}
                           variant="outline"
                           size="sm"
-                          className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200"
+                          className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200 dark:bg-card dark:hover:bg-muted/40 dark:border-border dark:hover:border-border"
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Completion
@@ -1178,7 +1178,7 @@ export const QCReview = memo(function QCReview({
                           }
                           variant="outline"
                           size="sm"
-                          className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200 flex items-center gap-2"
+                          className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-all duration-200 flex items-center gap-2 dark:bg-card dark:hover:bg-muted/40 dark:border-border dark:hover:border-border"
                         >
                           <Eye className="h-4 w-4" />
                           View Notes
@@ -1190,7 +1190,7 @@ export const QCReview = memo(function QCReview({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2 dark:text-foreground">
                   <div className="w-2 h-2 bg-slate-400 rounded-full" />
                   Additional Notes (Optional)
                 </label>
@@ -1198,19 +1198,19 @@ export const QCReview = memo(function QCReview({
                   rows={3}
                   value={qcNotes}
                   onChange={(e) => setQcNotes(e.target.value)}
-                  className="resize-none border-slate-200 focus:border-blue-300 focus:ring-blue-200 rounded-xl"
+                  className="resize-none border-slate-200 focus:border-blue-300 focus:ring-blue-200 rounded-xl dark:border-border dark:focus:border-blue-700"
                   placeholder="Add any specific feedback or observations about this task..."
                 />
               </div>
             </div>
           )}
 
-          <DialogFooter className="gap-3 pt-2 border-t border-slate-100">
+          <DialogFooter className="gap-3 pt-2 border-t border-slate-100 dark:border-border">
             <Button
               variant="outline"
               onClick={() => setApproveDialog((p) => ({ ...p, open: false }))}
               disabled={approveDialog.loading}
-              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300"
+              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 dark:bg-card dark:hover:bg-muted/40 dark:border-border dark:hover:border-border"
             >
               Cancel
             </Button>
@@ -1241,27 +1241,27 @@ export const QCReview = memo(function QCReview({
         open={notePreview.open}
         onOpenChange={(open) => setNotePreview((p) => ({ ...p, open }))}
       >
-        <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
-          <DialogHeader className="pb-2 border-b border-slate-100">
+        <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl dark:bg-card/95 dark:border-border">
+          <DialogHeader className="pb-2 border-b border-slate-100 dark:border-border">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-xl shadow-sm">
                 <Eye className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle className="text-lg font-semibold text-slate-900">
+              <DialogTitle className="text-lg font-semibold text-slate-900 dark:text-foreground">
                 Task Notes
               </DialogTitle>
             </div>
-            <p className="text-sm text-slate-600 pt-1">
+            <p className="text-sm text-slate-600 pt-1 dark:text-muted-foreground">
               {notePreview.taskName || "Note"}
             </p>
           </DialogHeader>
-          <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+          <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed dark:text-foreground">
             {notePreview.note || "No notes provided."}
           </div>
-          <DialogFooter className="gap-2 pt-2 border-t border-slate-100">
+          <DialogFooter className="gap-2 pt-2 border-t border-slate-100 dark:border-border">
             <Button
               variant="outline"
-              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300"
+              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 dark:bg-card dark:hover:bg-muted/40 dark:border-border dark:hover:border-border"
               onClick={() => setNotePreview((p) => ({ ...p, open: false }))}
             >
               Close
@@ -1275,13 +1275,13 @@ export const QCReview = memo(function QCReview({
         open={reassignDialog.open}
         onOpenChange={(open) => setReassignDialog((p) => ({ ...p, open }))}
       >
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl">
-          <DialogHeader className="pb-2 border-b border-slate-100">
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-slate-200 shadow-2xl rounded-2xl dark:bg-card/95 dark:border-border">
+          <DialogHeader className="pb-2 border-b border-slate-100 dark:border-border">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-orange-500 to-red-500 rounded-xl shadow-sm">
                 <RotateCcw className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle className="text-xl font-semibold text-slate-900">
+              <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-foreground">
                 Reassign Task
               </DialogTitle>
             </div>
@@ -1289,15 +1289,15 @@ export const QCReview = memo(function QCReview({
 
           {reassignDialog.task && (
             <div className="space-y-3">
-              <div className="rounded-xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50">
+              <div className="rounded-xl p-3 border border-slate-200 bg-linear-to-r from-slate-50 via-white to-slate-50 dark:border-border dark:from-background dark:via-card dark:to-background">
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-slate-900">
+                  <h3 className="font-semibold text-slate-900 dark:text-foreground">
                     {reassignDialog.task.name}
                   </h3>
-                  <div className="text-sm text-slate-600 flex items-center gap-2">
+                  <div className="text-sm text-slate-600 flex items-center gap-2 dark:text-muted-foreground">
                     <div className="w-2 h-2 bg-orange-500 rounded-full" />
                     Current agent:{" "}
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-slate-900 dark:text-foreground">
                       {reassignDialog.task.assignedTo?.name ||
                         reassignDialog.task.assignedTo?.email}
                     </span>
@@ -1306,7 +1306,7 @@ export const QCReview = memo(function QCReview({
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
+                <label className="text-sm font-semibold text-slate-700 dark:text-foreground">
                   Reassignment Notes
                 </label>
                 <Textarea
@@ -1318,19 +1318,19 @@ export const QCReview = memo(function QCReview({
                       reassignNotes: e.target.value,
                     }))
                   }
-                  className="resize-none border-slate-200 focus:border-orange-300 focus:ring-orange-200 rounded-xl"
+                  className="resize-none border-slate-200 focus:border-orange-300 focus:ring-orange-200 rounded-xl dark:border-border dark:focus:border-orange-700"
                   placeholder="Explain why this task needs to be reassigned..."
                 />
               </div>
             </div>
           )}
 
-          <DialogFooter className="gap-3 pt-2 border-t border-slate-100">
+          <DialogFooter className="gap-3 pt-2 border-t border-slate-100 dark:border-border">
             <Button
               variant="outline"
               onClick={() => setReassignDialog((p) => ({ ...p, open: false }))}
               disabled={reassignDialog.loading}
-              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300"
+              className="bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 dark:bg-card dark:hover:bg-muted/40 dark:border-border dark:hover:border-border"
             >
               Cancel
             </Button>

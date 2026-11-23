@@ -29,7 +29,7 @@ export function AgentDetailsDialog({ agent, isOpen, onOpenChange }: AgentDetails
       <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader className="space-y-6">
           <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20 border-4 border-white shadow-xl ring-2 ring-gray-100 dark:ring-gray-800">
+            <Avatar className="h-20 w-20 border-4 border-white shadow-xl ring-2 ring-gray-100 dark:ring-gray-800 dark:border-border">
               <AvatarImage src={agent.image || "/placeholder.svg"} alt={`${agent.firstName} ${agent.lastName}`} />
               <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-xl font-bold">
                 {agent.firstName.charAt(0)}
@@ -61,14 +61,14 @@ export function AgentDetailsDialog({ agent, isOpen, onOpenChange }: AgentDetails
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-3 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700">
-                <Phone className="w-4 h-4 text-gray-500" />
+                <Phone className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Phone</p>
                   <p className="text-gray-900 dark:text-gray-50 font-medium">{agent.phone || "Not provided"}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 p-4 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl border border-gray-100 dark:border-gray-700">
-                <Calendar className="w-4 h-4 text-gray-500" />
+                <Calendar className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Join Date</p>
                   <p className="text-gray-900 dark:text-gray-50 font-medium">{formatJoinDate(agent.createdAt)}</p>

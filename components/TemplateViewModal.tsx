@@ -196,19 +196,19 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
     social_site: {
       label: resolveTypeLabel("social_site"),
       icon: Share2,
-      color: "bg-blue-50 border-blue-200",
+      color: "bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800",
       badgeVariant: "default",
     },
     web2_site: {
       label: resolveTypeLabel("web2_site"),
       icon: Globe,
-      color: "bg-green-50 border-green-200",
+      color: "bg-green-50 border-green-200 dark:bg-green-950/40 dark:border-green-800",
       badgeVariant: "secondary",
     },
     other_asset: {
       label: resolveTypeLabel("other_asset"),
       icon: FileText,
-      color: "bg-purple-50 border-purple-200",
+      color: "bg-purple-50 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800",
       badgeVariant: "outline",
     },
   }
@@ -225,7 +225,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
       assetTypeConfig[type] || {
         label: resolveTypeLabel(type),
         icon: FileText,
-        color: "bg-gray-50 border-gray-200",
+        color: "bg-gray-50 border-gray-200 dark:bg-muted/40 dark:border-border",
         badgeVariant: "outline" as const,
       }
     const IconComponent = config.icon
@@ -243,7 +243,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
         </CardHeader>
         <CardContent>
           {assets.length > 0 ? (
-            <div className="border rounded-lg bg-white">
+            <div className="border rounded-lg bg-white dark:bg-card">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -263,7 +263,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                             href={asset.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm"
+                            className="text-blue-600 hover:underline text-sm dark:text-blue-400"
                           >
                             {asset.url.length > 30 ? `${asset.url.substring(0, 30)}...` : asset.url}
                           </a>
@@ -286,7 +286,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                             onClick={() => handleDeleteAsset(asset.id)}
                             className="h-8 w-8"
                           >
-                            <Trash className="h-4 w-4 text-red-600" />
+                            <Trash className="h-4 w-4 text-red-600 dark:text-red-400" />
                           </Button>
                         </TableCell>
                       )}
@@ -296,7 +296,7 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
               </Table>
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground bg-white rounded-lg border">
+            <div className="text-center py-8 text-muted-foreground bg-white rounded-lg border dark:bg-card">
               <IconComponent className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p>No {config.label.toLowerCase()} found</p>
             </div>
@@ -367,12 +367,12 @@ export function TemplateViewModal({ templateId, open, onOpenChange, onSuccess }:
                             variant="outline"
                             className={
                               normalizeTemplateStatus(template.status) === 'approved'
-                                ? 'text-green-600 border-green-600 bg-green-100'
+                                ? 'text-green-600 border-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/40'
                                 : normalizeTemplateStatus(template.status) === 'rejected'
-                                  ? 'text-red-600 border-red-600 bg-red-100'
+                                  ? 'text-red-600 border-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
                                   : normalizeTemplateStatus(template.status) === 'requested'
-                                    ? 'text-blue-600 border-blue-600 bg-blue-100'
-                                    : 'text-amber-700 border-amber-300 bg-amber-100'
+                                    ? 'text-blue-600 border-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40'
+                                    : 'text-amber-700 border-amber-300 bg-amber-100 dark:text-amber-300 dark:border-amber-700 dark:bg-amber-900/40'
                             }
                           >
                             {getTemplateStatusLabel(template.status)}

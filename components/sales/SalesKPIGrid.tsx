@@ -61,7 +61,7 @@ export function SalesKPIGrid({
       {KPIs.map((kpi, idx) => (
         <Card
           key={idx}
-          className="relative overflow-hidden border-0 shadow-md ring-1 ring-slate-200/60 bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl p-5"
+          className="relative overflow-hidden border-0 shadow-md ring-1 ring-slate-200/60 bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl p-5 dark:ring-border/60 dark:bg-card"
         >
           {/* Gradient Background Blur */}
           <div
@@ -77,21 +77,21 @@ export function SalesKPIGrid({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-xl bg-slate-50 ring-1 ring-slate-100">
+                    <div className="p-2 rounded-xl bg-slate-50 ring-1 ring-slate-100 dark:bg-muted/40 dark:ring-border">
                       {kpi.icon}
                     </div>
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-foreground">
                       {kpi.label}
                     </p>
                   </div>
-                  <TrendingUp className="h-4 w-4 text-slate-400" />
+                  <TrendingUp className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                 </div>
 
                 <div>
-                  <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                  <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight dark:text-foreground">
                     <CountUp end={kpi.value} duration={2.2} separator="," />
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1 dark:text-muted-foreground">
                     Updated live from analytics
                   </p>
                 </div>

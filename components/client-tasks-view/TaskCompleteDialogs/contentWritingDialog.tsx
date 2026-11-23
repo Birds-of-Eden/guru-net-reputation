@@ -215,12 +215,12 @@ export default function ContentWritingModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
-      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-hidden dark:bg-card">
         {/* Modern Header with Gradient */}
         <div className="bg-linear-to-r from-purple-600 via-violet-600 to-blue-600 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <PenTool className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -231,7 +231,7 @@ export default function ContentWritingModal({
                   <div className="text-white font-black text-xl truncate flex-1">
                     {task?.name}
                   </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm dark:bg-card/10">
                     <Calendar className="h-4 w-4 text-white/80" />
                     <span className="text-white font-mono font-bold text-sm">
                       {timerInfo?.formatDisplayTime || "00:00"}
@@ -253,9 +253,9 @@ export default function ContentWritingModal({
             className="flex-1 flex flex-col"
           >
             <div className="flex items-center justify-between mb-4">
-              <TabsList className="flex-wrap h-auto p-2 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl shadow-inner">
+              <TabsList className="flex-wrap h-auto p-2 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl shadow-inner dark:from-background dark:to-background">
                 {contentSections.map((section, index) => (
-                  <div key={section.id} className="flex items-center gap-1 bg-white rounded-xl shadow-sm px-2 py-1">
+                  <div key={section.id} className="flex items-center gap-1 bg-white rounded-xl shadow-sm px-2 py-1 dark:bg-card">
                     <TabsTrigger
                       value={section.id}
                       className="relative px-3 py-2 text-sm font-semibold data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-xl transition-all"
@@ -275,7 +275,7 @@ export default function ContentWritingModal({
                         variant="ghost"
                         size="icon"
                         onClick={() => removeContentSection(section.id)}
-                        className="h-7 w-7 rounded-full hover:bg-red-100 hover:text-red-600 transition-all"
+                        className="h-7 w-7 rounded-full hover:bg-red-100 hover:text-red-600 transition-all dark:hover:bg-red-900/40 dark:hover:text-red-400"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -296,7 +296,7 @@ export default function ContentWritingModal({
               </Button>
             </div>
 
-            <div className="flex-1 flex flex-col border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="flex-1 flex flex-col border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm dark:border-border">
               {contentSections.map((section) => (
                 <TabsContent
                   key={section.id}
@@ -318,7 +318,7 @@ export default function ContentWritingModal({
         </div>
 
         {/* Footer with Modern Button Design */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

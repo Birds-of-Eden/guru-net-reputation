@@ -93,14 +93,14 @@ export default function OnboardingPage() {
         onClearDraft={clearDraft}
       />
 
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-orange-50 py-12">
+      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-orange-50 py-12 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-orange-950/40">
         <div>
           <StepIndicator
             steps={steps}
             currentStep={currentStep}
             onStepClick={goToStep}
           />
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 md:p-12 dark:bg-card/80 dark:border-border/20">
             <CurrentStepComponent
               formData={formData}
               updateFormData={updateFormData}

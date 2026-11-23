@@ -192,47 +192,47 @@ export default function DataEntryClientStats({ clients }: DataEntryClientStatsPr
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-linear-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm">
+        <Card className="bg-linear-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm dark:from-blue-950/40 dark:to-blue-900/40 dark:border-blue-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-700">Completed (Range)</CardTitle>
-            <BarChart3 className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Completed (Range)</CardTitle>
+            <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{stats.totalInRange}</div>
-            <p className="text-xs text-blue-600 mt-1">Total completed in selected range</p>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">{stats.totalInRange}</div>
+            <p className="text-xs text-blue-600 mt-1 dark:text-blue-400">Total completed in selected range</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-linear-to-br from-green-50 to-green-100 border-green-200 shadow-sm">
+        <Card className="bg-linear-to-br from-green-50 to-green-100 border-green-200 shadow-sm dark:from-green-950/40 dark:to-green-900/40 dark:border-green-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700">Today</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Today</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{stats.today}</div>
-            <p className="text-xs text-green-700 mt-1">Completed today</p>
+            <div className="text-2xl font-bold text-green-900 dark:text-green-300">{stats.today}</div>
+            <p className="text-xs text-green-700 mt-1 dark:text-green-300">Completed today</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-linear-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-sm">
+        <Card className="bg-linear-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-sm dark:from-indigo-950/40 dark:to-indigo-900/40 dark:border-indigo-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-indigo-700">Last 7 Days</CardTitle>
-            <BarChart3 className="h-4 w-4 text-indigo-600" />
+            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Last 7 Days</CardTitle>
+            <BarChart3 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-900">{stats.last7Days}</div>
-            <p className="text-xs text-indigo-700 mt-1">Completed in last 7 days</p>
+            <div className="text-2xl font-bold text-indigo-900 dark:text-indigo-300">{stats.last7Days}</div>
+            <p className="text-xs text-indigo-700 mt-1 dark:text-indigo-300">Completed in last 7 days</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-linear-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm">
+        <Card className="bg-linear-to-br from-amber-50 to-amber-100 border-amber-200 shadow-sm dark:from-amber-950/40 dark:to-amber-900/40 dark:border-amber-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-amber-700">Last 30 Days</CardTitle>
-            <BarChart3 className="h-4 w-4 text-amber-600" />
+            <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-300">Last 30 Days</CardTitle>
+            <BarChart3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-900">{stats.last30Days}</div>
-            <p className="text-xs text-amber-700 mt-1">Completed in last 30 days</p>
+            <div className="text-2xl font-bold text-amber-900 dark:text-amber-300">{stats.last30Days}</div>
+            <p className="text-xs text-amber-700 mt-1 dark:text-amber-300">Completed in last 30 days</p>
           </CardContent>
         </Card>
       </div>

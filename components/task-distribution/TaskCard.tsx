@@ -152,25 +152,25 @@ const TaskCardComponent = function TaskCard({
       <div className="flex items-center gap-1.5 text-xs">
         <div className="flex items-center gap-1">
           <div className="h-2 w-2 rounded-full bg-slate-400" />
-          <span className="font-medium text-slate-700">{P}</span>
+          <span className="font-medium text-slate-700 dark:text-foreground">{P}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="h-2 w-2 rounded-full bg-indigo-500" />
-          <span className="font-medium text-slate-700">{IP}</span>
+          <span className="font-medium text-slate-700 dark:text-foreground">{IP}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="h-2 w-2 rounded-full bg-rose-500" />
-          <span className="font-medium text-slate-700">{O}</span>
+          <span className="font-medium text-slate-700 dark:text-foreground">{O}</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="h-2 w-2 rounded-full bg-orange-500" />
-          <span className="font-medium text-slate-700">{R}</span>
+          <span className="font-medium text-slate-700 dark:text-foreground">{R}</span>
         </div>
-        <div className="h-3 w-px bg-slate-300 mx-1" />
-        <span className="font-semibold text-slate-900">{active}</span>
-        <span className="text-slate-500">active</span>
-        <div className="h-3 w-px bg-slate-300 mx-1" />
-        <span className="font-semibold text-amber-700">W:{weighted}</span>
+        <div className="h-3 w-px bg-slate-300 mx-1 dark:bg-accent" />
+        <span className="font-semibold text-slate-900 dark:text-foreground">{active}</span>
+        <span className="text-slate-500 dark:text-muted-foreground">active</span>
+        <div className="h-3 w-px bg-slate-300 mx-1 dark:bg-accent" />
+        <span className="font-semibold text-amber-700 dark:text-amber-300">W:{weighted}</span>
       </div>
     );
   };
@@ -193,10 +193,10 @@ const TaskCardComponent = function TaskCard({
       <SelectItem
         key={option.id}
         value={option.id}
-        className="p-2 hover:bg-slate-100 rounded-md text-xs"
+        className="p-2 hover:bg-slate-100 rounded-md text-xs dark:hover:bg-muted"
       >
         <div className="flex items-center gap-2.5">
-          <Avatar className="h-6 w-6 ring-1 ring-slate-300">
+          <Avatar className="h-6 w-6 ring-1 ring-slate-300 dark:ring-border">
             <AvatarImage src={option.image} alt={option.dn} />
             <AvatarFallback
               className="text-xs font-semibold"
@@ -206,7 +206,7 @@ const TaskCardComponent = function TaskCard({
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-slate-900 truncate">
+            <div className="text-xs font-semibold text-slate-900 truncate dark:text-foreground">
               {option.dn}
             </div>
             <LoadIndicator
@@ -224,8 +224,8 @@ const TaskCardComponent = function TaskCard({
     <Card
       className={`group transition-all duration-300 overflow-hidden ${
         isSelected
-          ? "ring-2 ring-blue-500 shadow-md bg-blue-50 border-blue-200"
-          : "hover:shadow-md bg-white border-slate-200 hover:border-slate-300"
+          ? "ring-2 ring-blue-500 shadow-md bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800"
+          : "hover:shadow-md bg-white border-slate-200 hover:border-slate-300 dark:bg-card dark:border-border dark:hover:border-border"
       }`}
     >
       <CardHeader className="pb-3 space-y-3">
@@ -247,7 +247,7 @@ const TaskCardComponent = function TaskCard({
                 <SiteIcon className="h-4 w-4" />
               </div>
               <div>
-                <CardTitle className="text-sm font-semibold text-slate-900 leading-tight line-clamp-1">
+                <CardTitle className="text-sm font-semibold text-slate-900 leading-tight line-clamp-1 dark:text-foreground">
                   {task.name}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-1">
@@ -280,7 +280,7 @@ const TaskCardComponent = function TaskCard({
                   disabled={shouldDisablePriority}
                 >
                   <SelectTrigger
-                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm"
+                    className="h-8 w-[120px] text-[11px] border-dashed border-blue-200 hover:border-blue-400 bg-white shadow-sm dark:border-blue-800 dark:bg-card"
                     title={
                       isPriorityLocked
                         ? "Priority locked for completed/QC approved tasks"
@@ -322,7 +322,7 @@ const TaskCardComponent = function TaskCard({
         </div>
 
         {task.templateSiteAsset?.description && (
-          <CardDescription className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-md border border-slate-200">
+          <CardDescription className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-md border border-slate-200 dark:text-muted-foreground dark:bg-muted/40 dark:border-border">
             {task.templateSiteAsset.description}
           </CardDescription>
         )}
@@ -332,16 +332,16 @@ const TaskCardComponent = function TaskCard({
         {/* details */}
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-md">
-              <CalendarDays className="h-3.5 w-3.5 text-slate-600" />
-              <span className="text-slate-800 font-medium">
+            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-md dark:bg-muted">
+              <CalendarDays className="h-3.5 w-3.5 text-slate-600 dark:text-muted-foreground" />
+              <span className="text-slate-800 font-medium dark:text-foreground">
                 {new Date(task.dueDate).toLocaleDateString()}
               </span>
             </div>
             {task.idealDurationMinutes && (
-              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-md">
-                <Clock className="h-3.5 w-3.5 text-slate-600" />
-                <span className="text-slate-800 font-medium">
+              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-md dark:bg-muted">
+                <Clock className="h-3.5 w-3.5 text-slate-600 dark:text-muted-foreground" />
+                <span className="text-slate-800 font-medium dark:text-foreground">
                   {task.idealDurationMinutes}min
                 </span>
               </div>
@@ -351,13 +351,13 @@ const TaskCardComponent = function TaskCard({
 
         {/* url */}
         {task.templateSiteAsset?.url && (
-          <div className="text-xs bg-slate-50 p-2.5 rounded-md border border-slate-200">
-            <span className="text-slate-700 font-medium">URL: </span>
+          <div className="text-xs bg-slate-50 p-2.5 rounded-md border border-slate-200 dark:bg-muted/40 dark:border-border">
+            <span className="text-slate-700 font-medium dark:text-foreground">URL: </span>
             <a
               href={task.templateSiteAsset.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors truncate inline-block max-w-[180px]"
+              className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors truncate inline-block max-w-[180px] dark:text-blue-400 dark:hover:text-blue-300"
             >
               {task.templateSiteAsset.url}
             </a>
@@ -370,7 +370,7 @@ const TaskCardComponent = function TaskCard({
           (() => {
             const dn = displayName(task.assignedTo);
             return (
-              <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-md border border-emerald-200">
+              <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-md border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800">
                 <Avatar className="h-8 w-8 ring-1 ring-emerald-300">
                   <AvatarImage
                     src={task.assignedTo.image || undefined}
@@ -384,16 +384,16 @@ const TaskCardComponent = function TaskCard({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-emerald-900 truncate">
+                  <p className="text-xs font-semibold text-emerald-900 truncate dark:text-emerald-300">
                     Assigned to {dn}
                   </p>
                   {task.assignedTo.email && (
-                    <p className="text-xs text-emerald-700 truncate">
+                    <p className="text-xs text-emerald-700 truncate dark:text-emerald-300">
                       {task.assignedTo.email}
                     </p>
                   )}
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 dark:text-emerald-400" />
               </div>
             );
           })()
@@ -405,7 +405,7 @@ const TaskCardComponent = function TaskCard({
             );
             const dn = displayName(ag);
             return (
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-md border border-blue-200">
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-md border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800">
                 <Avatar className="h-8 w-8 ring-1 ring-blue-300">
                   <AvatarImage src={ag?.image || undefined} alt={dn} />
                   <AvatarFallback
@@ -416,14 +416,14 @@ const TaskCardComponent = function TaskCard({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-blue-900 truncate">
+                  <p className="text-xs font-semibold text-blue-900 truncate dark:text-blue-300">
                     Will assign to {dn}
                   </p>
                   {ag?.email && (
-                    <p className="text-xs text-blue-700 truncate">{ag.email}</p>
+                    <p className="text-xs text-blue-700 truncate dark:text-blue-300">{ag.email}</p>
                   )}
                 </div>
-                <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 dark:text-blue-400" />
               </div>
             );
           })()
@@ -434,7 +434,7 @@ const TaskCardComponent = function TaskCard({
               <>
                 {/* Choose Agent List (Team / All) */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-800">
+                  <span className="text-xs font-semibold text-slate-800 dark:text-foreground">
                     Choose Agent List:
                   </span>
                   <Select
@@ -449,7 +449,7 @@ const TaskCardComponent = function TaskCard({
                       <SelectItem value="all">All Agents</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className="text-[11px] text-slate-600">
+                  <span className="text-[11px] text-slate-600 dark:text-muted-foreground">
                     {agentSource === "team"
                       ? teamAgents.length
                       : allAgents.length}{" "}
@@ -459,8 +459,8 @@ const TaskCardComponent = function TaskCard({
 
                 {/* Assign-to dropdown */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5 text-blue-600" />
+                  <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 dark:text-foreground">
+                    <User className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                     <span>
                       {isFirstSelectedTask && isMultipleSelected
                         ? `Assign ${
@@ -479,8 +479,8 @@ const TaskCardComponent = function TaskCard({
                       <SelectTrigger
                         className={`h-10 text-xs rounded-md ${
                           shouldDisableDropdown
-                            ? "border-slate-300 bg-slate-100 text-slate-500 cursor-not-allowed"
-                            : "border-blue-300 hover:border-blue-400 bg-white focus:ring-1 focus:ring-blue-400"
+                            ? "border-slate-300 bg-slate-100 text-slate-500 cursor-not-allowed dark:border-border dark:bg-muted dark:text-muted-foreground"
+                            : "border-blue-300 hover:border-blue-400 bg-white focus:ring-1 focus:ring-blue-400 dark:border-blue-700 dark:bg-card"
                         }`}
                       >
                         <SelectValue
@@ -509,9 +509,9 @@ const TaskCardComponent = function TaskCard({
               </>
             ) : (
               // Not selected → ask to select first
-              <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-md border border-slate-200">
-                <User className="h-3.5 w-3.5 text-slate-500" />
-                <span className="text-xs text-slate-700">
+              <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-md border border-slate-200 dark:bg-muted dark:border-border">
+                <User className="h-3.5 w-3.5 text-slate-500 dark:text-muted-foreground" />
+                <span className="text-xs text-slate-700 dark:text-foreground">
                   Select task to assign
                 </span>
               </div>
@@ -523,9 +523,9 @@ const TaskCardComponent = function TaskCard({
         <div>
           <label
             htmlFor={`note-${task.id}`}
-            className="text-xs font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5"
+            className="text-xs font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5 dark:text-foreground"
           >
-            <Pencil className="h-3.5 w-3.5 text-slate-600" />
+            <Pencil className="h-3.5 w-3.5 text-slate-600 dark:text-muted-foreground" />
             Notes
           </label>
 
@@ -536,7 +536,7 @@ const TaskCardComponent = function TaskCard({
               placeholder="Add task notes..."
               className="w-full text-xs p-2.5 rounded-md border border-slate-300 bg-white 
                 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 
-                resize-none transition-colors duration-150 placeholder-slate-400 text-slate-800"
+                resize-none transition-colors duration-150 placeholder-slate-400 text-slate-800 dark:border-border dark:bg-card dark:focus:border-input dark:placeholder-muted-foreground dark:text-foreground"
               value={note}
               onChange={(e) => {
                 if (e.target.value.length <= 200) {
@@ -545,7 +545,7 @@ const TaskCardComponent = function TaskCard({
               }}
             />
             <div className="absolute bottom-1.5 right-1.5">
-              <span className="text-xs text-slate-400 bg-white pl-1">
+              <span className="text-xs text-slate-400 bg-white pl-1 dark:text-muted-foreground dark:bg-card">
                 {note?.length || 0}/200
               </span>
             </div>

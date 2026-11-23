@@ -187,16 +187,16 @@ export default function ActivityPage() {
   // ⚡ OPTIMIZED: Memoize action badge color
   const getActionColor = useCallback((action: string) => {
     const a = String(action || "").toLowerCase();
-    if (a === "create" || a.includes("assigned")) return "bg-emerald-100 text-emerald-700";
-    if (a === "update" || a.includes("status") || a.includes("resume") || a.includes("pause")) return "bg-blue-100 text-blue-700";
-    if (a === "delete" || a.includes("cancel")) return "bg-red-100 text-red-700";
-    if (a.includes("overdue")) return "bg-orange-100 text-orange-700";
-    if (a.startsWith("task_timer")) return "bg-purple-100 text-purple-700";
-    if (a === "sign_in") return "bg-green-100 text-green-700";
-    if (a === "sign_out") return "bg-red-100 text-red-700";
-    if (a === "upgrade_package") return "bg-cyan-100 text-cyan-700";
-    if (a === "onboarded") return "bg-emerald-100 text-emerald-700";
-    return "bg-gray-100 text-gray-700";
+    if (a === "create" || a.includes("assigned")) return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
+    if (a === "update" || a.includes("status") || a.includes("resume") || a.includes("pause")) return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
+    if (a === "delete" || a.includes("cancel")) return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
+    if (a.includes("overdue")) return "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300";
+    if (a.startsWith("task_timer")) return "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300";
+    if (a === "sign_in") return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
+    if (a === "sign_out") return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
+    if (a === "upgrade_package") return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300";
+    if (a === "onboarded") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
+    return "bg-gray-100 text-gray-700 dark:bg-muted dark:text-foreground";
   }, []);
 
   return (
@@ -237,7 +237,7 @@ export default function ActivityPage() {
       </div>
 
       {pagination && !isLoading && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-muted-foreground">
           Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
           {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}{" "}
           of {pagination.totalCount} logs
@@ -246,14 +246,14 @@ export default function ActivityPage() {
 
       {/* Error */}
       {error && (
-        <div className="rounded border border-red-200 bg-red-50 text-red-700 px-3 py-2">
+        <div className="rounded border border-red-200 bg-red-50 text-red-700 px-3 py-2 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
           {error.message || "Failed to load logs"}
         </div>
       )}
 
       <div className="overflow-x-auto border rounded-lg shadow">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-left">
+          <thead className="bg-gray-100 text-left dark:bg-muted">
             <tr>
               <th className="p-3">User</th>
               <th className="p-3">Entity</th>
@@ -288,20 +288,20 @@ export default function ActivityPage() {
               ))
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-3 text-center text-gray-500">
+                <td colSpan={5} className="p-3 text-center text-gray-500 dark:text-muted-foreground">
                   No matching logs found
                 </td>
               </tr>
             ) : (
               logs.map((log: Log) => (
-                <tr key={log.id} className="border-b hover:bg-gray-50 align-top">
+                <tr key={log.id} className="border-b hover:bg-gray-50 align-top dark:hover:bg-muted/40">
                   <td className="p-3">
                     {log.user?.name || "Unknown"} <br />
-                    <span className="text-xs text-gray-500">{log.user?.email}</span>
+                    <span className="text-xs text-gray-500 dark:text-muted-foreground">{log.user?.email}</span>
                   </td>
                   <td className="p-3">
                     {log.entityType} <br />
-                    <span className="text-xs text-gray-500">{log.entityId}</span>
+                    <span className="text-xs text-gray-500 dark:text-muted-foreground">{log.entityId}</span>
                   </td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded text-xs ${getActionColor(log.action)}`}>
@@ -311,11 +311,11 @@ export default function ActivityPage() {
 
                   <td className="p-3 max-w-[380px]">
                     {log.details && typeof log.details === "object" ? (
-                      <pre className="text-xs border border-gray-200 rounded w-full max-h-40 overflow-auto p-2 whitespace-pre-wrap break-words">
+                      <pre className="text-xs border border-gray-200 rounded w-full max-h-40 overflow-auto p-2 whitespace-pre-wrap break-words dark:border-border">
                         {JSON.stringify(log.details, null, 2)}
                       </pre>
                     ) : (
-                      <span className="text-gray-500">—</span>
+                      <span className="text-gray-500 dark:text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="p-3 whitespace-nowrap">
@@ -338,7 +338,7 @@ export default function ActivityPage() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={!pagination.hasPrevPage}
-              className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-muted/40"
             >
               Previous
             </button>
@@ -354,7 +354,7 @@ export default function ActivityPage() {
                       ? "bg-blue-500 text-white border-blue-500"
                       : page === "..."
                       ? "cursor-default border-transparent"
-                      : "hover:bg-gray-50"
+                      : "hover:bg-gray-50 dark:hover:bg-muted/40"
                   }`}
                 >
                   {page}
@@ -365,13 +365,13 @@ export default function ActivityPage() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:hover:bg-muted/40"
             >
               Next
             </button>
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-muted-foreground">
             Page {pagination.currentPage} of {pagination.totalPages}
           </div>
         </div>

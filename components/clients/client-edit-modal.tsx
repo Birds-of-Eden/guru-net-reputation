@@ -578,26 +578,26 @@ export default function ClientEditModal({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+        return "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800";
       case "in_progress":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800";
       case "pending":
-        return "bg-amber-100 text-amber-700 border-amber-200";
+        return "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800";
       case "paused":
-        return "bg-violet-100 text-violet-700 border-violet-200";
+        return "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:border-violet-800";
       case "inactive":
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border";
       default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border";
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-slate-50 to-blue-50 rounded-2xl border-0 shadow-xl">
-        <DialogHeader className="bg-linear-to-r from-blue-50/70 to-indigo-50/70 py-4 px-6 rounded-t-2xl border-b border-slate-200/70">
-          <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <User className="h-5 w-5 text-blue-600" />
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-slate-50 to-blue-50 rounded-2xl border-0 shadow-xl dark:from-background dark:to-blue-950/40">
+        <DialogHeader className="bg-linear-to-r from-blue-50/70 to-indigo-50/70 py-4 px-6 rounded-t-2xl border-b border-slate-200/70 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-border/70">
+          <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Edit Client Profile
           </DialogTitle>
         </DialogHeader>
@@ -608,65 +608,65 @@ export default function ClientEditModal({
           className="space-y-6 p-6"
         >
           {/* Contact & Credentials - Available to all users */}
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60 dark:from-card dark:to-blue-950/40">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 Contact & Credentials
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label
                     htmlFor="email"
-                    className="text-sm font-medium text-slate-700 mb-2 block"
+                    className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                   >
                     Email
                   </Label>
                   <Input
                     id="email"
                     type="email"
-                    className="border-slate-300 focus:border-blue-500"
+                    className="border-slate-300 focus:border-blue-500 dark:border-border"
                     {...register("email")}
                   />
                 </div>
                 <div>
                   <Label
                     htmlFor="phone"
-                    className="text-sm font-medium text-slate-700 mb-2 block"
+                    className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                   >
                     Phone
                   </Label>
                   <Input
                     id="phone"
-                    className="border-slate-300 focus:border-blue-500"
+                    className="border-slate-300 focus:border-blue-500 dark:border-border"
                     {...register("phone")}
                   />
                 </div>
                 <div>
                   <Label
                     htmlFor="password"
-                    className="text-sm font-medium text-slate-700 mb-2 block"
+                    className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                   >
                     Password
                   </Label>
                   <Input
                     id="password"
                     type="text"
-                    className="border-slate-300 focus:border-blue-500"
+                    className="border-slate-300 focus:border-blue-500 dark:border-border"
                     {...register("password")}
                   />
                 </div>
                 <div>
                   <Label
                     htmlFor="recoveryEmail"
-                    className="text-sm font-medium text-slate-700 mb-2 block"
+                    className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                   >
                     Recovery Email
                   </Label>
                   <Input
                     id="recoveryEmail"
                     type="email"
-                    className="border-slate-300 focus:border-blue-500"
+                    className="border-slate-300 focus:border-blue-500 dark:border-border"
                     {...register("recoveryEmail")}
                   />
                 </div>
@@ -676,23 +676,23 @@ export default function ClientEditModal({
 
           {/* AGENT-ONLY: Media (Image Drive Link only) */}
           {isAgent && (
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60 dark:from-card dark:to-purple-950/40">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                  <Image className="h-5 w-5 text-purple-600" aria-label="media" />
+                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                  <Image className="h-5 w-5 text-purple-600 dark:text-purple-400" aria-label="media" />
                   Media
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <Label
                       htmlFor="imageDrivelink"
-                      className="text-sm font-medium text-slate-700 mb-2 block"
+                      className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                     >
                       Image Drive Link
                     </Label>
                     <Input
                       id="imageDrivelink"
-                      className="border-slate-300 focus:border-purple-500"
+                      className="border-slate-300 focus:border-purple-500 dark:border-border"
                       value={driveLink}
                       onChange={(e) => setDriveLink(e.target.value)}
                       placeholder="https://drive.google.com/drive/folders/XXXXXXXXXXXX"
@@ -700,30 +700,30 @@ export default function ClientEditModal({
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-slate-700">
+                      <Label className="text-sm font-medium text-slate-700 dark:text-foreground">
                         Add Image Links (Title + URL)
                       </Label>
-                      <span className="text-xs text-slate-500">Optional</span>
+                      <span className="text-xs text-slate-500 dark:text-muted-foreground">Optional</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                       <Input
                         placeholder="Title"
                         value={newDriveTitle}
                         onChange={(e) => setNewDriveTitle(e.target.value)}
-                        className="md:col-span-2 border-slate-300 focus:border-purple-500"
+                        className="md:col-span-2 border-slate-300 focus:border-purple-500 dark:border-border"
                       />
                       <Input
                         placeholder="https://example.com/image"
                         value={newDriveLink}
                         onChange={(e) => setNewDriveLink(e.target.value)}
-                        className="md:col-span-3 border-slate-300 focus:border-purple-500"
+                        className="md:col-span-3 border-slate-300 focus:border-purple-500 dark:border-border"
                       />
                     </div>
                     <div className="flex justify-end">
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-slate-300 bg-white text-purple-700 hover:bg-purple-50"
+                        className="border-slate-300 bg-white text-purple-700 hover:bg-purple-50 dark:border-border dark:bg-card dark:text-purple-300 dark:hover:bg-purple-950/40"
                         onClick={addDriveItem}
                         disabled={!newDriveTitle.trim() && !newDriveLink.trim()}
                       >
@@ -736,10 +736,10 @@ export default function ClientEditModal({
                         {driveItems.map((item, idx) => (
                           <div
                             key={`${item?.link || item?.title || idx}`}
-                            className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2"
+                            className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2 dark:bg-card dark:border-border"
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-slate-800 truncate">
+                              <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                                 {item?.title || "(Untitled)"}
                               </p>
                               {item?.link && (
@@ -747,7 +747,7 @@ export default function ClientEditModal({
                                   href={item.link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-purple-600 hover:underline break-all"
+                                  className="text-xs text-purple-600 hover:underline break-all dark:text-purple-400"
                                 >
                                   {item.link}
                                 </a>
@@ -758,7 +758,7 @@ export default function ClientEditModal({
                               variant="ghost"
                               size="sm"
                               onClick={() => removeDriveItem(idx)}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                             >
                               Remove
                             </Button>
@@ -775,30 +775,30 @@ export default function ClientEditModal({
           {!isAgent && (
             <>
               {/* FULL FORM for non-agents — Basic */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60 dark:from-card dark:to-blue-950/40">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <User className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                    <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     Basic Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <Label
                         htmlFor="name"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Full Name
                       </Label>
                       <Input
                         id="name"
-                        className="border-slate-300 focus:border-blue-500"
+                        className="border-slate-300 focus:border-blue-500 dark:border-border"
                         {...register("name", { required: true })}
                       />
                     </div>
                     
                     {/* Keywords Section */}
                     <div className="md:col-span-3">
-                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground">
                         Keywords
                       </Label>
                       <div className="space-y-2">
@@ -807,13 +807,13 @@ export default function ClientEditModal({
                             <Input
                               value={keyword}
                               onChange={(e) => updateKeyword(idx, e.target.value)}
-                              className="border-slate-300 focus:border-blue-500"
+                              className="border-slate-300 focus:border-blue-500 dark:border-border"
                               placeholder={`Keyword-${idx + 1}`}
                             />
                             <Button
                               type="button"
                               variant="outline"
-                              className="border-slate-300 bg-red-500 text-white hover:bg-red-600 hover:text-white hover:border-red-600"
+                              className="border-slate-300 bg-red-500 text-white hover:bg-red-600 hover:text-white hover:border-red-600 dark:border-border"
                               onClick={() => removeKeyword(idx)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
@@ -824,7 +824,7 @@ export default function ClientEditModal({
                         <Button
                           type="button"
                           variant="outline"
-                          className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                          className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C] dark:border-border"
                           onClick={addKeyword}
                         >
                           + Add Keyword
@@ -835,7 +835,7 @@ export default function ClientEditModal({
                       <div>
                         <Label
                           htmlFor="status"
-                          className="text-sm font-medium text-slate-700 mb-2 block"
+                          className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                         >
                           Status
                         </Label>
@@ -843,7 +843,7 @@ export default function ClientEditModal({
                           value={statusValue}
                           onValueChange={(value) => setValue("status", value)}
                         >
-                          <SelectTrigger className="border-slate-300 focus:border-blue-500">
+                          <SelectTrigger className="border-slate-300 focus:border-blue-500 dark:border-border">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -874,14 +874,14 @@ export default function ClientEditModal({
                     <div>
                       <Label
                         htmlFor="birthdate"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Birth Date
                       </Label>
                       <Input
                         id="birthdate"
                         type="date"
-                        className="border-slate-300 focus:border-blue-500"
+                        className="border-slate-300 focus:border-blue-500 dark:border-border"
                         {...register("birthdate")}
                       />
                     </div>
@@ -889,7 +889,7 @@ export default function ClientEditModal({
                     <div>
                       <Label
                         htmlFor="gender"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Gender
                       </Label>
@@ -897,7 +897,7 @@ export default function ClientEditModal({
                         value={genderValue}
                         onValueChange={(value) => setValue("gender", value)}
                       >
-                        <SelectTrigger className="border-slate-300 focus:border-blue-500">
+                        <SelectTrigger className="border-slate-300 focus:border-blue-500 dark:border-border">
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
@@ -910,13 +910,13 @@ export default function ClientEditModal({
                     <div>
                       <Label
                         htmlFor="location"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Location
                       </Label>
                       <Input
                         id="location"
-                        className="border-slate-300 focus:border-blue-500"
+                        className="border-slate-300 focus:border-blue-500 dark:border-border"
                         {...register("location")}
                       />
                     </div>
@@ -925,49 +925,49 @@ export default function ClientEditModal({
               </Card>
 
               {/* Professional */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-emerald-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-emerald-50/60 dark:from-card dark:to-emerald-950/40">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Building className="h-5 w-5 text-emerald-600" />
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                    <Building className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                     Professional Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label
                         htmlFor="company"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Company
                       </Label>
                       <Input
                         id="company"
-                        className="border-slate-300 focus:border-emerald-500"
+                        className="border-slate-300 focus:border-emerald-500 dark:border-border"
                         {...register("company")}
                       />
                     </div>
                     <div>
                       <Label
                         htmlFor="designation"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Designation
                       </Label>
                       <Input
                         id="designation"
-                        className="border-slate-300 focus:border-emerald-500"
+                        className="border-slate-300 focus:border-emerald-500 dark:border-border"
                         {...register("designation")}
                       />
                     </div>
                     <div className="md:col-span-2">
                       <Label
                         htmlFor="companyaddress"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Company Address
                       </Label>
                       <Input
                         id="companyaddress"
-                        className="border-slate-300 focus:border-emerald-500"
+                        className="border-slate-300 focus:border-emerald-500 dark:border-border"
                         {...register("companyaddress")}
                       />
                     </div>
@@ -976,10 +976,10 @@ export default function ClientEditModal({
               </Card>
 
               {/* Account Manager */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-amber-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-amber-50/60 dark:from-card dark:to-amber-950/40">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <User className="h-5 w-5 text-amber-600" />
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                    <User className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     Account Manager
                   </h3>
                   <div className="grid grid-cols-1 gap-4">
@@ -988,7 +988,7 @@ export default function ClientEditModal({
                         <>
                           <Label
                             htmlFor="amId"
-                            className="text-sm font-medium text-slate-700 mb-2 block"
+                            className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                           >
                             Assign AM
                           </Label>
@@ -999,7 +999,7 @@ export default function ClientEditModal({
                             }
                             value={(watch("amId") ?? currentAmId ?? "none") as any}
                           >
-                            <SelectTrigger className="border-slate-300 focus-border-amber-500">
+                            <SelectTrigger className="border-slate-300 focus-border-amber-500 dark:border-border">
                               <SelectValue
                                 placeholder={
                                   amsLoading ? "Loading AMs..." : "— None —"
@@ -1016,11 +1016,11 @@ export default function ClientEditModal({
                             </SelectContent>
                           </Select>
                           {amsError && (
-                            <p className="text-sm text-red-600 mt-1">{amsError}</p>
+                            <p className="text-sm text-red-600 mt-1 dark:text-red-400">{amsError}</p>
                           )}
                         </>
                       ) : (
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-slate-500 mt-1 dark:text-muted-foreground">
                           Only administrators can view or modify the Account Manager
                         </p>
                       )}
@@ -1030,27 +1030,27 @@ export default function ClientEditModal({
               </Card>
 
               {/* Websites */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-violet-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-violet-50/60 dark:from-card dark:to-violet-950/40">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <Globe className="h-5 w-5 text-violet-600" />
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                    <Globe className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                     Websites
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2 space-y-3">
-                      <Label className="text-sm font-medium text-slate-700 mb-1 block">
+                      <Label className="text-sm font-medium text-slate-700 mb-1 block dark:text-foreground">
                         Websites
                       </Label>
                       {(watch("websites") ?? []).map((_, idx) => (
                         <div key={idx} className="flex gap-2">
                           <Input
-                            className="border-slate-300 focus:border-violet-500"
+                            className="border-slate-300 focus:border-violet-500 dark:border-border"
                             {...register(`websites.${idx}` as const)}
                           />
                           <Button
                             type="button"
                             variant="outline"
-                            className="border-slate-300 bg-red-500 text-white hover:bg-red-600 hover:text-white hover:border-red-600"
+                            className="border-slate-300 bg-red-500 text-white hover:bg-red-600 hover:text-white hover:border-red-600 dark:border-border"
                             onClick={() => {
                               const current = (watch("websites") ??
                                 []) as string[];
@@ -1066,7 +1066,7 @@ export default function ClientEditModal({
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C]"
+                        className="border-slate-300 bg-linear-to-br from-[#3FB28C] to-[#3FB28C]/60 text-white hover:bg-[#3FB28C] hover:text-white hover:border-[#3FB28C] dark:border-border"
                         onClick={() => {
                           const current = (watch("websites") ?? []) as string[];
                           setValue("websites", [...current, ""], {
@@ -1080,13 +1080,13 @@ export default function ClientEditModal({
                     <div>
                       <Label
                         htmlFor="companywebsite"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Company Website
                       </Label>
                       <Input
                         id="companywebsite"
-                        className="border-slate-300 focus:border-violet-500"
+                        className="border-slate-300 focus:border-violet-500 dark:border-border"
                         {...register("companywebsite")}
                       />
                     </div>
@@ -1095,36 +1095,36 @@ export default function ClientEditModal({
               </Card>
 
               {/* Media / Bio */}
-              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-rose-50/60">
+              <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-rose-50/60 dark:from-card dark:to-rose-950/40">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-rose-600" />
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 dark:text-foreground">
+                    <BookOpen className="h-5 w-5 text-rose-600 dark:text-rose-400" />
                     Media & Bio
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label
                         htmlFor="avatar"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Avatar URL
                       </Label>
                       <Input
                         id="avatar"
-                        className="border-slate-300 focus:border-rose-500"
+                        className="border-slate-300 focus:border-rose-500 dark:border-border"
                         {...register("avatar")}
                       />
                     </div>
                     <div>
                       <Label
                         htmlFor="imageDrivelink"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Drive Link
                       </Label>
                       <Input
                         id="imageDrivelink"
-                        className="border-slate-300 focus:border-rose-500"
+                        className="border-slate-300 focus:border-rose-500 dark:border-border"
                         value={driveLink}
                         onChange={(e) => setDriveLink(e.target.value)}
                         placeholder="https://drive.google.com/drive/folders/XXXXXXXXXXXX"
@@ -1132,30 +1132,30 @@ export default function ClientEditModal({
                     </div>
                     <div className="md:col-span-2 space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium text-slate-700">
+                        <Label className="text-sm font-medium text-slate-700 dark:text-foreground">
                           Add Image Links (Title + URL)
                         </Label>
-                        <span className="text-xs text-slate-500">Optional</span>
+                        <span className="text-xs text-slate-500 dark:text-muted-foreground">Optional</span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <Input
                           placeholder="Title"
                           value={newDriveTitle}
                           onChange={(e) => setNewDriveTitle(e.target.value)}
-                          className="md:col-span-2 border-slate-300 focus:border-rose-500"
+                          className="md:col-span-2 border-slate-300 focus:border-rose-500 dark:border-border"
                         />
                         <Input
                           placeholder="https://example.com/image"
                           value={newDriveLink}
                           onChange={(e) => setNewDriveLink(e.target.value)}
-                          className="md:col-span-3 border-slate-300 focus:border-rose-500"
+                          className="md:col-span-3 border-slate-300 focus:border-rose-500 dark:border-border"
                         />
                       </div>
                       <div className="flex justify-end">
                         <Button
                           type="button"
                           variant="outline"
-                          className="border-slate-300 bg-white text-rose-700 hover:bg-rose-50"
+                          className="border-slate-300 bg-white text-rose-700 hover:bg-rose-50 dark:border-border dark:bg-card dark:text-rose-300 dark:hover:bg-rose-950/40"
                           onClick={addDriveItem}
                           disabled={!newDriveTitle.trim() && !newDriveLink.trim()}
                         >
@@ -1168,10 +1168,10 @@ export default function ClientEditModal({
                           {driveItems.map((item, idx) => (
                             <div
                               key={`${item?.link || item?.title || "link"}-${idx}`}
-                              className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2"
+                              className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2 dark:bg-card dark:border-border"
                             >
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-800 truncate">
+                                <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                                   {item?.title || "(Untitled)"}
                                 </p>
                                 {item?.link && (
@@ -1179,7 +1179,7 @@ export default function ClientEditModal({
                                     href={item.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-rose-600 hover:underline break-all"
+                                    className="text-xs text-rose-600 hover:underline break-all dark:text-rose-400"
                                   >
                                     {item.link}
                                   </a>
@@ -1190,7 +1190,7 @@ export default function ClientEditModal({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeDriveItem(idx)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                               >
                                 Remove
                               </Button>
@@ -1202,7 +1202,7 @@ export default function ClientEditModal({
                     <div className="md:col-span-2">
                       <Label
                         htmlFor="biography"
-                        className="text-sm font-medium text-slate-700 mb-2 block"
+                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
                       >
                         Biography
                       </Label>
@@ -1217,7 +1217,7 @@ export default function ClientEditModal({
                         <Textarea
                           id="biography"
                           rows={4}
-                          className="border-slate-300 focus:border-rose-500"
+                          className="border-slate-300 focus:border-rose-500 dark:border-border"
                           value={biographyContent}
                           onChange={(e) => setBiographyContent(e.target.value)}
                           placeholder="Enter client biography..."
@@ -1233,10 +1233,10 @@ export default function ClientEditModal({
           )}
         </form>
 
-        <DialogFooter className="px-6 py-4 bg-linear-to-r from-slate-50/70 to-blue-50/70 border-t border-slate-200/70 rounded-b-2xl">
+        <DialogFooter className="px-6 py-4 bg-linear-to-r from-slate-50/70 to-blue-50/70 border-t border-slate-200/70 rounded-b-2xl dark:from-background/70 dark:to-blue-950/40 dark:border-border/70">
           <Button
             variant="outline"
-            className="border-slate-300 text-slate-700 hover:bg-slate-100"
+            className="border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-border dark:text-foreground dark:hover:bg-muted"
             onClick={() => onOpenChange(false)}
           >
             Cancel

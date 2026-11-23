@@ -26,37 +26,37 @@ export function PackageCard({
           "transition-all duration-200 border-0 shadow-sm ring-1",
           selected
             ? "ring-2 ring-cyan-400 shadow-lg shadow-cyan-100/50 -translate-y-1"
-            : "ring-slate-200/60 hover:shadow-lg hover:-translate-y-1 hover:ring-slate-300/60"
+            : "ring-slate-200/60 hover:shadow-lg hover:-translate-y-1 hover:ring-slate-300/60 dark:ring-border/60 dark:hover:ring-border/60"
         )}
       >
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold line-clamp-1 text-slate-900">
+          <CardTitle className="text-sm font-semibold line-clamp-1 text-slate-900 dark:text-foreground">
             {title}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-3 gap-3 items-end">
           <div className="space-y-1">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
               Total
             </p>
-            <p className="text-lg font-bold text-slate-900">{total}</p>
+            <p className="text-lg font-bold text-slate-900 dark:text-foreground">{total}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
               Active
             </p>
-            <p className="text-lg font-bold text-emerald-600">{active}</p>
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{active}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider dark:text-muted-foreground">
               Expired
             </p>
-            <p className="text-lg font-bold text-rose-600">{expired}</p>
+            <p className="text-lg font-bold text-rose-600 dark:text-rose-400">{expired}</p>
           </div>
           <div className="col-span-3 mt-2">
             <Badge
               variant="secondary"
-              className="text-[10px] font-medium bg-slate-100 text-slate-700"
+              className="text-[10px] font-medium bg-slate-100 text-slate-700 dark:bg-muted dark:text-foreground"
             >
               {avgDaysLeft !== null
                 ? `Avg days left: ${avgDaysLeft}`

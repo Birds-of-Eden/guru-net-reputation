@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 import DynamicBreadcrumb from "@/components/DynamicBreadcrumb";
 import ImpersonationBanner from "@/components/auth/ImpersonationBanner";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Role =
   | "admin"
@@ -66,6 +67,9 @@ export default async function UnifiedLayout({
               className="mr-2 data-[orientation=vertical]:h-4"
             />
             <DynamicBreadcrumb />
+          </div>
+          <div className="ml-auto px-4">
+            <ThemeToggle />
           </div>
         </header>
         <div>

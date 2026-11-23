@@ -71,7 +71,7 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
     <div className="rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-lg">
       <Table>
         <TableHeader>
-          <TableRow className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100">
+          <TableRow className="bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 hover:bg-linear-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-background dark:hover:to-background">
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">Agent</TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Category</TableHead>
             <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Contact</TableHead>
@@ -86,7 +86,7 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
               <TableCell colSpan={6} className="text-center py-16">
                 <div className="flex flex-col items-center gap-4">
                   <div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-full">
-                    <Users className="h-10 w-10 text-gray-400" />
+                    <Users className="h-10 w-10 text-gray-400 dark:text-muted-foreground" />
                   </div>
                   <div className="space-y-2">
                     <p className="text-xl font-medium text-gray-900 dark:text-gray-50">No agents found</p>
@@ -132,17 +132,17 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
                 <TableCell>
                   {agent.phone ? (
                     <div className="flex items-center text-gray-900 dark:text-gray-50 font-medium">
-                      <Phone className="w-3 h-3 mr-1.5 text-gray-400" />
+                      <Phone className="w-3 h-3 mr-1.5 text-gray-400 dark:text-muted-foreground" />
                       {agent.phone}
                     </div>
                   ) : (
-                    <span className="text-gray-400 text-sm">Not provided</span>
+                    <span className="text-gray-400 text-sm dark:text-muted-foreground">Not provided</span>
                   )}
                 </TableCell>
                 <TableCell>{getStatusBadge(agent.status)}</TableCell>
                 <TableCell className="text-sm text-gray-900 dark:text-gray-50 font-medium">
                   <div className="flex items-center">
-                    <Calendar className="w-3 h-3 mr-1.5 text-gray-400" />
+                    <Calendar className="w-3 h-3 mr-1.5 text-gray-400 dark:text-muted-foreground" />
                     {formatJoinDate(agent.createdAt)}
                   </div>
                 </TableCell>
@@ -184,7 +184,7 @@ export function AgentListView({ agents, onDelete, onViewDetails }: AgentListView
                       >
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                            className="text-red-600 focus:text-red-600 cursor-pointer dark:text-red-400 dark:focus:text-red-400"
                             onSelect={(e) => {
                               e.preventDefault()
                               confirmDelete(agent.id)

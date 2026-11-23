@@ -196,7 +196,7 @@ function TeamCard({
                 .map((member, index) => (
                   <Avatar
                     key={index}
-                    className="h-8 w-8 border-2 border-white shadow-sm"
+                    className="h-8 w-8 border-2 border-white shadow-sm dark:border-border"
                   >
                     <AvatarImage src={member.agent.image || undefined} />
                     <AvatarFallback
@@ -207,7 +207,7 @@ function TeamCard({
                   </Avatar>
                 ))}
               {team.totalMembers > 4 && (
-                <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-white flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-white flex items-center justify-center dark:border-border">
                   <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                     +{team.totalMembers - 4}
                   </span>
@@ -247,7 +247,7 @@ function TeamCard({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-red-600 focus:text-red-600 cursor-pointer"
+                className="text-red-600 focus:text-red-600 cursor-pointer dark:text-red-400 dark:focus:text-red-400"
                 onSelect={openDeleteDialog}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -398,7 +398,7 @@ function TeamListView({
                           .map((member, index) => (
                             <Avatar
                               key={index}
-                              className="h-6 w-6 border border-white"
+                              className="h-6 w-6 border border-white dark:border-border"
                             >
                               <AvatarImage
                                 src={member.agent.image || undefined}
@@ -460,7 +460,7 @@ function TeamListView({
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600 cursor-pointer"
+                        className="text-red-600 focus:text-red-600 cursor-pointer dark:text-red-400 dark:focus:text-red-400"
                         onClick={() => confirmDelete(team)}
                         disabled={team.totalMembers > 0}
                       >
@@ -604,7 +604,7 @@ function TeamDetailsDialog({
                     {member.role && (
                       <Badge
                         variant="outline"
-                        className="bg-green-100 text-green-800 border-green-200"
+                        className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800"
                       >
                         {member.role}
                       </Badge>
@@ -647,7 +647,7 @@ function TeamDetailsDialog({
                     {member.role && (
                       <Badge
                         variant="outline"
-                        className="bg-purple-100 text-purple-800 border-purple-200"
+                        className="bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800"
                       >
                         {member.role}
                       </Badge>
@@ -661,7 +661,7 @@ function TeamDetailsDialog({
           {team.totalMembers === 0 && (
             <div className="text-center py-8">
               <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-fit mx-auto mb-4">
-                <Users className="h-8 w-8 text-gray-400" />
+                <Users className="h-8 w-8 text-gray-400 dark:text-muted-foreground" />
               </div>
               <p className="text-gray-500 dark:text-gray-400">
                 No team members assigned yet
@@ -786,7 +786,7 @@ function EditTeamDialog({
             >
               {isSubmitting ? (
                 <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 dark:border-border"></div>
                   Updating...
                 </div>
               ) : (
@@ -1089,7 +1089,7 @@ export default function TeamsPage() {
           {/* Enhanced Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent py-6">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent py-6 dark:from-blue-400 dark:to-purple-400">
                 Team Management
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -1107,12 +1107,12 @@ export default function TeamsPage() {
           {/* Enhanced Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-blue-500 to-blue-600 text-white">
-              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent dark:from-card/10" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-blue-100">
                   Total Teams
                 </CardTitle>
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                   <TeamIcon className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -1127,12 +1127,12 @@ export default function TeamsPage() {
             </Card>
 
             <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-emerald-500 to-emerald-600 text-white">
-              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent dark:from-card/10" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-emerald-100">
                   Total Members
                 </CardTitle>
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                   <Users className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -1147,12 +1147,12 @@ export default function TeamsPage() {
             </Card>
 
             <Card className="relative overflow-hidden border-0 shadow-lg bg-linear-to-r from-purple-500 to-purple-600 text-white">
-              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-r from-white/10 to-transparent dark:from-card/10" />
               <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-purple-100">
                   Avg. Completion Time
                 </CardTitle>
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">
                   <UserCheck className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -1193,7 +1193,7 @@ export default function TeamsPage() {
               {/* Enhanced Filters */}
               <div className="flex flex-col lg:flex-row gap-4 mb-8 items-center">
                 <div className="relative flex-1 w-full">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 dark:text-muted-foreground" />
                   <Input
                     placeholder="Search teams by name or description..."
                     value={searchTerm}

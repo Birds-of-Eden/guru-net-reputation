@@ -69,12 +69,12 @@ export function ChartsSection({
   const pct7 = prev7 ? (delta7 / prev7) * 100 : last7 ? 100 : 0;
 
   return (
-    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60">
+    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 dark:ring-border/60">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-cyan-600" />
-            <CardTitle className="text-base font-semibold text-slate-900">
+            <Sparkles className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <CardTitle className="text-base font-semibold text-slate-900 dark:text-foreground">
               Trends & Insights
             </CardTitle>
           </div>
@@ -82,8 +82,8 @@ export function ChartsSection({
             className={cn(
               "text-xs font-medium px-3 py-1.5 rounded-full ring-1 shadow-sm",
               delta7 >= 0
-                ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                : "bg-rose-50 text-rose-700 ring-rose-200"
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+                : "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300"
             )}
             title="Last 7 days vs previous 7 days"
           >
@@ -104,7 +104,7 @@ export function ChartsSection({
           </div>
         ) : (
           <Tabs defaultValue="daily" className="w-full">
-            <TabsList className="mb-4 bg-slate-50/70">
+            <TabsList className="mb-4 bg-slate-50/70 dark:bg-muted/40">
               <TabsTrigger value="daily">Daily Starts</TabsTrigger>
               <TabsTrigger value="avg">Daily vs 7-day Avg</TabsTrigger>
               <TabsTrigger value="cumulative">Cumulative</TabsTrigger>
@@ -112,13 +112,13 @@ export function ChartsSection({
 
             {/* Daily Starts (Area) */}
             <TabsContent value="daily">
-              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60">
+              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 dark:ring-border/60">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-foreground">
                       Daily Starts (Last 90 days)
                     </p>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 dark:text-muted-foreground">
                       <Activity className="h-3.5 w-3.5 inline mr-1" />
                       Smoothed gradient area
                     </span>
@@ -195,9 +195,9 @@ export function ChartsSection({
 
             {/* Daily vs 7-day Avg (Composed) */}
             <TabsContent value="avg">
-              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60">
+              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 dark:ring-border/60">
                 <CardHeader className="pb-2">
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-foreground">
                     Daily vs 7-day Moving Average (Last 90 days)
                   </p>
                 </CardHeader>
@@ -243,13 +243,13 @@ export function ChartsSection({
 
             {/* Cumulative (Line) */}
             <TabsContent value="cumulative">
-              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60">
+              <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 dark:ring-border/60">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-foreground">
                       Cumulative Starts (90-day trajectory)
                     </p>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-slate-500 dark:text-muted-foreground">
                       Trend line with subtle glow
                     </span>
                   </div>

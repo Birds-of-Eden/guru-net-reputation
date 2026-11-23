@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import PresencePinger from "@/components/presence/PresencePinger";
 import RealtimeBridge from "@/components/realtime/RealtimeBridge";
@@ -31,16 +32,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProviderClient>
-          <SWRProvider>
-            <AuthProvider>
-              <PresencePinger />
-              <RealtimeBridge />
-              {children}
-              <Toaster position="bottom-right" richColors />
-            </AuthProvider>
-          </SWRProvider>
-        </SessionProviderClient>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProviderClient>
+            <SWRProvider>
+              <AuthProvider>
+                <PresencePinger />
+                <RealtimeBridge />
+                {children}
+                <Toaster position="bottom-right" richColors />
+              </AuthProvider>
+            </SWRProvider>
+          </SessionProviderClient>
+        </ThemeProvider>
       </body>
     </html>
   );

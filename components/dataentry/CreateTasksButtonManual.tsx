@@ -227,7 +227,7 @@ export default function CreateTasksManualButton({
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-white dark:bg-gray-800 rounded-lg">
                     <svg
-                      className="w-5 h-5 text-blue-600"
+                      className="w-5 h-5 text-blue-600 dark:text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -296,7 +296,7 @@ export default function CreateTasksManualButton({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 w-9 p-0 rounded-full border-2 hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-900/20 disabled:opacity-30"
+                      className="h-9 w-9 p-0 rounded-full border-2 hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-900/20 disabled:opacity-30 dark:hover:border-red-700"
                       onClick={() =>
                         setCountsByType((prev) => ({
                           ...prev,
@@ -336,7 +336,7 @@ export default function CreateTasksManualButton({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-9 w-9 p-0 rounded-full border-2 hover:bg-green-50 hover:border-green-300 dark:hover:bg-green-900/20"
+                      className="h-9 w-9 p-0 rounded-full border-2 hover:bg-green-50 hover:border-green-300 dark:hover:bg-green-900/20 dark:hover:border-green-700"
                       onClick={() =>
                         setCountsByType((prev) => ({
                           ...prev,
@@ -372,7 +372,7 @@ export default function CreateTasksManualButton({
                 variant="outline"
                 size="sm"
                 onClick={() => setCountsByType({})}
-                className="flex-1 h-10 font-medium hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-900/20"
+                className="flex-1 h-10 font-medium hover:bg-red-50 hover:border-red-300 dark:hover:bg-red-900/20 dark:hover:border-red-700"
               >
                 <svg
                   className="h-4 w-4 mr-2"
@@ -399,7 +399,7 @@ export default function CreateTasksManualButton({
                   }, {} as Record<string, number>);
                   setCountsByType(allOnes);
                 }}
-                className="flex-1 h-10 font-medium hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-900/20"
+                className="flex-1 h-10 font-medium hover:bg-blue-50 hover:border-blue-300 dark:hover:bg-blue-900/20 dark:hover:border-blue-700"
               >
                 <svg
                   className="h-4 w-4 mr-2"

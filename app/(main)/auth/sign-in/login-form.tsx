@@ -157,8 +157,8 @@ export function LoginForm() {
               type="button"
               variant="outline"
               className={cn(
-                "relative w-full rounded-md px-4 py-2 font-semibold text-gray-700",
-                "bg-white border-gray-300 hover:bg-gray-50",
+                "relative w-full rounded-md px-4 py-2 font-semibold text-gray-700 dark:text-foreground",
+                "bg-white border-gray-300 hover:bg-gray-50 dark:bg-card dark:border-border dark:hover:bg-muted/40",
                 "transition-all duration-300 ease-in-out",
                 "shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               )}

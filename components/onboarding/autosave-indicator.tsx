@@ -55,34 +55,34 @@ export function AutosaveIndicator({
         return {
           icon: <Loader2 className="w-4 h-4 animate-spin" />,
           text: "Saving draft...",
-          color: "text-blue-600",
-          bgColor: "bg-blue-50",
-          borderColor: "border-blue-200",
+          color: "text-blue-600 dark:text-blue-400",
+          bgColor: "bg-blue-50 dark:bg-blue-950/40",
+          borderColor: "border-blue-200 dark:border-blue-800",
         };
       case "saved":
         return {
           icon: <CheckCircle2 className="w-4 h-4" />,
           text: timeAgo ? `Saved ${timeAgo}` : "All changes saved",
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
+          color: "text-green-600 dark:text-green-400",
+          bgColor: "bg-green-50 dark:bg-green-950/40",
+          borderColor: "border-green-200 dark:border-green-800",
         };
       case "error":
         return {
           icon: <AlertCircle className="w-4 h-4" />,
           text: "Failed to save",
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          borderColor: "border-red-200",
+          color: "text-red-600 dark:text-red-400",
+          bgColor: "bg-red-50 dark:bg-red-950/40",
+          borderColor: "border-red-200 dark:border-red-800",
         };
       default:
         if (hasDraft && lastSavedAt) {
           return {
             icon: <CheckCircle2 className="w-4 h-4" />,
             text: timeAgo ? `Saved ${timeAgo}` : "Draft available",
-            color: "text-gray-600",
-            bgColor: "bg-gray-50",
-            borderColor: "border-gray-200",
+            color: "text-gray-600 dark:text-muted-foreground",
+            bgColor: "bg-gray-50 dark:bg-muted/40",
+            borderColor: "border-gray-200 dark:border-border",
           };
         }
         return null;
@@ -112,7 +112,7 @@ export function AutosaveIndicator({
           size="sm"
           onClick={onClearDraft}
           className={cn(
-            "h-7 px-2 text-xs hover:bg-white/50",
+            "h-7 px-2 text-xs hover:bg-white/50 dark:hover:bg-card/50",
             config.color
           )}
           title="Clear draft and start fresh"
@@ -147,9 +147,9 @@ export function DraftRestorationBanner({
 
   return (
     <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl mx-auto px-4">
-      <div className="bg-linear-to-r from-violet-500 to-purple-500 text-white rounded-xl shadow-2xl p-4 border border-white/20 backdrop-blur-sm">
+      <div className="bg-linear-to-r from-violet-500 to-purple-500 text-white rounded-xl shadow-2xl p-4 border border-white/20 backdrop-blur-sm dark:border-border/20">
         <div className="flex items-start gap-4">
-          <div className="shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <div className="shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center dark:bg-card/20">
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="flex-1">
@@ -165,7 +165,7 @@ export function DraftRestorationBanner({
                 onRestore();
                 setIsVisible(false);
               }}
-              className="bg-white text-violet-600 hover:bg-white/90"
+              className="bg-white text-violet-600 hover:bg-white/90 dark:bg-card dark:text-violet-400 dark:hover:bg-card/90"
               size="sm"
             >
               Restore
@@ -176,7 +176,7 @@ export function DraftRestorationBanner({
                 setIsVisible(false);
               }}
               variant="outline"
-              className="border-white/30 text-white hover:bg-white/10"
+              className="border-white/30 text-white hover:bg-white/10 dark:border-border/30 dark:hover:bg-card/10"
               size="sm"
             >
               Discard

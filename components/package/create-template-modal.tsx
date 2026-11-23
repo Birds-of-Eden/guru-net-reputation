@@ -832,19 +832,19 @@ export function CreateTemplateModal({
           </div>
           <div>
             <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-muted-foreground">
               Configure your {title.toLowerCase()}
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="bg-gray-100">
+        <Badge variant="outline" className="bg-gray-100 dark:bg-muted">
           {sites.filter((site) => site.name.trim()).length} Sites
         </Badge>
       </div>
 
       {/* Compact table-like layout */}
       <div className="border rounded-lg overflow-hidden flex-1 flex flex-col">
-        <div className={`grid gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700 ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
+        <div className={`grid gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700 dark:bg-muted/40 dark:text-foreground ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
           <div className="col-span-2">Site Name</div>
           <div className="col-span-3">URL</div>
           <div className="col-span-2">Description</div>
@@ -862,7 +862,7 @@ export function CreateTemplateModal({
         
         <div className="flex-1 overflow-y-auto">
           {sites.map((site, index) => (
-            <div key={index} className={`grid gap-2 p-2 border-b hover:bg-gray-50 items-center ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
+            <div key={index} className={`grid gap-2 p-2 border-b hover:bg-gray-50 items-center dark:hover:bg-muted/40 ${shouldHideDurationFields ? 'grid-cols-13' : 'grid-cols-15'}`}>
               <div className="col-span-2">
                 <Input
                   value={site.name}
@@ -870,7 +870,7 @@ export function CreateTemplateModal({
                     updateSiteAsset(type, index, "name", e.target.value)
                   }
                   placeholder="Site name"
-                  className="text-sm h-8 bg-white"
+                  className="text-sm h-8 bg-white dark:bg-card"
                 />
               </div>
               <div className="col-span-3">
@@ -880,7 +880,7 @@ export function CreateTemplateModal({
                     updateSiteAsset(type, index, "url", e.target.value)
                   }
                   placeholder="https://..."
-                  className="text-sm h-8 bg-white"
+                  className="text-sm h-8 bg-white dark:bg-card"
                 />
               </div>
               <div className="col-span-2">
@@ -895,7 +895,7 @@ export function CreateTemplateModal({
                     )
                   }
                   placeholder="Brief description..."
-                  className="text-sm h-8 bg-white"
+                  className="text-sm h-8 bg-white dark:bg-card"
                 />
               </div>
               <div className="col-span-1 flex justify-center">
@@ -924,7 +924,7 @@ export function CreateTemplateModal({
                           : Number.parseInt(e.target.value, 10),
                     )
                   }
-                  className="text-sm h-8 bg-white w-full"
+                  className="text-sm h-8 bg-white w-full dark:bg-card"
                 />
               </div>
               <div className="col-span-2">
@@ -944,7 +944,7 @@ export function CreateTemplateModal({
                       postingStartOffset: offset,
                     });
                   }}
-                  className="h-8 w-full rounded-md border border-input bg-white px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-8 w-full rounded-md border border-input bg-white px-2 text-xs disabled:cursor-not-allowed disabled:opacity-50 dark:bg-card"
                 >
                   {CYCLE_SELECT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -968,7 +968,7 @@ export function CreateTemplateModal({
                           Number.parseInt(e.target.value || "30", 10) || 30,
                         )
                       }
-                      className="text-sm h-8 bg-white w-full"
+                      className="text-sm h-8 bg-white w-full dark:bg-card"
                     />
                   </div>
                   <div className="col-span-1">
@@ -984,7 +984,7 @@ export function CreateTemplateModal({
                           Number.parseInt(e.target.value || "30", 10) || 30,
                         )
                       }
-                      className="text-sm h-8 bg-white w-full"
+                      className="text-sm h-8 bg-white w-full dark:bg-card"
                     />
                   </div>
                 </>
@@ -995,7 +995,7 @@ export function CreateTemplateModal({
                   variant="ghost"
                   size="icon"
                   onClick={() => removeSiteAsset(type, index)}
-                  className="h-6 w-6 text-gray-400 hover:text-red-500"
+                  className="h-6 w-6 text-gray-400 hover:text-red-500 dark:text-muted-foreground"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -1013,12 +1013,12 @@ export function CreateTemplateModal({
       return (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-md bg-blue-100 text-blue-600">
+            <div className="p-2 rounded-md bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
               <FileText className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Basic Information</h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-muted-foreground">
                 Set up your template details
               </p>
             </div>
@@ -1028,23 +1028,23 @@ export function CreateTemplateModal({
             <CardContent className="p-4 space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
+                  <Label className="text-xs font-medium text-gray-600 dark:text-muted-foreground">
                     Template Name *
                   </Label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter template name"
-                    className="bg-white"
+                    className="bg-white dark:bg-card"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
+                  <Label className="text-xs font-medium text-gray-600 dark:text-muted-foreground">
                     Status
                   </Label>
                   <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white dark:bg-card">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1082,7 +1082,7 @@ export function CreateTemplateModal({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-600">
+                <Label className="text-xs font-medium text-gray-600 dark:text-muted-foreground">
                   Description
                 </Label>
                 <Textarea
@@ -1090,7 +1090,7 @@ export function CreateTemplateModal({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe this template..."
                   rows={3}
-                  className="bg-white"
+                  className="bg-white dark:bg-card"
                 />
               </div>
             </CardContent>
@@ -1122,7 +1122,7 @@ export function CreateTemplateModal({
       <DialogContent className="w-[90vw] h-[90vh] overflow-auto">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            <FileText className="w-5 h-5 text-blue-600" />
+            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             {isEditMode ? "Edit Template" : "Create New Template"}
           </DialogTitle>
         </DialogHeader>
@@ -1144,7 +1144,7 @@ export function CreateTemplateModal({
                           ? "bg-blue-500 text-white shadow"
                           : isCompleted
                             ? "bg-green-500 text-white"
-                            : "bg-gray-200 text-gray-500"
+                            : "bg-gray-200 text-gray-500 dark:bg-muted dark:text-muted-foreground"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -1152,7 +1152,7 @@ export function CreateTemplateModal({
                     <div className="mt-1 text-center">
                       <p
                         className={`text-xs font-medium ${
-                          isActive ? "text-blue-600" : "text-gray-600"
+                          isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-muted-foreground"
                         }`}
                       >
                         {step.title}
@@ -1162,7 +1162,7 @@ export function CreateTemplateModal({
                   {index < steps.length - 1 && (
                     <div
                       className={`flex-1 h-1 mx-2 rounded-full ${
-                        isCompleted ? "bg-green-400" : "bg-gray-200"
+                        isCompleted ? "bg-green-400" : "bg-gray-200 dark:bg-muted"
                       }`}
                     />
                   )}
@@ -1178,7 +1178,7 @@ export function CreateTemplateModal({
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between border-t border-gray-200">
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-border">
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -1320,12 +1320,12 @@ export function CreateTemplateModal({
                 className="w-full"
               />
               {newTypeError && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
+                <p className="text-sm text-red-600 flex items-center gap-1 dark:text-red-400">
                   <AlertCircle className="w-4 h-4" />
                   {newTypeError}
                 </p>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-muted-foreground">
                 This will create a new category for your template assets
               </p>
             </div>

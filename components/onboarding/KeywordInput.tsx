@@ -59,16 +59,16 @@ export function KeywordInput({ formData, updateFormData }: KeywordInputProps) {
 
   return (
     <div className="group">
-      <Label htmlFor="keywords" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+      <Label htmlFor="keywords" className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
         <User className="w-4 h-4 text-violet-500" />
         Name Keywords
       </Label>
-      <div className="mt-2 p-2 border-2 border-gray-200 rounded-xl focus-within:border-violet-500 focus-within:ring-4 focus-within:ring-violet-100 transition-all duration-200">
+      <div className="mt-2 p-2 border-2 border-gray-200 rounded-xl focus-within:border-violet-500 focus-within:ring-4 focus-within:ring-violet-100 transition-all duration-200 dark:border-border">
         <div className="flex flex-wrap gap-2 mb-2">
           {(formData.keywords || []).map(keyword => (
             <Badge key={keyword} variant="secondary" className="py-1 px-2 text-sm">
               {keyword}
-              <button onClick={() => removeKeyword(keyword)} className="ml-2 rounded-full hover:bg-slate-300 p-0.5">
+              <button onClick={() => removeKeyword(keyword)} className="ml-2 rounded-full hover:bg-slate-300 p-0.5 dark:hover:bg-accent">
                 <X className="h-3 w-3" />
               </button>
             </Badge>
@@ -85,7 +85,7 @@ export function KeywordInput({ formData, updateFormData }: KeywordInputProps) {
       </div>
       {suggestions.length > 0 && (
         <div className="mt-2">
-          <p className="text-xs text-gray-500 mb-1">Suggestions based on name:</p>
+          <p className="text-xs text-gray-500 mb-1 dark:text-muted-foreground">Suggestions based on name:</p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map(suggestion => (
               <Button key={suggestion} size="sm" variant="outline" onClick={() => addKeyword(suggestion)}>

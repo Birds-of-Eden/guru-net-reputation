@@ -136,17 +136,17 @@ export function AddPackageModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden">
-        <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+        <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-border">
           <DialogHeader className="space-y-0">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                <Package className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40">
+                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
+              <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-foreground">
                 {isEdit ? "Edit Package" : "Create New Package"}
               </DialogTitle>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-gray-600 mt-2 dark:text-muted-foreground">
               {isEdit
                 ? "Update the package details below"
                 : "Fill in the information to create a new package"}
@@ -159,7 +159,7 @@ export function AddPackageModal({
           <div className="space-y-2">
             <Label
               htmlFor="name"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Package className="h-4 w-4" />
               Package Name *
@@ -176,12 +176,12 @@ export function AddPackageModal({
               placeholder="Enter package name..."
               className={`transition-all duration-200 ${
                 errors.name
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-200 dark:border-red-700"
                   : "focus:border-blue-500 focus:ring-blue-200"
               }`}
             />
             {errors.name && (
-              <div className="flex items-center gap-2 text-sm text-red-600">
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
                 <AlertCircle className="h-4 w-4" />
                 {errors.name}
               </div>
@@ -192,7 +192,7 @@ export function AddPackageModal({
           <div className="space-y-2">
             <Label
               htmlFor="type"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Tag className="h-4 w-4" />
               Orm Type *
@@ -207,7 +207,7 @@ export function AddPackageModal({
                 <SelectItem value="CUSTOM">Custom</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">
               Choose the type that best describes this package
             </p>
           </div>
@@ -216,11 +216,11 @@ export function AddPackageModal({
           <div className="space-y-2">
             <Label
               htmlFor="description"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <FileText className="h-4 w-4" />
               Description
-              <span className="text-xs text-gray-500 ml-1">(optional)</span>
+              <span className="text-xs text-gray-500 ml-1 dark:text-muted-foreground">(optional)</span>
             </Label>
             <Textarea
               id="description"
@@ -230,7 +230,7 @@ export function AddPackageModal({
               rows={3}
               className="resize-none transition-all duration-200 focus:border-blue-500 focus:ring-blue-200"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">
               {description.length}/500 characters
             </p>
           </div>
@@ -239,11 +239,11 @@ export function AddPackageModal({
           <div className="space-y-2">
             <Label
               htmlFor="totalMonths"
-              className="text-sm font-medium text-gray-700 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground"
             >
               <Calendar className="h-4 w-4" />
               Duration (Months)
-              <span className="text-xs text-gray-500 ml-1">(optional)</span>
+              <span className="text-xs text-gray-500 ml-1 dark:text-muted-foreground">(optional)</span>
             </Label>
             <Input
               id="totalMonths"
@@ -262,27 +262,27 @@ export function AddPackageModal({
               placeholder="e.g., 12"
               className={`transition-all duration-200 ${
                 errors.totalMonths
-                  ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-200 dark:border-red-700"
                   : "focus:border-blue-500 focus:ring-blue-200"
               }`}
             />
             {errors.totalMonths && (
-              <div className="flex items-center gap-2 text-sm text-red-600">
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
                 <AlertCircle className="h-4 w-4" />
                 {errors.totalMonths}
               </div>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">
               Specify the duration in months (1-120)
             </p>
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 sm:gap-3">
+        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3 sm:gap-3 dark:bg-muted/40 dark:border-border">
           <Button
             variant="outline"
             onClick={handleClose}
-            className="flex-1 transition-all duration-200 hover:bg-gray-100"
+            className="flex-1 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-muted"
           >
             Cancel
           </Button>

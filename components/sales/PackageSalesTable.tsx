@@ -30,13 +30,13 @@ function fmtInt(n: number) {
 function Medal({ rank }: { rank: number }) {
   const colors = [
     "bg-linear-to-br from-yellow-400 to-amber-500 text-white ring-amber-300",
-    "bg-linear-to-br from-slate-300 to-zinc-400 text-white ring-zinc-300",
+    "bg-linear-to-br from-slate-300 to-zinc-400 text-white ring-zinc-300 dark:from-muted dark:ring-border",
     "bg-linear-to-br from-amber-600 to-orange-600 text-white ring-orange-300",
   ];
   const cls =
     rank <= 3
       ? colors[rank - 1]
-      : "bg-linear-to-br from-slate-100 to-slate-200 text-slate-700 ring-slate-300";
+      : "bg-linear-to-br from-slate-100 to-slate-200 text-slate-700 ring-slate-300 dark:from-background dark:to-muted dark:text-foreground dark:ring-border";
   return (
     <div
       className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-1 ${cls}`}
@@ -51,13 +51,13 @@ function ShareBar({ pct }: { pct: number }) {
   const w = Math.max(3, Math.min(100, pct));
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-2 w-40 rounded-full bg-slate-100 ring-1 ring-slate-200">
+      <div className="relative h-2 w-40 rounded-full bg-slate-100 ring-1 ring-slate-200 dark:bg-muted dark:ring-border">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-cyan-500 to-blue-500"
           style={{ width: `${w}%` }}
         />
       </div>
-      <span className="text-xs font-medium text-slate-700">
+      <span className="text-xs font-medium text-slate-700 dark:text-foreground">
         {pct.toFixed(2)}%
       </span>
     </div>
@@ -125,13 +125,13 @@ export function PackageSalesTable({
   };
 
   return (
-    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60">
+    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 dark:ring-border/60">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <CardTitle className="text-lg font-semibold text-slate-900">
+          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-foreground">
             Package Sales
           </CardTitle>
-          <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+          <Badge variant="secondary" className="bg-slate-100 text-slate-700 dark:bg-muted dark:text-foreground">
             Total: {fmtInt(totalSales)}
           </Badge>
         </div>
@@ -155,19 +155,19 @@ export function PackageSalesTable({
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
+        <div className="rounded-xl border border-slate-200 overflow-hidden dark:border-border">
           <Table>
-            <TableHeader className="bg-slate-50/80">
-              <TableRow className="hover:bg-slate-50/80">
-                <TableHead className="w-[72px] font-semibold text-slate-900">
+            <TableHeader className="bg-slate-50/80 dark:bg-muted/40">
+              <TableRow className="hover:bg-slate-50/80 dark:hover:bg-muted/40">
+                <TableHead className="w-[72px] font-semibold text-slate-900 dark:text-foreground">
                   Rank
                 </TableHead>
-                <TableHead className="font-semibold text-slate-900">
+                <TableHead className="font-semibold text-slate-900 dark:text-foreground">
                   Package
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("sales")}
-                  className="cursor-pointer select-none text-right font-semibold text-slate-900"
+                  className="cursor-pointer select-none text-right font-semibold text-slate-900 dark:text-foreground"
                 >
                   <div className="inline-flex items-center gap-1">
                     Sales <ArrowUpDown className="h-4 w-4 opacity-60" />
@@ -175,7 +175,7 @@ export function PackageSalesTable({
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("sharePercent")}
-                  className="cursor-pointer select-none text-right font-semibold text-slate-900"
+                  className="cursor-pointer select-none text-right font-semibold text-slate-900 dark:text-foreground"
                 >
                   <div className="inline-flex items-center gap-1">
                     % Share <Percent className="h-4 w-4 opacity-60" />
@@ -189,17 +189,17 @@ export function PackageSalesTable({
                 Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i} className="animate-pulse">
                     <TableCell>
-                      <div className="h-8 w-8 rounded-full bg-slate-100" />
+                      <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-muted" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-4 w-48 rounded bg-slate-100 mb-2" />
-                      <div className="h-3 w-24 rounded bg-slate-100" />
+                      <div className="h-4 w-48 rounded bg-slate-100 mb-2 dark:bg-muted" />
+                      <div className="h-3 w-24 rounded bg-slate-100 dark:bg-muted" />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="h-4 w-16 rounded bg-slate-100 ml-auto" />
+                      <div className="h-4 w-16 rounded bg-slate-100 ml-auto dark:bg-muted" />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="h-2 w-40 rounded-full bg-slate-100 ml-auto" />
+                      <div className="h-2 w-40 rounded-full bg-slate-100 ml-auto dark:bg-muted" />
                     </TableCell>
                   </TableRow>
                 ))
@@ -212,35 +212,35 @@ export function PackageSalesTable({
                   return (
                     <TableRow
                       key={row.packageId}
-                      className="hover:bg-slate-50/60 transition-colors"
+                      className="hover:bg-slate-50/60 transition-colors dark:hover:bg-muted/40"
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Medal rank={rank} />
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium text-slate-900">
+                      <TableCell className="font-medium text-slate-900 dark:text-foreground">
                         <div className="flex items-center gap-2">
                           <span className="truncate">{name}</span>
                           {rank <= 3 && (
                             <Badge
                               className={
                                 rank === 1
-                                  ? "bg-amber-100 text-amber-800"
+                                  ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
                                   : rank === 2
-                                  ? "bg-zinc-100 text-zinc-800"
-                                  : "bg-orange-100 text-orange-800"
+                                  ? "bg-zinc-100 text-zinc-800 dark:bg-muted dark:text-foreground"
+                                  : "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300"
                               }
                             >
                               Top {rank}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-slate-500 mt-1 dark:text-muted-foreground">
                           ID: {row.packageId.slice(0, 8)}…
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-slate-900">
+                      <TableCell className="text-right font-semibold text-slate-900 dark:text-foreground">
                         {fmtInt(row.sales)}
                       </TableCell>
                       <TableCell className="text-right">
@@ -255,7 +255,7 @@ export function PackageSalesTable({
                 <TableRow>
                   <TableCell
                     colSpan={4}
-                    className="text-center text-sm text-slate-500 py-12"
+                    className="text-center text-sm text-slate-500 py-12 dark:text-muted-foreground"
                   >
                     No sales data found
                   </TableCell>
@@ -267,7 +267,7 @@ export function PackageSalesTable({
 
         {!isLoading && filtered.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 px-2 py-3">
-            <div className="text-xs text-slate-600">
+            <div className="text-xs text-slate-600 dark:text-muted-foreground">
               Showing <span className="font-semibold">{filtered.length}</span>{" "}
               package{filtered.length > 1 ? "s" : ""}. Sorted by{" "}
               <span className="font-semibold">
@@ -275,9 +275,9 @@ export function PackageSalesTable({
               </span>{" "}
               ({sortDir}).
             </div>
-            <div className="text-xs text-slate-600">
+            <div className="text-xs text-slate-600 dark:text-muted-foreground">
               Grand Total Sales:{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-slate-900 dark:text-foreground">
                 {fmtInt(totalSales)}
               </span>
             </div>

@@ -333,7 +333,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                           href={asset.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline dark:text-blue-400"
                         >
                           {asset.url}
                         </a>
@@ -473,7 +473,7 @@ export default function TemplateDetailPage({ params }: { params: Promise<{ id: s
                           size="icon"
                           onClick={() => handleDeleteAsset(asset.id)}
                         >
-                          <Trash className="h-4 w-4 text-red-600" />
+                          <Trash className="h-4 w-4 text-red-600 dark:text-red-400" />
                         </Button>
                       </TableCell>
                     )}

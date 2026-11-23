@@ -8,7 +8,7 @@ interface ClientStatusSummaryProps {
 
 export function ClientStatusSummary({ clients }: ClientStatusSummaryProps) {
   return (
-    <div className="flex items-center text-sm text-gray-600 mb-2 font-medium">
+    <div className="flex items-center text-sm text-gray-600 mb-2 font-medium dark:text-muted-foreground">
       <div className="flex flex-wrap items-center gap-6">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-amber-400 shadow-sm"></div>

@@ -80,7 +80,7 @@ export function AssignmentPreview({
 
   if (loading) {
     return (
-      <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl rounded-2xl">
+      <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl rounded-2xl dark:border-indigo-800">
         <CardHeader className="bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 text-white py-6">
           <CardTitle className="flex items-center gap-3 text-2xl font-bold">
             <FileText className="w-7 h-7" />
@@ -98,7 +98,7 @@ export function AssignmentPreview({
 
   if (!templateDetails) {
     return (
-      <Card className="overflow-hidden border-2 border-red-100 shadow-xl rounded-2xl">
+      <Card className="overflow-hidden border-2 border-red-100 shadow-xl rounded-2xl dark:border-red-800">
         <CardHeader className="bg-linear-to-r from-red-600 via-pink-600 to-rose-600 text-white py-6">
           <CardTitle className="flex items-center gap-3 text-2xl font-bold">
             <AlertCircle className="w-7 h-7" />
@@ -106,7 +106,7 @@ export function AssignmentPreview({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-8">
-          <p className="text-gray-600 text-base">
+          <p className="text-gray-600 text-base dark:text-muted-foreground">
             Unable to load template details.
           </p>
         </CardContent>
@@ -118,24 +118,24 @@ export function AssignmentPreview({
     <div className="space-y-6">
       <CardContent className="p-0 space-y-6">
         {/* Template Overview */}
-        <div className="bg-white p-6 rounded-xl border-2 border-indigo-200">
-          <h3 className="font-bold text-xl mb-3 flex items-center gap-2 text-gray-900">
+        <div className="bg-white p-6 rounded-xl border-2 border-indigo-200 dark:bg-card dark:border-indigo-800">
+          <h3 className="font-bold text-xl mb-3 flex items-center gap-2 text-gray-900 dark:text-foreground">
             <CheckCircle className="w-6 h-6 text-green-500" />
             {templateDetails.name}
           </h3>
-          <p className="text-gray-600 mb-4 leading-relaxed">
+          <p className="text-gray-600 mb-4 leading-relaxed dark:text-muted-foreground">
             {templateDetails.description}
           </p>
           <div className="flex items-center gap-3">
             <Badge
               variant="outline"
-              className="bg-indigo-100 text-indigo-800 border-indigo-300 px-3 py-1.5 font-semibold"
+              className="bg-indigo-100 text-indigo-800 border-indigo-300 px-3 py-1.5 font-semibold dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-700"
             >
               {templateDetails.status}
             </Badge>
             <Badge
               variant="secondary"
-              className="bg-gray-100 text-gray-800 border-gray-300 px-3 py-1.5 font-semibold"
+              className="bg-gray-100 text-gray-800 border-gray-300 px-3 py-1.5 font-semibold dark:bg-muted dark:text-foreground dark:border-border"
             >
               {existingAssignments} existing assignments
             </Badge>
@@ -145,8 +145,8 @@ export function AssignmentPreview({
         {/* Sites & Assets */}
         {templateDetails.sitesAssets &&
           templateDetails.sitesAssets.length > 0 && (
-            <div className="bg-white p-6 rounded-xl border-2 border-blue-200">
-              <h4 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-900">
+            <div className="bg-white p-6 rounded-xl border-2 border-blue-200 dark:bg-card dark:border-blue-800">
+              <h4 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-900 dark:text-foreground">
                 <Clock className="w-5 h-5 text-blue-500" />
                 Sites & Assets ({templateDetails.sitesAssets.length})
               </h4>
@@ -154,10 +154,10 @@ export function AssignmentPreview({
                 {templateDetails.sitesAssets.map((asset) => (
                   <div
                     key={asset.id}
-                    className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200 hover:shadow-lg transition-shadow"
+                    className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200 hover:shadow-lg transition-shadow dark:bg-blue-950/40 dark:border-blue-800"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-sm text-gray-900">
+                      <span className="font-bold text-sm text-gray-900 dark:text-foreground">
                         {asset.name}
                       </span>
                       {asset.isRequired && (
@@ -169,7 +169,7 @@ export function AssignmentPreview({
                         </Badge>
                       )}
                     </div>
-                    <div className="text-sm text-gray-700 space-y-1.5">
+                    <div className="text-sm text-gray-700 space-y-1.5 dark:text-foreground">
                       <div className="font-medium">Type: {asset.type}</div>
                       {asset.defaultPostingFrequency && (
                         <div>
@@ -189,16 +189,16 @@ export function AssignmentPreview({
           )}
 
         {/* Assignment Info */}
-        <div className="bg-linear-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200">
+        <div className="bg-linear-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border-2 border-indigo-200 dark:from-indigo-950/40 dark:to-purple-950/40 dark:border-indigo-800">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-white" />
             </div>
-            <h4 className="font-bold text-indigo-900 text-lg">
+            <h4 className="font-bold text-indigo-900 text-lg dark:text-indigo-300">
               What happens next?
             </h4>
           </div>
-          <ul className="text-base text-indigo-800 space-y-2.5">
+          <ul className="text-base text-indigo-800 space-y-2.5 dark:text-indigo-300">
             <li className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-indigo-500" />
               An assignment will be automatically created

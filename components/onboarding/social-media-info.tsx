@@ -111,22 +111,22 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-pink-500 to-rose-500 shadow-lg mb-4">
           <Share2 className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-pink-600 via-rose-600 to-red-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-pink-600 via-rose-600 to-red-600 bg-clip-text text-transparent dark:from-pink-400 dark:via-rose-400 dark:to-red-400">
           Social Media Profiles
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Add your social media profiles to enhance your online presence and connectivity.
         </p>
       </div>
 
       <div className="space-y-6">
         {socialLinks.map((link, index) => (
-          <div key={index} className="bg-linear-to-br from-white to-pink-50/30 rounded-2xl shadow-lg border border-pink-100 p-6 space-y-4 hover:shadow-xl transition-all duration-300">
+          <div key={index} className="bg-linear-to-br from-white to-pink-50/30 rounded-2xl shadow-lg border border-pink-100 p-6 space-y-4 hover:shadow-xl transition-all duration-300 dark:from-card dark:to-pink-950/40 dark:border-pink-800">
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <Label htmlFor={`platform-${index}`} className="text-sm font-semibold text-gray-700">Platform</Label>
+                <Label htmlFor={`platform-${index}`} className="text-sm font-semibold text-gray-700 dark:text-foreground">Platform</Label>
                 <Select value={link.platform} onValueChange={(value) => updateSocialLink(index, "platform", value)}>
-                  <SelectTrigger className="mt-2 h-12 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl">
+                  <SelectTrigger className="mt-2 h-12 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border">
                     <SelectValue placeholder="Select platform" />
                   </SelectTrigger>
                   <SelectContent>
@@ -140,13 +140,13 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
               </div>
 
               <div className="flex-2">
-                <Label htmlFor={`url-${index}`} className="text-sm font-semibold text-gray-700">URL</Label>
+                <Label htmlFor={`url-${index}`} className="text-sm font-semibold text-gray-700 dark:text-foreground">URL</Label>
                 <Input
                   id={`url-${index}`}
                   value={link.url}
                   onChange={(e) => updateSocialLink(index, "url", e.target.value)}
                   placeholder="https://platform.com/username"
-                  className="mt-2 h-12 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-12 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                   inputMode="url"
                 />
               </div>
@@ -157,7 +157,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
                   variant="outline"
                   size="icon"
                   onClick={() => removeSocialLink(index)}
-                  className="h-12 w-12 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200"
+                  className="h-12 w-12 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 dark:border-red-700"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>
@@ -166,17 +166,17 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor={`username-${index}`} className="text-sm font-semibold text-gray-700">Username</Label>
+                <Label htmlFor={`username-${index}`} className="text-sm font-semibold text-gray-700 dark:text-foreground">Username</Label>
                 <Input
                   id={`username-${index}`}
                   value={link.username || ""}
                   onChange={(e) => updateSocialLink(index, "username", e.target.value)}
                   placeholder="Account username/handle"
-                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                 />
               </div>
               <div>
-                <Label htmlFor={`email-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Label htmlFor={`email-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
                   <Mail className="w-4 h-4 text-pink-500" />
                   Email
                 </Label>
@@ -186,12 +186,12 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
                   value={link.email || ""}
                   onChange={(e) => updateSocialLink(index, "email", e.target.value)}
                   placeholder="login@example.com"
-                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                   inputMode="email"
                 />
               </div>
               <div>
-                <Label htmlFor={`phone-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Label htmlFor={`phone-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
                   <Phone className="w-4 h-4 text-pink-500" />
                   Phone
                 </Label>
@@ -200,12 +200,12 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
                   value={link.phone || ""}
                   onChange={(e) => updateSocialLink(index, "phone", e.target.value)}
                   placeholder="e.g. +1 555 123 4567"
-                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                   inputMode="tel"
                 />
               </div>
               <div>
-                <Label htmlFor={`password-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Label htmlFor={`password-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
                   <Lock className="w-4 h-4 text-pink-500" />
                   Password
                 </Label>
@@ -215,11 +215,11 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
                   value={link.password || ""}
                   onChange={(e) => updateSocialLink(index, "password", e.target.value)}
                   placeholder="••••••••"
-                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                 />
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor={`notes-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Label htmlFor={`notes-${index}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
                   <FileText className="w-4 h-4 text-pink-500" />
                   Notes
                 </Label>
@@ -228,7 +228,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
                   value={link.notes || ""}
                   onChange={(e) => updateSocialLink(index, "notes", e.target.value)}
                   placeholder="Any additional info or recovery notes"
-                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl"
+                  className="mt-2 h-11 border-2 border-gray-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl dark:border-border"
                 />
               </div>
             </div>
@@ -250,7 +250,7 @@ export function SocialMediaInfo({ formData, updateFormData, onNext, onPrevious }
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-700 hover:border-pink-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-pink-50 hover:to-rose-50 hover:text-pink-700 hover:border-pink-400 transition-all duration-200 rounded-xl dark:hover:from-pink-950/40 dark:hover:to-rose-950/40 dark:hover:text-pink-300"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />

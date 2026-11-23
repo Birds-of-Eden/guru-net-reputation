@@ -157,32 +157,32 @@ export function ArticlesSelection({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-orange-500 to-red-500 shadow-lg mb-4">
           <BookOpen className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-orange-600 via-red-600 to-rose-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-orange-600 via-red-600 to-rose-600 bg-clip-text text-transparent dark:from-orange-400 dark:via-red-400 dark:to-rose-400">
           Article Topics from CQ
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Manage your article categories with titles, draft links, and status tracking.
         </p>
       </div>
 
       {/* Categories Card */}
-      <div className="bg-linear-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-orange-50/30 rounded-2xl shadow-xl border border-orange-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-orange-950/40 dark:border-orange-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Article Categories</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">Article Categories</h2>
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               Add categories with titles and draft information
             </p>
           </div>
         </div>
 
         {!hasCategories && (
-          <div className="text-center py-12 border-2 border-dashed border-orange-200 rounded-xl bg-orange-50/50">
+          <div className="text-center py-12 border-2 border-dashed border-orange-200 rounded-xl bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/40">
             <BookOpen className="w-12 h-12 text-orange-400 mx-auto mb-3" />
-            <p className="text-gray-600 font-medium">
+            <p className="text-gray-600 font-medium dark:text-muted-foreground">
               No categories yet. Add a topic from CQ to get started.
             </p>
           </div>
@@ -193,17 +193,17 @@ export function ArticlesSelection({
             {categories.map((category, catIdx) => (
               <div
                 key={`category-${catIdx}`}
-                className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-300 hover:shadow-lg transition-all duration-200"
+                className="bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-300 hover:shadow-lg transition-all duration-200 dark:bg-card dark:border-border dark:hover:border-orange-700"
               >
                 {/* Category Header */}
                 <div className="flex items-start gap-4 mb-4">
                   <div className="flex-1">
-                    <Label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2 dark:text-foreground">
                       <FileText className="w-4 h-4 text-orange-500" />
                       Category Name
                     </Label>
                     <Input
-                      className="w-full border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-4 py-3"
+                      className="w-full border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-4 py-3 dark:border-border"
                       value={category.category}
                       onChange={(e) =>
                         handleUpdateCategory(catIdx, e.target.value)
@@ -215,16 +215,16 @@ export function ArticlesSelection({
                     variant="outline"
                     size="icon"
                     onClick={() => handleRemoveCategory(catIdx)}
-                    className="h-10 w-10 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 shrink-0 mt-7"
+                    className="h-10 w-10 text-red-500 hover:text-white hover:bg-red-500 border-2 border-red-300 hover:border-red-500 rounded-xl transition-all duration-200 shrink-0 mt-7 dark:border-red-700"
                   >
                     <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
 
                 {/* Titles under this category */}
-                <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200">
+                <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200 dark:border-orange-800">
                   {category.titles.length === 0 && (
-                    <p className="text-sm text-gray-500 italic py-2">
+                    <p className="text-sm text-gray-500 italic py-2 dark:text-muted-foreground">
                       No titles yet. Add titles to this category.
                     </p>
                   )}
@@ -232,17 +232,17 @@ export function ArticlesSelection({
                   {category.titles.map((title, titleIdx) => (
                     <div
                       key={`title-${catIdx}-${titleIdx}`}
-                      className="bg-orange-50/50 rounded-lg p-4 space-y-3 border border-orange-100"
+                      className="bg-orange-50/50 rounded-lg p-4 space-y-3 border border-orange-100 dark:bg-orange-950/40 dark:border-orange-800"
                     >
                       <div className="grid md:grid-cols-2 gap-3 items-end">
                         <div className="flex-1 space-y-3">
                           {/* Title */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Title
                             </Label>
                             <Input
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.title}
                               onChange={(e) =>
                                 handleUpdateTitle(
@@ -258,12 +258,12 @@ export function ArticlesSelection({
 
                           {/* Draft Link */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1 dark:text-muted-foreground">
                               <LinkIcon className="w-3 h-3" />
                               Draft Link
                             </Label>
                             <Input
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.draftLink}
                               onChange={(e) =>
                                 handleUpdateTitle(
@@ -279,7 +279,7 @@ export function ArticlesSelection({
 
                           {/* Draft Status */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Draft Status
                             </Label>
                             <Select
@@ -293,7 +293,7 @@ export function ArticlesSelection({
                                 )
                               }
                             >
-                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm">
+                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm dark:border-border">
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                               <SelectContent>
@@ -306,11 +306,11 @@ export function ArticlesSelection({
 
                           {/* Status */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Status
                             </Label>
                             <Input
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.status || "Not yet Used"}
                               onChange={(e) =>
                                 handleUpdateTitle(
@@ -326,12 +326,12 @@ export function ArticlesSelection({
 
                           {/* Used Count */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Used Count
                             </Label>
                             <Input
                               type="number"
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.usedCount ?? 0}
                               onChange={(e) =>
                                 handleUpdateTitle(
@@ -347,13 +347,13 @@ export function ArticlesSelection({
 
                           {/* Used Date */}
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1 dark:text-muted-foreground">
                               <Calendar className="w-3 h-3" />
                               Used Date
                             </Label>
                             <Input
                               type="date"
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={
                                 title.usedDate
                                   ? new Date(title.usedDate).toISOString().split("T")[0]
@@ -375,7 +375,7 @@ export function ArticlesSelection({
                           variant="outline"
                           size="icon"
                           onClick={() => handleRemoveTitle(catIdx, titleIdx)}
-                          className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 shrink-0"
+                          className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 shrink-0 dark:border-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -387,7 +387,7 @@ export function ArticlesSelection({
                   <Button
                     onClick={() => handleAddTitle(catIdx)}
                     variant="outline"
-                    className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg"
+                    className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg dark:border-orange-700 dark:hover:bg-orange-950/40 dark:text-orange-400"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Title
@@ -415,7 +415,7 @@ export function ArticlesSelection({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-700 hover:border-orange-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-orange-50 hover:to-red-50 hover:text-orange-700 hover:border-orange-400 transition-all duration-200 rounded-xl dark:hover:from-orange-950/40 dark:hover:to-red-950/40 dark:hover:text-orange-300"
         >
           <svg
             className="w-5 h-5 mr-2"

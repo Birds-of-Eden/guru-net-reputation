@@ -427,7 +427,7 @@ export const ArticleTopics = ({
     <Card className="shadow-lg border-0 bg-white dark:bg-slate-800 lg:col-span-2">
       <CardHeader className="bg-linear-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/20">
         <CardTitle className="flex items-center space-x-2">
-          <BookOpen className="h-5 w-5 text-orange-600" />
+          <BookOpen className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           <span>
             {hasNewStructure ? "Article Categories from CQ" : "Article Topics"}
           </span>
@@ -465,12 +465,12 @@ export const ArticleTopics = ({
                   className="bg-linear-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border-2 border-orange-200 dark:border-orange-700 p-5"
                 >
                   <div className="flex items-start gap-3 mb-4">
-                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-orange-600" /> Category
+                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
+                      <FileText className="w-5 h-5 text-orange-600 dark:text-orange-400" /> Category
                       Name
                     </Label>
                     <Input
-                      className="flex-1 border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-3 py-2"
+                      className="flex-1 border-2 border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-100 rounded-xl px-3 py-2 dark:border-border"
                       value={category.category}
                       onChange={(e) =>
                         handleUpdateCategoryName(catIdx, e.target.value)
@@ -491,7 +491,7 @@ export const ArticleTopics = ({
                     )}
                   </div>
 
-                  <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200">
+                  <div className="space-y-3 ml-4 pl-4 border-l-2 border-orange-200 dark:border-orange-800">
                     {category.titles.map((title, titleIdx) => (
                       <div
                         key={titleIdx}
@@ -499,11 +499,11 @@ export const ArticleTopics = ({
                       >
                         <div className="grid md:grid-cols-3 gap-3 items-end">
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Title
                             </Label>
                             <Input
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.title}
                               onChange={(e) =>
                                 handleUpdateTitleInCategory(
@@ -517,11 +517,11 @@ export const ArticleTopics = ({
                             />
                           </div>
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 flex items-center gap-1 dark:text-muted-foreground">
                               <LinkIcon className="w-3 h-3" /> Draft Link
                             </Label>
                             <Input
-                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm"
+                              className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg px-3 py-2 text-sm dark:border-border"
                               value={title.draftLink}
                               onChange={(e) =>
                                 handleUpdateTitleInCategory(
@@ -535,7 +535,7 @@ export const ArticleTopics = ({
                             />
                           </div>
                           <div>
-                            <Label className="text-xs font-semibold text-gray-600 mb-1 block">
+                            <Label className="text-xs font-semibold text-gray-600 mb-1 block dark:text-muted-foreground">
                               Draft Status
                             </Label>
                             <Select
@@ -549,7 +549,7 @@ export const ArticleTopics = ({
                                 )
                               }
                             >
-                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm">
+                              <SelectTrigger className="w-full border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 rounded-lg text-sm dark:border-border">
                                 <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                               <SelectContent>
@@ -571,7 +571,7 @@ export const ArticleTopics = ({
                             onClick={() =>
                               handleRemoveTitleFromCategory(catIdx, titleIdx)
                             }
-                            className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200"
+                            className="h-8 w-8 text-red-500 hover:text-white hover:bg-red-500 border border-red-300 hover:border-red-500 rounded-lg transition-all duration-200 dark:border-red-700"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -582,7 +582,7 @@ export const ArticleTopics = ({
                     <Button
                       onClick={() => handleAddTitleToCategory(catIdx)}
                       variant="outline"
-                      className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg"
+                      className="w-full mt-2 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-50 text-orange-600 rounded-lg dark:border-orange-700 dark:hover:bg-orange-950/40 dark:text-orange-400"
                     >
                       <Plus className="h-4 w-4 mr-2" /> Add Title
                     </Button>
@@ -774,7 +774,7 @@ export const ArticleTopics = ({
       {/* Add New Category Modal */}
       {isAddingCategory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-card">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Add New Category
@@ -834,7 +834,7 @@ export const ArticleTopics = ({
                                 titles: prev.titles.filter((_, i) => i !== idx),
                               }));
                             }}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 hover:text-red-700 dark:hover:text-red-300"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -910,7 +910,7 @@ export const ArticleTopics = ({
                   <button
                     type="button"
                     onClick={handleAddTitleToNewCategory}
-                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/40"
                   >
                     <Plus size={16} />
                     Add Title
@@ -945,7 +945,7 @@ export const ArticleTopics = ({
       {/* Add New Topic Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-card">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Add New Topic
@@ -1002,7 +1002,7 @@ export const ArticleTopics = ({
                               titles: prev.titles.filter((_, i) => i !== idx),
                             }));
                           }}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 dark:hover:text-red-300"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -1083,7 +1083,7 @@ export const ArticleTopics = ({
                         ],
                       }));
                     }}
-                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2 border-2 border-dashed border-orange-300 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors flex items-center justify-center gap-2 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/40"
                   >
                     <Plus size={16} />
                     Add Title

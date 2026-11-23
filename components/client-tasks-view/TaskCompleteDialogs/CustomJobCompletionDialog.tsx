@@ -111,12 +111,12 @@ const CustomJobCompletionDialog: React.FC<CustomJobCompletionDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col dark:bg-card">
         {/* Header */}
         <div className="bg-linear-to-r from-purple-600 via-indigo-600 to-blue-600 -m-6 mb-4 px-6 py-6 shrink-0">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-white flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md dark:bg-card/20">
                 <CheckCircle2 className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1">
@@ -140,26 +140,26 @@ const CustomJobCompletionDialog: React.FC<CustomJobCompletionDialogProps> = ({
         {/* Body */}
         <div className="px-6 pb-6 space-y-5 flex-1 overflow-y-auto">
           {/* Timer Display */}
-          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="bg-blue-500 p-1.5 rounded-lg">
                   <Clock className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wide">
+                  <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wide dark:text-blue-300">
                     Time Tracking
                   </h3>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-blue-600 font-medium dark:text-blue-400">
                     Time spent on this completion
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-mono font-black text-blue-700">
+                <div className="text-lg font-mono font-black text-blue-700 dark:text-blue-300">
                   {timerInfo?.formatElapsedTime || "00:00"}
                 </div>
-                <div className="text-xs text-blue-600 font-medium">
+                <div className="text-xs text-blue-600 font-medium dark:text-blue-400">
                   {timerInfo ? Math.ceil(timerInfo.elapsedSeconds / 60) : 0} minutes
                 </div>
               </div>
@@ -169,9 +169,9 @@ const CustomJobCompletionDialog: React.FC<CustomJobCompletionDialogProps> = ({
           {/* Completion Links */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-                <div className="bg-purple-100 p-1.5 rounded-lg">
-                  <LinkIcon className="h-3 w-3 text-purple-600" />
+              <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+                <div className="bg-purple-100 p-1.5 rounded-lg dark:bg-purple-900/40">
+                  <LinkIcon className="h-3 w-3 text-purple-600 dark:text-purple-400" />
                 </div>
                 Completion Links (Bulk) *
               </label>
@@ -182,29 +182,29 @@ const CustomJobCompletionDialog: React.FC<CustomJobCompletionDialogProps> = ({
                 value={linksValue}
                 onChange={handleBulkLinksChange}
                 placeholder="Paste links here (one per line or separated by commas)..."
-                className="w-full h-32 px-3 py-2 text-sm border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all font-medium"
+                className="w-full h-32 px-3 py-2 text-sm border-2 border-slate-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all font-medium dark:border-border"
               />
             </div>
             
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-xs text-slate-600 font-medium dark:text-muted-foreground">
               You can paste multiple links. They will be automatically separated and stored.
             </p>
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">Notes</label>
+            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes about this custom job completion..."
-              className="w-full h-20 px-3 py-2 text-sm border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all font-medium"
+              className="w-full h-20 px-3 py-2 text-sm border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none transition-all font-medium dark:border-purple-800"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 shrink-0">
+        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 shrink-0 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

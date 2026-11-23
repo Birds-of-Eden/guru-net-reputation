@@ -14,21 +14,21 @@ export function WebsiteInfo({ formData, updateFormData, onNext, onPrevious }: St
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-blue-500 to-cyan-500 shadow-lg mb-4">
           <Globe className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-cyan-400 dark:to-teal-400">
           Website Information
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Please provide your website URLs to help us understand your online presence.
         </p>
       </div>
 
       {/* Websites Card */}
-      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-blue-50/30 rounded-2xl shadow-xl border border-blue-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-blue-950/40 dark:border-blue-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
             <LinkIcon className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Your Websites</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">Your Websites</h2>
         </div>
 
         <div className="space-y-6">
@@ -37,7 +37,7 @@ export function WebsiteInfo({ formData, updateFormData, onNext, onPrevious }: St
             : [""]
           ).map((value, idx) => (
             <div key={idx} className="group">
-              <Label htmlFor={`website-${idx}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Label htmlFor={`website-${idx}`} className="text-sm font-semibold text-gray-700 flex items-center gap-2 dark:text-foreground">
                 <Globe className="w-4 h-4 text-blue-500" />
                 {idx === 0 ? "Primary Website" : `Website ${idx + 1}`}
               </Label>
@@ -53,7 +53,7 @@ export function WebsiteInfo({ formData, updateFormData, onNext, onPrevious }: St
                     updateFormData({ websites: next });
                   }}
                   placeholder="https://example.com"
-                  className="h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl flex-1"
+                  className="h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 rounded-xl flex-1 dark:border-border"
                   inputMode="url"
                 />
                 {idx > 0 && (
@@ -95,7 +95,7 @@ export function WebsiteInfo({ formData, updateFormData, onNext, onPrevious }: St
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-700 hover:border-blue-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-700 hover:border-blue-400 transition-all duration-200 rounded-xl dark:hover:from-blue-950/40 dark:hover:to-cyan-950/40 dark:hover:text-blue-300"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />

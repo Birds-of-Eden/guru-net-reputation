@@ -24,26 +24,26 @@ export function AssignmentSuccess({
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-linear-to-br from-green-500 to-emerald-500 shadow-2xl mb-4 animate-bounce">
           <CheckCircle className="w-12 h-12 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent dark:from-green-400 dark:via-emerald-400 dark:to-teal-400">
           Assignment Created Successfully!
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Your client has been onboarded and the template has been assigned.
         </p>
       </div>
 
-      <Card className="overflow-hidden border-2 border-green-100 shadow-2xl bg-linear-to-br from-white to-green-50/30 rounded-2xl">
+      <Card className="overflow-hidden border-2 border-green-100 shadow-2xl bg-linear-to-br from-white to-green-50/30 rounded-2xl dark:border-green-800 dark:from-card dark:to-green-950/40">
         <CardContent className="p-8">
           <div className="space-y-6">
             {/* Client to Template Flow */}
-            <div className="flex items-center justify-between p-6 bg-white rounded-xl border-2 border-green-200 shadow-lg">
+            <div className="flex items-center justify-between p-6 bg-white rounded-xl border-2 border-green-200 shadow-lg dark:bg-card dark:border-green-800">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-linear-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
                   <Users className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900 text-lg">{clientName}</p>
-                  <p className="text-sm text-gray-600 font-medium">Client</p>
+                  <p className="font-bold text-gray-900 text-lg dark:text-foreground">{clientName}</p>
+                  <p className="text-sm text-gray-600 font-medium dark:text-muted-foreground">Client</p>
                 </div>
               </div>
               <ArrowRight className="w-6 h-6 text-green-500" />
@@ -52,39 +52,39 @@ export function AssignmentSuccess({
                   <Clock className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900 text-lg">{templateName}</p>
-                  <p className="text-sm text-gray-600 font-medium">Template</p>
+                  <p className="font-bold text-gray-900 text-lg dark:text-foreground">{templateName}</p>
+                  <p className="text-sm text-gray-600 font-medium dark:text-muted-foreground">Template</p>
                 </div>
               </div>
             </div>
 
             {/* Package and Assignment Info */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-5 bg-white rounded-xl border-2 border-green-200 hover:shadow-lg transition-shadow">
-                <Badge className="bg-green-100 text-green-800 border-green-300 mb-3 px-3 py-1.5 font-semibold">
+              <div className="text-center p-5 bg-white rounded-xl border-2 border-green-200 hover:shadow-lg transition-shadow dark:bg-card dark:border-green-800">
+                <Badge className="bg-green-100 text-green-800 border-green-300 mb-3 px-3 py-1.5 font-semibold dark:bg-green-900/40 dark:text-green-300 dark:border-green-700">
                   Package
                 </Badge>
-                <p className="text-base font-bold text-gray-900">{packageName}</p>
+                <p className="text-base font-bold text-gray-900 dark:text-foreground">{packageName}</p>
               </div>
               {assignmentId && (
-                <div className="text-center p-5 bg-white rounded-xl border-2 border-blue-200 hover:shadow-lg transition-shadow">
-                  <Badge className="bg-blue-100 text-blue-800 border-blue-300 mb-3 px-3 py-1.5 font-semibold">
+                <div className="text-center p-5 bg-white rounded-xl border-2 border-blue-200 hover:shadow-lg transition-shadow dark:bg-card dark:border-blue-800">
+                  <Badge className="bg-blue-100 text-blue-800 border-blue-300 mb-3 px-3 py-1.5 font-semibold dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700">
                     Assignment ID
                   </Badge>
-                  <p className="text-sm font-mono font-bold text-gray-900">{assignmentId}</p>
+                  <p className="text-sm font-mono font-bold text-gray-900 dark:text-foreground">{assignmentId}</p>
                 </div>
               )}
             </div>
 
             {/* Next Steps */}
-            <div className="bg-linear-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
+            <div className="bg-linear-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200 dark:from-green-950/40 dark:to-emerald-950/40 dark:border-green-800">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-bold text-green-900 text-lg">Next Steps:</h4>
+                <h4 className="font-bold text-green-900 text-lg dark:text-green-300">Next Steps:</h4>
               </div>
-              <ul className="text-base text-green-800 space-y-2.5">
+              <ul className="text-base text-green-800 space-y-2.5 dark:text-green-300">
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   Tasks have been automatically generated

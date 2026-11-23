@@ -112,19 +112,19 @@ export function RenewPostingTasksButton({
             Renew & Generate Posting Tasks
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md border-0 bg-white shadow-2xl rounded-xl backdrop-blur-sm">
+        <DialogContent className="sm:max-w-md border-0 bg-white shadow-2xl rounded-xl backdrop-blur-sm dark:bg-card">
           <div className="relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-600 to-indigo-700 rounded-t-xl" />
             <DialogHeader className="pt-4 pb-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <RefreshCw className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-blue-50 rounded-lg dark:bg-blue-950/40">
+                  <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <DialogTitle className="text-xl font-semibold text-gray-900">
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-foreground">
                   Renew Client Package
                 </DialogTitle>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1 dark:text-muted-foreground">
                 Renew package and generate posting tasks for the client
               </p>
             </DialogHeader>
@@ -133,9 +133,9 @@ export function RenewPostingTasksButton({
               <div className="space-y-2">
                 <Label
                   htmlFor="renewalDate"
-                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                  className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground"
                 >
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <Calendar className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
                   Renewal Date
                 </Label>
                 <Input
@@ -143,33 +143,33 @@ export function RenewPostingTasksButton({
                   type="date"
                   value={renewalDate}
                   onChange={(e) => setRenewalDate(e.target.value)}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200 rounded-lg py-2.5"
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200 rounded-lg py-2.5 dark:border-border"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-gray-500" />
+                <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-foreground">
+                  <CalendarDays className="w-4 h-4 text-gray-500 dark:text-muted-foreground" />
                   New Due Date
                 </Label>
                 <div className="relative">
                   <Input
                     readOnly
                     value={computedDueDate}
-                    className="bg-gray-50 border-gray-200 text-gray-900 font-medium rounded-lg py-2.5 pr-10"
+                    className="bg-gray-50 border-gray-200 text-gray-900 font-medium rounded-lg py-2.5 pr-10 dark:bg-muted/40 dark:border-border dark:text-foreground"
                   />
                   <CheckCircle className="w-5 h-5 text-green-500 absolute right-3 top-1/2 transform -translate-y-1/2" />
                 </div>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
+                <p className="text-xs text-gray-500 flex items-center gap-1 dark:text-muted-foreground">
                   <Info className="w-3 h-3" />
                   Calculated as renewal date + {packageMonths} month(s)
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-950/40 dark:border-blue-800">
                 <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
-                  <p className="text-xs text-blue-800">
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0 dark:text-blue-400" />
+                  <p className="text-xs text-blue-800 dark:text-blue-300">
                     This action will renew the client's package and automatically
                     generate all associated posting tasks.
                   </p>
@@ -182,7 +182,7 @@ export function RenewPostingTasksButton({
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={submitting}
-                className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded-lg py-2.5"
+                className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded-lg py-2.5 dark:border-border dark:text-foreground dark:hover:bg-muted/40"
               >
                 Cancel
               </Button>

@@ -36,11 +36,11 @@ type Props = {
 function getStatusBadgeClass(status?: string | null) {
   switch (status) {
     case "approved":
-      return "border-emerald-200 bg-emerald-500/10 text-emerald-700";
+      return "border-emerald-200 bg-emerald-500/10 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300";
     case "rejected":
-      return "border-red-200 bg-red-500/10 text-red-700";
+      return "border-red-200 bg-red-500/10 text-red-700 dark:border-red-800 dark:text-red-300";
     default:
-      return "border-slate-200 bg-slate-100 text-slate-600";
+      return "border-slate-200 bg-slate-100 text-slate-600 dark:border-border dark:bg-muted dark:text-muted-foreground";
   }
 }
 
@@ -84,7 +84,7 @@ export default function AMUpdateModal({
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && handleClose()}>
       <DialogContent className="max-w-3xl rounded-2xl border-0 p-0 shadow-2xl">
-        <div className="overflow-hidden rounded-2xl border bg-white">
+        <div className="overflow-hidden rounded-2xl border bg-white dark:bg-card">
           <div className="bg-linear-to-r from-sky-600 via-indigo-600 to-violet-600 px-6 py-5 text-white">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">AM Update</DialogTitle>
@@ -95,8 +95,8 @@ export default function AMUpdateModal({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-border dark:bg-muted/40">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-muted-foreground">
                 Current Status
               </div>
               <Badge
@@ -109,13 +109,13 @@ export default function AMUpdateModal({
             </div>
 
             <div className="space-y-2">
-              <Label className="font-semibold text-slate-800">Decision</Label>
+              <Label className="font-semibold text-slate-800 dark:text-foreground">Decision</Label>
               <Select
                 value={status}
                 onValueChange={(value) => setStatus(value as AMUpdateStatus)}
                 disabled={!canEdit || loading}
               >
-                <SelectTrigger className="h-11 rounded-xl border-slate-200">
+                <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-border">
                   <SelectValue placeholder="Select decision" />
                 </SelectTrigger>
                 <SelectContent>
@@ -126,7 +126,7 @@ export default function AMUpdateModal({
             </div>
 
             <div className="space-y-2">
-              <Label className="font-semibold text-slate-800">Note</Label>
+              <Label className="font-semibold text-slate-800 dark:text-foreground">Note</Label>
               <TinyMceEditor
                 initialValue={note}
                 onContentChange={(content) => setNote(content)}
@@ -134,7 +134,7 @@ export default function AMUpdateModal({
                 placeholder="Write AM note or feedback"
               />
               {!canEdit && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-muted-foreground">
                   This update is view-only for your role.
                 </p>
               )}

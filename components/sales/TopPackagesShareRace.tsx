@@ -55,9 +55,9 @@ export function TopPackagesShareRace({
   }));
 
   return (
-    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-white via-slate-50 to-slate-100">
+    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-white via-slate-50 to-slate-100 dark:ring-border/60 dark:from-card dark:via-background dark:to-background">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-semibold text-slate-800">
+        <p className="text-sm font-semibold text-slate-800 dark:text-foreground">
           Top Packages — Share Race
         </p>
         <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export function TopPackagesShareRace({
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="text-right text-[11px] text-slate-500 mt-2">
+      <div className="text-right text-[11px] text-slate-500 mt-2 dark:text-muted-foreground">
         Animated race — impact-friendly visualization for stakeholders.
       </div>
     </Card>

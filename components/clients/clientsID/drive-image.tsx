@@ -56,7 +56,7 @@ export function DriveImage({ clientData }: DriveImageProps) {
         <CardContent className="p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-full mb-4">
-              <Images className="h-8 w-8 text-slate-400" />
+              <Images className="h-8 w-8 text-slate-400 dark:text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">No Drive Link Available</h3>
             <p className="text-slate-500 dark:text-slate-400 max-w-md">
@@ -76,7 +76,7 @@ export function DriveImage({ clientData }: DriveImageProps) {
         <CardContent className="p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-full mb-4">
-              <Images className="h-8 w-8 text-slate-400" />
+              <Images className="h-8 w-8 text-slate-400 dark:text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">Invalid Drive Link</h3>
             <p className="text-slate-500 dark:text-slate-400 max-w-md">

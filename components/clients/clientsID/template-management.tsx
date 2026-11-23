@@ -134,7 +134,7 @@ export function TemplateManagement({
   // ✅ Show error state
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+      <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
         <CardContent className="p-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
@@ -154,7 +154,7 @@ export function TemplateManagement({
 
   if (!assignment || !templateData) {
     return (
-      <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+      <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
         <CardContent className="p-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
@@ -188,7 +188,7 @@ export function TemplateManagement({
           <div className="flex items-start justify-between">
             <div className="space-y-2">
               <CardTitle className="flex items-center gap-2 text-2xl">
-                <Package className="h-6 w-6 text-blue-600" />
+                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 Template Management
               </CardTitle>
               <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -212,7 +212,7 @@ export function TemplateManagement({
       <Card className="shadow-lg border-0">
         <CardHeader className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-blue-600" />
+            <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Current Template
           </CardTitle>
         </CardHeader>
@@ -324,7 +324,7 @@ export function TemplateManagement({
 
           {!canManage && (
             <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <Lock className="h-4 w-4 text-slate-500" />
+              <Lock className="h-4 w-4 text-slate-500 dark:text-muted-foreground" />
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {isClient
                   ? "Clients can view but not modify templates"
@@ -339,7 +339,7 @@ export function TemplateManagement({
       <Card className="shadow-lg border-0">
         <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
           <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-indigo-600" />
+            <Settings className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             Template Assets ({totalAssets})
           </CardTitle>
         </CardHeader>
@@ -383,7 +383,7 @@ export function TemplateManagement({
           ) : (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">
+              <p className="text-slate-500 dark:text-muted-foreground">
                 No assets configured in this template
               </p>
             </div>

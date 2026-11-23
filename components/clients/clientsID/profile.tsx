@@ -740,7 +740,7 @@ export function Profile({
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
           <CardHeader className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
             <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-blue-600" />
+              <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <span>Personal Information</span>
             </CardTitle>
           </CardHeader>
@@ -793,7 +793,7 @@ export function Profile({
                   Birth Date
                 </label>
                 <div className="flex items-center mt-1">
-                  <Calendar className="h-4 w-4 text-slate-400 mr-2" />
+                  <Calendar className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.birthdate
                       ? formatDate(clientData.birthdate as any)
@@ -806,7 +806,7 @@ export function Profile({
                   Location
                 </label>
                 <div className="flex items-center mt-1">
-                  <MapPin className="h-4 w-4 text-slate-400 mr-2" />
+                  <MapPin className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.location ?? ""}
                   </span>
@@ -817,7 +817,7 @@ export function Profile({
                   Gender
                 </label>
                 <div className="flex items-center mt-1">
-                  <Shield className="h-4 w-4 text-slate-400 mr-2" />
+                  <Shield className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.gender ?? ""}
                   </span>
@@ -853,7 +853,7 @@ export function Profile({
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
           <CardHeader className="bg-linear-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20">
             <CardTitle className="flex items-center space-x-2">
-              <UserCircle2 className="h-5 w-5 text-emerald-600" />
+              <UserCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <span>Account Manager & Contact</span>
             </CardTitle>
           </CardHeader>
@@ -864,7 +864,7 @@ export function Profile({
                   Account Manager
                 </label>
                 <div className="flex items-center mt-1">
-                  <BadgeCheck className="h-4 w-4 text-slate-400 mr-2" />
+                  <BadgeCheck className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {amDisplay}
                   </span>
@@ -875,7 +875,7 @@ export function Profile({
                   Email
                 </label>
                 <div className="flex items-center mt-1">
-                  <Mail className="h-4 w-4 text-slate-400 mr-2" />
+                  <Mail className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.email ?? "—"}
                   </span>
@@ -889,7 +889,7 @@ export function Profile({
                   Phone
                 </label>
                 <div className="flex items-center mt-1">
-                  <PhoneIcon className="h-4 w-4 text-slate-400 mr-2" />
+                  <PhoneIcon className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.phone ?? "—"}
                   </span>
@@ -900,7 +900,7 @@ export function Profile({
                   Recovery Email
                 </label>
                 <div className="flex items-center mt-1">
-                  <Mail className="h-4 w-4 text-slate-400 mr-2" />
+                  <Mail className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.recoveryEmail ?? "—"}
                   </span>
@@ -913,7 +913,7 @@ export function Profile({
                 Password
               </label>
               <div className="flex items-center gap-2 mt-1">
-                <Lock className="h-4 w-4 text-slate-400" />
+                <Lock className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                 <span className="font-mono">
                   {mask(clientData.password, showClientPassword)}
                 </span>
@@ -944,7 +944,7 @@ export function Profile({
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
           <CardHeader className="bg-linear-to-r from-green-500/10 to-blue-500/10 dark:from-green-500/20 dark:to-blue-500/20">
             <CardTitle className="flex items-center space-x-2">
-              <Briefcase className="h-5 w-5 text-green-600" />
+              <Briefcase className="h-5 w-5 text-green-600 dark:text-green-400" />
               <span>Professional Information</span>
             </CardTitle>
           </CardHeader>
@@ -955,7 +955,7 @@ export function Profile({
                   Company
                 </label>
                 <div className="flex items-center mt-1">
-                  <Building className="h-4 w-4 text-slate-400 mr-2" />
+                  <Building className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.company ?? ""}
                   </span>
@@ -976,7 +976,7 @@ export function Profile({
                 Company Address
               </label>
               <div className="flex items-center mt-1">
-                <MapPin className="h-4 w-4 text-slate-400 mr-2" />
+                <MapPin className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                 <span className="text-slate-900 dark:text-slate-100">
                   {clientData.companyaddress ?? ""}
                 </span>
@@ -998,7 +998,7 @@ export function Profile({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center text-sm text-blue-600 hover:underline break-all"
+                        className="flex items-center text-sm text-blue-600 hover:underline break-all dark:text-blue-400"
                       >
                         <Globe className="h-4 w-4 mr-1" />
                         <span className="mr-1">{url}</span>
@@ -1020,7 +1020,7 @@ export function Profile({
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
           <CardHeader className="bg-linear-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
             <CardTitle className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-purple-600" />
+              <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <span>Package Information</span>
             </CardTitle>
           </CardHeader>
@@ -1047,7 +1047,7 @@ export function Profile({
                   Start Date
                 </label>
                 <div className="flex items-center mt-1">
-                  <Clock className="h-4 w-4 text-slate-400 mr-2" />
+                  <Clock className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.startDate
                       ? formatDate(clientData.startDate as any)
@@ -1060,7 +1060,7 @@ export function Profile({
                   Renewal Date
                 </label>
                 <div className="flex items-center mt-1">
-                  <Clock className="h-4 w-4 text-slate-400 mr-2" />
+                  <Clock className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.renewalDate
                       ? formatDate(clientData.renewalDate as any)
@@ -1073,7 +1073,7 @@ export function Profile({
                   Due Date
                 </label>
                 <div className="flex items-center mt-1">
-                  <Calendar className="h-4 w-4 text-slate-400 mr-2" />
+                  <Calendar className="h-4 w-4 text-slate-400 mr-2 dark:text-muted-foreground" />
                   <span className="text-slate-900 dark:text-slate-100">
                     {clientData.dueDate
                       ? formatDate(clientData.dueDate as any)
@@ -1106,7 +1106,7 @@ export function Profile({
           <CardHeader className="bg-linear-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center space-x-2">
-                <Share2 className="h-5 w-5 text-rose-600" />
+                <Share2 className="h-5 w-5 text-rose-600 dark:text-rose-400" />
                 <span>Social Media</span>
                 <Badge variant="secondary">{socialRows.length}</Badge>
               </CardTitle>
@@ -1333,13 +1333,13 @@ export function Profile({
                                       href={link}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline break-all inline-flex items-center gap-1"
+                                      className="text-blue-600 hover:underline break-all inline-flex items-center gap-1 dark:text-blue-400"
                                     >
                                       {link}
                                       <ExternalLink className="h-3.5 w-3.5" />
                                     </a>
                                   ) : (
-                                    <span className="text-slate-400">—</span>
+                                    <span className="text-slate-400 dark:text-muted-foreground">—</span>
                                   )
                                 ) : (
                                   <Input
@@ -1437,7 +1437,7 @@ export function Profile({
                                         )}
                                       </Button>
                                     ) : sm.password ? (
-                                      <Lock className="h-3.5 w-3.5 text-slate-400" />
+                                      <Lock className="h-3.5 w-3.5 text-slate-400 dark:text-muted-foreground" />
                                     ) : null}
                                   </div>
                                 ) : (
@@ -1492,7 +1492,7 @@ export function Profile({
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => deleteRow(id)}
-                                          className="h-8 px-2 text-red-600 hover:text-red-700"
+                                          className="h-8 px-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                           title="Delete row"
                                           disabled={rowDeleting[id]}
                                         >

@@ -116,7 +116,7 @@ function MetricCard({
   subMetric?: string;
 }) {
   return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/60 backdrop-blur-sm group">
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl border-0 rounded-2xl bg-linear-to-br from-white to-slate-50/60 backdrop-blur-sm group dark:from-card dark:to-background/60">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div
@@ -134,8 +134,8 @@ function MetricCard({
               className={cn(
                 "font-medium group-hover:shadow-sm",
                 trend === "up"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-rose-50 text-rose-700 border-rose-200"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                  : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
               )}
             >
               {change}
@@ -143,14 +143,14 @@ function MetricCard({
           )}
         </div>
         <div className="mt-5">
-          <h3 className="text-3xl font-extrabold text-slate-900">{value}</h3>
-          <p className="text-sm text-slate-600 mt-1 font-medium">{title}</p>
+          <h3 className="text-3xl font-extrabold text-slate-900 dark:text-foreground">{value}</h3>
+          <p className="text-sm text-slate-600 mt-1 font-medium dark:text-muted-foreground">{title}</p>
         </div>
         {(description || subMetric) && (
           <div className="flex items-center justify-between mt-4">
-            <p className="text-xs text-slate-500">{description}</p>
+            <p className="text-xs text-slate-500 dark:text-muted-foreground">{description}</p>
             {subMetric && (
-              <p className="text-xs text-slate-400 font-medium">{subMetric}</p>
+              <p className="text-xs text-slate-400 font-medium dark:text-muted-foreground">{subMetric}</p>
             )}
           </div>
         )}
@@ -181,7 +181,7 @@ function RangeControls({
   return (
     <div className="flex w-full flex-wrap items-end gap-2 sm:w-auto">
       <Select value={range} onValueChange={(v: RangeType) => setRange(v)}>
-        <SelectTrigger className="h-9 w-full border-slate-300 bg-white/80 backdrop-blur sm:w-44">
+        <SelectTrigger className="h-9 w-full border-slate-300 bg-white/80 backdrop-blur sm:w-44 dark:border-border dark:bg-card/80">
           <SelectValue placeholder="Date range" />
         </SelectTrigger>
         <SelectContent>
@@ -432,17 +432,17 @@ export default function QCDashboardPro({
   }, [rangedTasks]);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-linear-to-br from-slate-50 to-blue-50 p-4 sm:p-6">
+    <div className="min-h-screen w-full overflow-x-hidden bg-linear-to-br from-slate-50 to-blue-50 p-4 sm:p-6 dark:from-background dark:to-blue-950/40">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div className="min-w-0">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-linear-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-linear-to-r from-blue-700 via-indigo-700 to-purple-700 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">
             QC Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
             Real-time overview of QC throughput & task health
             {isQC && user?.name && (
-              <span className="ml-2 text-sm font-medium text-blue-600">
+              <span className="ml-2 text-sm font-medium text-blue-600 dark:text-blue-400">
                 • Supervised by {user.name}
               </span>
             )}
@@ -454,7 +454,7 @@ export default function QCDashboardPro({
               placeholder="Quick filter (client / assignee / task)"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="h-9 w-full min-w-0 border-slate-300 bg-white/80 backdrop-blur sm:w-72"
+              className="h-9 w-full min-w-0 border-slate-300 bg-white/80 backdrop-blur sm:w-72 dark:border-border dark:bg-card/80"
             />
           </div>
           {!isQC && (
@@ -539,10 +539,10 @@ export default function QCDashboardPro({
 
       {/* QC Agents Breakdown (when in QC supervision mode) */}
       {isQC && qcAgentsBreakdown.length > 0 && (
-        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-cyan-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-cyan-50/70 to-blue-50/70">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Users className="h-5 w-5 text-cyan-600" />
+        <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-cyan-50/60 dark:from-card dark:to-cyan-950/40">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-cyan-50/70 to-blue-50/70 dark:border-border/70 dark:from-cyan-950/40 dark:to-blue-950/40">
+            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+              <Users className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
               Supervised Agents
             </CardTitle>
             <CardDescription>Task distribution by agent</CardDescription>
@@ -555,16 +555,16 @@ export default function QCDashboardPro({
                 return (
                   <div key={g.name} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-slate-700 dark:text-foreground">
                         {g.name}
                       </span>
-                      <span className="text-sm font-medium text-slate-900">
+                      <span className="text-sm font-medium text-slate-900 dark:text-foreground">
                         {numberFmt(g.value)} ({pct.toFixed(1)}%)
                       </span>
                     </div>
                     <Progress
                       value={pct}
-                      className="h-2.5 bg-slate-200 [&>div]:rounded-full [&>div]:bg-linear-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500"
+                      className="h-2.5 bg-slate-200 [&>div]:rounded-full [&>div]:bg-linear-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500 dark:bg-muted"
                     />
                   </div>
                 );
@@ -577,10 +577,10 @@ export default function QCDashboardPro({
       {/* Status & Priority breakdown (matches your gradient bars) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Status */}
-        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/70 to-indigo-50/70">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Activity className="h-5 w-5 text-blue-600" />
+        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-blue-50/60 dark:from-card dark:to-blue-950/40">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-blue-50/70 to-indigo-50/70 dark:border-border/70 dark:from-blue-950/40 dark:to-indigo-950/40">
+            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+              <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Task Status Distribution
             </CardTitle>
             <CardDescription>Current task status breakdown</CardDescription>
@@ -597,18 +597,18 @@ export default function QCDashboardPro({
                       <div className="flex min-w-0 items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-2">
                           <span className={cn("h-3 w-3 rounded-full", color)} />
-                          <span className="truncate text-sm font-medium text-slate-700">
+                          <span className="truncate text-sm font-medium text-slate-700 dark:text-foreground">
                             {titleCase(g.name)}
                           </span>
                         </div>
-                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900">
+                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900 dark:text-foreground">
                           {numberFmt(g.value)} ({pct.toFixed(1)}%)
                         </span>
                       </div>
                       <Progress
                         value={pct}
                         className={cn(
-                          "h-2.5 bg-slate-200 [&>div]:rounded-full",
+                          "h-2.5 bg-slate-200 [&>div]:rounded-full dark:bg-muted",
                           `[&>div]:${color}`
                         )}
                       />
@@ -621,10 +621,10 @@ export default function QCDashboardPro({
         </Card>
 
         {/* Priority */}
-        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60">
-          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/70 to-violet-50/70">
-            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-600" />
+        <Card className="min-w-0 border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-purple-50/60 dark:from-card dark:to-purple-950/40">
+          <CardHeader className="border-b border-slate-200/70 py-5 bg-linear-to-r from-purple-50/70 to-violet-50/70 dark:border-border/70 dark:from-purple-950/40 dark:to-violet-950/40">
+            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               Task Priority Breakdown
             </CardTitle>
             <CardDescription>Tasks by urgency</CardDescription>
@@ -641,18 +641,18 @@ export default function QCDashboardPro({
                       <div className="flex min-w-0 items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-2">
                           <span className={cn("h-3 w-3 rounded-full", color)} />
-                          <span className="truncate text-sm font-medium text-slate-700 capitalize">
+                          <span className="truncate text-sm font-medium text-slate-700 capitalize dark:text-foreground">
                             {g.name}
                           </span>
                         </div>
-                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900">
+                        <span className="shrink-0 whitespace-nowrap text-right text-sm font-medium text-slate-900 dark:text-foreground">
                           {numberFmt(g.value)} ({pct.toFixed(1)}%)
                         </span>
                       </div>
                       <Progress
                         value={pct}
                         className={cn(
-                          "h-2.5 bg-slate-200 [&>div]:rounded-full",
+                          "h-2.5 bg-slate-200 [&>div]:rounded-full dark:bg-muted",
                           `[&>div]:${color}`
                         )}
                       />
@@ -669,26 +669,26 @@ export default function QCDashboardPro({
       <Tabs defaultValue="all" className="w-full min-w-0 space-y-4">
         <TabsList
           className={cn(
-            "flex w-full min-w-0 gap-2 overflow-x-auto rounded-2xl border border-slate-200/60 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 p-2 shadow-lg backdrop-blur-md",
+            "flex w-full min-w-0 gap-2 overflow-x-auto rounded-2xl border border-slate-200/60 bg-linear-to-r from-white/90 via-slate-50/80 to-white/90 p-2 shadow-lg backdrop-blur-md dark:border-border/60 dark:from-card/90 dark:via-background/80 dark:to-card/90",
           )}
         >
           <TabsTrigger
             value="all"
-            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
           >
             <BarChart3 className="h-4 w-4 mr-2" />
             All Tasks
           </TabsTrigger>
           <TabsTrigger
             value="qc"
-            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             QC Approved
           </TabsTrigger>
           <TabsTrigger
             value="overdue"
-            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+            className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reassign
@@ -696,7 +696,7 @@ export default function QCDashboardPro({
           {isQC && (
             <TabsTrigger
               value="agents"
-              className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md"
+              className="min-w-[140px] flex-1 rounded-xl font-medium transition-all duration-300 data-[state=active]:bg-linear-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-slate-100/60 hover:shadow-md dark:hover:bg-muted/60"
             >
               <Users className="h-4 w-4 mr-2" />
               Agents
@@ -706,12 +706,12 @@ export default function QCDashboardPro({
 
         {/* All Tasks */}
         <TabsContent value="all">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
-            <CardHeader className="border-b border-slate-200/70 py-5">
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60 dark:from-card dark:to-background/60">
+            <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-slate-700" />
+                  <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                    <BarChart3 className="h-5 w-5 text-slate-700 dark:text-foreground" />
                     All Tasks
                   </CardTitle>
                   <CardDescription>
@@ -741,9 +741,9 @@ export default function QCDashboardPro({
                   </TableHeader>
                   <TableBody>
                     {rows.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-slate-100/60">
+                      <TableRow key={r.id} className="hover:bg-slate-100/60 dark:hover:bg-muted/60">
                         <TableCell
-                          className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          className="max-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
                         />
                         <TableCell className="truncate">{r.client}</TableCell>
@@ -786,10 +786,10 @@ export default function QCDashboardPro({
 
         {/* QC Approved */}
         <TabsContent value="qc">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
-            <CardHeader className="border-b border-slate-200/70 py-5">
-              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60 dark:from-card dark:to-background/60">
+            <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
+              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 QC Approved
               </CardTitle>
               <CardDescription>
@@ -814,9 +814,9 @@ export default function QCDashboardPro({
                     {rows
                       .filter((r) => r.status === "qc_approved")
                       .map((r) => (
-                        <TableRow key={r.id} className="hover:bg-slate-100/60">
+                        <TableRow key={r.id} className="hover:bg-slate-100/60 dark:hover:bg-muted/60">
                           <TableCell
-                            className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                            className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                             dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
                           />
                           <TableCell>{r.client}</TableCell>
@@ -847,10 +847,10 @@ export default function QCDashboardPro({
 
         {/* Overdue */}
         <TabsContent value="overdue">
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
-            <CardHeader className="border-b border-slate-200/70 py-5">
-              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <RotateCcw className="h-5 w-5 text-violet-600" />
+          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60 dark:from-card dark:to-background/60">
+            <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
+              <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                <RotateCcw className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 Reassign
               </CardTitle>
               <CardDescription>Pending / reassigned tasks</CardDescription>
@@ -872,12 +872,12 @@ export default function QCDashboardPro({
                   </TableHeader>
                   <TableBody>
                     {reassignedRows.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-slate-100/60">
+                      <TableRow key={r.id} className="hover:bg-slate-100/60 dark:hover:bg-muted/60">
                         <TableCell className="font-mono text-[11px]">
                           {String(r.id).slice(0, 8)}…
                         </TableCell>
                         <TableCell
-                          className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                          className="font-medium [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(r.name)) }}
                         />
                         <TableCell>{r.client}</TableCell>
@@ -912,10 +912,10 @@ export default function QCDashboardPro({
         {/* QC Agents Detail Tab */}
         {isQC && (
           <TabsContent value="agents">
-            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60">
-              <CardHeader className="border-b border-slate-200/70 py-5">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-cyan-600" />
+            <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-linear-to-br from-white to-slate-50/60 dark:from-card dark:to-background/60">
+              <CardHeader className="border-b border-slate-200/70 py-5 dark:border-border/70">
+                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2 dark:text-foreground">
+                  <Users className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
                   Supervised Agents Details
                 </CardTitle>
                 <CardDescription>
@@ -969,28 +969,28 @@ export default function QCDashboardPro({
                             : "—";
 
                         return (
-                          <TableRow key={agent.name} className="hover:bg-slate-100/60">
+                          <TableRow key={agent.name} className="hover:bg-slate-100/60 dark:hover:bg-muted/60">
                             <TableCell className="font-medium">
                               {agent.name}
                             </TableCell>
                             <TableCell>{numberFmt(agent.value)}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-emerald-50">
+                              <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/40">
                                 {completed}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-teal-50">
+                              <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950/40">
                                 {qcApproved}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-amber-50">
+                              <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950/40">
                                 {pending}
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-violet-50">
+                              <Badge variant="outline" className="bg-violet-50 dark:bg-violet-950/40">
                                 {reassigned}
                               </Badge>
                             </TableCell>

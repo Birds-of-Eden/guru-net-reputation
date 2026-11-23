@@ -61,16 +61,16 @@ export default function ClientSelfDashboard() {
         <ClientDashboardSkeleton />
       ) : error ? (
         <div className="p-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-950/40 dark:border-red-800">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           </div>
         </div>
       ) : clientId && clientData ? (
         <ClientDashboard clientData={clientData} />
       ) : (
         <div className="p-4">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-sm text-gray-600">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 dark:bg-muted/40 dark:border-border">
+            <p className="text-sm text-gray-600 dark:text-muted-foreground">
               No client is associated with your session.
             </p>
           </div>

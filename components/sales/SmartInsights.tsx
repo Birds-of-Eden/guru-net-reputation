@@ -38,15 +38,15 @@ export function SmartInsights({
     );
 
   return (
-    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-white via-slate-50 to-slate-100">
+    <Card className="border-0 shadow-sm ring-1 ring-slate-200/60 p-6 bg-linear-to-br from-white via-slate-50 to-slate-100 dark:ring-border/60 dark:from-card dark:via-background dark:to-background">
       <div className="flex items-center gap-2 mb-4">
         <Lightbulb className="h-5 w-5 text-amber-500" />
-        <p className="text-sm font-semibold text-slate-800 tracking-wide">
+        <p className="text-sm font-semibold text-slate-800 tracking-wide dark:text-foreground">
           Smart Insights
         </p>
       </div>
 
-      <ul className="space-y-2 text-sm text-slate-700">
+      <ul className="space-y-2 text-sm text-slate-700 dark:text-foreground">
         {insights.length ? (
           insights.map((text, i) => (
             <li key={i} className="flex items-start gap-2">
@@ -55,7 +55,7 @@ export function SmartInsights({
             </li>
           ))
         ) : (
-          <p className="text-slate-500">No insights available.</p>
+          <p className="text-slate-500 dark:text-muted-foreground">No insights available.</p>
         )}
       </ul>
     </Card>

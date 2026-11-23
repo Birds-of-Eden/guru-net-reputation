@@ -158,14 +158,14 @@ export default function DangerDeleteClientModal({
   }, [counts]);
 
   const toneMap: Record<string, string> = {
-    cyan: "bg-cyan-50 text-cyan-700 ring-cyan-200",
-    blue: "bg-blue-50 text-blue-700 ring-blue-200",
-    amber: "bg-amber-50 text-amber-800 ring-amber-200",
-    rose: "bg-rose-50 text-rose-700 ring-rose-200",
-    indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-    violet: "bg-violet-50 text-violet-700 ring-violet-200",
-    slate: "bg-slate-50 text-slate-700 ring-slate-200",
-    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    cyan: "bg-cyan-50 text-cyan-700 ring-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300",
+    blue: "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300",
+    amber: "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
+    rose: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300",
+    indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300",
+    violet: "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-300",
+    slate: "bg-slate-50 text-slate-700 ring-slate-200 dark:bg-muted/40 dark:text-foreground dark:ring-border",
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
   };
 
   const exportJSON = () => {
@@ -197,13 +197,13 @@ export default function DangerDeleteClientModal({
           sm:max-w-3xl p-0 overflow-hidden
           rounded-2xl
           border border-rose-100
-          shadow-2xl
+          shadow-2xl dark:border-rose-800
         "
       >
         {/* Decorative danger header */}
         <div className="bg-linear-to-r from-rose-600 via-rose-500 to-orange-500 px-6 py-4 text-white">
           <div className="flex items-center gap-2">
-            <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+            <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur dark:bg-card/15">
               <Trash2 className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
@@ -220,11 +220,11 @@ export default function DangerDeleteClientModal({
         {/* Body */}
         <div className="px-6 py-5 space-y-5">
           {/* Callout */}
-          <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-3">
-            <div className="mt-0.5 rounded-lg bg-rose-100 p-1.5">
-              <Info className="h-4 w-4 text-rose-700" />
+          <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-3 dark:border-rose-800 dark:bg-rose-950/40">
+            <div className="mt-0.5 rounded-lg bg-rose-100 p-1.5 dark:bg-rose-900/40">
+              <Info className="h-4 w-4 text-rose-700 dark:text-rose-300" />
             </div>
-            <div className="text-sm text-rose-900">
+            <div className="text-sm text-rose-900 dark:text-rose-300">
               Cascading deletion will remove the client and all linked records.
               Consider exporting reports or data before continuing.
             </div>
@@ -232,17 +232,17 @@ export default function DangerDeleteClientModal({
 
           {/* Quick totals + export */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-gray-700 dark:text-foreground">
               {loading ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-3 w-3 animate-pulse rounded-full bg-gray-300" />
+                  <span className="h-3 w-3 animate-pulse rounded-full bg-gray-300 dark:bg-accent" />
                   Loading deletion preview…
                 </span>
               ) : error ? (
-                <span className="text-rose-700">{error}</span>
+                <span className="text-rose-700 dark:text-rose-300">{error}</span>
               ) : (
                 <>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-900 dark:text-foreground">
                     {totalToDelete}
                   </span>{" "}
                   total related records will be removed.
@@ -264,14 +264,14 @@ export default function DangerDeleteClientModal({
           </div>
 
           {/* Items grid */}
-          <ScrollArea className="max-h-64 rounded-xl border bg-white">
+          <ScrollArea className="max-h-64 rounded-xl border bg-white dark:bg-card">
             <div className="p-3">
               {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={i}
-                      className="h-16 rounded-xl border border-gray-100 bg-gray-50 animate-pulse"
+                      className="h-16 rounded-xl border border-gray-100 bg-gray-50 animate-pulse dark:border-border dark:bg-muted/40"
                     />
                   ))}
                 </div>
@@ -284,7 +284,7 @@ export default function DangerDeleteClientModal({
                         key={key}
                         className="
                           group relative overflow-hidden rounded-xl border border-gray-100
-                          bg-white p-3 transition hover:shadow-md
+                          bg-white p-3 transition hover:shadow-md dark:border-border dark:bg-card
                         "
                       >
                         <div className="flex items-center justify-between">
@@ -297,16 +297,16 @@ export default function DangerDeleteClientModal({
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-semibold text-gray-900 leading-none">
+                            <div className="text-lg font-semibold text-gray-900 leading-none dark:text-foreground">
                               {n}
                             </div>
-                            <div className="text-[11px] text-gray-500 mt-0.5">
+                            <div className="text-[11px] text-gray-500 mt-0.5 dark:text-muted-foreground">
                               {label}
                             </div>
                           </div>
                         </div>
                         {/* subtle gradient accent */}
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-linear-to-r from-gray-50 via-gray-100 to-gray-50" />
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-linear-to-r from-gray-50 via-gray-100 to-gray-50 dark:from-background dark:via-background dark:to-background" />
                       </div>
                     );
                   })}
@@ -317,7 +317,7 @@ export default function DangerDeleteClientModal({
 
           {/* Confirmation controls */}
           <div className="space-y-3">
-            <label className="flex items-start gap-2 text-sm text-gray-700">
+            <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-foreground">
               <Checkbox
                 checked={ack}
                 onCheckedChange={(v) => setAck(Boolean(v))}
@@ -331,10 +331,10 @@ export default function DangerDeleteClientModal({
             </label>
 
             <div className="space-y-1">
-              <label htmlFor="confirm-name" className="text-sm text-gray-700">
+              <label htmlFor="confirm-name" className="text-sm text-gray-700 dark:text-foreground">
                 Type <span className="font-semibold">{clientName}</span> to
                 confirm
-                <span className="text-gray-400"> (case-sensitive)</span>:
+                <span className="text-gray-400 dark:text-muted-foreground"> (case-sensitive)</span>:
               </label>
               <Input
                 id="confirm-name"
@@ -346,9 +346,9 @@ export default function DangerDeleteClientModal({
                 spellCheck={false}
                 aria-invalid={ack && typed.length > 0 && !canDelete}
               />
-              <p className="text-[11px] text-gray-500">
+              <p className="text-[11px] text-gray-500 dark:text-muted-foreground">
                 Tip: Press{" "}
-                <kbd className="rounded bg-gray-100 px-1 py-0.5 text-[10px] border">
+                <kbd className="rounded bg-gray-100 px-1 py-0.5 text-[10px] border dark:bg-muted">
                   Enter
                 </kbd>{" "}
                 to delete when enabled.

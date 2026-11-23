@@ -197,7 +197,7 @@ const StatusBreakdownBadges = ({
     // Build badges list with All Assigned first, then status breakdown
     const allBadges = [];
     allBadges.push(
-      <Badge key="all-assigned" variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs font-semibold">
+      <Badge key="all-assigned" variant="outline" className="bg-green-100 text-green-800 border-green-300 text-xs font-semibold dark:bg-green-900/40 dark:text-green-300 dark:border-green-700">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         All Assigned
       </Badge>
@@ -206,7 +206,7 @@ const StatusBreakdownBadges = ({
     // Add status breakdown badges even when all assigned
     if (statusCounts.completed > 0) {
       allBadges.push(
-        <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+        <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs dark:bg-green-950/40 dark:text-green-300 dark:border-green-800">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           {statusCounts.completed} Completed
         </Badge>
@@ -214,7 +214,7 @@ const StatusBreakdownBadges = ({
     }
     if (statusCounts.in_progress > 0) {
       allBadges.push(
-        <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+        <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
           <Clock className="w-3 h-3 mr-1" />
           {statusCounts.in_progress} In Progress
         </Badge>
@@ -222,7 +222,7 @@ const StatusBreakdownBadges = ({
     }
     if (statusCounts.pending > 0) {
       allBadges.push(
-        <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+        <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs dark:bg-muted/40 dark:text-foreground dark:border-border">
           <AlertCircle className="w-3 h-3 mr-1" />
           {statusCounts.pending} Pending
         </Badge>
@@ -230,7 +230,7 @@ const StatusBreakdownBadges = ({
     }
     if (statusCounts.qa_approved > 0) {
       allBadges.push(
-        <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+        <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           {statusCounts.qa_approved} QC Approved
         </Badge>
@@ -248,7 +248,7 @@ const StatusBreakdownBadges = ({
   
   if (statusCounts.assigned > 0) {
     badges.push(
-      <Badge key="assigned" variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+      <Badge key="assigned" variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
         <UserCheck className="w-3 h-3 mr-1" />
         {statusCounts.assigned} Assigned
       </Badge>
@@ -257,7 +257,7 @@ const StatusBreakdownBadges = ({
   
   if (statusCounts.completed > 0) {
     badges.push(
-      <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+      <Badge key="completed" variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs dark:bg-green-950/40 dark:text-green-300 dark:border-green-800">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         {statusCounts.completed} Completed
       </Badge>
@@ -266,7 +266,7 @@ const StatusBreakdownBadges = ({
   
   if (statusCounts.in_progress > 0) {
     badges.push(
-      <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+      <Badge key="in_progress" variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
         <Clock className="w-3 h-3 mr-1" />
         {statusCounts.in_progress} In Progress
       </Badge>
@@ -275,7 +275,7 @@ const StatusBreakdownBadges = ({
   
   if (statusCounts.pending > 0) {
     badges.push(
-      <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+      <Badge key="pending" variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs dark:bg-muted/40 dark:text-foreground dark:border-border">
         <AlertCircle className="w-3 h-3 mr-1" />
         {statusCounts.pending} Pending
       </Badge>
@@ -284,7 +284,7 @@ const StatusBreakdownBadges = ({
   
   if (statusCounts.qa_approved > 0) {
     badges.push(
-      <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+      <Badge key="qa_approved" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800">
         <CheckCircle2 className="w-3 h-3 mr-1" />
         {statusCounts.qa_approved} QC Approved
       </Badge>
@@ -388,9 +388,9 @@ export function TaskTabs({
 
     return (
       <div className="w-full space-y-4">
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border dark:bg-card">
           {useCycles && cycleGroups.length ? (
-            <Accordion type="multiple" className="divide-y divide-slate-200">
+            <Accordion type="multiple" className="divide-y divide-slate-200 dark:divide-border">
               {cycleGroups.map((group) => {
                 const ids = group.tasks.map((t) => t.id);
                 const allSelected = ids.every((id) => selectedTasks.has(id));
@@ -411,7 +411,7 @@ export function TaskTabs({
                   <AccordionItem
                     key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                     value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
-                    className="border-b border-slate-200 last:border-0"
+                    className="border-b border-slate-200 last:border-0 dark:border-border"
                   >
                     <div className="flex items-stretch">
                       <div className="flex items-center px-4 py-4">
@@ -425,14 +425,14 @@ export function TaskTabs({
                           onCheckedChange={() =>
                             onSelectAllTasks(ids, !allSelected)
                           }
-                          className="border-slate-300"
+                          className="border-slate-300 dark:border-border"
                         />
                       </div>
-                      <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                      <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px] dark:hover:bg-muted/40">
                         <div className="flex w-full items-center gap-4">
                           <div className="min-w-[240px]">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-900">
+                              <span className="font-semibold text-slate-900 dark:text-foreground">
                                 Task Cycle {headerLabel}
                               </span>
                               <Badge variant="outline" className="text-xs">
@@ -440,7 +440,7 @@ export function TaskTabs({
                                 {group.tasks.length !== 1 ? "s" : ""}
                               </Badge>
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-slate-500 dark:text-muted-foreground">
                               {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                               {dueDate
                                 ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
@@ -458,15 +458,15 @@ export function TaskTabs({
 
                           <div className="flex items-center gap-3 shrink-0">
                             <div className="text-right">
-                              <div className="text-sm font-semibold text-slate-700">
+                              <div className="text-sm font-semibold text-slate-700 dark:text-foreground">
                                 {assignedInGroup} / {group.tasks.length}
                               </div>
-                              <div className="text-xs text-slate-500">Assigned</div>
+                              <div className="text-xs text-slate-500 dark:text-muted-foreground">Assigned</div>
                             </div>
                             {someSelected && (
                               <Badge
                                 variant="outline"
-                                className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                               >
                                 {ids.filter((id) => selectedTasks.has(id)).length} selected
                               </Badge>
@@ -475,7 +475,7 @@ export function TaskTabs({
                         </div>
                       </AccordionTrigger>
                     </div>
-                    <AccordionContent className="bg-slate-50/60">
+                    <AccordionContent className="bg-slate-50/60 dark:bg-muted/40">
                       <div className="p-4 space-y-3">
                         {group.tasks.map((task) => renderTaskRow(task, true))}
                       </div>
@@ -525,12 +525,12 @@ export function TaskTabs({
 
     // Minimal tab styles
     const baseTrigger =
-      "group relative inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold border transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white border-slate-200";
+      "group relative inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold border transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white border-slate-200 dark:border-border";
 
     return (
       <div className="w-full space-y-3">
         {/* Master "Select All for Current Tab" control */}
-        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-border dark:bg-card">
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <Checkbox
@@ -541,18 +541,18 @@ export function TaskTabs({
                       someCurrentTabSelected && !allCurrentTabSelected;
                 }}
                 onCheckedChange={() => onSelectAllTasks(currentTabTaskIds, !allCurrentTabSelected)}
-                className="border-slate-300"
+                className="border-slate-300 dark:border-border"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-slate-900 dark:text-foreground">
                 Select All
               </span>
-              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
+              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs dark:bg-muted/40 dark:text-foreground dark:border-border">
                 {currentTabTaskIds.length} tasks
               </Badge>
               {someCurrentTabSelected && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
                   {currentTabTaskIds.filter(id => selectedTasks.has(id)).length} selected
                 </Badge>
               )}
@@ -562,19 +562,19 @@ export function TaskTabs({
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Tabs header */}
-          <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm dark:border-border dark:bg-card">
             <TabsList className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-3 bg-transparent p-0">
               {/* Social Sites */}
               <TabsTrigger value="social_site" className={baseTrigger}>
                 <span className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center rounded-md bg-indigo-50 text-indigo-700 p-1.5">
+                  <span className="inline-flex items-center justify-center rounded-md bg-indigo-50 text-indigo-700 p-1.5 dark:bg-indigo-950/40 dark:text-indigo-300">
                     <Users className="h-4 w-4" aria-hidden />
                   </span>
                   <span>Social Sites</span>
                 </span>
                 <Badge
                   variant="outline"
-                  className="ml-1 bg-white text-slate-900"
+                  className="ml-1 bg-white text-slate-900 dark:bg-card dark:text-foreground"
                 >
                   {safe.social_site.length}
                 </Badge>
@@ -583,14 +583,14 @@ export function TaskTabs({
               {/* Web2 Sites */}
               <TabsTrigger value="web2_site" className={baseTrigger}>
                 <span className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center rounded-md bg-sky-50 text-sky-700 p-1.5">
+                  <span className="inline-flex items-center justify-center rounded-md bg-sky-50 text-sky-700 p-1.5 dark:bg-sky-950/40 dark:text-sky-300">
                     <Globe className="h-4 w-4" aria-hidden />
                   </span>
                   <span>Web2 Sites</span>
                 </span>
                 <Badge
                   variant="outline"
-                  className="ml-1 bg-white text-slate-900"
+                  className="ml-1 bg-white text-slate-900 dark:bg-card dark:text-foreground"
                 >
                   {safe.web2_site.length}
                 </Badge>
@@ -599,14 +599,14 @@ export function TaskTabs({
               {/* Other Assets */}
               <TabsTrigger value="other_asset" className={baseTrigger}>
                 <span className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center rounded-md bg-slate-50 text-slate-700 p-1.5">
+                  <span className="inline-flex items-center justify-center rounded-md bg-slate-50 text-slate-700 p-1.5 dark:bg-muted/40 dark:text-foreground">
                     <Building2 className="h-4 w-4" aria-hidden />
                   </span>
                   <span>Other Assets</span>
                 </span>
                 <Badge
                   variant="outline"
-                  className="ml-1 bg-white text-slate-900"
+                  className="ml-1 bg-white text-slate-900 dark:bg-card dark:text-foreground"
                 >
                   {safe.other_asset.length}
                 </Badge>
@@ -617,7 +617,7 @@ export function TaskTabs({
           {/* Tab panes with cycle-based accordions */}
           <TabsContent value="social_site" className="mt-0">
             <div className="w-full space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border dark:bg-card">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.social_site);
                   const useCycles =
@@ -661,7 +661,7 @@ export function TaskTabs({
                   return useCycles && cycleGroups.length ? (
                     <Accordion
                       type="multiple"
-                      className="divide-y divide-slate-200"
+                      className="divide-y divide-slate-200 dark:divide-border"
                     >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
@@ -689,7 +689,7 @@ export function TaskTabs({
                           <AccordionItem
                             key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
-                            className="border-b border-slate-200 last:border-0"
+                            className="border-b border-slate-200 last:border-0 dark:border-border"
                           >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-4">
@@ -703,14 +703,14 @@ export function TaskTabs({
                                   onCheckedChange={() =>
                                     onSelectAllTasks(ids, !allSelected)
                                   }
-                                  className="border-slate-300"
+                                  className="border-slate-300 dark:border-border"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px] dark:hover:bg-muted/40">
                                 <div className="flex w-full items-center gap-4">
                                   <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">
+                                      <span className="font-semibold text-slate-900 dark:text-foreground">
                                         {headerLabel}
                                       </span>
                                       <Badge variant="outline" className="text-xs">
@@ -718,7 +718,7 @@ export function TaskTabs({
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
-                                    <div className="text-xs text-slate-500">
+                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">
                                       {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
                                         ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
@@ -736,15 +736,15 @@ export function TaskTabs({
 
                                   <div className="flex items-center gap-3 shrink-0">
                                     <div className="text-right">
-                                      <div className="text-sm font-semibold text-slate-700">
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-foreground">
                                         {assignedInGroup} / {group.tasks.length}
                                       </div>
-                                      <div className="text-xs text-slate-500">Assigned</div>
+                                      <div className="text-xs text-slate-500 dark:text-muted-foreground">Assigned</div>
                                     </div>
                                     {someSelected && (
                                       <Badge
                                         variant="outline"
-                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       >
                                         {ids.filter((id) => selectedTasks.has(id)).length} selected
                                       </Badge>
@@ -753,7 +753,7 @@ export function TaskTabs({
                                 </div>
                               </AccordionTrigger>
                             </div>
-                            <AccordionContent className="bg-slate-50/60">
+                            <AccordionContent className="bg-slate-50/60 dark:bg-muted/40">
                               <div className="p-4 space-y-3">
                                 {group.tasks.map((task) =>
                                   renderTaskRow(task, true)
@@ -776,7 +776,7 @@ export function TaskTabs({
 
           <TabsContent value="web2_site" className="mt-0">
             <div className="w-full space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border dark:bg-card">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.web2_site);
                   const useCycles =
@@ -820,7 +820,7 @@ export function TaskTabs({
                   return useCycles && cycleGroups.length ? (
                     <Accordion
                       type="multiple"
-                      className="divide-y divide-slate-200"
+                      className="divide-y divide-slate-200 dark:divide-border"
                     >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
@@ -848,7 +848,7 @@ export function TaskTabs({
                           <AccordionItem
                             key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
-                            className="border-b border-slate-200 last:border-0"
+                            className="border-b border-slate-200 last:border-0 dark:border-border"
                           >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-4">
@@ -862,14 +862,14 @@ export function TaskTabs({
                                   onCheckedChange={() =>
                                     onSelectAllTasks(ids, !allSelected)
                                   }
-                                  className="border-slate-300"
+                                  className="border-slate-300 dark:border-border"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px] dark:hover:bg-muted/40">
                                 <div className="flex w-full items-center gap-4">
                                   <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">
+                                      <span className="font-semibold text-slate-900 dark:text-foreground">
                                         {headerLabel}
                                       </span>
                                       <Badge variant="outline" className="text-xs">
@@ -877,7 +877,7 @@ export function TaskTabs({
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
-                                    <div className="text-xs text-slate-500">
+                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">
                                       {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
                                         ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
@@ -895,15 +895,15 @@ export function TaskTabs({
 
                                   <div className="flex items-center gap-3 shrink-0">
                                     <div className="text-right">
-                                      <div className="text-sm font-semibold text-slate-700">
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-foreground">
                                         {assignedInGroup} / {group.tasks.length}
                                       </div>
-                                      <div className="text-xs text-slate-500">Assigned</div>
+                                      <div className="text-xs text-slate-500 dark:text-muted-foreground">Assigned</div>
                                     </div>
                                     {someSelected && (
                                       <Badge
                                         variant="outline"
-                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       >
                                         {ids.filter((id) => selectedTasks.has(id)).length} selected
                                       </Badge>
@@ -912,7 +912,7 @@ export function TaskTabs({
                                 </div>
                               </AccordionTrigger>
                             </div>
-                            <AccordionContent className="bg-slate-50/60">
+                            <AccordionContent className="bg-slate-50/60 dark:bg-muted/40">
                               <div className="p-4 space-y-3">
                                 {group.tasks.map((task) =>
                                   renderTaskRow(task, true)
@@ -935,7 +935,7 @@ export function TaskTabs({
 
           <TabsContent value="other_asset" className="mt-0">
             <div className="w-full space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-border dark:bg-card">
                 {(() => {
                   const cycleGroups = groupTasksByCycle(safe.other_asset);
                   const useCycles =
@@ -979,7 +979,7 @@ export function TaskTabs({
                   return useCycles && cycleGroups.length ? (
                     <Accordion
                       type="multiple"
-                      className="divide-y divide-slate-200"
+                      className="divide-y divide-slate-200 dark:divide-border"
                     >
                       {cycleGroups.map((group) => {
                         const ids = group.tasks.map((t) => t.id);
@@ -1007,7 +1007,7 @@ export function TaskTabs({
                           <AccordionItem
                             key={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
                             value={group.isManual ? `manual_${group.label || `cycle-${group.cycle || "na"}`}` : (group.label || `cycle-${group.cycle || "na"}`)}
-                            className="border-b border-slate-200 last:border-0"
+                            className="border-b border-slate-200 last:border-0 dark:border-border"
                           >
                             <div className="flex items-stretch">
                               <div className="flex items-center px-4 py-4">
@@ -1021,14 +1021,14 @@ export function TaskTabs({
                                   onCheckedChange={() =>
                                     onSelectAllTasks(ids, !allSelected)
                                   }
-                                  className="border-slate-300"
+                                  className="border-slate-300 dark:border-border"
                                 />
                               </div>
-                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px]">
+                              <AccordionTrigger className="flex-1 px-4 py-4 hover:bg-slate-50 hover:no-underline min-h-[88px] dark:hover:bg-muted/40">
                                 <div className="flex w-full items-center gap-4">
                                   <div className="min-w-[240px]">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-slate-900">
+                                      <span className="font-semibold text-slate-900 dark:text-foreground">
                                         {headerLabel}
                                       </span>
                                       <Badge variant="outline" className="text-xs">
@@ -1036,7 +1036,7 @@ export function TaskTabs({
                                         {group.tasks.length !== 1 ? "s" : ""}
                                       </Badge>
                                     </div>
-                                    <div className="text-xs text-slate-500">
+                                    <div className="text-xs text-slate-500 dark:text-muted-foreground">
                                       {group.cycle > 0 ? `Cycle ${group.cycle}` : "Cycle —"}
                                       {dueDate
                                         ? ` • Due ${format(new Date(dueDate), "MMM d, yyyy")}`
@@ -1054,15 +1054,15 @@ export function TaskTabs({
 
                                   <div className="flex items-center gap-3 shrink-0">
                                     <div className="text-right">
-                                      <div className="text-sm font-semibold text-slate-700">
+                                      <div className="text-sm font-semibold text-slate-700 dark:text-foreground">
                                         {assignedInGroup} / {group.tasks.length}
                                       </div>
-                                      <div className="text-xs text-slate-500">Assigned</div>
+                                      <div className="text-xs text-slate-500 dark:text-muted-foreground">Assigned</div>
                                     </div>
                                     {someSelected && (
                                       <Badge
                                         variant="outline"
-                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                                       >
                                         {ids.filter((id) => selectedTasks.has(id)).length} selected
                                       </Badge>
@@ -1071,7 +1071,7 @@ export function TaskTabs({
                                 </div>
                               </AccordionTrigger>
                             </div>
-                            <AccordionContent className="bg-slate-50/60">
+                            <AccordionContent className="bg-slate-50/60 dark:bg-muted/40">
                               <div className="p-4 space-y-3">
                                 {group.tasks.map((task) =>
                                   renderTaskRow(task, true)

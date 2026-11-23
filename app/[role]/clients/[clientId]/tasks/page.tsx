@@ -197,16 +197,16 @@ export default function TasksPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <p className="text-lg text-gray-600">Loading client data...</p>
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-muted/40">
+        <p className="text-lg text-gray-600 dark:text-muted-foreground">Loading client data...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-        <p className="text-lg text-red-600">{error}</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-muted/40">
+        <p className="text-lg text-red-600 dark:text-red-400">{error}</p>
         <Button onClick={fetchData} className="mt-4">
           Retry
         </Button>
@@ -216,8 +216,8 @@ export default function TasksPage() {
 
   if (!clientData) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <p className="text-lg text-gray-600">No client data available.</p>
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-muted/40">
+        <p className="text-lg text-gray-600 dark:text-muted-foreground">No client data available.</p>
       </div>
     )
   }
@@ -492,38 +492,38 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 bg-gray-50 min-h-screen">
-      <Card className="bg-white p-6 rounded-xl shadow-lg mb-8">
+    <div className="container mx-auto py-8 px-4 md:px-6 bg-gray-50 min-h-screen dark:bg-muted/40">
+      <Card className="bg-white p-6 rounded-xl shadow-lg mb-8 dark:bg-card">
         <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
           <div>
-            <Button variant="ghost" size="sm" onClick={handleGoBack} className="mb-3 text-gray-600 hover:text-gray-900">
+            <Button variant="ghost" size="sm" onClick={handleGoBack} className="mb-3 text-gray-600 hover:text-gray-900 dark:text-muted-foreground dark:hover:text-foreground">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Clients
             </Button>
-            <h1 className="text-3xl font-bold text-gray-800">{clientData.name}</h1>
-            <p className="text-gray-500 text-lg mt-1">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-foreground">{clientData.name}</h1>
+            <p className="text-gray-500 text-lg mt-1 dark:text-muted-foreground">
               {clientData.company} • {clientData.designation}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-4 text-sm">
               <div className="flex items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="bg-purple-100 text-purple-800 border-purple-200 px-3 py-1 text-sm font-medium"
+                  className="bg-purple-100 text-purple-800 border-purple-200 px-3 py-1 text-sm font-medium dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800"
                 >
                   {clientData.package}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>Start Date: {clientData.startDate}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 <span>Due Date: {clientData.dueDate}</span>
               </div>
               <div className="flex items-center gap-2">
-                <AlertTriangle className={cn("h-4 w-4", clientData.isOverdue ? "text-red-500" : "text-gray-500")} />
-                <span className={cn("font-medium", clientData.isOverdue ? "text-red-500" : "text-gray-600")}>
+                <AlertTriangle className={cn("h-4 w-4", clientData.isOverdue ? "text-red-500" : "text-gray-500 dark:text-muted-foreground")} />
+                <span className={cn("font-medium", clientData.isOverdue ? "text-red-500" : "text-gray-600 dark:text-muted-foreground")}>
                   {clientData.isOverdue ? "Overdue by 3 days" : "On Schedule"}
                 </span>
               </div>
@@ -531,16 +531,16 @@ export default function TasksPage() {
           </div>
           <div className="flex flex-wrap items-center gap-4 md:ml-auto">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-9 w-[250px] border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-9 w-[250px] border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-border"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] border-gray-300">
+              <SelectTrigger className="w-[150px] border-gray-300 dark:border-border">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -552,7 +552,7 @@ export default function TasksPage() {
               </SelectContent>
             </Select>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[150px] border-gray-300">
+              <SelectTrigger className="w-[150px] border-gray-300 dark:border-border">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -571,7 +571,7 @@ export default function TasksPage() {
             </Button>
           </div>
         </div>
-        <div className="flex items-center text-sm text-gray-600 mt-4 border-t pt-4">
+        <div className="flex items-center text-sm text-gray-600 mt-4 border-t pt-4 dark:text-muted-foreground">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-amber-400"></div>
@@ -592,9 +592,9 @@ export default function TasksPage() {
             <div className="flex items-center gap-2 ml-4">
               <Progress
                 value={clientData.progress}
-                className="h-2 w-[120px] bg-gray-200 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-linear-to-r [&::-webkit-progress-value]:from-green-400 [&::-webkit-progress-value]:to-emerald-500"
+                className="h-2 w-[120px] bg-gray-200 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-linear-to-r [&::-webkit-progress-value]:from-green-400 [&::-webkit-progress-value]:to-emerald-500 dark:bg-muted"
               />
-              <span className="font-semibold text-gray-700">{clientData.progress}% Complete</span>
+              <span className="font-semibold text-gray-700 dark:text-foreground">{clientData.progress}% Complete</span>
             </div>
           </div>
         </div>
@@ -606,15 +606,15 @@ export default function TasksPage() {
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, "unassigned")}
         >
-          <div className="bg-red-100 border-b-2 border-red-300 rounded-t-xl p-4 flex justify-between items-center">
-            <h3 className="font-bold text-red-800 text-lg">Unassigned</h3>
-            <Badge variant="outline" className="bg-red-200 text-red-900 px-3 py-1 text-sm font-semibold">
+          <div className="bg-red-100 border-b-2 border-red-300 rounded-t-xl p-4 flex justify-between items-center dark:bg-red-900/40 dark:border-red-700">
+            <h3 className="font-bold text-red-800 text-lg dark:text-red-300">Unassigned</h3>
+            <Badge variant="outline" className="bg-red-200 text-red-900 px-3 py-1 text-sm font-semibold dark:bg-red-800/50 dark:text-red-300">
               {visibleTasks.unassigned.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-red-50 p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto bg-red-50 p-4 space-y-4 dark:bg-red-950/40">
             {visibleTasks.unassigned.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                 <p>No unassigned tasks found</p>
               </div>
             ) : (
@@ -642,15 +642,15 @@ export default function TasksPage() {
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, "pending")}
         >
-          <div className="bg-amber-100 border-b-2 border-amber-300 rounded-t-xl p-4 flex justify-between items-center">
-            <h3 className="font-bold text-amber-800 text-lg">Pending</h3>
-            <Badge variant="outline" className="bg-amber-200 text-amber-900 px-3 py-1 text-sm font-semibold">
+          <div className="bg-amber-100 border-b-2 border-amber-300 rounded-t-xl p-4 flex justify-between items-center dark:bg-amber-900/40 dark:border-amber-700">
+            <h3 className="font-bold text-amber-800 text-lg dark:text-amber-300">Pending</h3>
+            <Badge variant="outline" className="bg-amber-200 text-amber-900 px-3 py-1 text-sm font-semibold dark:bg-amber-800/50 dark:text-amber-300">
               {visibleTasks.pending.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-amber-50 p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto bg-amber-50 p-4 space-y-4 dark:bg-amber-950/40">
             {visibleTasks.pending.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                 <p>No pending tasks found</p>
               </div>
             ) : (
@@ -678,15 +678,15 @@ export default function TasksPage() {
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, "inProgress")}
         >
-          <div className="bg-blue-100 border-b-2 border-blue-300 rounded-t-xl p-4 flex justify-between items-center">
-            <h3 className="font-bold text-blue-800 text-lg">In Progress</h3>
-            <Badge variant="outline" className="bg-blue-200 text-blue-900 px-3 py-1 text-sm font-semibold">
+          <div className="bg-blue-100 border-b-2 border-blue-300 rounded-t-xl p-4 flex justify-between items-center dark:bg-blue-900/40 dark:border-blue-700">
+            <h3 className="font-bold text-blue-800 text-lg dark:text-blue-300">In Progress</h3>
+            <Badge variant="outline" className="bg-blue-200 text-blue-900 px-3 py-1 text-sm font-semibold dark:bg-blue-800/50 dark:text-blue-300">
               {visibleTasks.inProgress.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-blue-50 p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto bg-blue-50 p-4 space-y-4 dark:bg-blue-950/40">
             {visibleTasks.inProgress.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                 <p>No in-progress tasks found</p>
               </div>
             ) : (
@@ -714,15 +714,15 @@ export default function TasksPage() {
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, "completed")}
         >
-          <div className="bg-emerald-100 border-b-2 border-emerald-300 rounded-t-xl p-4 flex justify-between items-center">
-            <h3 className="font-bold text-emerald-800 text-lg">Completed</h3>
-            <Badge variant="outline" className="bg-emerald-200 text-emerald-900 px-3 py-1 text-sm font-semibold">
+          <div className="bg-emerald-100 border-b-2 border-emerald-300 rounded-t-xl p-4 flex justify-between items-center dark:bg-emerald-900/40 dark:border-emerald-700">
+            <h3 className="font-bold text-emerald-800 text-lg dark:text-emerald-300">Completed</h3>
+            <Badge variant="outline" className="bg-emerald-200 text-emerald-900 px-3 py-1 text-sm font-semibold dark:bg-emerald-800/50 dark:text-emerald-300">
               {visibleTasks.completed.length}
             </Badge>
           </div>
-          <div className="flex-1 overflow-y-auto bg-emerald-50 p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto bg-emerald-50 p-4 space-y-4 dark:bg-emerald-950/40">
             {visibleTasks.completed.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                 <p>No completed tasks found</p>
               </div>
             ) : (
@@ -751,44 +751,44 @@ export default function TasksPage() {
           <DialogContent className="max-w-[800px] max-h-[90vh] w-[95vw] flex flex-col">
             <DialogHeader className="pb-4 border-b">
               <DialogTitle className="text-2xl font-bold">Assign Task</DialogTitle>
-              <DialogDescription className="text-gray-600">
+              <DialogDescription className="text-gray-600 dark:text-muted-foreground">
                 Assign &quot;{selectedTask.name}&quot; to a team member.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 flex-1 overflow-y-auto">
-              <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+              <div className="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-muted/40">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">Task Details</h3>
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-foreground">Task Details</h3>
                   <Badge
                     className={cn(
                       "px-3 py-1 text-xs font-semibold",
                       selectedTask.priority === "high"
-                        ? "bg-red-100 text-red-800"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
                         : selectedTask.priority === "medium"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-blue-100 text-blue-800",
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
                     )}
                   >
                     {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)} Priority
                   </Badge>
                 </div>
-                <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="bg-white p-4 rounded-md border border-gray-200 dark:bg-card dark:border-border">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="font-semibold text-lg text-gray-800">{selectedTask.name}</div>
+                    <div className="font-semibold text-lg text-gray-800 dark:text-foreground">{selectedTask.name}</div>
                     <Badge
                       className={cn(
                         "px-3 py-1 text-xs font-semibold",
                         selectedTask.category === "social"
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                           : selectedTask.category === "content"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-purple-100 text-purple-800",
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                            : "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
                       )}
                     >
                       {selectedTask.category.charAt(0).toUpperCase() + selectedTask.category.slice(1)}
                     </Badge>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-gray-500">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-gray-500 dark:text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>Due: {new Date(selectedTask.dueDate).toLocaleDateString()}</span>
@@ -806,17 +806,17 @@ export default function TasksPage() {
               </div>
               <div className="mb-5">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                   <Input
                     placeholder="Search team members..."
-                    className="pl-9 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    className="pl-9 border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-border"
                     value={agentSearchQuery}
                     onChange={(e) => setAgentSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
               <Tabs value={activeTeamTab} onValueChange={setActiveTeamTab}>
-                <TabsList className="mb-5 w-full justify-start overflow-x-auto bg-gray-100 rounded-lg p-1">
+                <TabsList className="mb-5 w-full justify-start overflow-x-auto bg-gray-100 rounded-lg p-1 dark:bg-muted">
                   <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
                     All Teams
                   </TabsTrigger>
@@ -847,34 +847,34 @@ export default function TasksPage() {
                       <div
                         key={member.id}
                         className={cn(
-                          "flex flex-col p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer",
+                          "flex flex-col p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer dark:hover:bg-muted/40",
                           selectedTask.assignedTo?.id === member.id
-                            ? "border-blue-500 bg-blue-50 shadow-sm"
-                            : "border-gray-200",
+                            ? "border-blue-500 bg-blue-50 shadow-sm dark:bg-blue-950/40"
+                            : "border-gray-200 dark:border-border",
                         )}
                         onClick={() => assignTaskToMember(selectedTask.id, member)}
                       >
                         <div className="flex items-center gap-4 mb-3">
-                          <Avatar className="h-12 w-12 shrink-0 border-2 border-gray-200">
+                          <Avatar className="h-12 w-12 shrink-0 border-2 border-gray-200 dark:border-border">
                             <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
                             <AvatarFallback>{member.name.substring(0, 2)}</AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <div className="font-semibold text-lg truncate text-gray-800">{member.name}</div>
-                            <div className="text-sm text-gray-500 truncate">{member.email}</div>
-                            <div className="text-xs text-gray-500 mt-1">{member.role}</div>
+                            <div className="font-semibold text-lg truncate text-gray-800 dark:text-foreground">{member.name}</div>
+                            <div className="text-sm text-gray-500 truncate dark:text-muted-foreground">{member.email}</div>
+                            <div className="text-xs text-gray-500 mt-1 dark:text-muted-foreground">{member.role}</div>
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           <Badge
                             variant="outline"
-                            className="bg-blue-50 text-blue-800 border-blue-200 px-2 py-0.5 text-xs font-medium"
+                            className="bg-blue-50 text-blue-800 border-blue-200 px-2 py-0.5 text-xs font-medium dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800"
                           >
                             {member.assignedTasks} Tasks
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="bg-emerald-50 text-emerald-800 border-emerald-200 px-2 py-0.5 text-xs font-medium"
+                            className="bg-emerald-50 text-emerald-800 border-emerald-200 px-2 py-0.5 text-xs font-medium dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
                           >
                             {member.completedTasks} Completed
                           </Badge>
@@ -904,27 +904,27 @@ export default function TasksPage() {
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader className="pb-4 border-b">
             <DialogTitle className="text-2xl font-bold">Create New Task</DialogTitle>
-            <DialogDescription className="text-gray-600">Enter the details for your new task.</DialogDescription>
+            <DialogDescription className="text-gray-600 dark:text-muted-foreground">Enter the details for your new task.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="text-right text-sm font-medium text-gray-700 dark:text-foreground">
                 Task Name
               </label>
               <Input
                 id="name"
                 value={newTaskName}
                 onChange={(e) => setNewTaskName(e.target.value)}
-                className="col-span-3 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="col-span-3 border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-border"
                 placeholder="e.g., Prepare Q2 Report"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="category" className="text-right text-sm font-medium text-gray-700">
+              <label htmlFor="category" className="text-right text-sm font-medium text-gray-700 dark:text-foreground">
                 Category
               </label>
               <Select value={newTaskCategory} onValueChange={(value: TaskCategory) => setNewTaskCategory(value)}>
-                <SelectTrigger className="col-span-3 border-gray-300">
+                <SelectTrigger className="col-span-3 border-gray-300 dark:border-border">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -935,11 +935,11 @@ export default function TasksPage() {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="priority" className="text-right text-sm font-medium text-gray-700">
+              <label htmlFor="priority" className="text-right text-sm font-medium text-gray-700 dark:text-foreground">
                 Priority
               </label>
               <Select value={newTaskPriority} onValueChange={(value: TaskPriority) => setNewTaskPriority(value)}>
-                <SelectTrigger className="col-span-3 border-gray-300">
+                <SelectTrigger className="col-span-3 border-gray-300 dark:border-border">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -950,7 +950,7 @@ export default function TasksPage() {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="dueDate" className="text-right text-sm font-medium text-gray-700">
+              <label htmlFor="dueDate" className="text-right text-sm font-medium text-gray-700 dark:text-foreground">
                 Due Date
               </label>
               <Input
@@ -958,7 +958,7 @@ export default function TasksPage() {
                 type="date"
                 value={newTaskDueDate}
                 onChange={(e) => setNewTaskDueDate(e.target.value)}
-                className="col-span-3 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="col-span-3 border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:border-border"
               />
             </div>
           </div>
@@ -981,20 +981,20 @@ export default function TasksPage() {
           <DialogContent className="sm:max-w-[400px]">
             <DialogHeader className="pb-4 border-b">
               <DialogTitle className="text-2xl font-bold">Change Task Status</DialogTitle>
-              <DialogDescription className="text-gray-600">
+              <DialogDescription className="text-gray-600 dark:text-muted-foreground">
                 Change the status for &quot;{selectedTask.name}&quot;.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-3 items-center gap-4">
-                <label htmlFor="status" className="text-right text-sm font-medium text-gray-700">
+                <label htmlFor="status" className="text-right text-sm font-medium text-gray-700 dark:text-foreground">
                   New Status
                 </label>
                 <Select
                   value={selectedTask.status}
                   onValueChange={(value: TaskStatus) => handleChangeStatus(selectedTask.id, value)}
                 >
-                  <SelectTrigger className="col-span-2 border-gray-300">
+                  <SelectTrigger className="col-span-2 border-gray-300 dark:border-border">
                     <SelectValue placeholder="Select new status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1026,28 +1026,28 @@ export default function TasksPage() {
           <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh]">
             <DialogHeader className="pb-4 border-b">
               <DialogTitle className="text-2xl font-bold">Comments</DialogTitle>
-              <DialogDescription className="text-gray-600">
+              <DialogDescription className="text-gray-600 dark:text-muted-foreground">
                 Comments for &quot;{selectedTask.name}&quot;
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 flex-1 overflow-y-auto">
               {selectedTask.comments.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No comments yet</div>
+                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">No comments yet</div>
               ) : (
                 <div className="space-y-4">
                   {selectedTask.comments.map((comment) => (
-                    <div key={comment.id} className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+                    <div key={comment.id} className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm dark:border-border dark:bg-card">
                       <div className="flex items-center gap-3 mb-2">
-                        <Avatar className="h-9 w-9 border border-gray-200">
+                        <Avatar className="h-9 w-9 border border-gray-200 dark:border-border">
                           <AvatarImage src={comment.avatar || "/placeholder.svg"} alt={comment.author} />
                           <AvatarFallback>{comment.author.substring(0, 2)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-semibold text-sm text-gray-800">{comment.author}</div>
-                          <div className="text-xs text-gray-500">{new Date(comment.date).toLocaleDateString()}</div>
+                          <div className="font-semibold text-sm text-gray-800 dark:text-foreground">{comment.author}</div>
+                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{new Date(comment.date).toLocaleDateString()}</div>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700">{comment.text}</p>
+                      <p className="text-sm text-gray-700 dark:text-foreground">{comment.text}</p>
                     </div>
                   ))}
                 </div>
@@ -1066,41 +1066,41 @@ export default function TasksPage() {
         <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
           <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh]">
             <DialogHeader className="pb-4 border-b">
-              <DialogTitle className="text-2xl font-bold text-red-700">Issues Reported</DialogTitle>
-              <DialogDescription className="text-gray-600">
+              <DialogTitle className="text-2xl font-bold text-red-700 dark:text-red-300">Issues Reported</DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-muted-foreground">
                 Issues for &quot;{selectedTask.name}&quot;
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 flex-1 overflow-y-auto">
               {selectedTask.reports.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">No issues reported</div>
+                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">No issues reported</div>
               ) : (
                 <div className="space-y-4">
                   {selectedTask.reports.map((report) => (
-                    <div key={report.id} className="p-4 border border-red-200 rounded-lg bg-red-50 shadow-sm">
+                    <div key={report.id} className="p-4 border border-red-200 rounded-lg bg-red-50 shadow-sm dark:border-red-800 dark:bg-red-950/40">
                       <div className="flex items-center gap-3 mb-2">
-                        <Avatar className="h-9 w-9 border border-red-200">
+                        <Avatar className="h-9 w-9 border border-red-200 dark:border-red-800">
                           <AvatarImage src={report.avatar || "/placeholder.svg"} alt={report.author} />
                           <AvatarFallback>{report.author.substring(0, 2)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <div className="font-semibold text-sm text-gray-800">{report.author}</div>
-                          <div className="text-xs text-gray-500">{new Date(report.date).toLocaleDateString()}</div>
+                          <div className="font-semibold text-sm text-gray-800 dark:text-foreground">{report.author}</div>
+                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{new Date(report.date).toLocaleDateString()}</div>
                         </div>
                         <Badge
                           className={cn(
                             "px-3 py-1 text-xs font-semibold",
                             report.severity === "high"
-                              ? "bg-red-100 text-red-800"
+                              ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
                               : report.severity === "medium"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-blue-100 text-blue-800",
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                                : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
                           )}
                         >
                           {report.severity.charAt(0).toUpperCase() + report.severity.slice(1)}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-700">{report.text}</p>
+                      <p className="text-sm text-gray-700 dark:text-foreground">{report.text}</p>
                     </div>
                   ))}
                 </div>
@@ -1141,7 +1141,7 @@ function TaskCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200",
+        "overflow-hidden bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 dark:bg-card",
         "cursor-grab",
       )}
       draggable={true}
@@ -1150,16 +1150,16 @@ function TaskCard({
       <CardHeader className="p-4 pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <h4 className="font-semibold text-base text-gray-800">{task.name}</h4>
+            <h4 className="font-semibold text-base text-gray-800 dark:text-foreground">{task.name}</h4>
             <div className="flex items-center gap-2 mt-1">
               <Badge
                 className={cn(
                   "px-2 py-0.5 text-xs font-medium",
                   task.category === "social"
-                    ? "bg-emerald-100 text-emerald-800"
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
                     : task.category === "content"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-purple-100 text-purple-800",
+                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                      : "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
                 )}
               >
                 {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
@@ -1168,10 +1168,10 @@ function TaskCard({
                 className={cn(
                   "px-2 py-0.5 text-xs font-medium",
                   task.priority === "high"
-                    ? "bg-red-100 text-red-800"
+                    ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
                     : task.priority === "medium"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-blue-100 text-blue-800",
+                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                      : "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
                 )}
               >
                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
@@ -1180,23 +1180,23 @@ function TaskCard({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-muted-foreground dark:hover:text-foreground">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">More options</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={onAssign}>
-                <Users className="h-4 w-4 mr-2 text-gray-600" />
+                <Users className="h-4 w-4 mr-2 text-gray-600 dark:text-muted-foreground" />
                 {task.assignedTo ? "Reassign Task" : "Assign Task"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onMarkAsCompleted(task.id)} disabled={task.status === "completed"}>
-                <CheckCircle className="h-4 w-4 mr-2 text-emerald-600" />
+                <CheckCircle className="h-4 w-4 mr-2 text-emerald-600 dark:text-emerald-400" />
                 Mark as Completed
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onChangeStatus(task.status)}>
-                <Clock className="h-4 w-4 mr-2 text-blue-600" />
+                <Clock className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
                 Change Status
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -1205,23 +1205,23 @@ function TaskCard({
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="flex items-center justify-between mt-2 text-xs">
-          <div className="flex items-center gap-1 text-gray-500">
+          <div className="flex items-center gap-1 text-gray-500 dark:text-muted-foreground">
             <Calendar className="h-3 w-3" />
             <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
           </div>
           {task.assignedTo ? (
             <div className="flex items-center gap-2">
-              <Avatar className="h-7 w-7 border border-gray-200">
+              <Avatar className="h-7 w-7 border border-gray-200 dark:border-border">
                 <AvatarImage src={task.assignedTo.avatar || "/placeholder.svg"} alt={task.assignedTo.name} />
                 <AvatarFallback>{task.assignedTo.name.substring(0, 2)}</AvatarFallback>
               </Avatar>
-              <span className="text-gray-600 font-medium hidden sm:block">{task.assignedTo.name.split(" ")[0]}</span>
+              <span className="text-gray-600 font-medium hidden sm:block dark:text-muted-foreground">{task.assignedTo.name.split(" ")[0]}</span>
             </div>
           ) : (
             <Button
               variant="outline"
               size="sm"
-              className="h-7 text-xs px-3 py-1 rounded-md border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent"
+              className="h-7 text-xs px-3 py-1 rounded-md border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 bg-transparent dark:border-border dark:text-muted-foreground dark:hover:bg-muted/40"
               onClick={onAssign}
             >
               Assign
@@ -1233,7 +1233,7 @@ function TaskCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 p-0 text-blue-600 hover:text-blue-800 hover:bg-transparent text-xs font-medium"
+              className="h-7 p-0 text-blue-600 hover:text-blue-800 hover:bg-transparent text-xs font-medium dark:text-blue-400 dark:hover:text-blue-300"
               onClick={onViewComments}
             >
               <MessageSquare className="h-3.5 w-3.5 mr-1" />
@@ -1244,7 +1244,7 @@ function TaskCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 p-0 text-red-600 hover:text-red-800 hover:bg-transparent text-xs font-medium"
+              className="h-7 p-0 text-red-600 hover:text-red-800 hover:bg-transparent text-xs font-medium dark:text-red-400 dark:hover:text-red-300"
               onClick={onViewReports}
             >
               <AlertTriangle className="h-3.5 w-3.5 mr-1" />

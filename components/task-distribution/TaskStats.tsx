@@ -32,7 +32,7 @@ export function TaskStats({
         </div>
         <div className="flex items-center space-x-8">
           <div className="text-right z-10">
-            <div className="bg-linear-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+            <div className="bg-linear-to-r from-blue-500/20 to-indigo-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg dark:border-border/20">
               <div className="text-sm text-slate-100 font-medium">
                 Tasks Selected
               </div>
@@ -40,7 +40,7 @@ export function TaskStats({
             </div>
           </div>
           <div className="text-right">
-            <div className="bg-linear-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg">
+            <div className="bg-linear-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 backdrop-blur-sm border border-white/20 shadow-lg dark:border-border/20">
               <div className="text-sm text-slate-100 font-medium">
                 Ready to Assign
               </div>
@@ -55,7 +55,7 @@ export function TaskStats({
           >
             {submitting ? (
               <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white dark:border-border"></div>
                 <span className="text-lg">Distributing Tasks...</span>
               </div>
             ) : (

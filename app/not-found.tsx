@@ -101,7 +101,7 @@ export default function NotFoundPage() {
 
           <Link
             href="/auth/sign-in"
-            className="px-8 py-4 bg-white/10 backdrop-blur-md text-white font-semibold rounded-2xl border border-white/20 hover:bg-white/20 transform hover:scale-105 transition-all duration-300"
+            className="px-8 py-4 bg-white/10 backdrop-blur-md text-white font-semibold rounded-2xl border border-white/20 hover:bg-white/20 transform hover:scale-105 transition-all duration-300 dark:bg-card/10 dark:border-border/20 dark:hover:bg-card/20"
           >
             Sign In
           </Link>

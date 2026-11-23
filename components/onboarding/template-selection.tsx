@@ -123,15 +123,15 @@ export function TemplateSelection({
   const getStatusColor = (status: string) => {
     switch (normalizeTemplateStatus(status)) {
       case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800";
       case "draft":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-800";
       case "requested":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800";
       case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-muted dark:text-foreground dark:border-border";
     }
   };
 
@@ -142,10 +142,10 @@ export function TemplateSelection({
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-purple-500 to-pink-500 shadow-lg mb-4 animate-pulse">
             <FileText className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:via-fuchsia-400 dark:to-pink-400">
             Select Template
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-lg dark:text-muted-foreground">
             Loading available templates for your package...
           </p>
         </div>
@@ -178,10 +178,10 @@ export function TemplateSelection({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-purple-500 to-pink-500 shadow-lg mb-4">
           <FileText className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent dark:from-purple-400 dark:via-fuchsia-400 dark:to-pink-400">
           Select Your Template
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Choose a template that perfectly aligns with your project requirements
           and business goals.
         </p>
@@ -189,13 +189,13 @@ export function TemplateSelection({
 
       {availableTemplates.length === 0 ? (
         <div className="text-center py-16">
-          <div className="mx-auto w-32 h-32 bg-linear-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
-            <FileText className="w-16 h-16 text-purple-600" />
+          <div className="mx-auto w-32 h-32 bg-linear-to-br from-purple-100 via-fuchsia-100 to-pink-100 rounded-3xl flex items-center justify-center mb-6 shadow-xl dark:from-purple-900/40 dark:via-fuchsia-900/40 dark:to-pink-900/40">
+            <FileText className="w-16 h-16 text-purple-600 dark:text-purple-400" />
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          <h3 className="text-2xl font-bold text-gray-900 mb-3 dark:text-foreground">
             No Templates Available
           </h3>
-          <p className="text-gray-600 text-lg max-w-md mx-auto">
+          <p className="text-gray-600 text-lg max-w-md mx-auto dark:text-muted-foreground">
             {canUseDraftTemplates
               ? "There are no approved or draft templates available for the selected package."
               : "There are no approved templates available for the selected package. Please contact support or try a different package."}
@@ -214,11 +214,11 @@ export function TemplateSelection({
                 className={`relative overflow-hidden cursor-pointer transition-all duration-500 group ${
                   selectedTemplate === template.id
                     ? isCustomized
-                      ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-linear-to-br from-purple-100 via-pink-100 to-purple-100"
-                      : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-linear-to-br from-blue-50 via-indigo-50 to-blue-50"
+                      ? "ring-4 ring-purple-500 shadow-2xl scale-105 bg-linear-to-br from-purple-100 via-pink-100 to-purple-100 dark:from-purple-900/40 dark:via-pink-900/40 dark:to-purple-900/40"
+                      : "ring-4 ring-blue-500 shadow-2xl scale-105 bg-linear-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-blue-950/40"
                     : isCustomized
-                    ? "hover:shadow-xl hover:-translate-y-2 bg-linear-to-br from-purple-50 to-pink-50 border-2 border-purple-200"
-                    : "hover:shadow-xl hover:-translate-y-2 bg-white border-2 border-blue-200"
+                    ? "hover:shadow-xl hover:-translate-y-2 bg-linear-to-br from-purple-50 to-pink-50 border-2 border-purple-200 dark:from-purple-950/40 dark:to-pink-950/40 dark:border-purple-800"
+                    : "hover:shadow-xl hover:-translate-y-2 bg-white border-2 border-blue-200 dark:bg-card dark:border-blue-800"
                 }`}
                 onClick={() => handleTemplateSelect(template.id)}
                 style={{ animationDelay: `${index * 100}ms` }}
@@ -228,7 +228,7 @@ export function TemplateSelection({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-blue-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 bg-white/70 backdrop-blur-sm rounded-full shadow-md px-2.5 py-1.5"
+                    className="border-blue-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 bg-white/70 backdrop-blur-sm rounded-full shadow-md px-2.5 py-1.5 dark:border-blue-800 dark:hover:border-blue-700 dark:hover:bg-blue-950/40 dark:hover:text-blue-400 dark:bg-card/70"
                     onClick={(e) => {
                       e.stopPropagation();
                       setViewingTemplate(template);
@@ -272,8 +272,8 @@ export function TemplateSelection({
                       <CardTitle
                         className={`text-xl font-bold mb-2 transition-colors ${
                           isCustomized
-                            ? "text-purple-900 group-hover:text-purple-600"
-                            : "text-gray-900 group-hover:text-blue-600"
+                            ? "text-purple-900 group-hover:text-purple-600 dark:text-purple-300 dark:group-hover:text-purple-400"
+                            : "text-gray-900 group-hover:text-blue-600 dark:text-foreground dark:group-hover:text-blue-400"
                         }`}
                       >
                         {template.name}
@@ -290,7 +290,7 @@ export function TemplateSelection({
                   </div>
                   <CardDescription
                     className={`text-sm ${
-                      isCustomized ? "text-purple-700" : "text-blue-700"
+                      isCustomized ? "text-purple-700 dark:text-purple-300" : "text-blue-700 dark:text-blue-300"
                     } line-clamp-2`}
                   >
                     {template.description ||
@@ -301,13 +301,13 @@ export function TemplateSelection({
                 <CardContent className="pt-0 pb-6">
                   <div className="flex items-center gap-3 mb-5">
                     {template._count?.sitesAssets && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold dark:bg-purple-900/40 dark:text-purple-300">
                         <TrendingUp className="w-3.5 h-3.5" />
                         <span>{template._count.sitesAssets} Assets</span>
                       </div>
                     )}
                     {template._count?.templateTeamMembers && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 text-pink-700 rounded-lg text-xs font-semibold dark:bg-pink-900/40 dark:text-pink-300">
                         <Users className="w-3.5 h-3.5" />
                         <span>
                           {template._count.templateTeamMembers} Members
@@ -323,8 +323,8 @@ export function TemplateSelection({
                           ? "bg-linear-to-r from-purple-600 via-pink-600 to-purple-600 text-white"
                           : "bg-linear-to-r from-blue-600 via-indigo-600 to-blue-600 text-white"
                         : isCustomized
-                        ? "bg-linear-to-r from-purple-50 to-pink-50 text-purple-700 border-2 border-purple-200"
-                        : "bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-2 border-blue-200"
+                        ? "bg-linear-to-r from-purple-50 to-pink-50 text-purple-700 border-2 border-purple-200 dark:from-purple-950/40 dark:to-pink-950/40 dark:text-purple-300 dark:border-purple-800"
+                        : "bg-linear-to-r from-blue-50 to-indigo-50 text-blue-700 border-2 border-blue-200 dark:from-blue-950/40 dark:to-indigo-950/40 dark:text-blue-300 dark:border-blue-800"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();

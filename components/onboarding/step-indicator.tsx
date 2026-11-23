@@ -27,19 +27,19 @@ export function StepIndicator({
     <nav aria-label="Progress" className="mb-16">
       {/* Progress Bar */}
       <div className="max-w-5xl mx-auto mb-8 px-4">
-        <div className="relative h-2 bg-linear-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
+        <div className="relative h-2 bg-linear-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner dark:from-background dark:to-muted">
           <div
             className="absolute top-0 left-0 h-full bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 rounded-full transition-all duration-700 ease-out shadow-lg"
             style={{ width: `${progress}%` }}
           >
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer dark:via-card/30" />
           </div>
         </div>
         <div className="flex justify-between mt-3 px-2">
-          <span className="text-sm font-semibold text-violet-600">
+          <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">
             Step {currentStep} of {steps.length}
           </span>
-          <span className="text-sm font-medium text-gray-500">
+          <span className="text-sm font-medium text-gray-500 dark:text-muted-foreground">
             {Math.round(progress)}% Complete
           </span>
         </div>
@@ -60,7 +60,7 @@ export function StepIndicator({
                 {/* Connector Line */}
                 {idx !== 0 && (
                   <div className="absolute -left-4 md:-left-8 top-6 w-8 md:w-16 h-[2px] flex items-center">
-                    <div className="w-full h-full bg-gray-200 rounded-full" />
+                    <div className="w-full h-full bg-gray-200 rounded-full dark:bg-muted" />
                     <div
                       className={cn(
                         "absolute inset-0 h-full rounded-full transition-all duration-500 ease-out",
@@ -86,8 +86,8 @@ export function StepIndicator({
                       isCompleted
                         ? "bg-linear-to-br from-violet-500 via-purple-500 to-fuchsia-500 border-transparent shadow-xl text-white cursor-pointer hover:shadow-2xl hover:scale-110 hover:rotate-12"
                         : isActive
-                        ? "bg-white border-violet-500 shadow-2xl ring-4 ring-violet-100 scale-110"
-                        : "bg-white/80 border-gray-300 text-gray-400 hover:border-violet-300 hover:shadow-lg hover:scale-105"
+                        ? "bg-white border-violet-500 shadow-2xl ring-4 ring-violet-100 scale-110 dark:bg-card"
+                        : "bg-white/80 border-gray-300 text-gray-400 hover:border-violet-300 hover:shadow-lg hover:scale-105 dark:bg-card/80 dark:border-border dark:text-muted-foreground dark:hover:border-violet-700"
                     )}
                     onClick={() => isCompleted && onStepClick?.(step.id)}
                     role={isCompleted ? "button" : undefined}
@@ -98,13 +98,13 @@ export function StepIndicator({
                       <CheckIcon className="w-6 h-6 animate-in zoom-in duration-300" />
                     ) : isActive ? (
                       <div className="relative">
-                        <Sparkles className="w-5 h-5 text-violet-600 animate-pulse" />
+                        <Sparkles className="w-5 h-5 text-violet-600 animate-pulse dark:text-violet-400" />
                         <div className="absolute inset-0 w-5 h-5">
                           <div className="absolute inset-0 bg-violet-400 rounded-full animate-ping opacity-75" />
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs font-semibold text-gray-400">
+                      <span className="text-xs font-semibold text-gray-400 dark:text-muted-foreground">
                         {step.id}
                       </span>
                     )}
@@ -112,7 +112,7 @@ export function StepIndicator({
 
                   {/* Completion Badge */}
                   {isCompleted && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg animate-in zoom-in duration-300">
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg animate-in zoom-in duration-300 dark:border-border">
                       <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-75" />
                     </div>
                   )}
@@ -124,10 +124,10 @@ export function StepIndicator({
                     className={cn(
                       "text-sm text-center font-medium transition-all duration-300 whitespace-nowrap",
                       isCompleted
-                        ? "text-violet-600 cursor-pointer group-hover:text-violet-700 group-hover:scale-105"
+                        ? "text-violet-600 cursor-pointer group-hover:text-violet-700 group-hover:scale-105 dark:text-violet-400 dark:group-hover:text-violet-300"
                         : isActive
-                        ? "text-gray-900 font-bold text-base"
-                        : "text-gray-500 group-hover:text-gray-700"
+                        ? "text-gray-900 font-bold text-base dark:text-foreground"
+                        : "text-gray-500 group-hover:text-gray-700 dark:text-muted-foreground dark:group-hover:text-foreground"
                     )}
                     onClick={() => isCompleted && onStepClick?.(step.id)}
                     role={isCompleted ? "button" : undefined}

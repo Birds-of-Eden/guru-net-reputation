@@ -596,9 +596,9 @@ const ChatWindowComponent = memo(function ChatWindow({
           {isDM ? (
             <div className="text-xs">
               {isOtherOnline ? (
-                <span className="text-emerald-600">● Online</span>
+                <span className="text-emerald-600 dark:text-emerald-400">● Online</span>
               ) : (
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-muted-foreground">
                   {lastSeenText ? `last seen ${lastSeenText}` : "Offline"}
                 </span>
               )}
@@ -635,7 +635,7 @@ const ChatWindowComponent = memo(function ChatWindow({
         <div ref={topSentinel} />
 
         {isLoading && !messages.length && (
-          <div className="text-center text-sm text-gray-500 mt-10">
+          <div className="text-center text-sm text-gray-500 mt-10 dark:text-muted-foreground">
             Loading…
           </div>
         )}
@@ -655,7 +655,7 @@ const ChatWindowComponent = memo(function ChatWindow({
 
         {!!typingText && (
           <div className="flex justify-start">
-            <div className="mt-1 inline-flex items-center gap-1 rounded-2xl bg-green-50 text-green-700 px-3 py-1 text-xs shadow-sm">
+            <div className="mt-1 inline-flex items-center gap-1 rounded-2xl bg-green-50 text-green-700 px-3 py-1 text-xs shadow-sm dark:bg-green-950/40 dark:text-green-300">
               <span className="animate-pulse">●</span>
               {typingText}
             </div>
@@ -733,7 +733,7 @@ const ChatWindowComponent = memo(function ChatWindow({
                 placeholder="Enter a group name"
               />
               {renameError && (
-                <p className="text-xs text-red-600">{renameError}</p>
+                <p className="text-xs text-red-600 dark:text-red-400">{renameError}</p>
               )}
             </div>
             <DialogFooter>
@@ -820,10 +820,10 @@ const MembersDialog = memo(function MembersDialog({
         <div className="grid grid-cols-2 gap-4">
           {/* Current members */}
           <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Current</div>
+            <div className="text-xs font-semibold text-gray-700 mb-2 dark:text-foreground">Current</div>
             <div className="max-h-64 overflow-auto border rounded p-2 space-y-1">
               {(convParticipants || []).map((p: any) => (
-                <div key={p.userId} className="flex items-center gap-2 text-sm py-1 px-1 rounded hover:bg-gray-50">
+                <div key={p.userId} className="flex items-center gap-2 text-sm py-1 px-1 rounded hover:bg-gray-50 dark:hover:bg-muted/40">
                   <div className="flex-1 truncate">{p.user?.name || p.user?.email}</div>
                   <Button
                     size="sm"
@@ -839,12 +839,12 @@ const MembersDialog = memo(function MembersDialog({
 
           {/* Add new */}
           <div>
-            <div className="text-xs font-semibold text-gray-700 mb-2">Add members</div>
+            <div className="text-xs font-semibold text-gray-700 mb-2 dark:text-foreground">Add members</div>
             <div className="max-h-64 overflow-auto border rounded p-2 space-y-1">
               {Array.from(rosterMap.values())
                 .filter((u: any) => !existingIds.has(u.id))
                 .map((u: any) => (
-                  <label key={u.id} className="flex items-center gap-2 text-sm py-1 px-1 rounded hover:bg-gray-50">
+                  <label key={u.id} className="flex items-center gap-2 text-sm py-1 px-1 rounded hover:bg-gray-50 dark:hover:bg-muted/40">
                     <input
                       type="checkbox"
                       checked={selected.has(u.id)}
@@ -940,7 +940,7 @@ const SearchDialog = memo(function SearchDialog({
     return (
       <>
         {before}
-        <span className="bg-yellow-200 text-black rounded px-0.5">{match}</span>
+        <span className="bg-yellow-200 text-black rounded px-0.5 dark:bg-yellow-800/50 dark:text-foreground">{match}</span>
         {after}
       </>
     );
@@ -951,8 +951,8 @@ const SearchDialog = memo(function SearchDialog({
     const el = document.getElementById(`msg-${id}`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('bg-yellow-100');
-      setTimeout(() => el.classList.remove('bg-yellow-100'), 2000);
+      el.classList.add('bg-yellow-100 dark:bg-yellow-900/40');
+      setTimeout(() => el.classList.remove('bg-yellow-100 dark:bg-yellow-900/40'), 2000);
     }
     onClose();
   }
@@ -978,18 +978,18 @@ const SearchDialog = memo(function SearchDialog({
             {results.map((r) => (
               <button
                 key={r.id}
-                className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-muted/40"
                 onClick={() => jumpTo(r.id)}
                 title={new Date(r.createdAt).toLocaleString()}
               >
                 <div className="text-sm font-medium truncate">{highlight(r.content, q)}</div>
-                <div className="text-[11px] text-gray-500">
+                <div className="text-[11px] text-gray-500 dark:text-muted-foreground">
                   {r.sender?.name || r.sender?.email || "User"} • {new Date(r.createdAt).toLocaleString()}
                 </div>
               </button>
             ))}
             {!results.length && !loading && (
-              <div className="px-3 py-6 text-center text-sm text-gray-500">
+              <div className="px-3 py-6 text-center text-sm text-gray-500 dark:text-muted-foreground">
                 {q.trim() ? "No results" : "Type a query to search"}
               </div>
             )}

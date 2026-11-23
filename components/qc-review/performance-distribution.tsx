@@ -15,19 +15,19 @@ interface PerformanceDistributionProps {
 
 const performanceConfig = {
   Excellent: {
-    color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300",
+    color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800",
     icon: <Award className="h-3 w-3" />,
   },
   Good: {
-    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300",
+    color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800",
     icon: <Star className="h-3 w-3" />,
   },
   Average: {
-    color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300",
+    color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-800",
     icon: <Target className="h-3 w-3" />,
   },
   Lazy: {
-    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300",
+    color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800",
     icon: <AlertTriangle className="h-3 w-3" />,
   },
 }

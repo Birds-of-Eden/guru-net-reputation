@@ -324,21 +324,21 @@ export function ImageGallery({
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="aspect-square rounded-xl bg-gray-100 animate-pulse"
+          className="aspect-square rounded-xl bg-gray-100 animate-pulse dark:bg-muted"
         />
       ))}
     </div>
   ) : images.length === 0 ? (
     <Card className="border-dashed">
-      <CardContent className="py-12 text-center text-gray-500">
+      <CardContent className="py-12 text-center text-gray-500 dark:text-muted-foreground">
         No images yet. Paste a Drive folder link and click <b>Validate</b>.{" "}
         {accessToken && (
-          <p className="mt-2 text-sm text-green-600">
+          <p className="mt-2 text-sm text-green-600 dark:text-green-400">
             You are authenticated and can access private, shared folders.
           </p>
         )}
         {!accessToken && (
-          <p className="mt-2 text-sm text-red-600">
+          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
             You are NOT authenticated. Please sign in to access private/shared
             folders.
           </p>
@@ -406,7 +406,7 @@ export function ImageGallery({
                 <a
                   href={img.webViewLink}
                   target="_blank"
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
                 >
                   View in Drive <ExternalLink className="h-3 w-3" />
                 </a>
@@ -425,21 +425,21 @@ export function ImageGallery({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-green-500 to-emerald-500 shadow-lg mb-4">
           <ImageIcon className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent dark:from-green-400 dark:via-emerald-400 dark:to-teal-400">
           Image Gallery
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto dark:text-muted-foreground">
           Connect your Google Drive folder to showcase your image collection.
         </p>
       </div>
 
       {/* Drive Link Card */}
-      <div className="bg-linear-to-br from-white to-green-50/30 rounded-2xl shadow-xl border border-green-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-green-50/30 rounded-2xl shadow-xl border border-green-100 p-8 space-y-6 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-green-950/40 dark:border-green-800">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
             <ImageIcon className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">
             Connect Campaign Folder
           </h2>
         </div>
@@ -447,7 +447,7 @@ export function ImageGallery({
         <div className="space-y-4">
           <Label
             htmlFor="avatar"
-            className="text-sm font-semibold text-gray-700"
+            className="text-sm font-semibold text-gray-700 dark:text-foreground"
           >
             Avatar URL (optional)
           </Label>
@@ -456,12 +456,12 @@ export function ImageGallery({
             placeholder="https://example.com/avatar.jpg"
             value={formData.avatar || ""}
             onChange={(e) => updateFormData({ avatar: e.target.value })}
-            className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl"
+            className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl dark:border-border"
           />
 
           <Label
             htmlFor="imageDrivelink"
-            className="text-sm font-semibold text-gray-700"
+            className="text-sm font-semibold text-gray-700 dark:text-foreground"
           >
             Google Drive Folder Link
           </Label>
@@ -478,7 +478,7 @@ export function ImageGallery({
                   },
                 })
               }
-              className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl"
+              className="h-12 border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-200 rounded-xl dark:border-border"
             />
             <Button
               onClick={validateDriveLink}
@@ -487,7 +487,7 @@ export function ImageGallery({
             >
               {isValidating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 dark:border-border" />
                   Validating...
                 </>
               ) : (
@@ -497,8 +497,8 @@ export function ImageGallery({
           </div>
 
           {folderId && (
-            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-              <p className="text-sm text-green-800">
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl dark:bg-green-950/40 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-300">
                 <span className="font-semibold">Folder ID:</span>{" "}
                 <span className="font-mono">{folderId}</span>
               </p>
@@ -506,19 +506,19 @@ export function ImageGallery({
           )}
 
           {errorMsg && (
-            <div className="mt-4 flex items-start gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800 font-medium">{errorMsg}</p>
+            <div className="mt-4 flex items-start gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-xl dark:bg-red-950/40 dark:border-red-800">
+              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5 dark:text-red-400" />
+              <p className="text-sm text-red-800 font-medium dark:text-red-300">{errorMsg}</p>
             </div>
           )}
 
           {/* Manual items */}
           <div className="mt-6 space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold text-gray-700">
+              <Label className="text-sm font-semibold text-gray-700 dark:text-foreground">
                 Add Image Links (Title + URL)
               </Label>
-              <span className="text-xs text-gray-500">Optional</span>
+              <span className="text-xs text-gray-500 dark:text-muted-foreground">Optional</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <Input
@@ -539,7 +539,7 @@ export function ImageGallery({
                 type="button"
                 variant="secondary"
                 onClick={handleAddItem}
-                className="bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                className="bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:bg-card dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
                 disabled={!newItemTitle.trim() && !newItemLink.trim()}
               >
                 Add Link
@@ -551,10 +551,10 @@ export function ImageGallery({
                 {imageItems.map((item, idx) => (
                   <div
                     key={`${item.title}-${idx}`}
-                    className="flex items-center justify-between bg-white border border-emerald-100 rounded-lg px-3 py-2"
+                    className="flex items-center justify-between bg-white border border-emerald-100 rounded-lg px-3 py-2 dark:bg-card dark:border-emerald-800"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">
+                      <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                         {item.title || "(Untitled)"}
                       </p>
                       {item.link && (
@@ -562,7 +562,7 @@ export function ImageGallery({
                           href={item.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-emerald-600 hover:underline break-all"
+                          className="text-xs text-emerald-600 hover:underline break-all dark:text-emerald-400"
                         >
                           {item.link}
                         </a>
@@ -572,7 +572,7 @@ export function ImageGallery({
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemoveItem(idx)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                     >
                       Remove
                     </Button>
@@ -585,17 +585,17 @@ export function ImageGallery({
       </div>
 
       {/* Preview Grid */}
-      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-linear-to-br from-white to-emerald-50/30 rounded-2xl shadow-xl border border-emerald-100 p-8 hover:shadow-2xl transition-shadow duration-300 dark:from-card dark:to-emerald-950/40 dark:border-emerald-800">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
               <ImageIcon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-foreground">
                 Image Preview
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-muted-foreground">
                 {images.length} images found
               </p>
             </div>
@@ -609,7 +609,7 @@ export function ImageGallery({
               >
                 {isDownloadingAll ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 dark:border-border" />
                     Preparing...
                   </>
                 ) : (
@@ -624,7 +624,7 @@ export function ImageGallery({
               <a
                 href={`https://drive.google.com/drive/folders/${folderId}`}
                 target="_blank"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300"
               >
                 Open in Drive <ExternalLink className="h-4 w-4" />
               </a>
@@ -640,7 +640,7 @@ export function ImageGallery({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 rounded-xl dark:hover:from-green-950/40 dark:hover:to-emerald-950/40 dark:hover:text-green-300"
         >
           <svg
             className="w-5 h-5 mr-2"
@@ -661,7 +661,7 @@ export function ImageGallery({
           <Button
             variant="outline"
             onClick={onNext}
-            className="px-6 py-6 text-base font-semibold border-2 hover:bg-gray-50 transition-all duration-200 rounded-xl"
+            className="px-6 py-6 text-base font-semibold border-2 hover:bg-gray-50 transition-all duration-200 rounded-xl dark:hover:bg-muted/40"
           >
             Skip this step
           </Button>

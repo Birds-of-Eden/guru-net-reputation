@@ -170,7 +170,7 @@ export default function AssignmentModal({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="max-w-2xl overflow-hidden border-0 bg-transparent p-0 shadow-none">
-        <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-white shadow-2xl dark:bg-slate-950">
+        <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-white shadow-2xl dark:bg-slate-950 dark:border-border/20">
           <div className="absolute inset-0 bg-[radial-linear(circle_at_top_left,rgba(59,130,246,0.18),transparent_30%),radial-linear(circle_at_top_right,rgba(236,72,153,0.18),transparent_30%),radial-linear(circle_at_bottom,rgba(34,197,94,0.18),transparent_35%)]" />
           <div className="absolute -left-20 top-10 h-40 w-40 rounded-full bg-pink-500/20 blur-3xl" />
           <div className="absolute -right-16 top-0 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
@@ -244,7 +244,7 @@ export default function AssignmentModal({
                               className="mx-2 my-1 rounded-xl px-3 py-3"
                             >
                               <div className="flex w-full items-center gap-3">
-                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm dark:border-border">
                                   <AvatarImage src={agent.image || undefined} />
                                   <AvatarFallback className="bg-linear-to-br from-violet-500 to-pink-500 text-xs font-bold text-white">
                                     {getInitials(agent.name)}
@@ -263,7 +263,7 @@ export default function AssignmentModal({
                                       </span>
                                     )}
                                   </div>
-                                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-muted-foreground">
                                     {agent.email ? (
                                       <span className="truncate">{agent.email}</span>
                                     ) : null}

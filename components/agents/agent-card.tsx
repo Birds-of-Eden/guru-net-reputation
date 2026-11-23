@@ -80,7 +80,7 @@ export function AgentCard({ agent, onDelete, onViewDetails }: AgentCardProps) {
       <CardHeader className="relative pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
-            <Avatar className="h-14 w-14 border-3 border-white shadow-lg ring-2 ring-gray-100 dark:ring-gray-800">
+            <Avatar className="h-14 w-14 border-3 border-white shadow-lg ring-2 ring-gray-100 dark:ring-gray-800 dark:border-border">
               <AvatarImage
                 src={agent.image || undefined}
                 alt={`${agent.firstName} ${agent.lastName}`}

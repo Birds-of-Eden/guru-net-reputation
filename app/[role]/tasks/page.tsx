@@ -283,7 +283,7 @@ export default function TasksPage() {
             ? "bg-yellow-500 text-white hover:bg-yellow-600 transition-colors"
             : status === "overdue"
               ? "bg-red-600 text-white hover:bg-red-700 transition-colors"
-              : "bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors";
+              : "bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors dark:bg-muted dark:text-foreground dark:hover:bg-muted";
 
   const normalizeCategory = (
     t: Task,
@@ -374,19 +374,19 @@ export default function TasksPage() {
         {/* Header Skeleton */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-lg mb-8 border border-slate-200/60 dark:border-slate-700/60">
           <div className="flex items-center justify-between mb-6">
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
             <div className="flex gap-6">
-              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+              <div className="h-16 w-24 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
             </div>
           </div>
           <div className="flex gap-4 mb-6">
-            <div className="h-10 w-64 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-64 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+            <div className="h-10 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
           </div>
         </div>
 
@@ -399,27 +399,27 @@ export default function TasksPage() {
             >
               {/* Client Header */}
               <div className="flex items-center justify-between mb-4">
-                <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-6 w-32 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse dark:bg-muted"></div>
               </div>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
               </div>
 
               {/* Progress Bar */}
-              <div className="h-2 w-full bg-gray-200 rounded animate-pulse mb-4"></div>
+              <div className="h-2 w-full bg-gray-200 rounded animate-pulse mb-4 dark:bg-muted"></div>
 
               {/* View Button */}
-              <div className="h-8 w-full bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-8 w-full bg-gray-200 rounded animate-pulse dark:bg-muted"></div>
             </div>
           ))}
         </div>
@@ -493,7 +493,7 @@ export default function TasksPage() {
           <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/80 dark:bg-slate-800/60 backdrop-blur-sm p-4 md:p-5">
             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
               <div className="relative w-full xl:max-w-sm">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                 <Input
                   placeholder="Search clients, tasks, or package..."
                   className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-11 pr-4 text-sm shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500/30"
@@ -537,7 +537,7 @@ export default function TasksPage() {
                 >
                   <SelectTrigger className="h-11 min-w-[180px] rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-slate-500" />
+                      <Calendar className="h-4 w-4 text-slate-500 dark:text-muted-foreground" />
                       <SelectValue placeholder="Select date" />
                     </div>
                   </SelectTrigger>
@@ -553,7 +553,7 @@ export default function TasksPage() {
                 {dateQuickFilter === "custom" && (
                   <div className="flex flex-col md:flex-row md:items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <Calendar className="h-4 w-4 text-slate-400 dark:text-muted-foreground" />
                       <Input
                         type="date"
                         value={startDate}
@@ -562,7 +562,7 @@ export default function TasksPage() {
                       />
                     </div>
 
-                    <span className="hidden md:inline text-slate-400">to</span>
+                    <span className="hidden md:inline text-slate-400 dark:text-muted-foreground">to</span>
 
                     <Input
                       type="date"
@@ -592,7 +592,7 @@ export default function TasksPage() {
         </h2>
 
         {filteredClients.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-500 dark:text-muted-foreground">
             <p className="text-lg font-medium mb-2">No clients found.</p>
             <p className="text-sm">Try adjusting filters.</p>
           </div>
@@ -638,7 +638,7 @@ export default function TasksPage() {
                       {selectedClientName || "Client"}
                     </span>
                     {modalTasks.length ? (
-                      <span className="text-slate-500 font-normal">
+                      <span className="text-slate-500 font-normal dark:text-muted-foreground">
                         {" "}
                         — {modalTasks.length} total
                       </span>
@@ -652,7 +652,7 @@ export default function TasksPage() {
             <div className="px-6 py-4 border-b bg-linear-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
               <div className="flex flex-wrap gap-3 pt-1">
                 <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 dark:text-muted-foreground">
                     Status
                   </Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -673,7 +673,7 @@ export default function TasksPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 dark:text-muted-foreground">
                     Priority
                   </Label>
                   <Select
@@ -694,7 +694,7 @@ export default function TasksPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 flex-1 min-w-[140px]">
-                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">
+                  <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 dark:text-muted-foreground">
                     Category
                   </Label>
                   <Select
@@ -730,7 +730,7 @@ export default function TasksPage() {
                         setPriorityFilter("all");
                         setCategoryFilter("all");
                       }}
-                      className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2"
+                      className="h-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-2 dark:hover:text-rose-400 dark:hover:bg-rose-950/40"
                     >
                       <X className="h-4 w-4 mr-1" />
                       Reset Filters
@@ -746,7 +746,7 @@ export default function TasksPage() {
                   <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
                 </div>
               ) : modalTasks.length === 0 ? (
-                <div className="text-center py-16 text-slate-500">
+                <div className="text-center py-16 text-slate-500 dark:text-muted-foreground">
                   No tasks for this client in the selected date range.
                 </div>
               ) : (
@@ -776,7 +776,7 @@ export default function TasksPage() {
                           <header className="flex items-center justify-between mb-3">
                             <h3 className="text-lg font-semibold">
                               {String(key)}{" "}
-                              <span className="text-slate-500 font-normal">
+                              <span className="text-slate-500 font-normal dark:text-muted-foreground">
                                 ({list.length})
                               </span>
                             </h3>
@@ -789,7 +789,7 @@ export default function TasksPage() {
                                   <Badge className={statusBadgeClass(s)}>
                                     {prettyStatus(s)}
                                   </Badge>
-                                  <span className="text-sm text-slate-500">
+                                  <span className="text-sm text-slate-500 dark:text-muted-foreground">
                                     {byStatus[s].length}
                                   </span>
                                 </div>
@@ -1075,11 +1075,11 @@ function TaskMiniCard({
 
   const due = task.dueDate ? (
     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
-      <Calendar className="h-3.5 w-3.5 text-slate-400" />
+      <Calendar className="h-3.5 w-3.5 text-slate-400 dark:text-muted-foreground" />
       {format(new Date(task.dueDate), "MMM d, yyyy")}
     </div>
   ) : (
-    <div className="flex items-center gap-1.5 text-xs text-slate-400 italic">
+    <div className="flex items-center gap-1.5 text-xs text-slate-400 italic dark:text-muted-foreground">
       <Calendar className="h-3.5 w-3.5" />
       No due date
     </div>
@@ -1087,19 +1087,19 @@ function TaskMiniCard({
 
   const priorityConfig = {
     urgent: {
-      bg: "bg-rose-50 text-rose-700 border-rose-100",
+      bg: "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
       icon: <AlertCircle className="h-3 w-3" />,
     },
     high: {
-      bg: "bg-orange-50 text-orange-700 border-orange-100",
+      bg: "bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
       icon: <Flag className="h-3 w-3" />,
     },
     medium: {
-      bg: "bg-blue-50 text-blue-700 border-blue-100",
+      bg: "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
       icon: <ClockIcon className="h-3 w-3" />,
     },
     low: {
-      bg: "bg-slate-50 text-slate-600 border-slate-100",
+      bg: "bg-slate-50 text-slate-600 border-slate-100 dark:bg-muted/40 dark:text-muted-foreground dark:border-border",
       icon: <List className="h-3 w-3" />,
     },
   };
@@ -1138,10 +1138,10 @@ function TaskMiniCard({
           in_progress: "from-sky-400 to-indigo-500",
           pending: "from-amber-300 to-amber-500",
           overdue: "from-rose-400 to-rose-600",
-          cancelled: "from-slate-300 to-slate-500",
+          cancelled: "from-slate-300 to-slate-500 dark:from-muted",
           reassigned: "from-indigo-400 to-purple-500",
         };
-        const g = statuslinear[task.status] || "from-slate-300 to-slate-500";
+        const g = statuslinear[task.status] || "from-slate-300 to-slate-500 dark:from-muted";
         return <div className={cn("h-1.5 w-full bg-linear-to-r", g)} />;
       })()}
 
@@ -1162,8 +1162,8 @@ function TaskMiniCard({
             className={cn(
               "h-8 w-8 rounded-full flex items-center justify-center transition-colors",
               clickable
-                ? "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white"
-                : "bg-slate-50 text-slate-400",
+                ? "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/40 dark:text-blue-400"
+                : "bg-slate-50 text-slate-400 dark:bg-muted/40 dark:text-muted-foreground",
             )}
           >
             {clickable ? (
@@ -1174,7 +1174,7 @@ function TaskMiniCard({
           </div>
         </div>
 
-        <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 leading-snug line-clamp-3 group-hover:text-blue-600 transition-colors">
+        <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 leading-snug line-clamp-3 group-hover:text-blue-600 transition-colors dark:group-hover:text-blue-400">
           {stripHtml(task.name)}
         </h4>
       </CardHeader>
@@ -1184,7 +1184,7 @@ function TaskMiniCard({
           <div className="flex items-center justify-between">
             {due}
             <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 max-w-[120px]">
-              <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <Users className="h-3.5 w-3.5 text-slate-400 shrink-0 dark:text-muted-foreground" />
               <span className="truncate font-medium">
                 {task.assignedTo?.name || "Unassigned"}
               </span>
@@ -1192,11 +1192,11 @@ function TaskMiniCard({
           </div>
 
           {href && (
-            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-2 group-hover:bg-blue-50 transition-colors">
-              <span className="text-[9px] font-black uppercase text-slate-400 block mb-1 tracking-widest">
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-2 group-hover:bg-blue-50 transition-colors dark:group-hover:bg-blue-950/40">
+              <span className="text-[9px] font-black uppercase text-slate-400 block mb-1 tracking-widest dark:text-muted-foreground">
                 Action Link
               </span>
-              <div className="text-[11px] text-blue-600 font-medium truncate flex items-center gap-1">
+              <div className="text-[11px] text-blue-600 font-medium truncate flex items-center gap-1 dark:text-blue-400">
                 <ExternalLink className="h-3 w-3 shrink-0" />
                 {href}
               </div>

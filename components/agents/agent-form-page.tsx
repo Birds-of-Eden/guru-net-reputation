@@ -374,7 +374,7 @@ export default function AgentFormPage({
               </Button>
             </Link>
             <div className="text-center sm:text-right">
-              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
                 {mode === "edit" ? "Edit Agent" : "Add New Agent"}
               </h1>
             </div>
@@ -800,7 +800,7 @@ export default function AgentFormPage({
               >
                 {isSubmitting ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 dark:border-border"></div>
                     {mode === "edit"
                       ? "Updating Agent..."
                       : "Creating Agent..."}

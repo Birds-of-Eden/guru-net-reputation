@@ -232,9 +232,9 @@ export default function UsersPage() {
   const getStatusBadge = useCallback((status: UserStatus | undefined) => {
     const safeStatus = status || "active";
     const colors: Record<UserStatus, string> = {
-      active: "bg-green-100 text-green-800 hover:bg-green-100",
-      inactive: "bg-gray-100 text-gray-800 hover:bg-gray-100",
-      suspended: "bg-red-100 text-red-800 hover:bg-red-100",
+      active: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/40",
+      inactive: "bg-gray-100 text-gray-800 hover:bg-gray-100 dark:bg-muted dark:text-foreground dark:hover:bg-muted",
+      suspended: "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/40",
     };
     return (
       <Badge variant="outline" className={colors[safeStatus]}>
@@ -421,7 +421,7 @@ export default function UsersPage() {
             <CardTitle className="text-sm font-medium">
               Inactive Users
             </CardTitle>
-            <UserX className="h-4 w-4 text-gray-600" />
+            <UserX className="h-4 w-4 text-gray-600 dark:text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (
@@ -440,7 +440,7 @@ export default function UsersPage() {
             <CardTitle className="text-sm font-medium">
               Verified Users
             </CardTitle>
-            <Mail className="h-4 w-4 text-blue-600" />
+            <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (
@@ -552,9 +552,9 @@ export default function UsersPage() {
         </CardContent>
       </Card>
       {/* Users Table */}
-      <div className="bg-white py-6 rounded-xl border shadow">
+      <div className="bg-white py-6 rounded-xl border shadow dark:bg-card">
         <Table>
-          <TableHeader className="border-b-2 border-slate-300 bg-slate-100">
+          <TableHeader className="border-b-2 border-slate-300 bg-slate-100 dark:border-border dark:bg-muted">
             <TableRow>
               <TableHead className="p-3 text-lg font-medium">Name</TableHead>
               <TableHead className="p-3 text-lg font-medium">Email</TableHead>

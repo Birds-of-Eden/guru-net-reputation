@@ -127,7 +127,7 @@ function statusBadge(status: string) {
     in_progress: {
       color:
         "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
-      icon: <div className="w-3 h-3 rounded-full bg-white animate-pulse" />,
+      icon: <div className="w-3 h-3 rounded-full bg-white animate-pulse dark:bg-card" />,
     },
     completed: {
       color:
@@ -142,7 +142,7 @@ function statusBadge(status: string) {
     cancelled: {
       color:
         "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
-      icon: <div className="w-3 h-3 rounded-full bg-white/70" />,
+      icon: <div className="w-3 h-3 rounded-full bg-white/70 dark:bg-card/70" />,
     },
     reassigned: {
       color:
@@ -156,7 +156,7 @@ function statusBadge(status: string) {
     },
   };
   const config = map[status] ?? {
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground",
     icon: <div className="w-3 h-3 rounded-full bg-gray-400" />,
   };
   return (
@@ -177,7 +177,7 @@ function priorityBadge(priority: string) {
     urgent:
       "bg-linear-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
   };
-  const cls = map[priority] ?? "bg-gray-100 text-gray-800";
+  const cls = map[priority] ?? "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground";
   const stars =
     priority === "urgent"
       ? 3
@@ -229,7 +229,7 @@ function performanceRatingBadge(rating: string | null) {
   };
 
   const config = map[rating] ?? {
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground",
     icon: <div className="w-3 h-3 rounded-full bg-gray-400" />,
   };
 
@@ -277,7 +277,7 @@ function userStatusBadge(status: string) {
     inactive:
       "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
   };
-  const cls = map[status] ?? "bg-gray-100 text-gray-800";
+  const cls = map[status] ?? "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground";
   return (
     <Badge className={`${cls} px-3 py-1 font-semibold`}>
       {status.toUpperCase()}
@@ -297,7 +297,7 @@ function categoryBadge(category?: string | null) {
     "Development Team":
       "bg-linear-to-r from-green-400 to-emerald-500 text-white shadow-lg shadow-green-200/50",
   };
-  const cls = colors[category] ?? "bg-gray-100 text-gray-800";
+  const cls = colors[category] ?? "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground";
   return <Badge className={`font-semibold ${cls} px-3 py-1`}>{category}</Badge>;
 }
 
@@ -455,14 +455,14 @@ export default async function AgentPerformancePage({
             <Link href={`/${roleSegment}/agents`}>
               <Button
                 variant="outline"
-                className="border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-700 dark:hover:bg-indigo-900/20 transition-all duration-200"
+                className="border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 dark:border-indigo-700 dark:hover:bg-indigo-900/20 transition-all duration-200 dark:hover:border-indigo-700"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Agents
               </Button>
             </Link>
             <div>
-              <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
                 Agent Performance Dashboard
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -474,7 +474,7 @@ export default async function AgentPerformancePage({
           {/* Performance Filter */}
           {/* Performance Filter (no server-side event handlers) */}
           <div className="flex items-center gap-3">
-            <Filter className="w-5 h-5 text-gray-500" />
+            <Filter className="w-5 h-5 text-gray-500 dark:text-muted-foreground" />
             <PerformanceFilterSelect value={filter} />
           </div>
         </div>
@@ -606,7 +606,7 @@ function AgentProfileCard({ agent }: { agent: any }) {
       <CardContent className="p-8">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-center">
           <div className="shrink-0">
-            <Avatar className="h-32 w-32 border-4 border-white shadow-2xl ring-4 ring-indigo-100 dark:ring-indigo-800">
+            <Avatar className="h-32 w-32 border-4 border-white shadow-2xl ring-4 ring-indigo-100 dark:ring-indigo-800 dark:border-border">
               <AvatarImage
                 src={agent.image ?? undefined}
                 alt={`${agent.firstName ?? ""} ${agent.lastName ?? ""}`}
@@ -1312,7 +1312,7 @@ function KpiCard({
     <Card
       className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-linear-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 dark:from-card/20" />
       <CardHeader className="relative pb-2">
         <CardTitle
           className={`text-sm font-semibold ${t.sub} uppercase tracking-wide`}
@@ -1395,7 +1395,7 @@ function ClientAccordionItem({
     [&>svg]:h-6 [&>svg]:w-6
     [&>svg]:text-slate-500 [&>svg]:opacity-85
     [&>svg]:pointer-events-none
-    data-[state=open]:[&>svg]:rotate-180
+    data-[state=open]:[&>svg]:rotate-180 dark:[&>svg]:text-muted-foreground
   "
       >
         <div className="flex w-full items-center justify-between gap-4">
@@ -1415,7 +1415,7 @@ function ClientAccordionItem({
               <span className="relative z-10">
                 {isUnassigned ? "?" : client.name.charAt(0).toUpperCase()}
               </span>
-              <div className="absolute inset-0 opacity-20 bg-white" />
+              <div className="absolute inset-0 opacity-20 bg-white dark:bg-card" />
             </div>
 
             <div className="min-w-0">

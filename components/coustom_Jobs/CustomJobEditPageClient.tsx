@@ -73,7 +73,7 @@ export default function CustomJobEditPageClient() {
   }, [isAM, jobId, userId]);
 
   return (
-    <div className="min-h-screen space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-100 dark:from-background dark:via-card dark:to-background">
       {loading ? (
         <CustomJobFormSkeleton />
       ) : job ? (
@@ -87,7 +87,7 @@ export default function CustomJobEditPageClient() {
           }}
         />
       ) : (
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-3xl border border-red-200 bg-white p-8 text-sm text-red-600 shadow-sm">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-3xl border border-red-200 bg-white p-8 text-sm text-red-600 shadow-sm dark:border-red-800 dark:bg-card dark:text-red-400">
           <span>Custom job not found.</span>
           <Button type="button" variant="outline" onClick={() => router.push(listHref)}>
             Back to list

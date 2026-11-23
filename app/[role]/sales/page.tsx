@@ -115,7 +115,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
   // Loading state with professional skeleton
   if (isLoading && !data) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6 dark:from-background dark:via-card dark:to-background">
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -129,7 +129,7 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
         </div>
 
         {/* Sales Spotlight Skeleton */}
-        <Card className="border-0 shadow-lg bg-linear-to-br from-blue-50 to-indigo-50">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40">
           <CardHeader className="space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-6 w-48" />
@@ -254,25 +254,25 @@ const AMCEOSalesPage = React.memo(function AMCEOSalesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100 p-4 space-y-6 dark:from-background dark:via-card dark:to-background">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-foreground">
             CEO — Package Sales
           </h1>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground">
             Package performance, client status, and sales distribution
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className="rounded-full bg-green-100 text-green-700 border-green-200 hover:bg-green-200">
+          <Badge className="rounded-full bg-green-100 text-green-700 border-green-200 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800 dark:hover:bg-green-800/50">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
             Live
           </Badge>
           <button
             onClick={() => mutate()}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg dark:text-muted-foreground dark:hover:text-foreground dark:hover:bg-muted"
           >
             <RefreshCw className="h-4 w-4" /> Refresh
           </button>

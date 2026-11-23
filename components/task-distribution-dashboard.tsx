@@ -225,9 +225,9 @@ export default function TaskDistributionDashboard() {
   }
 
   const getWorkloadColor = (tasks: number) => {
-    if (tasks <= 2) return "text-green-600"
-    if (tasks <= 4) return "text-yellow-600"
-    return "text-red-600"
+    if (tasks <= 2) return "text-green-600 dark:text-green-400"
+    if (tasks <= 4) return "text-yellow-600 dark:text-yellow-400"
+    return "text-red-600 dark:text-red-400"
   }
 
   return (
@@ -248,15 +248,15 @@ export default function TaskDistributionDashboard() {
           <div key={stepNum} className="flex items-center">
             <div
               className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                step >= stepNum ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                step >= stepNum ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600 dark:bg-muted dark:text-muted-foreground"
               }`}
             >
               <Icon className="w-5 h-5" />
             </div>
-            <span className={`ml-2 text-sm font-medium ${step >= stepNum ? "text-blue-600" : "text-gray-500"}`}>
+            <span className={`ml-2 text-sm font-medium ${step >= stepNum ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-muted-foreground"}`}>
               {title}
             </span>
-            {stepNum < 4 && <div className="w-8 h-0.5 bg-gray-300 mx-4" />}
+            {stepNum < 4 && <div className="w-8 h-0.5 bg-gray-300 mx-4 dark:bg-accent" />}
           </div>
         ))}
       </div>
@@ -315,31 +315,31 @@ export default function TaskDistributionDashboard() {
             </div>
 
             {selectedPackage && (
-              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="bg-blue-50 p-4 rounded-lg dark:bg-blue-950/40">
                 <h4 className="font-medium mb-2">এই Package এর অধীনে Clients:</h4>
                 <div className="flex flex-wrap gap-2">
                   {clients
                     .filter((client) => client.packageId === selectedPackage)
                     .map((client) => (
-                      <Badge key={client.id} variant="outline" className="bg-white">
+                      <Badge key={client.id} variant="outline" className="bg-white dark:bg-card">
                         {client.name} ({client.company})
                       </Badge>
                     ))}
                 </div>
-                <p className="text-sm text-blue-700 mt-2">
+                <p className="text-sm text-blue-700 mt-2 dark:text-blue-300">
                   ✅ Template assign করলে উপরের সব Clients এর জন্য Assignment তৈরি হবে
                 </p>
               </div>
             )}
 
             {selectedTemplate && (
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-green-50 p-4 rounded-lg dark:bg-green-950/40">
                 <h4 className="font-medium mb-2">Template Site Assets:</h4>
                 <div className="grid md:grid-cols-2 gap-2">
                   {templates
                     .find((t) => t.id === selectedTemplate)
                     ?.siteAssets.map((asset) => (
-                      <div key={asset.id} className="bg-white p-2 rounded border text-sm">
+                      <div key={asset.id} className="bg-white p-2 rounded border text-sm dark:bg-card">
                         <div className="font-medium">{asset.name}</div>
                         <div className="text-muted-foreground">
                           {asset.frequency} content/{asset.period}
@@ -363,7 +363,7 @@ export default function TaskDistributionDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                 Multiple Assignments তৈরি সম্পন্ন!
               </CardTitle>
               <CardDescription>
@@ -372,12 +372,12 @@ export default function TaskDistributionDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="bg-green-50 p-4 rounded-lg space-y-3">
-                <p className="text-sm text-green-800 font-medium">
+              <div className="bg-green-50 p-4 rounded-lg space-y-3 dark:bg-green-950/40">
+                <p className="text-sm text-green-800 font-medium dark:text-green-300">
                   ✅ {generatedAssignments.length}টি Assignment তৈরি হয়েছে:
                 </p>
                 {generatedAssignments.map((assignment) => (
-                  <div key={assignment.id} className="bg-white p-3 rounded border">
+                  <div key={assignment.id} className="bg-white p-3 rounded border dark:bg-card">
                     <div className="flex justify-between items-center">
                       <div>
                         <div className="font-medium">{assignment.id}</div>
@@ -385,13 +385,13 @@ export default function TaskDistributionDashboard() {
                           {assignment.clientName} → {assignment.templateName}
                         </div>
                       </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-800">
+                      <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
                         Created
                       </Badge>
                     </div>
                   </div>
                 ))}
-                <p className="text-sm text-green-800">
+                <p className="text-sm text-green-800 dark:text-green-300">
                   ✅ মোট {allGeneratedTasks.length}টি Task auto-generate হয়েছে সব Assignments মিলিয়ে
                 </p>
               </div>
@@ -490,11 +490,11 @@ export default function TaskDistributionDashboard() {
                       </div>
                       <div className="flex justify-between">
                         <span>Completed:</span>
-                        <span className="text-green-600">{member.completedTasks}</span>
+                        <span className="text-green-600 dark:text-green-400">{member.completedTasks}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Late Tasks:</span>
-                        <span className="text-red-600">{member.lateTasks}</span>
+                        <span className="text-red-600 dark:text-red-400">{member.lateTasks}</span>
                       </div>
                       <div className="flex flex-wrap gap-1 mt-2">
                         {member.skills.map((skill) => (
@@ -530,7 +530,7 @@ export default function TaskDistributionDashboard() {
               {generatedAssignments.map((assignment) => {
                 const assignmentTasks = allGeneratedTasks.filter((task) => task.assignmentId === assignment.id)
                 return (
-                  <div key={assignment.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div key={assignment.id} className="border rounded-lg p-4 bg-gray-50 dark:bg-muted/40">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="font-medium text-lg">{assignment.id}</h4>
@@ -538,7 +538,7 @@ export default function TaskDistributionDashboard() {
                           Client: {assignment.clientName} | Template: {assignment.templateName}
                         </p>
                       </div>
-                      <Badge variant="outline" className="bg-blue-100">
+                      <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/40">
                         {assignmentTasks.length} Tasks
                       </Badge>
                     </div>
@@ -547,7 +547,7 @@ export default function TaskDistributionDashboard() {
                       {assignmentTasks.map((task) => {
                         const assignedMember = teamMembers.find((m) => m.id === taskAssignments[task.id])
                         return (
-                          <div key={task.id} className="bg-white border rounded-lg p-3">
+                          <div key={task.id} className="bg-white border rounded-lg p-3 dark:bg-card">
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
@@ -591,7 +591,7 @@ export default function TaskDistributionDashboard() {
                                   </Select>
                                 ) : (
                                   assignedMember && (
-                                    <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                                    <div className="flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg dark:bg-blue-950/40">
                                       <Avatar className="w-8 h-8">
                                         <AvatarImage src={assignedMember.avatar || "/placeholder.svg"} />
                                         <AvatarFallback className="text-xs">
@@ -629,7 +629,7 @@ export default function TaskDistributionDashboard() {
       {step === 4 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
               <CheckCircle className="w-5 h-5" />
               Complete Task Distribution সম্পন্ন!
             </CardTitle>
@@ -638,17 +638,17 @@ export default function TaskDistributionDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-green-50 p-6 rounded-lg space-y-4">
+            <div className="bg-green-50 p-6 rounded-lg space-y-4 dark:bg-green-950/40">
               <div className="text-center">
-                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Distribution সফল!</h3>
-                <p className="text-green-700">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4 dark:text-green-400" />
+                <h3 className="text-lg font-semibold text-green-800 mb-2 dark:text-green-300">Distribution সফল!</h3>
+                <p className="text-green-700 dark:text-green-300">
                   {allGeneratedTasks.length}টি Task distribute হয়েছে {teamMembers.length} জন team member এর মধ্যে
                 </p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mt-6">
-                <div className="bg-white p-4 rounded border">
+                <div className="bg-white p-4 rounded border dark:bg-card">
                   <h4 className="font-medium mb-2">Package Details</h4>
                   <div className="text-sm space-y-1">
                     <div>Package: {packages.find((p) => p.id === selectedPackage)?.name}</div>
@@ -657,7 +657,7 @@ export default function TaskDistributionDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded border">
+                <div className="bg-white p-4 rounded border dark:bg-card">
                   <h4 className="font-medium mb-2">Assignments Created</h4>
                   <div className="text-sm space-y-1">
                     {generatedAssignments.map((assignment) => (
@@ -668,7 +668,7 @@ export default function TaskDistributionDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white p-4 rounded border">
+                <div className="bg-white p-4 rounded border dark:bg-card">
                   <h4 className="font-medium mb-2">Distribution Summary</h4>
                   <div className="text-sm space-y-1">
                     {teamMembers.map((member) => {
@@ -683,7 +683,7 @@ export default function TaskDistributionDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded border">
+              <div className="bg-white p-4 rounded border dark:bg-card">
                 <h4 className="font-medium mb-2">Next Steps</h4>
                 <div className="text-sm space-y-1">
                   <div>✅ All team members notified</div>

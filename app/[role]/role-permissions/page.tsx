@@ -177,7 +177,7 @@ export default function RolePermissionPage() {
       name: "Dashboards",
       description: "Access to various dashboard views",
       icon: (
-        <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center text-blue-600">
+        <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">
           <Shield size={14} />
         </div>
       ),
@@ -187,7 +187,7 @@ export default function RolePermissionPage() {
       name: "Chat",
       description: "Access to chat features and specific chat links",
       icon: (
-        <div className="w-5 h-5 bg-purple-100 rounded-md flex items-center justify-center text-purple-600">
+        <div className="w-5 h-5 bg-purple-100 rounded-md flex items-center justify-center text-purple-600 dark:bg-purple-900/40 dark:text-purple-400">
           <Users size={14} />
         </div>
       ),
@@ -197,7 +197,7 @@ export default function RolePermissionPage() {
       name: "Clients",
       description: "Client management and viewing permissions",
       icon: (
-        <div className="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center text-green-600">
+        <div className="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center text-green-600 dark:bg-green-900/40 dark:text-green-400">
           <Users size={14} />
         </div>
       ),
@@ -207,7 +207,7 @@ export default function RolePermissionPage() {
       name: "Packages",
       description: "Package management and distribution",
       icon: (
-        <div className="w-5 h-5 bg-yellow-100 rounded-md flex items-center justify-center text-yellow-600">
+        <div className="w-5 h-5 bg-yellow-100 rounded-md flex items-center justify-center text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-400">
           <Shield size={14} />
         </div>
       ),
@@ -217,7 +217,7 @@ export default function RolePermissionPage() {
       name: "Templates",
       description: "Template editing & deletion",
       icon: (
-        <div className="w-5 h-5 bg-fuchsia-100 rounded-md flex items-center justify-center text-fuchsia-600">
+        <div className="w-5 h-5 bg-fuchsia-100 rounded-md flex items-center justify-center text-fuchsia-600 dark:bg-fuchsia-900/40 dark:text-fuchsia-400">
           <Shield size={14} />
         </div>
       ),
@@ -227,7 +227,7 @@ export default function RolePermissionPage() {
       name: "Tasks",
       description: "Task management and viewing",
       icon: (
-        <div className="w-5 h-5 bg-orange-100 rounded-md flex items-center justify-center text-orange-600">
+        <div className="w-5 h-5 bg-orange-100 rounded-md flex items-center justify-center text-orange-600 dark:bg-orange-900/40 dark:text-orange-400">
           <CheckSquare size={14} />
         </div>
       ),
@@ -237,7 +237,7 @@ export default function RolePermissionPage() {
       name: "Quality Control",
       description: "Quality control dashboard and review",
       icon: (
-        <div className="w-5 h-5 bg-red-100 rounded-md flex items-center justify-center text-red-600">
+        <div className="w-5 h-5 bg-red-100 rounded-md flex items-center justify-center text-red-600 dark:bg-red-900/40 dark:text-red-400">
           <Shield size={14} />
         </div>
       ),
@@ -247,7 +247,7 @@ export default function RolePermissionPage() {
       name: "Agents",
       description: "Agent management and viewing",
       icon: (
-        <div className="w-5 h-5 bg-indigo-100 rounded-md flex items-center justify-center text-indigo-600">
+        <div className="w-5 h-5 bg-indigo-100 rounded-md flex items-center justify-center text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400">
           <Users size={14} />
         </div>
       ),
@@ -257,7 +257,7 @@ export default function RolePermissionPage() {
       name: "Admin/Management",
       description: "Administrative and management features",
       icon: (
-        <div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center text-gray-600">
+        <div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 dark:bg-muted dark:text-muted-foreground">
           <Shield size={14} />
         </div>
       ),
@@ -267,7 +267,7 @@ export default function RolePermissionPage() {
       name: "User Management",
       description: "View, edit and delete user records",
       icon: (
-        <div className="w-5 h-5 bg-sky-100 rounded-md flex items-center justify-center text-sky-600">
+        <div className="w-5 h-5 bg-sky-100 rounded-md flex items-center justify-center text-sky-600 dark:bg-sky-900/40 dark:text-sky-400">
           <Users size={14} />
         </div>
       ),
@@ -277,7 +277,7 @@ export default function RolePermissionPage() {
       name: "Impersonation",
       description: "Assume another user's identity for support",
       icon: (
-        <div className="w-5 h-5 bg-amber-100 rounded-md flex items-center justify-center text-amber-600">
+        <div className="w-5 h-5 bg-amber-100 rounded-md flex items-center justify-center text-amber-600 dark:bg-amber-900/40 dark:text-amber-400">
           <Shield size={14} />
         </div>
       ),
@@ -287,7 +287,7 @@ export default function RolePermissionPage() {
       name: "System",
       description: "System utilities and activity logs",
       icon: (
-        <div className="w-5 h-5 bg-pink-100 rounded-md flex items-center justify-center text-pink-600">
+        <div className="w-5 h-5 bg-pink-100 rounded-md flex items-center justify-center text-pink-600 dark:bg-pink-900/40 dark:text-pink-400">
           <Shield size={14} />
         </div>
       ),
@@ -298,7 +298,7 @@ export default function RolePermissionPage() {
       name: "Notifications",
       description: "In-app notifications related permissions",
       icon: (
-        <div className="w-5 h-5 bg-teal-100 rounded-md flex items-center justify-center text-teal-600">
+        <div className="w-5 h-5 bg-teal-100 rounded-md flex items-center justify-center text-teal-600 dark:bg-teal-900/40 dark:text-teal-400">
           <Shield size={14} />
         </div>
       ),
@@ -309,7 +309,7 @@ export default function RolePermissionPage() {
       name: "Sales",
       description: "Sales dashboards and reports",
       icon: (
-        <div className="w-5 h-5 bg-emerald-100 rounded-md flex items-center justify-center text-emerald-600">
+        <div className="w-5 h-5 bg-emerald-100 rounded-md flex items-center justify-center text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400">
           <DollarSign size={14} />
         </div>
       ),
@@ -320,7 +320,7 @@ export default function RolePermissionPage() {
       name: "Monthly Report",
       description: "Access to Monthly Report",
       icon: (
-        <div className="w-5 h-5 bg-violet-100 rounded-md flex items-center justify-center text-violet-600">
+        <div className="w-5 h-5 bg-violet-100 rounded-md flex items-center justify-center text-violet-600 dark:bg-violet-900/40 dark:text-violet-400">
           <Shield size={14} />
         </div>
       ),
@@ -588,28 +588,28 @@ export default function RolePermissionPage() {
   }, [categorizedPermissions, filterCategory]);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen dark:bg-muted/40">
       <Toaster position="top-right" />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-foreground">
           Role & Permissions Management
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-muted-foreground">
           Manage user roles and their permissions across the system
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* ---------- Left: Role List ---------- */}
-        <section className="lg:col-span-1 rounded-xl border bg-white shadow-sm">
+        <section className="lg:col-span-1 rounded-xl border bg-white shadow-sm dark:bg-card">
           <div className="p-4 border-b flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <Users size={18} className="text-blue-500" />
                 Roles
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-muted-foreground">
                 {rolesLoading ? "Loading…" : `${roles.length} total`}
               </p>
             </div>
@@ -627,7 +627,7 @@ export default function RolePermissionPage() {
           <div className="p-4 border-b">
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-muted-foreground"
                 size={18}
               />
               <input
@@ -657,8 +657,8 @@ export default function RolePermissionPage() {
                     className={cn(
                       "p-4 transition-colors",
                       selectedRole?.id === role.id
-                        ? "bg-blue-50 border-l-4 border-l-blue-500"
-                        : "hover:bg-gray-50",
+                        ? "bg-blue-50 border-l-4 border-l-blue-500 dark:bg-blue-950/40"
+                        : "hover:bg-gray-50 dark:hover:bg-muted/40",
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -671,19 +671,19 @@ export default function RolePermissionPage() {
                           className={cn(
                             "text-sm font-medium",
                             selectedRole?.id === role.id
-                              ? "text-blue-700"
-                              : "text-gray-800",
+                              ? "text-blue-700 dark:text-blue-300"
+                              : "text-gray-800 dark:text-foreground",
                           )}
                         >
                           {role.name.toUpperCase()}
                         </div>
                         {role.description && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-500 mt-1 dark:text-muted-foreground">
                             {role.description}
                           </div>
                         )}
                         {!!role._count?.users && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-gray-500 mt-1 dark:text-muted-foreground">
                             {role._count.users} user(s)
                           </div>
                         )}
@@ -692,14 +692,14 @@ export default function RolePermissionPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditRole(role)}
-                          className="p-1.5 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                          className="p-1.5 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-muted-foreground dark:hover:text-blue-400 dark:hover:bg-blue-950/40"
                           title="Edit role"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => confirmDeleteRole(role)}
-                          className="p-1.5 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          className="p-1.5 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-muted-foreground dark:hover:text-red-400 dark:hover:bg-red-950/40"
                           title="Delete role"
                         >
                           <Trash2 size={16} />
@@ -710,7 +710,7 @@ export default function RolePermissionPage() {
                 ))}
 
             {!rolesLoading && filteredRoles.length === 0 && (
-              <li className="p-4 text-sm text-gray-500 text-center">
+              <li className="p-4 text-sm text-gray-500 text-center dark:text-muted-foreground">
                 No roles found.
               </li>
             )}
@@ -718,14 +718,14 @@ export default function RolePermissionPage() {
         </section>
 
         {/* ---------- Right: Permission Manager ---------- */}
-        <section className="lg:col-span-3 rounded-xl border bg-white shadow-sm flex flex-col min-h-[70vh] max-h-[82vh] overflow-hidden">
+        <section className="lg:col-span-3 rounded-xl border bg-white shadow-sm flex flex-col min-h-[70vh] max-h-[82vh] overflow-hidden dark:bg-card">
           <div className="p-4 border-b flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-lg flex items-center gap-2">
                 <Shield size={18} className="text-blue-500" />
                 Permissions
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-muted-foreground">
                 {permLoading
                   ? "Loading…"
                   : `${permissions.length} available permissions`}
@@ -734,15 +734,15 @@ export default function RolePermissionPage() {
 
             {selectedRole ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-muted-foreground">
                   Managing permissions for:
                 </span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium dark:bg-blue-900/40 dark:text-blue-300">
                   {selectedRoleMeta?.name || selectedRole.id}
                 </span>
               </div>
             ) : (
-              <div className="text-sm text-gray-400 flex items-center gap-1">
+              <div className="text-sm text-gray-400 flex items-center gap-1 dark:text-muted-foreground">
                 <Shield size={16} />
                 Select a role to manage permissions
               </div>
@@ -750,10 +750,10 @@ export default function RolePermissionPage() {
           </div>
 
           {selectedRole && (
-            <div className="p-4 border-b bg-gray-50">
+            <div className="p-4 border-b bg-gray-50 dark:bg-muted/40">
               <div className="flex items-center gap-3 mb-3">
-                <Filter size={16} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">
+                <Filter size={16} className="text-gray-500 dark:text-muted-foreground" />
+                <span className="text-sm font-medium text-gray-700 dark:text-foreground">
                   Filter by category:
                 </span>
               </div>
@@ -763,8 +763,8 @@ export default function RolePermissionPage() {
                   className={cn(
                     "px-3 py-1.5 rounded-full text-sm transition-colors",
                     filterCategory === "all"
-                      ? "bg-blue-100 text-blue-800 border border-blue-200"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                      ? "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-muted dark:text-foreground dark:hover:bg-muted",
                   )}
                 >
                   All Categories
@@ -777,8 +777,8 @@ export default function RolePermissionPage() {
                     className={cn(
                       "px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-2",
                       filterCategory === category.id
-                        ? "bg-blue-100 text-blue-800 border border-blue-200"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                        ? "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-muted dark:text-foreground dark:hover:bg-muted",
                     )}
                   >
                     {category.icon}
@@ -790,14 +790,14 @@ export default function RolePermissionPage() {
           )}
 
           <div className="relative flex-1 overflow-hidden">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-linear-to-b from-white to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-linear-to-t from-white to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-linear-to-b from-white to-transparent dark:from-card" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-linear-to-t from-white to-transparent dark:from-card" />
 
-            <div className="h-full overflow-y-auto p-4 pr-3 md:p-5 md:pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-linear-to-b [&::-webkit-scrollbar-thumb]:from-blue-300 [&::-webkit-scrollbar-thumb]:to-indigo-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-indigo-500">
+            <div className="h-full overflow-y-auto p-4 pr-3 md:p-5 md:pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-linear-to-b [&::-webkit-scrollbar-thumb]:from-blue-300 [&::-webkit-scrollbar-thumb]:to-indigo-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-indigo-500 dark:[&::-webkit-scrollbar-track]:bg-muted">
               {!selectedRole && (
                 <div className="text-center py-12">
                   <Shield size={48} className="mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 dark:text-muted-foreground">
                     Select a role to manage its permissions
                   </p>
                 </div>
@@ -811,7 +811,7 @@ export default function RolePermissionPage() {
                       key={`skeleton-cat-${index}`}
                       className="border rounded-lg overflow-hidden"
                     >
-                      <div className="p-4 bg-gray-50 flex items-center justify-between">
+                      <div className="p-4 bg-gray-50 flex items-center justify-between dark:bg-muted/40">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-5 w-5 rounded-md" />
                           <div className="space-y-2">
@@ -821,7 +821,7 @@ export default function RolePermissionPage() {
                         </div>
                         <Skeleton className="h-5 w-5" />
                       </div>
-                      <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3 dark:bg-card">
                         {Array.from({ length: 4 }).map((_, idx) => (
                           <div
                             key={`skeleton-perm-${idx}`}
@@ -866,21 +866,21 @@ export default function RolePermissionPage() {
                           className="border rounded-lg overflow-hidden"
                         >
                           <button
-                            className="w-full p-4 bg-gray-50 flex items-center justify-between text-left"
+                            className="w-full p-4 bg-gray-50 flex items-center justify-between text-left dark:bg-muted/40"
                             onClick={() => toggleCategory(categoryId)}
                           >
                             <div className="flex items-center gap-3">
                               {category.icon}
                               <div>
-                                <h3 className="font-medium text-gray-800">
+                                <h3 className="font-medium text-gray-800 dark:text-foreground">
                                   {category.name}
                                 </h3>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-gray-500 dark:text-muted-foreground">
                                   {category.description}
                                 </p>
                               </div>
                             </div>
-                            <div className="text-gray-400">
+                            <div className="text-gray-400 dark:text-muted-foreground">
                               {isExpanded ? (
                                 <ChevronUp size={20} />
                               ) : (
@@ -890,25 +890,25 @@ export default function RolePermissionPage() {
                           </button>
 
                           {isExpanded && (
-                            <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="p-4 bg-white grid grid-cols-1 md:grid-cols-2 gap-3 dark:bg-card">
                               {perms.map((p) => {
                                 const checked =
                                   selectedRole.permissions.includes(p.id);
                                 return (
                                   <label
                                     key={p.id}
-                                    className="flex items-start gap-3 rounded-lg border p-3 hover:bg-gray-50 transition-colors"
+                                    className="flex items-start gap-3 rounded-lg border p-3 hover:bg-gray-50 transition-colors dark:hover:bg-muted/40"
                                   >
                                     <div className="mt-0.5">
                                       {checked ? (
                                         <CheckSquare
                                           size={20}
-                                          className="text-blue-600"
+                                          className="text-blue-600 dark:text-blue-400"
                                         />
                                       ) : (
                                         <Square
                                           size={20}
-                                          className="text-gray-400"
+                                          className="text-gray-400 dark:text-muted-foreground"
                                         />
                                       )}
                                       <input
@@ -924,11 +924,11 @@ export default function RolePermissionPage() {
                                       />
                                     </div>
                                     <div className="flex-1">
-                                      <div className="font-medium text-gray-800">
+                                      <div className="font-medium text-gray-800 dark:text-foreground">
                                         {p.name}
                                       </div>
                                       {p.description ? (
-                                        <div className="text-sm text-gray-600 mt-1">
+                                        <div className="text-sm text-gray-600 mt-1 dark:text-muted-foreground">
                                           {p.description}
                                         </div>
                                       ) : null}
@@ -952,7 +952,7 @@ export default function RolePermissionPage() {
       {/* ---------- Modal: Create / Edit Role ---------- */}
       {showRoleModal && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white shadow-lg">
+          <div className="w-full max-w-lg rounded-xl bg-white shadow-lg dark:bg-card">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-semibold flex items-center gap-2">
                 {editingRole ? <Edit size={18} /> : <Plus size={18} />}
@@ -960,7 +960,7 @@ export default function RolePermissionPage() {
               </h3>
               <button
                 onClick={() => setShowRoleModal(false)}
-                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 dark:text-muted-foreground dark:hover:text-foreground dark:hover:bg-muted"
               >
                 <X size={18} />
               </button>
@@ -998,7 +998,7 @@ export default function RolePermissionPage() {
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50 dark:text-foreground dark:hover:bg-muted/40"
                   onClick={() => setShowRoleModal(false)}
                 >
                   Cancel
@@ -1023,15 +1023,15 @@ export default function RolePermissionPage() {
       {/* Delete Confirmation Modal */}
       {confirmDelete.open && confirmDelete.role && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-xl bg-white shadow-lg p-5">
+          <div className="w-full max-w-md rounded-xl bg-white shadow-lg p-5 dark:bg-card">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <Trash2 size={24} className="text-red-600" />
+              <div className="p-2 bg-red-100 rounded-full dark:bg-red-900/40">
+                <Trash2 size={24} className="text-red-600 dark:text-red-400" />
               </div>
               <h3 className="font-semibold text-lg">Delete Role</h3>
             </div>
 
-            <p className="text-gray-600 mb-5">
+            <p className="text-gray-600 mb-5 dark:text-muted-foreground">
               Are you sure you want to delete the role{" "}
               <span className="font-medium">"{confirmDelete.role.name}"</span>?
               This action cannot be undone.
@@ -1040,7 +1040,7 @@ export default function RolePermissionPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDelete({ open: false, role: null })}
-                className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-50 dark:text-foreground dark:hover:bg-muted/40"
               >
                 Cancel
               </button>

@@ -125,7 +125,7 @@ export default function CreateTeamPage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <h2 className="text-3xl font-bold bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <h2 className="text-3xl font-bold bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent dark:from-green-400 dark:to-emerald-400">
                       Team Created Successfully!
                     </h2>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -181,7 +181,7 @@ export default function CreateTeamPage() {
               </Button>
             </Link>
             <div className="text-center sm:text-right">
-              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
                 Create New Team
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">Build and organize your team structure</p>
@@ -310,7 +310,7 @@ export default function CreateTeamPage() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 dark:border-border"></div>
                     Creating Team...
                   </div>
                 ) : (

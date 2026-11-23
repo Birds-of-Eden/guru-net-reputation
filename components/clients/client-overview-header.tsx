@@ -84,17 +84,17 @@ export function ClientOverviewHeader({
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
-      <h1 className="text-3xl font-bold text-gray-800">
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-foreground">
         {currentUserRole?.toLowerCase() === 'data_entry' ? 'Data Entry Dashboard' : 'Client Overview'}
       </h1>
 
       <div className="flex flex-wrap items-center gap-4">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-muted-foreground" />
           <Input
             placeholder="Search clients..."
-            className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500"
+            className="pl-9 w-[250px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-border"
             value={localSearchQuery}
             onChange={(e) => setLocalSearchQuery(e.target.value)}
           />
@@ -102,7 +102,7 @@ export function ClientOverviewHeader({
 
         {/* Status filter */}
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+          <SelectTrigger className="w-[150px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-border">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -116,7 +116,7 @@ export function ClientOverviewHeader({
         {/* Account Manager filter — hidden for AM users */}
         {!isAM && (
           <Select value={amFilter} onValueChange={setAmFilter}>
-            <SelectTrigger className="w-[220px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+            <SelectTrigger className="w-[220px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-border">
               <SelectValue placeholder="Filter by account manager" />
             </SelectTrigger>
             <SelectContent>
@@ -132,7 +132,7 @@ export function ClientOverviewHeader({
 
         {/* Package filter */}
         <Select value={packageFilter} onValueChange={setPackageFilter}>
-          <SelectTrigger className="w-[180px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500">
+          <SelectTrigger className="w-[180px] border-gray-200 focus:border-cyan-500 focus:ring-cyan-500 dark:border-border">
             <SelectValue placeholder="Filter by package" />
           </SelectTrigger>
           <SelectContent>
@@ -151,7 +151,7 @@ export function ClientOverviewHeader({
           onValueChange={(value) => setViewMode(value as "grid" | "list")}
           className="hidden md:block"
         >
-          <TabsList className="h-10 bg-gray-100 rounded-lg p-1">
+          <TabsList className="h-10 bg-gray-100 rounded-lg p-1 dark:bg-muted">
             <TabsTrigger
               value="grid"
               className="px-4 py-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md rounded-md transition-all"

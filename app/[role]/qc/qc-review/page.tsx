@@ -17,41 +17,41 @@ const QCReview = lazy(() =>
 // Optimized loading skeleton
 function QCReviewSkeleton() {
   return (
-    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen">
+    <div className="mx-auto w-full p-6 space-y-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen dark:from-background dark:via-card dark:to-background">
       {/* Header skeleton */}
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-slate-200 rounded-xl animate-pulse"></div>
+            <div className="w-12 h-12 bg-slate-200 rounded-xl animate-pulse dark:bg-muted"></div>
             <div className="space-y-2">
-              <div className="h-8 w-48 bg-slate-200 rounded animate-pulse"></div>
-              <div className="h-4 w-64 bg-slate-200 rounded animate-pulse"></div>
+              <div className="h-8 w-48 bg-slate-200 rounded animate-pulse dark:bg-muted"></div>
+              <div className="h-4 w-64 bg-slate-200 rounded animate-pulse dark:bg-muted"></div>
             </div>
           </div>
         </div>
-        <div className="h-10 w-32 bg-slate-200 rounded animate-pulse"></div>
+        <div className="h-10 w-32 bg-slate-200 rounded animate-pulse dark:bg-muted"></div>
       </div>
 
       {/* Filter skeleton */}
-      <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6">
+      <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6 dark:bg-card/80 dark:border-border/60">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="h-10 bg-slate-200 rounded animate-pulse"
+              className="h-10 bg-slate-200 rounded animate-pulse dark:bg-muted"
             ></div>
           ))}
         </div>
-        <div className="h-10 bg-slate-200 rounded animate-pulse"></div>
+        <div className="h-10 bg-slate-200 rounded animate-pulse dark:bg-muted"></div>
       </div>
 
       {/* Content skeleton */}
-      <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6">
+      <div className="bg-white/80 backdrop-blur-sm border-slate-200/60 shadow-xl rounded-2xl p-6 dark:bg-card/80 dark:border-border/60">
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="h-32 bg-slate-200 rounded-xl animate-pulse"
+              className="h-32 bg-slate-200 rounded-xl animate-pulse dark:bg-muted"
             ></div>
           ))}
         </div>
@@ -115,19 +115,19 @@ function ErrorFallback({
   return (
     <div className="mx-auto w-full p-6 min-h-screen flex items-center justify-center">
       <div className="text-center space-y-6 max-w-md">
-        <div className="p-4 bg-red-50 rounded-2xl">
+        <div className="p-4 bg-red-50 rounded-2xl dark:bg-red-950/40">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-foreground">
             Something went wrong
           </h2>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-muted-foreground">
             Failed to load QC Review page. Please try again.
           </p>
-          <details className="text-sm text-slate-500 mt-2">
+          <details className="text-sm text-slate-500 mt-2 dark:text-muted-foreground">
             <summary className="cursor-pointer">Error details</summary>
-            <pre className="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto">
+            <pre className="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto dark:bg-muted">
               {error.message}
             </pre>
           </details>

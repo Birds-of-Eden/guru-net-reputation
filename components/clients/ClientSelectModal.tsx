@@ -76,19 +76,19 @@ export function ClientSelectModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-4 space-y-4 bg-gray-50 border-b">
+        <div className="px-6 py-4 space-y-4 bg-gray-50 border-b dark:bg-muted/40">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-muted-foreground" />
             <Input
               placeholder="Search clients by name or company..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-lg bg-white"
+              className="pl-10 pr-4 py-2 rounded-lg bg-white dark:bg-card"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -97,14 +97,14 @@ export function ClientSelectModal({
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">Filters:</span>
+              <Filter className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
+              <span className="text-sm text-gray-600 dark:text-muted-foreground">Filters:</span>
             </div>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-500" />
+                  <Users className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                   <SelectValue placeholder="Status" />
                 </div>
               </SelectTrigger>
@@ -118,7 +118,7 @@ export function ClientSelectModal({
             <Select value={packageFilter} onValueChange={setPackageFilter}>
               <SelectTrigger className="w-[180px]">
                 <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-gray-500" />
+                  <Package className="h-4 w-4 text-gray-500 dark:text-muted-foreground" />
                   <SelectValue placeholder="Package" />
                 </div>
               </SelectTrigger>
@@ -136,7 +136,7 @@ export function ClientSelectModal({
               <Button
                 variant="ghost"
                 onClick={clearFilters}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-gray-600 hover:text-gray-900 dark:text-muted-foreground dark:hover:text-foreground"
               >
                 Clear filters
               </Button>
@@ -160,7 +160,7 @@ export function ClientSelectModal({
                     onSelect(client.id);
                     onClose();
                   }}
-                  className="flex items-start p-4 rounded-xl border hover:border-blue-300 hover:shadow-sm transition-all text-left group"
+                  className="flex items-start p-4 rounded-xl border hover:border-blue-300 hover:shadow-sm transition-all text-left group dark:hover:border-blue-700"
                 >
                   <Avatar className="h-12 w-12 ring-2 ring-blue-100 group-hover:ring-blue-200 mr-4 transition-all">
                     <AvatarImage src={client.avatar || undefined} />
@@ -172,8 +172,8 @@ export function ClientSelectModal({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900 truncate">{client.name}</p>
-                    <p className="text-gray-600 flex items-center text-sm mt-1">
+                    <p className="font-semibold text-gray-900 truncate dark:text-foreground">{client.name}</p>
+                    <p className="text-gray-600 flex items-center text-sm mt-1 dark:text-muted-foreground">
                       <Building2 className="h-4 w-4 mr-1.5 shrink-0" />
                       <span className="truncate">{client.company || "No company"}</span>
                     </p>
@@ -182,8 +182,8 @@ export function ClientSelectModal({
                         variant={client.status === "active" ? "default" : "secondary"}
                         className={`text-xs ${
                           client.status === "active"
-                            ? "bg-green-50 text-green-700 hover:bg-green-50"
-                            : "bg-gray-50 text-gray-600 hover:bg-gray-50"
+                            ? "bg-green-50 text-green-700 hover:bg-green-50 dark:bg-green-950/40 dark:text-green-300 dark:hover:bg-green-950/40"
+                            : "bg-gray-50 text-gray-600 hover:bg-gray-50 dark:bg-muted/40 dark:text-muted-foreground dark:hover:bg-muted/40"
                         }`}
                       >
                         {client.status || "unknown"}
@@ -200,9 +200,9 @@ export function ClientSelectModal({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
-              <Search className="h-10 w-10 text-gray-400" />
-              <h4 className="font-medium text-gray-900">No clients found</h4>
-              <p className="text-gray-500 text-sm max-w-md">
+              <Search className="h-10 w-10 text-gray-400 dark:text-muted-foreground" />
+              <h4 className="font-medium text-gray-900 dark:text-foreground">No clients found</h4>
+              <p className="text-gray-500 text-sm max-w-md dark:text-muted-foreground">
                 {search || statusFilter !== "all" || packageFilter !== "all"
                   ? "Try adjusting your search or filters"
                   : "You don't have any clients yet"}

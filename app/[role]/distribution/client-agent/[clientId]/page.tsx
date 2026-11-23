@@ -1067,9 +1067,9 @@ export default function TaskDistributionForClient() {
   }, [categoryLabels, selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-violet-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-indigo-50 to-purple-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-purple-950/40">
       <div className="mx-auto">
-        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden flex flex-col h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)]">
+        <Card className="shadow-2xl border-0 bg-linear-to-br from-white via-purple-50/30 to-indigo-50/40 overflow-hidden flex flex-col h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] dark:from-card dark:via-purple-950/40 dark:to-indigo-950/40">
           <CardHeader className="relative bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6 rounded-t-2xl border-b border-slate-200 dark:border-slate-700">
             {/* Subtle background accent */}
             <div className="pointer-events-none absolute inset-0 opacity-40">
@@ -1171,15 +1171,15 @@ export default function TaskDistributionForClient() {
             <section className="flex flex-col lg:flex-row gap-6 lg:gap-8 h-full overflow-hidden min-h-0">
               {/* Sidebar category tabs - Fixed position */}
               <aside className="w-full lg:w-72 shrink-0">
-                <div className="rounded-2xl border border-purple-200 bg-linear-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col">
-                  <div className="px-4 py-3 flex items-center justify-between shrink-0 bg-linear-to-r from-purple-100 to-indigo-100">
+                <div className="rounded-2xl border border-purple-200 bg-linear-to-br from-white to-purple-50/30 shadow-lg overflow-hidden h-full flex flex-col dark:border-purple-800 dark:from-card dark:to-purple-950/40">
+                  <div className="px-4 py-3 flex items-center justify-between shrink-0 bg-linear-to-r from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40">
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-purple-700 font-bold">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-purple-700 font-bold dark:text-purple-300">
                         Select Category
                       </p>
                     </div>
                     {isCategoryPending && (
-                      <span className="text-xs text-purple-600 animate-pulse font-medium">
+                      <span className="text-xs text-purple-600 animate-pulse font-medium dark:text-purple-400">
                         Updating&hellip;
                       </span>
                     )}
@@ -1202,18 +1202,18 @@ export default function TaskDistributionForClient() {
                             className={cn(
                               "w-full px-4 py-3 text-left flex items-center justify-between gap-3 transition-all",
                               active
-                                ? "bg-indigo-50 border-l-4 border-indigo-500 shadow-inner"
-                                : "hover:bg-slate-50",
+                                ? "bg-indigo-50 border-l-4 border-indigo-500 shadow-inner dark:bg-indigo-950/40"
+                                : "hover:bg-slate-50 dark:hover:bg-muted/40",
                             )}
                             aria-pressed={active}
                           >
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-slate-900 truncate">
+                                <span className="font-semibold text-slate-900 truncate dark:text-foreground">
                                   {label}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-slate-500 dark:text-muted-foreground">
                                 {s
                                   ? `${s.assigned}/${s.total} assigned`
                                   : "No tasks yet"}
@@ -1221,19 +1221,19 @@ export default function TaskDistributionForClient() {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               {fully ? (
-                                <span className="flex items-center text-emerald-600 text-xs font-semibold">
+                                <span className="flex items-center text-emerald-600 text-xs font-semibold dark:text-emerald-400">
                                   <CheckCircle2 className="h-3 w-3 mr-1" />
                                   All Assigned
                                 </span>
                               ) : s ? (
                                 <Badge
                                   variant="outline"
-                                  className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-0.5"
+                                  className="bg-slate-100 text-slate-700 border-slate-200 text-xs px-2 py-0.5 dark:bg-muted dark:text-foreground dark:border-border"
                                 >
                                   {s.assigned}/{s.total}
                                 </Badge>
                               ) : (
-                                <span className="text-xs text-slate-400 italic">
+                                <span className="text-xs text-slate-400 italic dark:text-muted-foreground">
                                   —
                                 </span>
                               )}
@@ -1249,14 +1249,14 @@ export default function TaskDistributionForClient() {
               {/* Main content area */}
               <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
                 {/* Header actions - Fixed position */}
-                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 mb-6 shrink-0 backdrop-blur">
+                <div className="sticky top-0 z-30 rounded-2xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-sky-50 to-slate-50 shadow-sm p-4 md:p-5 mb-6 shrink-0 backdrop-blur dark:border-border/80 dark:from-indigo-950/40 dark:via-sky-950/40 dark:to-background">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500 font-semibold">
+                      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500 font-semibold dark:text-muted-foreground">
                         Distribute tasks for
                       </p>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl md:text-2xl font-semibold text-slate-900">
+                        <h3 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-foreground">
                           {selectedCategory}
                         </h3>
                         <Badge
@@ -1264,8 +1264,8 @@ export default function TaskDistributionForClient() {
                           className={cn(
                             "rounded-full px-3 py-1 text-xs",
                             stats.fullyAssigned
-                              ? "bg-green-100 text-green-800 border-green-200"
-                              : "bg-blue-100 text-blue-800 border-blue-200",
+                              ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800"
+                              : "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800",
                           )}
                           aria-live="polite"
                         >
@@ -1273,13 +1273,13 @@ export default function TaskDistributionForClient() {
                           {stats.fullyAssigned ? " • All Set ✓" : ""}
                         </Badge>
                         {categoryDueDate && (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded-full border border-cyan-200">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-700 bg-cyan-50 px-2 py-1 rounded-full border border-cyan-200 dark:text-cyan-300 dark:bg-cyan-950/40 dark:border-cyan-800">
                             <CalendarIcon className="h-3.5 w-3.5" />
                             {format(categoryDueDate, "PPP")}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-slate-500 dark:text-muted-foreground">
                         Pick a category on the left, select tasks on the right,
                         then assign agents.
                       </p>
@@ -1294,7 +1294,7 @@ export default function TaskDistributionForClient() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-45",
+                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-45 dark:text-purple-300",
                               !categoryDueDate && "text-muted-foreground",
                             )}
                             aria-label="Open date picker"
@@ -1309,7 +1309,7 @@ export default function TaskDistributionForClient() {
                         <PopoverContent
                           align="end"
                           sideOffset={8}
-                          className="p-0 w-75 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white"
+                          className="p-0 w-75 overflow-hidden rounded-2xl border border-slate-200 shadow-2xl bg-white dark:border-border dark:bg-card"
                         >
                           <div className="px-3 py-2 bg-linear-to-r from-indigo-500 via-blue-500 to-cyan-500">
                             <div className="text-[10px] uppercase tracking-wide text-white/80">
@@ -1338,9 +1338,9 @@ export default function TaskDistributionForClient() {
                             />
                           </div>
 
-                          <div className="px-2 py-2 border-t bg-white flex flex-wrap gap-1.5">
+                          <div className="px-2 py-2 border-t bg-white flex flex-wrap gap-1.5 dark:bg-card">
                             <button
-                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold dark:bg-muted dark:hover:bg-muted dark:text-cyan-400"
                               onClick={() => {
                                 const d = startOfToday();
                                 setCategoryDueDate(d);
@@ -1350,7 +1350,7 @@ export default function TaskDistributionForClient() {
                               Today
                             </button>
                             <button
-                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold dark:bg-muted dark:hover:bg-muted dark:text-cyan-400"
                               onClick={() => {
                                 const d = addDaysSafe(new Date(), 1);
                                 setCategoryDueDate(d);
@@ -1360,7 +1360,7 @@ export default function TaskDistributionForClient() {
                               Tomorrow
                             </button>
                             <button
-                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold"
+                              className="h-7 px-3 text-xs rounded-full bg-slate-100 hover:bg-slate-200 text-cyan-600 font-semibold dark:bg-muted dark:hover:bg-muted dark:text-cyan-400"
                               onClick={() => {
                                 const d = addDaysSafe(new Date(), 7);
                                 setCategoryDueDate(d);
@@ -1372,7 +1372,7 @@ export default function TaskDistributionForClient() {
 
                             <div className="flex-1" />
                             <button
-                              className="h-7 px-3 text-xs bg-slate-100 rounded-full text-cyan-600 hover:bg-slate-100 font-semibold"
+                              className="h-7 px-3 text-xs bg-slate-100 rounded-full text-cyan-600 hover:bg-slate-100 font-semibold dark:bg-muted dark:text-cyan-400 dark:hover:bg-muted"
                               onClick={() => {
                                 setCategoryDueDate(undefined);
                                 setDuePickerOpen(false);
@@ -1457,7 +1457,7 @@ export default function TaskDistributionForClient() {
                       >
                         {submitting ? (
                           <div className="flex items-center gap-2">
-                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent dark:border-border" />
                             Distributing...
                           </div>
                         ) : (
@@ -1536,8 +1536,8 @@ export default function TaskDistributionForClient() {
                         </>
                       )}
                       {!loading && hasMoreTasks && (
-                        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-purple-300 p-4 bg-white/70">
-                          <p className="text-xs text-purple-600">
+                        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-purple-300 p-4 bg-white/70 dark:border-purple-700 dark:bg-card/70">
+                          <p className="text-xs text-purple-600 dark:text-purple-400">
                             Showing {visibleTasks.length} of{" "}
                             {deferredTasks.length} tasks
                           </p>
@@ -1555,12 +1555,12 @@ export default function TaskDistributionForClient() {
                     // EMPTY STATE
                     <section
                       aria-live="polite"
-                      className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 text-center"
+                      className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 text-center dark:border-yellow-800 dark:bg-yellow-950/40"
                     >
-                      <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-1.5">
+                      <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-1.5 dark:text-yellow-300">
                         No Tasks Available for {selectedCategory}
                       </h3>
-                      <p className="text-sm text-yellow-800/90">
+                      <p className="text-sm text-yellow-800/90 dark:text-yellow-300/90">
                         Either all tasks in this category are completed or none
                         exist yet.
                       </p>

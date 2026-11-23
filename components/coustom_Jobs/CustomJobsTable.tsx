@@ -54,13 +54,13 @@ import { cn } from "@/lib/utils";
 function priorityBadgeClass(priority: string) {
   switch (priority) {
     case "urgent":
-      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20";
+      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20 dark:text-red-300 dark:border-red-800";
     case "high":
-      return "bg-orange-500/10 text-orange-700 border border-orange-200 hover:bg-orange-500/20";
+      return "bg-orange-500/10 text-orange-700 border border-orange-200 hover:bg-orange-500/20 dark:text-orange-300 dark:border-orange-800";
     case "medium":
-      return "bg-amber-500/10 text-amber-700 border border-amber-200 hover:bg-amber-500/20";
+      return "bg-amber-500/10 text-amber-700 border border-amber-200 hover:bg-amber-500/20 dark:text-amber-300 dark:border-amber-800";
     default:
-      return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20";
+      return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-800";
   }
 }
 
@@ -132,23 +132,23 @@ function getJobSearchRank(job: CustomJob, search: string): { matched: boolean; r
 function statusBadgeClass(status: string) {
   switch (status) {
     case "requested":
-      return "bg-violet-500/10 text-violet-700 border border-violet-200 hover:bg-violet-500/20";
+      return "bg-violet-500/10 text-violet-700 border border-violet-200 hover:bg-violet-500/20 dark:text-violet-300 dark:border-violet-800";
     case "approved":
-      return "bg-blue-500/10 text-blue-700 border border-blue-200 hover:bg-blue-500/20";
+      return "bg-blue-500/10 text-blue-700 border border-blue-200 hover:bg-blue-500/20 dark:text-blue-300 dark:border-blue-800";
     case "pending":
-      return "bg-amber-500/10 text-amber-700 border border-amber-200 hover:bg-amber-500/20";
+      return "bg-amber-500/10 text-amber-700 border border-amber-200 hover:bg-amber-500/20 dark:text-amber-300 dark:border-amber-800";
     case "in_progress":
-      return "bg-indigo-500/10 text-indigo-700 border border-indigo-200 hover:bg-indigo-500/20";
+      return "bg-indigo-500/10 text-indigo-700 border border-indigo-200 hover:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-800";
     case "completed":
-      return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20";
+      return "bg-emerald-500/10 text-emerald-700 border border-emerald-200 hover:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-800";
     case "overdue":
-      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20";
+      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20 dark:text-red-300 dark:border-red-800";
     case "reassigned":
-      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20";
+      return "bg-red-500/10 text-red-700 border border-red-200 hover:bg-red-500/20 dark:text-red-300 dark:border-red-800";
     case "qc_approved":
-      return "bg-green-500/10 text-green-700 border border-green-200 hover:bg-green-500/20";
+      return "bg-green-500/10 text-green-700 border border-green-200 hover:bg-green-500/20 dark:text-green-300 dark:border-green-800";
     default:
-      return "bg-slate-500/10 text-slate-700 border border-slate-200 hover:bg-slate-500/20";
+      return "bg-slate-500/10 text-slate-700 border border-slate-200 hover:bg-slate-500/20 dark:text-foreground dark:border-border";
   }
 }
 
@@ -370,13 +370,13 @@ export default function CustomJobsTable({
 
   return (
     <Card>
-      <CardHeader className="border-b bg-linear-to-r from-amber-50 via-white to-orange-50">
+      <CardHeader className="border-b bg-linear-to-r from-amber-50 via-white to-orange-50 dark:from-amber-950/40 dark:via-card dark:to-orange-950/40">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">
+            <CardTitle className="text-2xl font-bold tracking-tight text-slate-800 dark:text-foreground">
               Custom Jobs
             </CardTitle>
-            <CardDescription className="text-sm text-slate-500">
+            <CardDescription className="text-sm text-slate-500 dark:text-muted-foreground">
               Manage and track custom job requests
             </CardDescription>
           </div>
@@ -388,7 +388,7 @@ export default function CustomJobsTable({
                   variant="outline"
                   role="combobox"
                   aria-expanded={searchPopoverOpen}
-                  className="w-full justify-between sm:w-[280px] h-10 rounded-xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-amber-500"
+                  className="w-full justify-between sm:w-[280px] h-10 rounded-xl border-slate-200 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-border dark:bg-card"
                 >
                   <span className="truncate">
                     {searchInput || "Search by task or client..."}
@@ -435,38 +435,38 @@ export default function CustomJobsTable({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="rounded-lg border bg-white shadow-sm">
+        <div className="rounded-lg border bg-white shadow-sm dark:bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2">
-                <TableHead className="font-semibold text-slate-700">
+              <TableRow className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2 dark:from-background dark:to-background">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Date
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Client
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   AM
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Task
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Priority
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Status
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   Assigned To
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   View Details
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700">
+                <TableHead className="font-semibold text-slate-700 dark:text-foreground">
                   AM Updates
                 </TableHead>
-                <TableHead className="font-semibold text-slate-700 text-right">
+                <TableHead className="font-semibold text-slate-700 text-right dark:text-foreground">
                   Actions
                 </TableHead>
               </TableRow>
@@ -494,17 +494,17 @@ export default function CustomJobsTable({
                 filtered.map((job, index) => (
                   <TableRow
                     key={job.id}
-                    className="hover:bg-slate-50/80 transition-colors border-b last:border-b-0"
+                    className="hover:bg-slate-50/80 transition-colors border-b last:border-b-0 dark:hover:bg-muted/40"
                   >
-                    <TableCell className="whitespace-nowrap text-sm text-slate-600">
+                    <TableCell className="whitespace-nowrap text-sm text-slate-600 dark:text-muted-foreground">
                       {job.date ? new Date(job.date).toLocaleDateString() : "-"}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <span className="font-medium text-sm text-indigo-700">
+                      <span className="font-medium text-sm text-indigo-700 dark:text-indigo-300">
                         {job.clientName || "-"}
                       </span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-slate-600">
+                    <TableCell className="whitespace-nowrap text-sm text-slate-600 dark:text-muted-foreground">
                       {job.amName || "-"}
                     </TableCell>
                     <TableCell className="min-w-[280px] max-w-[400px]">
@@ -512,7 +512,7 @@ export default function CustomJobsTable({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div 
-                              className="line-clamp-2 text-sm text-slate-700 leading-relaxed"
+                              className="line-clamp-2 text-sm text-slate-700 leading-relaxed dark:text-foreground"
                               dangerouslySetInnerHTML={{ __html: job.name || "-" }}
                             />
                           </TooltipTrigger>
@@ -521,7 +521,7 @@ export default function CustomJobsTable({
                             className="max-w-md max-h-[400px] overflow-auto"
                           >
                             <div 
-                              className="text-sm whitespace-pre-wrap [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800"
+                              className="text-sm whitespace-pre-wrap [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
                               dangerouslySetInnerHTML={{ __html: job.name || "-" }}
                             />
                           </TooltipContent>
@@ -545,7 +545,7 @@ export default function CustomJobsTable({
                               e.target.value as CustomJob["status"],
                             )
                           }
-                          className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          className="h-8 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:border-border dark:bg-card dark:text-foreground"
                         >
                           <option value="requested">Requested</option>
                           <option value="approved">Approved</option>
@@ -561,7 +561,7 @@ export default function CustomJobsTable({
                     <TableCell className="whitespace-nowrap">
                       {job.assignedToName ? (
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-foreground">
                             <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
                             {job.assignedToName}
                           </span>
@@ -589,7 +589,7 @@ export default function CustomJobsTable({
                           Assign
                         </Button>
                       ) : (
-                        <span className="text-sm text-slate-400">-</span>
+                        <span className="text-sm text-slate-400 dark:text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -629,7 +629,7 @@ export default function CustomJobsTable({
                             )
                           }
                           disabled={job.status === "qc_approved" || job.status === "completed"}
-                          className="h-8 w-8 rounded-md hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="h-8 w-8 rounded-md hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
@@ -637,7 +637,7 @@ export default function CustomJobsTable({
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(job.id)}
-                          className="h-8 w-8 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="h-8 w-8 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-30 disabled:cursor-not-allowed dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300"
                           disabled={job.status === "qc_approved" || job.status === "completed"}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

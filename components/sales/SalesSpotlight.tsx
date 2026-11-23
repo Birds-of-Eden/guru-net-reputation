@@ -54,28 +54,28 @@ export function SalesSpotlight({
   const topPackage = packageSales?.[0];
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200/60 bg-linear-to-br from-white via-slate-50 to-slate-100 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl">
+    <Card className="overflow-hidden border-0 shadow-lg ring-1 ring-slate-200/60 bg-linear-to-br from-white via-slate-50 to-slate-100 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl dark:ring-border/60 dark:from-card dark:via-background dark:to-background">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Left Summary */}
-        <div className="p-8 flex flex-col justify-between rounded-xl bg-linear-to-br from-cyan-50 to-white ring-1 ring-cyan-100 shadow-sm hover:shadow-md transition-all">
+        <div className="p-8 flex flex-col justify-between rounded-xl bg-linear-to-br from-cyan-50 to-white ring-1 ring-cyan-100 shadow-sm hover:shadow-md transition-all dark:from-cyan-950/40 dark:to-card">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-xl bg-white shadow-sm ring-1 ring-cyan-200/50">
-                <Sparkles className="h-5 w-5 text-cyan-600" />
+              <div className="p-2 rounded-xl bg-white shadow-sm ring-1 ring-cyan-200/50 dark:bg-card">
+                <Sparkles className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
               </div>
-              <p className="text-sm font-semibold text-cyan-700 tracking-wide">
+              <p className="text-sm font-semibold text-cyan-700 tracking-wide dark:text-cyan-300">
                 Sales Performance Overview
               </p>
             </div>
 
-            <h2 className="text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
+            <h2 className="text-5xl font-extrabold text-slate-900 tracking-tight mb-2 dark:text-foreground">
               {isLoading ? (
                 <Skeleton className="h-10 w-48" />
               ) : (
                 <CountUp end={totalSales} duration={2} separator="," />
               )}
             </h2>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="text-sm text-slate-600 mb-5 dark:text-muted-foreground">
               Total Clients with Active Packages
             </p>
 
@@ -83,8 +83,8 @@ export function SalesSpotlight({
               <div
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm shadow-sm ring-1 ${
                   growth.delta >= 0
-                    ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                    : "bg-rose-50 text-rose-700 ring-rose-200"
+                    ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    : "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300"
                 }`}
               >
                 <TrendingUp className="h-4 w-4" />
@@ -99,14 +99,14 @@ export function SalesSpotlight({
           </div>
 
           {topPackage && (
-            <div className="mt-8 p-4 rounded-xl bg-linear-to-r from-indigo-50 to-indigo-100 border border-indigo-200 shadow-sm">
+            <div className="mt-8 p-4 rounded-xl bg-linear-to-r from-indigo-50 to-indigo-100 border border-indigo-200 shadow-sm dark:from-indigo-950/40 dark:to-indigo-900/40 dark:border-indigo-800">
               <div className="flex items-center gap-2 mb-1">
-                <Star className="text-indigo-600 h-4 w-4" />
-                <p className="text-sm font-semibold text-indigo-700">
+                <Star className="text-indigo-600 h-4 w-4 dark:text-indigo-400" />
+                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
                   Top Performing Package
                 </p>
               </div>
-              <p className="text-sm text-slate-800">
+              <p className="text-sm text-slate-800 dark:text-foreground">
                 <span className="font-bold">
                   {topPackage.packageName ?? "Unnamed Package"}
                 </span>{" "}
@@ -118,11 +118,11 @@ export function SalesSpotlight({
         </div>
 
         {/* Area Chart */}
-        <div className="p-8 rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="p-8 rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between dark:bg-card dark:border-border">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <LineIcon className="h-4 w-4 text-sky-600" />
-              <p className="text-sm font-semibold text-slate-700">
+              <LineIcon className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+              <p className="text-sm font-semibold text-slate-700 dark:text-foreground">
                 30-Day Sales Trend
               </p>
             </div>
@@ -161,9 +161,9 @@ export function SalesSpotlight({
                     <Tooltip
                       formatter={(value) => [`${value} starts`, "Sales"]}
                       contentStyle={{
-                        background: "rgba(255,255,255,0.9)",
+                        background: "var(--popover)", color: "var(--popover-foreground)",
                         borderRadius: "8px",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--border)",
                       }}
                     />
                     <Area
@@ -178,17 +178,17 @@ export function SalesSpotlight({
               )}
             </div>
           </div>
-          <p className="text-xs text-center text-slate-500 mt-3">
+          <p className="text-xs text-center text-slate-500 mt-3 dark:text-muted-foreground">
             Shows daily sales performance for the last 30 days
           </p>
         </div>
 
         {/* Donut PieChart */}
-        <div className="p-8 rounded-xl bg-linear-to-br from-slate-50 to-gray-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="p-8 rounded-xl bg-linear-to-br from-slate-50 to-gray-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between dark:from-background dark:to-background dark:border-border">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <PieIcon className="h-4 w-4 text-violet-600" />
-              <p className="text-sm font-semibold text-slate-700">
+              <PieIcon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <p className="text-sm font-semibold text-slate-700 dark:text-foreground">
                 Package Share Distribution
               </p>
             </div>
@@ -220,7 +220,7 @@ export function SalesSpotlight({
                       height={30}
                       iconSize={10}
                       formatter={(v) => (
-                        <span className="text-xs text-slate-600">{v}</span>
+                        <span className="text-xs text-slate-600 dark:text-muted-foreground">{v}</span>
                       )}
                     />
                     <Tooltip
@@ -229,9 +229,9 @@ export function SalesSpotlight({
                         name,
                       ]}
                       contentStyle={{
-                        background: "rgba(255,255,255,0.9)",
+                        background: "var(--popover)", color: "var(--popover-foreground)",
                         borderRadius: "8px",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--border)",
                       }}
                     />
                   </PieChart>
@@ -239,7 +239,7 @@ export function SalesSpotlight({
               )}
             </div>
           </div>
-          <p className="text-xs text-center text-slate-500 mt-3">
+          <p className="text-xs text-center text-slate-500 mt-3 dark:text-muted-foreground">
             Percentage share of each active package
           </p>
         </div>

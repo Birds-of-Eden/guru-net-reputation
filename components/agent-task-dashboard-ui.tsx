@@ -133,12 +133,12 @@ export function StatCard({
         `bg-linear-to-br ${gradient}`
       )}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent dark:from-card/10" />
       <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-white/90">
           {title}
         </CardTitle>
-        <div className="p-2 bg-white/20 rounded-lg">{icon}</div>
+        <div className="p-2 bg-white/20 rounded-lg dark:bg-card/20">{icon}</div>
       </CardHeader>
       <CardContent className="relative">
         <div className="text-3xl font-bold text-white">{value}</div>
@@ -153,7 +153,7 @@ export function EmptyClients() {
     <div className="col-span-full text-center py-12">
       <div className="flex flex-col items-center gap-4">
         <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full">
-          <Activity className="h-8 w-8 text-gray-400" />
+          <Activity className="h-8 w-8 text-gray-400 dark:text-muted-foreground" />
         </div>
         <div className="space-y-2">
           <p className="text-lg font-medium text-gray-900 dark:text-gray-50">

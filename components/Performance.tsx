@@ -72,10 +72,10 @@ export function evaluatePerformance(
 
 const ratingStyles: Record<Rating, string> = {
   Excellent:
-    "bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200",
-  Good: "bg-green-100 text-green-700 ring-1 ring-inset ring-green-200",
-  Average: "bg-blue-100 text-blue-700 ring-1 ring-inset ring-blue-200",
-  Lazy: "bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200",
+    "bg-emerald-100 text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300",
+  Good: "bg-green-100 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-900/40 dark:text-green-300",
+  Average: "bg-blue-100 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-900/40 dark:text-blue-300",
+  Lazy: "bg-rose-100 text-rose-700 ring-1 ring-inset ring-rose-200 dark:bg-rose-900/40 dark:text-rose-300",
 };
 
 export function PerformanceBadge({
@@ -91,7 +91,7 @@ export function PerformanceBadge({
 
   if (!perf) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-600 px-2.5 py-1 text-xs ring-1 ring-inset ring-slate-200">
+      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-600 px-2.5 py-1 text-xs ring-1 ring-inset ring-slate-200 dark:bg-muted dark:text-muted-foreground dark:ring-border">
         No rating
       </span>
     );

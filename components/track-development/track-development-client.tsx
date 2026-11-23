@@ -32,7 +32,7 @@ export default function TrackDevelopment() {
   const curr2 = gen("current", 2);
 
   return (
-    <div className="min-h-screen w-full bg-linear-to-b from-indigo-50 via-white to-sky-100 dark:from-neutral-900 dark:to-black p-10">
+    <div className="min-h-screen w-full bg-linear-to-b from-indigo-50 via-white to-sky-100 dark:from-neutral-900 dark:to-black p-10 dark:via-card">
       {/* Header */}
       <motion.div
         initial={{ y: -15, opacity: 0 }}
@@ -71,7 +71,7 @@ export default function TrackDevelopment() {
             width={600}
             height={400}
             priority
-            className="rounded-2xl border border-indigo-100 shadow-lg cursor-pointer"
+            className="rounded-2xl border border-indigo-100 shadow-lg cursor-pointer dark:border-indigo-800"
             onClick={() => setPreview(baseline)}
           />
         </motion.div>
@@ -81,7 +81,7 @@ export default function TrackDevelopment() {
       <div className="relative grid md:grid-cols-[1fr_auto_1fr] gap-10">
         {/* Left - Previous */}
         <section>
-          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6">
+          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6 dark:text-indigo-400">
             ⏮️ Previous Progress
           </h3>
           <div className="space-y-8">
@@ -107,7 +107,7 @@ export default function TrackDevelopment() {
                       height={150}
                       loading="lazy"
                       onClick={() => setPreview(src)}
-                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07]"
+                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07] dark:border-border"
                     />
                   ))}
                 </div>
@@ -122,7 +122,7 @@ export default function TrackDevelopment() {
             {months.map((m, i) => (
               <motion.div
                 key={i}
-                className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-md ring-4 ring-indigo-400"
+                className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-md ring-4 ring-indigo-400 dark:bg-card"
                 style={{ top: `${(i / (months.length - 1)) * 100}%` }}
                 animate={{
                   boxShadow: [
@@ -139,7 +139,7 @@ export default function TrackDevelopment() {
 
         {/* Right - Current */}
         <section>
-          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6">
+          <h3 className="text-center text-lg font-semibold text-indigo-600 mb-6 dark:text-indigo-400">
             ⏩ Current Progress
           </h3>
           <div className="space-y-8">
@@ -165,7 +165,7 @@ export default function TrackDevelopment() {
                       height={150}
                       loading="lazy"
                       onClick={() => setPreview(src)}
-                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07]"
+                      className="rounded-lg border border-gray-200 shadow-sm cursor-pointer transition-transform duration-300 hover:scale-[1.07] dark:border-border"
                     />
                   ))}
                 </div>
@@ -188,7 +188,7 @@ export default function TrackDevelopment() {
             <motion.img
               src={preview}
               alt="Preview"
-              className="max-w-[90vw] max-h-[85vh] rounded-2xl border border-white/10 shadow-2xl"
+              className="max-w-[90vw] max-h-[85vh] rounded-2xl border border-white/10 shadow-2xl dark:border-border/10"
               initial={{ scale: 0.85 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.85 }}

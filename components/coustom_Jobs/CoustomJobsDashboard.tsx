@@ -289,11 +289,11 @@ export default function CustomJobsDashboard() {
   const statusBadgeClass = (status: string) => {
     switch (status) {
       case "requested":
-        return "bg-violet-100 text-violet-800 hover:bg-violet-100";
+        return "bg-violet-100 text-violet-800 hover:bg-violet-100 dark:bg-violet-900/40 dark:text-violet-300 dark:hover:bg-violet-900/40";
       case "approved":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/40";
       case "pending":
-        return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+        return "bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-900/40";
       case "in_progress":
         return "bg-blue-500 text-white hover:bg-blue-500";
       case "completed":
@@ -303,19 +303,19 @@ export default function CustomJobsDashboard() {
       case "qc_approved":
         return "bg-emerald-500 text-white hover:bg-emerald-500";
       default:
-        return "bg-slate-100 text-slate-800 hover:bg-slate-100";
+        return "bg-slate-100 text-slate-800 hover:bg-slate-100 dark:bg-muted dark:text-foreground dark:hover:bg-muted";
     }
   };
 
   return (
-    <div className="space-y-6 p-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen">
+    <div className="space-y-6 p-6 bg-linear-to-br from-slate-50 via-white to-slate-50 min-h-screen dark:from-background dark:via-card dark:to-background">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-black bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-black bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-purple-400 dark:to-pink-400">
             Custom Jobs Dashboard
           </h1>
-          <p className="text-slate-600 mt-1">Premium analytics and management for custom job tasks</p>
+          <p className="text-slate-600 mt-1 dark:text-muted-foreground">Premium analytics and management for custom job tasks</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={fetchJobs} variant="outline" className="gap-2">
@@ -337,11 +337,11 @@ export default function CustomJobsDashboard() {
       </div>
 
       {/* Filters */}
-      <Card className="border-2 border-slate-200 shadow-lg">
+      <Card className="border-2 border-slate-200 shadow-lg dark:border-border">
         <CardContent className="p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
             <div className="flex-1">
-              <label className="text-sm font-bold text-slate-700 mb-2 block">Date Filter</label>
+              <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">Date Filter</label>
               <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select date range" />
@@ -358,7 +358,7 @@ export default function CustomJobsDashboard() {
             {dateFilter === "date_range" && (
               <>
                 <div className="flex-1">
-                  <label className="text-sm font-bold text-slate-700 mb-2 block">Start Date</label>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">Start Date</label>
                   <Input
                     type="date"
                     value={startDate}
@@ -366,7 +366,7 @@ export default function CustomJobsDashboard() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-sm font-bold text-slate-700 mb-2 block">End Date</label>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">End Date</label>
                   <Input
                     type="date"
                     value={endDate}
@@ -376,7 +376,7 @@ export default function CustomJobsDashboard() {
               </>
             )}
             <div className="flex-1">
-              <label className="text-sm font-bold text-slate-700 mb-2 block">Status</label>
+              <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="All statuses" />
@@ -393,7 +393,7 @@ export default function CustomJobsDashboard() {
               </Select>
             </div>
             <div className="flex-1">
-              <label className="text-sm font-bold text-slate-700 mb-2 block">Priority</label>
+              <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">Priority</label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="All priorities" />
@@ -408,7 +408,7 @@ export default function CustomJobsDashboard() {
               </Select>
             </div>
             <div className="flex-1">
-              <label className="text-sm font-bold text-slate-700 mb-2 block">Client</label>
+              <label className="text-sm font-bold text-slate-700 mb-2 block dark:text-foreground">Client</label>
               <Popover open={clientSearchPopoverOpen} onOpenChange={setClientSearchPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -484,57 +484,57 @@ export default function CustomJobsDashboard() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-2 border-blue-200 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-blue-200 shadow-lg hover:shadow-xl transition-shadow dark:border-blue-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Jobs</p>
-                <p className="text-3xl font-black text-blue-600 mt-2">{stats.total}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Total Jobs</p>
+                <p className="text-3xl font-black text-blue-600 mt-2 dark:text-blue-400">{stats.total}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <FileText className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 rounded-full dark:bg-blue-900/40">
+                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-emerald-200 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-emerald-200 shadow-lg hover:shadow-xl transition-shadow dark:border-emerald-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Completed</p>
-                <p className="text-3xl font-black text-emerald-600 mt-2">{stats.completed}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Completed</p>
+                <p className="text-3xl font-black text-emerald-600 mt-2 dark:text-emerald-400">{stats.completed}</p>
               </div>
-              <div className="p-3 bg-emerald-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-emerald-600" />
+              <div className="p-3 bg-emerald-100 rounded-full dark:bg-emerald-900/40">
+                <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-amber-200 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-amber-200 shadow-lg hover:shadow-xl transition-shadow dark:border-amber-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Pending</p>
-                <p className="text-3xl font-black text-amber-600 mt-2">{stats.pending + stats.inProgress}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Pending</p>
+                <p className="text-3xl font-black text-amber-600 mt-2 dark:text-amber-400">{stats.pending + stats.inProgress}</p>
               </div>
-              <div className="p-3 bg-amber-100 rounded-full">
-                <Clock className="h-6 w-6 text-amber-600" />
+              <div className="p-3 bg-amber-100 rounded-full dark:bg-amber-900/40">
+                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-shadow dark:border-purple-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Sub-Tasks</p>
-                <p className="text-3xl font-black text-purple-600 mt-2">{stats.totalSubTasks}</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-muted-foreground">Total Sub-Tasks</p>
+                <p className="text-3xl font-black text-purple-600 mt-2 dark:text-purple-400">{stats.totalSubTasks}</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <FileText className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-purple-100 rounded-full dark:bg-purple-900/40">
+                <FileText className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -543,7 +543,7 @@ export default function CustomJobsDashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-2 border-slate-200 shadow-lg">
+        <Card className="border-2 border-slate-200 shadow-lg dark:border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PieChart className="h-5 w-5" />
@@ -573,7 +573,7 @@ export default function CustomJobsDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-slate-200 shadow-lg">
+        <Card className="border-2 border-slate-200 shadow-lg dark:border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart className="h-5 w-5" />
@@ -594,7 +594,7 @@ export default function CustomJobsDashboard() {
         </Card>
       </div>
 
-      <Card className="border-2 border-slate-200 shadow-lg">
+      <Card className="border-2 border-slate-200 shadow-lg dark:border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />

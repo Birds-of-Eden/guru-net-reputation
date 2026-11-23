@@ -169,7 +169,7 @@ export function TabContent({
   return (
     <div className="space-y-6 h-full flex flex-col">
       {/* controls header - simplified */}
-      <div className="rounded-xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-white to-sky-50 p-4 shadow-sm shrink-0">
+      <div className="rounded-xl border border-slate-200/80 bg-linear-to-r from-indigo-50 via-white to-sky-50 p-4 shadow-sm shrink-0 dark:border-border/80 dark:from-indigo-950/40 dark:via-card dark:to-sky-950/40">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -182,7 +182,7 @@ export function TabContent({
                 )
               }
               disabled={tasks.length === 0}
-              className="border-slate-200"
+              className="border-slate-200 dark:border-border"
             >
               Select All ({tasks.length})
             </Button>
@@ -200,15 +200,15 @@ export function TabContent({
               Clear Selection
             </Button>
 
-            <div className="flex items-center gap-2 text-xs text-slate-600 pl-1">
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-900">
-                {tasks.length} <span className="text-[11px] font-medium text-slate-600">Total</span>
+            <div className="flex items-center gap-2 text-xs text-slate-600 pl-1 dark:text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-900 dark:border-border dark:bg-muted/40 dark:text-foreground">
+                {tasks.length} <span className="text-[11px] font-medium text-slate-600 dark:text-muted-foreground">Total</span>
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-semibold text-blue-800">
-                {selectedTasksInTab} <span className="text-[11px] font-medium text-blue-700">Selected</span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-semibold text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+                {selectedTasksInTab} <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">Selected</span>
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-800">
-                {assignedTasksInTab} <span className="text-[11px] font-medium text-emerald-700">Assigned</span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                {assignedTasksInTab} <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-300">Assigned</span>
               </span>
             </div>
           </div>
@@ -217,11 +217,11 @@ export function TabContent({
 
       {/* list/grid with scrolling */}
       {tasks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm flex-1 flex items-center justify-center">
-          <h3 className="text-base font-semibold text-slate-900">
+        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm flex-1 flex items-center justify-center dark:border-border dark:bg-card">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-foreground">
             No Tasks Found
           </h3>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-muted-foreground">
             There are currently no tasks in this category for the selected
             client.
           </p>

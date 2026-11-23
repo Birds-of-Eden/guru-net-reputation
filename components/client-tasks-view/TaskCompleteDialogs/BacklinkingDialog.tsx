@@ -216,12 +216,12 @@ export default function BacklinkingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-auto">
+      <DialogContent className="sm:max-w-[750px] max-h-[90vh] flex flex-col rounded-3xl border-0 bg-white shadow-2xl overflow-auto dark:bg-card">
         {/* Modern Header with Gradient */}
         <div className="bg-linear-to-r from-orange-500 via-amber-500 to-yellow-500 -m-6 mb-6 px-8 py-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-white flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md dark:bg-card/20">
                 <LinkIcon className="h-7 w-7 text-white" />
               </div>
               <div className="flex-1">
@@ -232,7 +232,7 @@ export default function BacklinkingModal({
                   <div className="text-white font-black text-xl truncate flex-1">
                     {task?.name}
                   </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 backdrop-blur-sm dark:bg-card/10">
                     <Clock className="h-4 w-4 text-white/80" />
                     <span className="text-white font-mono font-bold text-sm">
                       {timerInfo?.formatDisplayTime || "00:00"}
@@ -250,26 +250,26 @@ export default function BacklinkingModal({
 
         <div className="px-6 pb-6 space-y-6">
           {/* Timer Display */}
-          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-4 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-500 p-2 rounded-xl">
                   <Clock className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide">
+                  <h3 className="text-sm font-bold text-blue-800 uppercase tracking-wide dark:text-blue-300">
                     Time Tracking
                   </h3>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-blue-600 font-medium dark:text-blue-400">
                     Time spent on this completion
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-mono font-black text-blue-700">
+                <div className="text-2xl font-mono font-black text-blue-700 dark:text-blue-300">
                   {timerInfo?.formatElapsedTime || "00:00"}
                 </div>
-                <div className="text-xs text-blue-600 font-medium">
+                <div className="text-xs text-blue-600 font-medium dark:text-blue-400">
                   {timerInfo ? Math.ceil(timerInfo.elapsedSeconds / 60) : 0}{" "}
                   minutes
                 </div>
@@ -279,9 +279,9 @@ export default function BacklinkingModal({
 
           {/* Anchor Text Section */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2">
-              <div className="bg-emerald-100 p-2 rounded-lg">
-                <ListOrdered className="h-4 w-4 text-emerald-600" />
+            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide flex items-center gap-2 dark:text-foreground">
+              <div className="bg-emerald-100 p-2 rounded-lg dark:bg-emerald-900/40">
+                <ListOrdered className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               Anchor Text
             </label>
@@ -289,16 +289,16 @@ export default function BacklinkingModal({
               placeholder="Paste anchor text (plain text). Use commas or new lines; we'll save it as text."
               value={anchorText}
               onChange={(e) => setAnchorText(e.target.value)}
-              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all"
+              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all dark:border-border"
               rows={8}
             />
           </div>
 
           {/* Backlinks Textarea Section */}
           <div className="space-y-3">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-orange-100 p-2 rounded-lg">
-                <LinkIcon className="h-4 w-4 text-orange-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-orange-100 p-2 rounded-lg dark:bg-orange-900/40">
+                <LinkIcon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               </div>
               Backlink URLs (text) *
             </label>
@@ -306,25 +306,25 @@ export default function BacklinkingModal({
               placeholder="Paste backlink URLs here (plain text). Use commas or new lines; we'll save it as text."
               value={links}
               onChange={(e) => setLinks(e.target.value)}
-              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all"
+              className="w-full rounded-2xl border-2 border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 p-4 min-h-[180px] resize-y text-base font-medium transition-all dark:border-border"
               rows={8}
             />
           </div>
 
           {/* Backlinking Details - Premium Design */}
-          <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner">
+          <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-3xl p-6 space-y-5 shadow-inner dark:from-amber-950/40 dark:via-orange-950/40 dark:to-yellow-950/40 dark:border-amber-800">
             <div className="flex items-center gap-3 mb-2">
               <div className="bg-amber-500 p-2 rounded-xl">
                 <Package className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-base font-black text-slate-800 uppercase tracking-wide">
+              <h3 className="text-base font-black text-slate-800 uppercase tracking-wide dark:text-foreground">
                 Order Details
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Order Date */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                   Order Date *
                 </label>
                 <DatePicker
@@ -335,18 +335,18 @@ export default function BacklinkingModal({
                   showYearDropdown
                   dropdownMode="select"
                   placeholderText="Select order date"
-                  className="w-full border-2 border-amber-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 bg-white transition-all font-medium"
+                  className="w-full border-2 border-amber-200 rounded-2xl px-5 py-2 text-base h-14 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 bg-white transition-all font-medium dark:border-amber-800 dark:bg-card"
                   maxDate={new Date()}
                 />
               </div>
 
               {/* Month Selection */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                   Month Selection *
                 </label>
                 <Select value={month} onValueChange={setMonth}>
-                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium">
+                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium dark:bg-card dark:border-amber-800">
                     <SelectValue placeholder="Select month..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -361,11 +361,11 @@ export default function BacklinkingModal({
 
               {/* Quantity */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                   Quantity *
                 </label>
                 <Select value={quantity} onValueChange={setQuantity}>
-                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium">
+                  <SelectTrigger className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 text-base font-medium dark:bg-card dark:border-amber-800">
                     <SelectValue placeholder="Select quantity..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -380,7 +380,7 @@ export default function BacklinkingModal({
 
               {/* Drip Period */}
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">
                   Drip Period *
                 </label>
                 <Input
@@ -388,7 +388,7 @@ export default function BacklinkingModal({
                   placeholder="e.g. 30 days"
                   value={dripPeriod}
                   onChange={(e) => setDripPeriod(e.target.value)}
-                  className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-base font-medium px-5"
+                  className="rounded-2xl h-14 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/20 transition-all text-base font-medium px-5 dark:bg-card dark:border-amber-800"
                 />
               </div>
             </div>
@@ -396,7 +396,7 @@ export default function BacklinkingModal({
         </div>
 
         {/* Footer with Modern Button Design */}
-        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4">
+        <DialogFooter className="pt-8 border-t-2 border-slate-100 px-6 pb-6 gap-4 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}

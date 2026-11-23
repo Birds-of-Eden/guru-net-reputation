@@ -242,7 +242,7 @@ function KpiCard({
     <Card
       className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-linear-to-br ${t.from} ${t.to} ${t.text} ${t.shadow} hover:scale-105`}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 dark:from-card/20" />
       <CardHeader className="relative pb-2">
         <CardTitle
           className={`text-sm font-semibold ${t.sub} uppercase tracking-wide`}
@@ -263,33 +263,33 @@ function statusBadge(status: string) {
     pending: {
       color:
         "bg-linear-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-200/50",
-      icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
+      icon: <span className="block w-3 h-3 rounded-full bg-white/80 dark:bg-card/80" />,
     },
     in_progress: {
       color:
         "bg-linear-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200/50",
       icon: (
-        <span className="block w-3 h-3 rounded-full bg-white animate-pulse" />
+        <span className="block w-3 h-3 rounded-full bg-white animate-pulse dark:bg-card" />
       ),
     },
     completed: {
       color:
         "bg-linear-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-200/50",
-      icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
+      icon: <span className="block w-3 h-3 rounded-full bg-white/80 dark:bg-card/80" />,
     },
     overdue: {
       color:
         "bg-linear-to-r from-red-500 to-rose-500 text-white shadow-lg shadow-red-200/50",
-      icon: <span className="block w-3 h-3 rounded-full bg-white/80" />,
+      icon: <span className="block w-3 h-3 rounded-full bg-white/80 dark:bg-card/80" />,
     },
     cancelled: {
       color:
         "bg-linear-to-r from-slate-400 to-gray-500 text-white shadow-lg shadow-gray-200/50",
-      icon: <span className="block w-3 h-3 rounded-full bg-white/70" />,
+      icon: <span className="block w-3 h-3 rounded-full bg-white/70 dark:bg-card/70" />,
     },
   };
   const config = map[status] ?? {
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground",
     icon: <span className="block w-3 h-3 rounded-full bg-gray-400" />,
   };
   return (
@@ -310,7 +310,7 @@ function priorityBadge(priority: string) {
     urgent:
       "bg-linear-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-200/50",
   };
-  const cls = map[priority] ?? "bg-gray-100 text-gray-800";
+  const cls = map[priority] ?? "bg-gray-100 text-gray-800 dark:bg-muted dark:text-foreground";
   const stars =
     priority === "urgent"
       ? 3

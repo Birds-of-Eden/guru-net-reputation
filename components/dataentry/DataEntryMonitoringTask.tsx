@@ -408,8 +408,8 @@ export default function SheetBuilderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] h-[85vh] p-0 overflow-hidden rounded-2xl flex flex-col">
         {/* Ribbon */}
-        <header className="sticky top-0 z-10 border-b border-gray-300 bg-[#F3F3F3]">
-          <div className="px-4 py-1 flex items-center justify-between border-b border-gray-300 bg-white">
+        <header className="sticky top-0 z-10 border-b border-gray-300 bg-[#F3F3F3] dark:border-border">
+          <div className="px-4 py-1 flex items-center justify-between border-b border-gray-300 bg-white dark:border-border dark:bg-card">
             <DialogHeader className="flex-1">
               <DialogTitle className="text-lg font-semibold">
                 {task?.name || "Monitoring Task"}
@@ -488,13 +488,13 @@ export default function SheetBuilderDialog({
         </div>
 
         {/* Sheet Tabs */}
-        <div className="px-4 flex items-center bg-white border-t border-gray-200 overflow-x-auto whitespace-nowrap">
+        <div className="px-4 flex items-center bg-white border-t border-gray-200 overflow-x-auto whitespace-nowrap dark:bg-card dark:border-border">
           {sections.map((s) => (
             <div
               key={s.id}
-              className={`shrink-0 flex items-center border-r border-gray-300 ${
+              className={`shrink-0 flex items-center border-r border-gray-300 dark:border-border ${
                 s.id === activeId
-                  ? "bg-white border-t-2 border-t-[#107C41]"
+                  ? "bg-white border-t-2 border-t-[#107C41] dark:bg-card"
                   : "bg-[#E9E9E9] hover:bg-[#DDDDDD]"
               }`}
             >
@@ -522,7 +522,7 @@ export default function SheetBuilderDialog({
                         (e.target as HTMLInputElement).blur();
                       if (e.key === "Escape") setEditSheetId(null);
                     }}
-                    className="w-full bg-white border border-gray-300 rounded px-2 py-0.5 text-sm"
+                    className="w-full bg-white border border-gray-300 rounded px-2 py-0.5 text-sm dark:bg-card dark:border-border"
                   />
                 ) : (
                   s.name
@@ -535,7 +535,7 @@ export default function SheetBuilderDialog({
                     e.stopPropagation();
                     renameSection(s.id);
                   }}
-                  className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 rounded text-xs"
+                  className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 rounded text-xs dark:hover:bg-muted"
                 >
                   ✎
                 </button>
@@ -545,7 +545,7 @@ export default function SheetBuilderDialog({
                     e.stopPropagation();
                     deleteSection(s.id);
                   }}
-                  className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 rounded text-xs"
+                  className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 rounded text-xs dark:hover:bg-muted"
                 >
                   ×
                 </button>
@@ -554,7 +554,7 @@ export default function SheetBuilderDialog({
           ))}
           <button
             onClick={addSection}
-            className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 text-lg border-r border-gray-300"
+            className="px-3 py-1.5 text-gray-600 hover:bg-gray-200 text-lg border-r border-gray-300 dark:text-muted-foreground dark:hover:bg-muted dark:border-border"
             title="Add new sheet"
           >
             +
@@ -564,8 +564,8 @@ export default function SheetBuilderDialog({
         {/* Grid */}
         <main className="px-4 py-4 flex-1 overflow-auto bg-[#F3F3F3]">
           {!active ? (
-            <div className="flex flex-col items-center justify-center h-96 bg-white border border-gray-300 rounded-lg">
-              <div className="text-gray-500 text-lg mb-4">
+            <div className="flex flex-col items-center justify-center h-96 bg-white border border-gray-300 rounded-lg dark:bg-card dark:border-border">
+              <div className="text-gray-500 text-lg mb-4 dark:text-muted-foreground">
                 No sheets available
               </div>
               <Button
@@ -576,18 +576,18 @@ export default function SheetBuilderDialog({
               </Button>
             </div>
           ) : (
-            <div className="bg-white border border-gray-300 shadow-sm">
+            <div className="bg-white border border-gray-300 shadow-sm dark:bg-card dark:border-border">
               {/* Unified horizontal scroll area for headers + rows + add-row */}
               <div className="overflow-x-auto overflow-y-hidden">
                 {/* Column Headers */}
-                <div className="flex border-b border-gray-300 min-w-max">
-                  <div className="w-12 shrink-0 border-right border-gray-300 bg-[#F8F9FA] flex items-center justify-center text-xs text-gray-600 font-medium border-r">
+                <div className="flex border-b border-gray-300 min-w-max dark:border-border">
+                  <div className="w-12 shrink-0 border-right border-gray-300 bg-[#F8F9FA] flex items-center justify-center text-xs text-gray-600 font-medium border-r dark:border-border dark:text-muted-foreground">
                     {active.rows.length}
                   </div>
                   {active.columns.map((col, i) => (
                     <div
                       key={i}
-                      className="relative w-[120px] shrink-0 border-r border-gray-300 bg-[#F8F9FA] px-2 py-1 text-xs font-semibold text-gray-700"
+                      className="relative w-[120px] shrink-0 border-r border-gray-300 bg-[#F8F9FA] px-2 py-1 text-xs font-semibold text-gray-700 dark:border-border dark:text-foreground"
                     >
                       <input
                         type="text"
@@ -601,7 +601,7 @@ export default function SheetBuilderDialog({
                       <button
                         type="button"
                         onClick={() => deleteColumn(i)}
-                        className="absolute right-1 top-1 px-1 leading-none text-xs text-gray-400 hover:text-red-600"
+                        className="absolute right-1 top-1 px-1 leading-none text-xs text-gray-400 hover:text-red-600 dark:text-muted-foreground dark:hover:text-red-400"
                         title="Remove column"
                       >
                         ×
@@ -615,14 +615,14 @@ export default function SheetBuilderDialog({
                   {active.rows.map((row, rowIndex) => (
                     <div
                       key={rowIndex}
-                      className="flex border-b border-gray-200 hover:bg-gray-50 min-w-max"
+                      className="flex border-b border-gray-200 hover:bg-gray-50 min-w-max dark:border-border dark:hover:bg-muted/40"
                     >
-                      <div className="relative w-12 shrink-0 border-r border-gray-300 bg-[#F8F9FA] flex items-center justify-center text-xs text-gray-500 py-1">
+                      <div className="relative w-12 shrink-0 border-r border-gray-300 bg-[#F8F9FA] flex items-center justify-center text-xs text-gray-500 py-1 dark:border-border dark:text-muted-foreground">
                         {rowIndex + 1}
                         <button
                           type="button"
                           onClick={() => deleteRow(rowIndex)}
-                          className="absolute right-0.5 top-0.5 px-1 leading-none text-[10px] text-gray-400 hover:text-red-600"
+                          className="absolute right-0.5 top-0.5 px-1 leading-none text-[10px] text-gray-400 hover:text-red-600 dark:text-muted-foreground dark:hover:text-red-400"
                           title="Remove row"
                         >
                           ×
@@ -631,7 +631,7 @@ export default function SheetBuilderDialog({
                       {active.columns.map((col, colIndex) => (
                         <div
                           key={colIndex}
-                          className={`w-[120px] shrink-0 border-r border-gray-200 p-0 ${
+                          className={`w-[120px] shrink-0 border-r border-gray-200 p-0 dark:border-border ${
                             focusedCell?.row === rowIndex &&
                             focusedCell?.col === colIndex
                               ? "ring-2 ring-blue-500 ring-inset"
@@ -657,14 +657,14 @@ export default function SheetBuilderDialog({
                 </div>
 
                 {active.rows.length === 0 && (
-                  <div className="py-12 text-center text-gray-500 min-w-max">
+                  <div className="py-12 text-center text-gray-500 min-w-max dark:text-muted-foreground">
                     No data. Start typing in the cells or add more rows.
                   </div>
                 )}
               </div>
 
               {/* Add Row - outside scroll area */}
-              <div className="border-t border-gray-300 p-2 bg-[#F8F9FA]">
+              <div className="border-t border-gray-300 p-2 bg-[#F8F9FA] dark:border-border">
                 <Button variant="outline" size="sm" onClick={addRow}>
                   + Add Row
                 </Button>
@@ -674,7 +674,7 @@ export default function SheetBuilderDialog({
 
           {/* Status bar */}
           {active && (
-            <div className="mt-2 flex items-center justify-between text-xs text-gray-600">
+            <div className="mt-2 flex items-center justify-between text-xs text-gray-600 dark:text-muted-foreground">
               <div>Ready</div>
               <div className="flex items-center gap-4">
                 <span>Sheets: {sections.length}</span>
@@ -686,17 +686,17 @@ export default function SheetBuilderDialog({
         </main>
 
         {/* Footer */}
-        <DialogFooter className="border-t bg-white px-4 py-4 flex flex-col sm:flex-row justify-between gap-4 min-h-[120px]">
+        <DialogFooter className="border-t bg-white px-4 py-4 flex flex-col sm:flex-row justify-between gap-4 min-h-[120px] dark:bg-card">
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Done By Agent */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-700">
+              <label className="text-xs font-semibold text-gray-700 dark:text-foreground">
                 Done By Agent
               </label>
               <select
                 value={selectedAgent}
                 onChange={(e) => setSelectedAgent(e.target.value)}
-                className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#107C41]"
+                className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#107C41] dark:border-border dark:bg-card"
                 disabled={readOnly}
               >
                 <option value="">Select Agent</option>
@@ -718,14 +718,14 @@ export default function SheetBuilderDialog({
 
             {/* Completion Date */}
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-700">
+              <label className="text-xs font-semibold text-gray-700 dark:text-foreground">
                 Completion Date
               </label>
               <input
                 type="date"
                 value={completionDate}
                 onChange={(e) => setCompletionDate(e.target.value)}
-                className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#107C41]"
+                className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#107C41] dark:border-border dark:bg-card"
                 disabled={readOnly}
               />
             </div>
@@ -735,7 +735,7 @@ export default function SheetBuilderDialog({
             {!readOnly && (
               <>
                 {/* Debug info - remove after testing */}
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-muted-foreground">
                   Task ID: {task?.id ? "✓" : "✗"} | Agent: {selectedAgent ? "✓" : "✗"} | Date: {completionDate ? "✓" : "✗"}
                 </div>
                 <div className="flex gap-2 items-center">

@@ -251,11 +251,11 @@ export function CustomizeTemplateDialog({
             <div>
               <div className="flex items-center gap-2">
                 Customize Template
-                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700">
                   {clientName}
                 </Badge>
               </div>
-              <p className="text-sm font-normal text-slate-500 mt-1">
+              <p className="text-sm font-normal text-slate-500 mt-1 dark:text-muted-foreground">
                 Current Template: <span className="font-semibold">{currentTemplate.name}</span>
               </p>
             </div>
@@ -272,7 +272,7 @@ export function CustomizeTemplateDialog({
           <Label htmlFor="customTemplateName" className="text-sm font-semibold text-purple-900 dark:text-purple-300 flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
             Custom Template Name
-            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
+            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700">
               Optional
             </Badge>
           </Label>
@@ -281,7 +281,7 @@ export function CustomizeTemplateDialog({
             value={customTemplateName}
             onChange={(e) => setCustomTemplateName(e.target.value)}
             placeholder={`${currentTemplate.name} - Custom (${clientName})`}
-            className="border-2 border-purple-300 focus:border-purple-500 bg-white dark:bg-slate-800 font-medium"
+            className="border-2 border-purple-300 focus:border-purple-500 bg-white dark:bg-slate-800 font-medium dark:border-purple-700"
           />
           <p className="text-xs text-purple-700 dark:text-purple-400 flex items-start gap-1">
             <span>💡</span>
@@ -308,7 +308,7 @@ export function CustomizeTemplateDialog({
             {newAssets.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
                 <Plus className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 mb-4">No new assets added yet</p>
+                <p className="text-slate-500 mb-4 dark:text-muted-foreground">No new assets added yet</p>
                 <Button onClick={handleAddAsset} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Add Your First Asset
@@ -323,10 +323,10 @@ export function CustomizeTemplateDialog({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 px-3 py-1">
+                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 px-3 py-1 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700">
                           ✨ New Asset #{index + 1}
                         </Badge>
-                        <Badge variant="outline" className="text-xs bg-slate-100">
+                        <Badge variant="outline" className="text-xs bg-slate-100 dark:bg-muted">
                           {assetTypes.find(t => t.value === asset.type)?.label || formatAssetTypeLabel(asset.type)}
                         </Badge>
                       </div>
@@ -334,7 +334,7 @@ export function CustomizeTemplateDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveAsset(index)}
-                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -361,12 +361,12 @@ export function CustomizeTemplateDialog({
                           </SelectTrigger>
                           <SelectContent className="max-h-[400px] overflow-y-auto">
                             {loadingAssetTypes ? (
-                              <div className="p-4 text-center text-sm text-slate-500">
+                              <div className="p-4 text-center text-sm text-slate-500 dark:text-muted-foreground">
                                 <Loader className="h-4 w-4 animate-spin mx-auto mb-2" />
                                 Loading asset types...
                               </div>
                             ) : assetTypes.length === 0 ? (
-                              <div className="p-4 text-center text-sm text-slate-500">
+                              <div className="p-4 text-center text-sm text-slate-500 dark:text-muted-foreground">
                                 No asset types available
                               </div>
                             ) : (
@@ -382,7 +382,7 @@ export function CustomizeTemplateDialog({
                             )}
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-slate-500">Select the type of asset you want to add</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Select the type of asset you want to add</p>
                       </div>
 
                       <div className="space-y-2">
@@ -400,13 +400,13 @@ export function CustomizeTemplateDialog({
                           placeholder="e.g., Facebook, Instagram"
                           className="bg-slate-100 dark:bg-slate-800"
                         />
-                        <p className="text-xs text-slate-500">Default template asset name</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Default template asset name</p>
                       </div>
 
                       <div className="space-y-2 col-span-2">
                         <Label className="flex items-center gap-2">
                           Custom Name
-                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700">
+                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                             Optional
                           </Badge>
                         </Label>
@@ -416,9 +416,9 @@ export function CustomizeTemplateDialog({
                             handleUpdateAsset(index, "customName", e.target.value)
                           }
                           placeholder="Enter your custom name (e.g., My Company Facebook Page)"
-                          className="border-blue-300 focus:border-blue-500"
+                          className="border-blue-300 focus:border-blue-500 dark:border-blue-700"
                         />
-                        <p className="text-xs text-blue-600">💡 If provided, this custom name will be used instead of the default</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">💡 If provided, this custom name will be used instead of the default</p>
                       </div>
 
                       <div className="space-y-2 col-span-2">
@@ -434,7 +434,7 @@ export function CustomizeTemplateDialog({
                           placeholder="https://example.com/your-asset"
                           className="font-mono text-sm"
                         />
-                        <p className="text-xs text-slate-500">Link to the asset (if applicable)</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Link to the asset (if applicable)</p>
                       </div>
 
                       <div className="space-y-2 col-span-2">
@@ -456,7 +456,7 @@ export function CustomizeTemplateDialog({
                       <div className="space-y-2">
                         <Label className="flex items-center gap-2">
                           🗓️ Posting Frequency (per month)
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
                             {asset.defaultPostingFrequency}x
                           </Badge>
                         </Label>
@@ -475,14 +475,14 @@ export function CustomizeTemplateDialog({
                             }
                             className="w-24"
                           />
-                          <span className="text-sm text-slate-600">tasks/month</span>
+                          <span className="text-sm text-slate-600 dark:text-muted-foreground">tasks/month</span>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <Label className="flex items-center gap-2">
                           ⏱️ Duration (minutes)
-                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700">
+                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
                             {asset.defaultIdealDurationMinutes}min
                           </Badge>
                         </Label>
@@ -502,9 +502,9 @@ export function CustomizeTemplateDialog({
                             }
                             className="w-24"
                           />
-                          <span className="text-sm text-slate-600">minutes</span>
+                          <span className="text-sm text-slate-600 dark:text-muted-foreground">minutes</span>
                         </div>
-                        <p className="text-xs text-slate-500">Estimated time to complete each task</p>
+                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Estimated time to complete each task</p>
                       </div>
 
                       <div className="flex items-center space-x-2 col-span-2">
@@ -536,12 +536,12 @@ export function CustomizeTemplateDialog({
             {!currentTemplate.sitesAssets || currentTemplate.sitesAssets.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
                 <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No assets available to replace</p>
+                <p className="text-slate-500 dark:text-muted-foreground">No assets available to replace</p>
               </div>
             ) : replacements.length === 0 ? (
               <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
                 <Plus className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 mb-4">No replacements added yet</p>
+                <p className="text-slate-500 mb-4 dark:text-muted-foreground">No replacements added yet</p>
                 <Button onClick={handleAddReplacement} className="gap-2">
                   <Plus className="h-4 w-4" />
                   Add Your First Replacement
@@ -560,11 +560,11 @@ export function CustomizeTemplateDialog({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700">
                           Replacement #{index + 1}
                         </Badge>
                         {selectedOldAsset && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-muted-foreground">
                             Directly replacing: <span className="font-semibold">{selectedOldAsset.name}</span>
                           </span>
                         )}
@@ -573,7 +573,7 @@ export function CustomizeTemplateDialog({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveReplacement(index)}
-                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400"
                       >
                         <X className="h-4 w-4" />
                       </Button>

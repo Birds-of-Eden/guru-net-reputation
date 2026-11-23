@@ -113,27 +113,27 @@ interface ReviewSectionProps {
 const COLORS = {
   primary: {
     gradient: "from-indigo-600 to-purple-600",
-    light: "bg-indigo-50",
-    medium: "bg-indigo-100",
-    dark: "text-indigo-700",
-    border: "border-indigo-200",
+    light: "bg-indigo-50 dark:bg-indigo-950/40",
+    medium: "bg-indigo-100 dark:bg-indigo-900/40",
+    dark: "text-indigo-700 dark:text-indigo-300",
+    border: "border-indigo-200 dark:border-indigo-800",
   },
   success: {
     gradient: "from-emerald-500 to-teal-600",
-    light: "bg-emerald-50",
-    dark: "text-emerald-700",
-    border: "border-emerald-200",
+    light: "bg-emerald-50 dark:bg-emerald-950/40",
+    dark: "text-emerald-700 dark:text-emerald-300",
+    border: "border-emerald-200 dark:border-emerald-800",
   },
   warning: {
-    light: "bg-amber-50",
-    dark: "text-amber-700",
-    border: "border-amber-200",
+    light: "bg-amber-50 dark:bg-amber-950/40",
+    dark: "text-amber-700 dark:text-amber-300",
+    border: "border-amber-200 dark:border-amber-800",
   },
   neutral: {
-    light: "bg-slate-50",
-    medium: "bg-slate-100",
-    dark: "text-slate-700",
-    border: "border-slate-200",
+    light: "bg-slate-50 dark:bg-muted/40",
+    medium: "bg-slate-100 dark:bg-muted",
+    dark: "text-slate-700 dark:text-foreground",
+    border: "border-slate-200 dark:border-border",
   },
 } as const;
 
@@ -144,14 +144,14 @@ const isLikelyUrl = (v: string) =>
 // --- REUSABLE SUB-COMPONENTS ---
 
 const ReviewSectionCard: FC<ReviewSectionProps> = memo(
-  ({ icon: Icon, title, children, gradient = "from-blue-50 to-indigo-50" }) => (
-    <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300">
+  ({ icon: Icon, title, children, gradient = "from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40" }) => (
+    <Card className="overflow-hidden border-2 border-indigo-100 shadow-xl bg-linear-to-br from-white to-indigo-50/30 rounded-2xl hover:shadow-2xl transition-all duration-300 dark:border-indigo-800 dark:from-card dark:to-indigo-950/40">
       <CardHeader className="relative space-y-0 py-6 px-8 border-b-0">
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
             <Icon className="w-5 h-5 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-foreground">
             {title}
           </CardTitle>
         </div>
@@ -167,17 +167,17 @@ const InfoItem: FC<InfoItemProps> = memo(({ label, value, icon: Icon }) => {
   if (!value) return null;
 
   return (
-    <div className="group flex items-start gap-3 p-4 rounded-xl bg-white border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200">
+    <div className="group flex items-start gap-3 p-4 rounded-xl bg-white border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 dark:bg-card dark:border-border dark:hover:border-indigo-700">
       {Icon && (
-        <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
-          <Icon className="w-4 h-4 text-indigo-600" />
+        <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors dark:bg-indigo-900/40 dark:group-hover:bg-indigo-800/50">
+          <Icon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block">
+        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1 block dark:text-muted-foreground">
           {label}
         </span>
-        <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word">
+        <span className="text-gray-900 font-medium text-base leading-relaxed wrap-break-word dark:text-foreground">
           {value}
         </span>
       </div>
@@ -193,19 +193,19 @@ const StatusBadge: FC<{ status?: string; progress?: number }> = memo(
 
     const statusConfig = {
       active: {
-        color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+        color: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800",
         icon: BadgeCheck,
       },
       pending: {
-        color: "bg-amber-100 text-amber-800 border-amber-200",
+        color: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800",
         icon: Clock,
       },
       draft: {
-        color: "bg-slate-100 text-slate-800 border-slate-200",
+        color: "bg-slate-100 text-slate-800 border-slate-200 dark:bg-muted dark:text-foreground dark:border-border",
         icon: FileText,
       },
       completed: {
-        color: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        color: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800",
         icon: CheckCircle,
       },
     };
@@ -310,7 +310,7 @@ export function ReviewInfo({
       id: "personal",
       icon: User,
       title: "Personal & Work Information",
-      gradient: "from-blue-50 to-cyan-50",
+      gradient: "from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-950/40",
       items: [
         { label: "Full Name", value: formData.name, icon: User },
         {
@@ -352,7 +352,7 @@ export function ReviewInfo({
       id: "contact",
       icon: BookUser,
       title: "Contact & Credentials",
-      gradient: "from-emerald-50 to-teal-50",
+      gradient: "from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40",
       items: [
         { label: "Email", value: formData.email, icon: Mail },
         { label: "Phone", value: formData.phone, icon: Phone },
@@ -374,7 +374,7 @@ export function ReviewInfo({
       id: "websites",
       icon: Globe,
       title: "Websites & Addresses",
-      gradient: "from-purple-50 to-violet-50",
+      gradient: "from-purple-50 to-violet-50 dark:from-purple-950/40 dark:to-violet-950/40",
       items: [
         ...websiteList
           .filter((url) => typeof url === "string" && url.trim() !== "")
@@ -402,7 +402,7 @@ export function ReviewInfo({
         id: "articles",
         icon: FileText,
         title: "Article Topics",
-        gradient: "from-purple-50 to-indigo-50",
+        gradient: "from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40",
         items: formData.articleTopics.map(
           (topic: ArticleTopic, index: number) => ({
             label: `Topic ${index + 1}`,
@@ -419,7 +419,7 @@ export function ReviewInfo({
         id: "articleCategories",
         icon: BookOpen,
         title: "Article Categories from CQ",
-        gradient: "from-orange-50 to-red-50",
+        gradient: "from-orange-50 to-red-50 dark:from-orange-950/40 dark:to-red-950/40",
         items: [],
       });
     }
@@ -429,7 +429,7 @@ export function ReviewInfo({
       id: "project",
       icon: Briefcase,
       title: "Project Details",
-      gradient: "from-orange-50 to-amber-50",
+      gradient: "from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-950/40",
       items: [
         {
           label: "Package",
@@ -600,21 +600,21 @@ export function ReviewInfo({
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12 font-[Inter] text-slate-800">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12 font-[Inter] text-slate-800 dark:bg-card dark:text-foreground">
         <div className="text-center max-w-md mx-auto space-y-8">
           {/* Minimal Icon Container */}
           <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 flex items-center justify-center rounded-full border-2 border-green-500 bg-green-50">
-              <CheckCircle className="h-16 w-16 text-green-600" />
+            <div className="w-24 h-24 flex items-center justify-center rounded-full border-2 border-green-500 bg-green-50 dark:bg-green-950/40">
+              <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
             </div>
           </div>
 
           <div className="space-y-3">
             {/* Simplified Title */}
-            <h2 className="text-4xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-foreground">
               Submission Successful!
             </h2>
-            <p className="text-lg text-slate-600 leading-relaxed">
+            <p className="text-lg text-slate-600 leading-relaxed dark:text-muted-foreground">
               Thank you for completing the onboarding process. Your client
               information has been saved successfully.
             </p>
@@ -650,7 +650,7 @@ export function ReviewInfo({
                     : undefined
                 }
                 disabled={!createdClientId}
-                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-indigo-700 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-xl text-indigo-700 bg-indigo-50 border-2 border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 dark:text-indigo-300 dark:bg-indigo-950/40 dark:border-indigo-800 dark:hover:bg-indigo-900/40 dark:hover:border-indigo-700"
               >
                 <User className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                 View Client Profile
@@ -684,10 +684,10 @@ export function ReviewInfo({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 shadow-lg mb-4">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400">
           Review & Confirm
         </h1>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed dark:text-muted-foreground">
           Please review all the information below carefully. This will be used
           to create the client profile and assign the template.
         </p>
@@ -720,7 +720,7 @@ export function ReviewInfo({
             <ReviewSectionCard
               icon={Share2}
               title="Social Media Profiles"
-              gradient="from-rose-50 to-pink-50"
+              gradient="from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40"
             >
               <div className="space-y-3">
                 {formData.socialLinks.map(
@@ -728,11 +728,11 @@ export function ReviewInfo({
                     link.url && (
                       <div
                         key={index}
-                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow"
+                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow dark:bg-card dark:border-border"
                       >
                         <Badge
                           variant="secondary"
-                          className="font-medium bg-slate-100 text-slate-700 border-slate-200 px-3 py-1.5"
+                          className="font-medium bg-slate-100 text-slate-700 border-slate-200 px-3 py-1.5 dark:bg-muted dark:text-foreground dark:border-border"
                         >
                           {link.platform}
                         </Badge>
@@ -740,7 +740,7 @@ export function ReviewInfo({
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline truncate flex-1 text-sm font-medium"
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline truncate flex-1 text-sm font-medium dark:text-indigo-400 dark:hover:text-indigo-300"
                         >
                           {link.url.replace(/^https?:\/\//, "")}
                         </a>
@@ -756,17 +756,17 @@ export function ReviewInfo({
             <ReviewSectionCard
               icon={PlusCircle}
               title="Additional Information"
-              gradient="from-violet-50 to-purple-50"
+              gradient="from-violet-50 to-purple-50 dark:from-violet-950/40 dark:to-purple-950/40"
             >
               <div className="space-y-6">
                 {groupedOther.map(([category, items]) => (
                   <div
                     key={category}
-                    className="rounded-2xl border border-slate-200 overflow-hidden"
+                    className="rounded-2xl border border-slate-200 overflow-hidden dark:border-border"
                   >
                     {/* Category header */}
-                    <div className="px-4 py-2 bg-slate-50 flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">
+                    <div className="px-4 py-2 bg-slate-50 flex items-center justify-between dark:bg-muted/40">
+                      <span className="font-semibold text-slate-800 dark:text-foreground">
                         {category}
                       </span>
                       <Badge variant="secondary">
@@ -780,10 +780,10 @@ export function ReviewInfo({
                       {items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="p-4 bg-white rounded-xl border border-slate-200"
+                          className="p-4 bg-white rounded-xl border border-slate-200 dark:bg-card dark:border-border"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <p className="font-semibold text-slate-800 text-sm">
+                            <p className="font-semibold text-slate-800 text-sm dark:text-foreground">
                               {item.title || "(Untitled)"}
                             </p>
                             <Badge variant="outline">
@@ -810,7 +810,7 @@ export function ReviewInfo({
                                       href={href}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 break-all w-full"
+                                      className="inline-flex items-start gap-2 rounded-lg px-3 py-1.5 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 break-all w-full dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/40"
                                       title={v}
                                     >
                                       <LinkIcon className="h-4 w-4 shrink-0 mt-0.5" />
@@ -826,7 +826,7 @@ export function ReviewInfo({
                               return (
                                 <li
                                   key={i}
-                                  className="text-slate-700 text-sm whitespace-pre-wrap wrap-break-word"
+                                  className="text-slate-700 text-sm whitespace-pre-wrap wrap-break-word dark:text-foreground"
                                 >
                                   {v}
                                 </li>
@@ -847,10 +847,10 @@ export function ReviewInfo({
             <ReviewSectionCard
               icon={FileText}
               title="Biography"
-              gradient="from-cyan-50 to-blue-50"
+              gradient="from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40"
             >
               <div
-                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none"
+                className="text-slate-700 leading-relaxed text-base bg-white p-4 rounded-xl border border-slate-200 prose max-w-none dark:text-foreground dark:bg-card dark:border-border"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(formData.biography, {
                     USE_PROFILES: { html: true },
@@ -865,15 +865,15 @@ export function ReviewInfo({
             <ReviewSectionCard
               icon={ImageIcon}
               title="Image Drive Link"
-              gradient="from-amber-50 to-orange-50"
+              gradient="from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40"
             >
               <div className="space-y-4">
                 {avatarPreviewUrl && (
                   <div className="text-center">
-                    <h4 className="text-sm font-medium text-slate-600 mb-3">
+                    <h4 className="text-sm font-medium text-slate-600 mb-3 dark:text-muted-foreground">
                       Profile Picture
                     </h4>
-                    <div className="inline-flex p-2 bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div className="inline-flex p-2 bg-white rounded-2xl shadow-sm border border-slate-200 dark:bg-card dark:border-border">
                       <img
                         src={avatarPreviewUrl}
                         alt="Profile preview"
@@ -902,14 +902,14 @@ export function ReviewInfo({
                     <div className="space-y-3">
                       {driveLink && (
                         <div>
-                          <h4 className="text-sm font-medium text-slate-600 mb-2">
+                          <h4 className="text-sm font-medium text-slate-600 mb-2 dark:text-muted-foreground">
                             Image Gallery
                           </h4>
                           <a
                             href={driveLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline font-medium bg-white p-3 rounded-xl border border-slate-200 w-full dark:text-indigo-400 dark:hover:text-indigo-300 dark:bg-card dark:border-border"
                           >
                             <LinkIcon className="h-4 w-4 shrink-0" />
                             <span className="truncate text-sm">
@@ -921,18 +921,18 @@ export function ReviewInfo({
 
                       {items.length > 0 && (
                         <div>
-                          <h4 className="text-sm font-medium text-slate-600 mb-2">
+                          <h4 className="text-sm font-medium text-slate-600 mb-2 dark:text-muted-foreground">
                             Added Links
                           </h4>
                           <ul className="space-y-2">
                             {items.map((item: any, idx: number) => (
                               <li
                                 key={`${item?.link || "link"}-${idx}`}
-                                className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3"
+                                className="flex items-start gap-2 bg-white border border-slate-200 rounded-lg p-3 dark:bg-card dark:border-border"
                               >
-                                <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5" />
+                                <LinkIcon className="h-4 w-4 text-indigo-600 mt-0.5 dark:text-indigo-400" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-slate-800 truncate">
+                                  <p className="text-sm font-semibold text-slate-800 truncate dark:text-foreground">
                                     {item?.title || "(Untitled)"}
                                   </p>
                                   {item?.link && (
@@ -940,7 +940,7 @@ export function ReviewInfo({
                                       href={item.link}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-xs text-indigo-600 hover:underline break-all"
+                                      className="text-xs text-indigo-600 hover:underline break-all dark:text-indigo-400"
                                     >
                                       {item.link}
                                     </a>
@@ -965,15 +965,15 @@ export function ReviewInfo({
         <ReviewSectionCard
           icon={BookOpen}
           title="Article Categories from CQ"
-          gradient="from-orange-50 to-red-50"
+          gradient="from-orange-50 to-red-50 dark:from-orange-950/40 dark:to-red-950/40"
         >
           <div className="space-y-4">
             {formData.articleCategories.map((category, catIdx) => (
               <div
                 key={catIdx}
-                className="bg-white rounded-xl border-2 border-orange-200 p-5"
+                className="bg-white rounded-xl border-2 border-orange-200 p-5 dark:bg-card dark:border-orange-800"
               >
-                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-orange-700 mb-4 flex items-center gap-2 dark:text-orange-300">
                   <FileText className="w-5 h-5" />
                   {category.category}
                   <Badge variant="secondary" className="ml-2">
@@ -985,22 +985,22 @@ export function ReviewInfo({
                   {category.titles.map((title, titleIdx) => (
                     <div
                       key={titleIdx}
-                      className="bg-orange-50 rounded-lg p-4 border border-orange-200"
+                      className="bg-orange-50 rounded-lg p-4 border border-orange-200 dark:bg-orange-950/40 dark:border-orange-800"
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
-                            <p className="font-semibold text-slate-900">
+                            <p className="font-semibold text-slate-900 dark:text-foreground">
                               {title.title}
                             </p>
                           </div>
                           <Badge
                             className={
                               title.draftStatus === "Approved"
-                                ? "bg-green-100 text-green-800 border-green-200"
+                                ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800"
                                 : title.draftStatus === "Revision"
-                                  ? "bg-amber-100 text-amber-800 border-amber-200"
-                                  : "bg-blue-100 text-blue-800 border-blue-200"
+                                  ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800"
+                                  : "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
                             }
                           >
                             {title.draftStatus}
@@ -1011,7 +1011,7 @@ export function ReviewInfo({
                             href={title.draftLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
+                            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 hover:underline text-sm dark:text-indigo-400 dark:hover:text-indigo-300"
                           >
                             <LinkIcon className="h-3 w-3" />
                             {title.draftLink}
@@ -1032,7 +1032,7 @@ export function ReviewInfo({
         <Button
           variant="outline"
           onClick={onPrevious}
-          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl"
+          className="px-8 py-6 text-lg font-semibold border-2 hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 hover:border-indigo-400 transition-all duration-200 rounded-xl dark:hover:from-indigo-950/40 dark:hover:to-purple-950/40 dark:hover:text-indigo-300"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Previous
@@ -1042,7 +1042,7 @@ export function ReviewInfo({
           <Button
             onClick={handleDownload}
             variant="outline"
-            className="px-6 py-6 text-base font-semibold border-2 hover:bg-gray-50 transition-all duration-200 rounded-xl"
+            className="px-6 py-6 text-base font-semibold border-2 hover:bg-gray-50 transition-all duration-200 rounded-xl dark:hover:bg-muted/40"
           >
             <Download className="w-5 h-5 mr-2" />
             Download
@@ -1055,7 +1055,7 @@ export function ReviewInfo({
           >
             {isSaving ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 dark:border-border" />
                 Creating Client...
               </>
             ) : (

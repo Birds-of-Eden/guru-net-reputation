@@ -151,7 +151,7 @@ export default function OnboardingPage() {
 
       <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-linear-to-br from-violet-50 via-purple-50 to-fuchsia-50">
+      <div className="absolute inset-0 bg-linear-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-fuchsia-950/40">
         {/* Animated Gradient Orbs */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-linear-to-br from-violet-400/30 to-purple-400/30 rounded-full blur-3xl animate-pulse" />
         <div
@@ -182,7 +182,7 @@ export default function OnboardingPage() {
             <div className="absolute inset-0 bg-linear-to-r from-violet-500/20 via-purple-500/20 to-fuchsia-500/20 rounded-3xl blur-2xl" />
 
             {/* Actual Card */}
-            <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8 md:p-12 lg:p-16 animate-in fade-in slide-in-from-bottom duration-700">
+            <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8 md:p-12 lg:p-16 animate-in fade-in slide-in-from-bottom duration-700 dark:bg-card/90 dark:border-border/50">
               {/* Decorative Corner Elements */}
               <div className="absolute top-0 left-0 w-20 h-20 bg-linear-to-br from-violet-500/10 to-transparent rounded-tl-3xl" />
               <div className="absolute bottom-0 right-0 w-20 h-20 bg-linear-to-tl from-fuchsia-500/10 to-transparent rounded-br-3xl" />
@@ -193,16 +193,16 @@ export default function OnboardingPage() {
                   {/* Form Fields Skeleton */}
                   {Array.from({ length: 4 }).map((_, index) => (
                     <div key={`field-${index}`} className="space-y-2">
-                      <div className="h-4 w-32 bg-gray-200 rounded" />
-                      <div className="h-10 w-full bg-gray-200 rounded-md" />
+                      <div className="h-4 w-32 bg-gray-200 rounded dark:bg-muted" />
+                      <div className="h-10 w-full bg-gray-200 rounded-md dark:bg-muted" />
                     </div>
                   ))}
                   {/* Buttons Skeleton */}
                   <div className="flex justify-between pt-6">
-                    <div className="h-11 w-32 bg-gray-200 rounded-md" />
+                    <div className="h-11 w-32 bg-gray-200 rounded-md dark:bg-muted" />
                     <div className="flex gap-3">
-                      <div className="h-11 w-28 bg-gray-200 rounded-md" />
-                      <div className="h-11 w-28 bg-gray-200 rounded-md" />
+                      <div className="h-11 w-28 bg-gray-200 rounded-md dark:bg-muted" />
+                      <div className="h-11 w-28 bg-gray-200 rounded-md dark:bg-muted" />
                     </div>
                   </div>
                 </div>

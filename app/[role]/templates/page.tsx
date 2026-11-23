@@ -260,12 +260,12 @@ export default function TemplatesPage() {
                       variant="outline"
                       className={
                         normalizeTemplateStatus(template.status) === 'approved'
-                          ? 'text-green-600 border-green-600 bg-green-100'
+                          ? 'text-green-600 border-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/40'
                           : normalizeTemplateStatus(template.status) === 'rejected'
-                            ? 'text-red-600 border-red-600 bg-red-100'
+                            ? 'text-red-600 border-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
                             : normalizeTemplateStatus(template.status) === 'requested'
-                              ? 'text-blue-600 border-blue-600 bg-blue-100'
-                              : 'text-amber-700 border-amber-300 bg-amber-100'
+                              ? 'text-blue-600 border-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40'
+                              : 'text-amber-700 border-amber-300 bg-amber-100 dark:text-amber-300 dark:border-amber-700 dark:bg-amber-900/40'
                       }
                     >
                       {getTemplateStatusLabel(template.status)}
@@ -340,12 +340,12 @@ export default function TemplatesPage() {
                           variant="outline"
                           className={
                             normalizeTemplateStatus(template.status) === 'approved'
-                              ? 'text-green-600 border-green-600 bg-green-100'
+                              ? 'text-green-600 border-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/40'
                               : normalizeTemplateStatus(template.status) === 'rejected'
-                                ? 'text-red-600 border-red-600 bg-red-100'
+                                ? 'text-red-600 border-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
                                 : normalizeTemplateStatus(template.status) === 'requested'
-                                  ? 'text-blue-600 border-blue-600 bg-blue-100'
-                                  : 'text-amber-700 border-amber-300 bg-amber-100'
+                                  ? 'text-blue-600 border-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40'
+                                  : 'text-amber-700 border-amber-300 bg-amber-100 dark:text-amber-300 dark:border-amber-700 dark:bg-amber-900/40'
                           }
                         >
                           {getTemplateStatusLabel(template.status)}

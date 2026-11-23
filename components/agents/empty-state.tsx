@@ -5,7 +5,7 @@ export function EmptyState() {
     <div className="col-span-full text-center py-16">
       <div className="flex flex-col items-center gap-6">
         <div className="p-6 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full">
-          <Users className="h-12 w-12 text-gray-400" />
+          <Users className="h-12 w-12 text-gray-400 dark:text-muted-foreground" />
         </div>
         <div className="space-y-2">
           <p className="text-xl font-semibold text-gray-900 dark:text-gray-50">No agents found</p>

@@ -125,12 +125,12 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && resetModal()}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] mx-auto rounded-2xl border-0 bg-white shadow-2xl flex flex-col dark:bg-card">
         {/* Header */}
         <div className="bg-linear-to-r from-emerald-600 via-green-600 to-teal-600 -m-6 mb-4 px-6 py-6 shrink-0">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-white flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md dark:bg-card/20">
                 <CheckCircle2 className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1">
@@ -157,26 +157,26 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
         {/* Body */}
         <div className="px-6 pb-6 space-y-5 flex-1 overflow-y-auto">
           {/* Timer Display */}
-          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 dark:from-blue-950/40 dark:to-indigo-950/40 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="bg-blue-500 p-1.5 rounded-lg">
                   <Clock className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wide">
+                  <h3 className="text-xs font-bold text-blue-800 uppercase tracking-wide dark:text-blue-300">
                     Time Tracking
                   </h3>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-blue-600 font-medium dark:text-blue-400">
                     Time spent on this completion
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-mono font-black text-blue-700">
+                <div className="text-lg font-mono font-black text-blue-700 dark:text-blue-300">
                   {timerInfo?.formatElapsedTime || "00:00"}
                 </div>
-                <div className="text-xs text-blue-600 font-medium">
+                <div className="text-xs text-blue-600 font-medium dark:text-blue-400">
                   {timerInfo ? Math.ceil(timerInfo.elapsedSeconds / 60) : 0} minutes
                 </div>
               </div>
@@ -185,9 +185,9 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
           {/* Completion Link */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide">
-              <div className="bg-emerald-100 p-1.5 rounded-lg">
-                <LinkIcon className="h-3 w-3 text-emerald-600" />
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2 uppercase tracking-wide dark:text-foreground">
+              <div className="bg-emerald-100 p-1.5 rounded-lg dark:bg-emerald-900/40">
+                <LinkIcon className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
               </div>
               Completion Link *
             </label>
@@ -195,45 +195,45 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
               value={link}
               onChange={(e) => setLink(e.target.value)}
               placeholder="https://example.com/completion"
-              className="h-11 border-2 border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-medium"
+              className="h-11 border-2 border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm font-medium dark:border-border"
             />
           </div>
 
           {/* Credentials */}
           {!isSimpleTask(selected) && (
-            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-4 space-y-4 shadow-inner">
+            <div className="bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-4 space-y-4 shadow-inner dark:from-amber-950/40 dark:via-orange-950/40 dark:to-yellow-950/40 dark:border-amber-800">
               <div className="flex items-center gap-2 mb-1">
                 <div className="bg-amber-500 p-1.5 rounded-lg">
                   <KeyRound className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide">
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide dark:text-foreground">
                   Account Credentials
                 </h3>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email</label>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">Email</label>
                   <Input
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={clientEmail || "email@example.com"}
-                    className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium mt-1"
+                    className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium mt-1 dark:bg-card dark:border-amber-800"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Username</label>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">Username</label>
                   <Input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="username"
-                    className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium mt-1"
+                    className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium mt-1 dark:bg-card dark:border-amber-800"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Password</label>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">Password</label>
                   <div className="relative mt-1">
                     <Input
                       value={password}
@@ -244,16 +244,16 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
                           : "Enter password"
                       }
                       type="text"
-                      className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 font-mono pr-16 transition-all font-medium"
+                      className="h-10 bg-white border-2 border-amber-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 font-mono pr-16 transition-all font-medium dark:bg-card dark:border-amber-800"
                     />
                     {lastUsedPassword && (
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full dark:text-emerald-400 dark:bg-emerald-900/40">
                         SAVED
                       </div>
                     )}
                   </div>
                   {lastUsedPassword && (
-                    <p className="text-xs text-slate-600 mt-1 font-medium">
+                    <p className="text-xs text-slate-600 mt-1 font-medium dark:text-muted-foreground">
                       ✓ Using your last saved password. You can edit it above.
                     </p>
                   )}
@@ -264,18 +264,18 @@ const CompletionDialog: React.FC<CompletionDialogProps> = ({
 
           {/* Notes */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide">Notes</label>
+            <label className="text-sm font-bold text-slate-700 uppercase tracking-wide dark:text-foreground">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes about this completion..."
-              className="w-full h-20 px-3 py-2 text-sm border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 resize-none transition-all font-medium"
+              className="w-full h-20 px-3 py-2 text-sm border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 resize-none transition-all font-medium dark:border-amber-800"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 shrink-0">
+        <DialogFooter className="px-6 pb-6 pt-4 border-t-2 border-slate-100 gap-3 shrink-0 dark:border-border">
           <Button
             variant="outline"
             onClick={resetModal}
