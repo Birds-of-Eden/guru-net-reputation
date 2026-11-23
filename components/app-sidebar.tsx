@@ -485,11 +485,24 @@ function normalizePath(u: string) {
   return noQ !== "/" ? noQ.replace(/\/+$/, "") : "/";
 }
 
-function useActive(pathname: string) {
-  const normPath = React.useMemo(() => normalizePath(pathname), [pathname]);
+function useActive(pathname: string, items: NavItem[]) {
+  const activeUrl = React.useMemo(() => {
+    const normPath = normalizePath(pathname);
+    const urls = items.flatMap(collectLeafUrls).map(normalizePath);
+
+    // Prefer the most specific menu route; role dashboards only match exactly.
+    return urls
+      .filter(
+        (url) =>
+          url === normPath ||
+          (!Object.values(basePath).includes(url) &&
+            normPath.startsWith(`${url}/`)),
+      )
+      .sort((a, b) => b.length - a.length)[0];
+  }, [pathname, items]);
   return React.useCallback(
-    (url: string) => normalizePath(url) === normPath,
-    [normPath],
+    (url: string) => normalizePath(url) === activeUrl,
+    [activeUrl],
   );
 }
 
@@ -646,17 +659,21 @@ export function AppSidebar({ className }: { className?: string }) {
 
   const isPermLoading = permissionSet === null && !!actingUserId;
 
-  const active = useActive(pathname);
   const nav = React.useMemo(() => buildNav(actingRole), [actingRole]);
   const visibleNav = React.useMemo(
     () => filterNavByAccess(nav, permissionSet),
     [nav, permissionSet],
   );
+  const active = useActive(pathname, visibleNav);
 
   // Auto behaviors
   React.useEffect(() => {
     setOpen(!isMobile);
   }, [isMobile]);
+
+  React.useEffect(() => {
+    setExpanded({});
+  }, [actingUserId, actingRole]);
 
   React.useEffect(() => {
     const expandedGroups = new Set<string>();
@@ -670,10 +687,6 @@ export function AppSidebar({ className }: { className?: string }) {
     });
     setExpanded((prev) => ({ ...prev, ...next }));
   }, [visibleNav, active]);
-
-  React.useEffect(() => {
-    setExpanded({});
-  }, [actingUserId, actingRole]);
 
   // Actions
   const handleSignOut = async () => {
@@ -1019,7 +1032,8 @@ function LeafItem({
       className={cn(
         "flex items-center gap-3 p-2.5 rounded-lg",
         "transition-all duration-200 hover:bg-gray-50",
-        isActive && "bg-cyan-50 text-cyan-700 font-medium",
+        isActive &&
+          "bg-cyan-100 text-cyan-800 font-semibold ring-1 ring-inset ring-cyan-300",
       )}
       aria-current={isActive ? "page" : undefined}
     >
@@ -1031,7 +1045,14 @@ function LeafItem({
       >
         {ICONS[item.title] ?? <FileText className="h-4 w-4" />}
       </div>
-      <span className="text-sm font-medium text-gray-700">{item.title}</span>
+      <span
+        className={cn(
+          "text-sm font-medium",
+          isActive ? "text-cyan-800" : "text-gray-700",
+        )}
+      >
+        {item.title}
+      </span>
 
       {isChatLink && Number(chatUnread) > 0 && (
         <span className="ml-auto inline-flex items-center justify-center text-xs px-2 py-0.5 rounded-full bg-emerald-600 text-white">

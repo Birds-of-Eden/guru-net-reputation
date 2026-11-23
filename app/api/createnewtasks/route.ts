@@ -44,6 +44,57 @@ function fail(stage: string, err: unknown, http = 500) {
   );
 }
 
+const POSTING_TYPES = ["social_site", "web2_site", "other_asset"];
+
+// GET: list template site assets (sub-sites) for the client's latest assignment
+export async function GET(req: NextRequest) {
+  try {
+    const clientId = req.nextUrl.searchParams.get("clientId");
+    if (!clientId) {
+      return NextResponse.json({ message: "clientId is required" }, { status: 400 });
+    }
+
+    const assignment = await prisma.assignment.findFirst({
+      where: { clientId },
+      orderBy: { assignedAt: "desc" },
+      select: { templateId: true },
+    });
+
+    if (!assignment?.templateId) {
+      return NextResponse.json({ assets: [] }, { status: 200 });
+    }
+
+    const assets = await prisma.templateSiteAsset.findMany({
+      where: { templateId: assignment.templateId },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        type: true,
+        defaultPostingFrequency: true,
+      },
+      orderBy: [{ type: "asc" }, { name: "asc" }],
+    });
+
+    return NextResponse.json(
+      {
+        assets: assets.map((a) => ({
+          id: a.id,
+          name: a.name,
+          url: a.url,
+          type: a.type,
+          // Posting types with 0 frequency are skipped by POST
+          eligible:
+            !POSTING_TYPES.includes(a.type) || Number(a.defaultPostingFrequency ?? 0) > 0,
+        })),
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    return fail("GET.catch", err);
+  }
+}
+
 // POST: create manual tasks
 export async function POST(req: NextRequest) {
   try {
@@ -51,7 +102,13 @@ export async function POST(req: NextRequest) {
     const clientId: string | undefined = body?.clientId;
     const dueDateRaw: string | undefined = body?.dueDate;
     const siteAssetTypesRaw: string[] | undefined = body?.siteAssetTypes;
-    
+    // Optional: restrict creation to specific sub-sites
+    const templateSiteAssetIds: number[] | null = Array.isArray(body?.templateSiteAssetIds)
+      ? body.templateSiteAssetIds
+          .map((id: unknown) => Number(id))
+          .filter((id: number) => Number.isInteger(id))
+      : null;
+
     console.log("[create-manual-tasks] Incoming:", {
       clientId,
       dueDateRaw,
@@ -199,6 +256,7 @@ export async function POST(req: NextRequest) {
       where: {
         templateId: assignment.templateId,
         type: { in: siteAssetTypes as any },
+        ...(templateSiteAssetIds ? { id: { in: templateSiteAssetIds } } : {}),
       },
       select: {
         id: true,
@@ -238,9 +296,7 @@ export async function POST(req: NextRequest) {
 
     for (const asset of templateAssets) {
       const assetType = asset.type as string;
-      const isPostingType = ["social_site", "web2_site", "other_asset"].includes(
-        assetType
-      );
+      const isPostingType = POSTING_TYPES.includes(assetType);
       const postingFreq = Number(asset.defaultPostingFrequency ?? 0);
       if (isPostingType && postingFreq <= 0) {
         console.log("[create-manual-tasks] Skipping asset with 0 frequency:", {
