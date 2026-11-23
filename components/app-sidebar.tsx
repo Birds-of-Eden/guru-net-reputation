@@ -594,7 +594,7 @@ export function AppSidebar({ className }: { className?: string }) {
   const { data: unreadData } = useSWR<{ count: number }>(
     "/api/chat/unread-count",
     fetcher,
-    { refreshInterval: 15_000, revalidateOnFocus: true },
+    { refreshInterval: 60_000, revalidateOnFocus: true }, // fallback — WebSocket pushes changes
   );
   const chatUnread = unreadData?.count ?? 0;
 

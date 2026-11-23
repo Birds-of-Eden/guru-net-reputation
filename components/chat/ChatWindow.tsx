@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { Send } from "lucide-react";
-import { pusherClient } from "@/lib/pusher/client";
+import { realtimeClient } from "@/lib/realtime/client";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import MessageBubble from "./MessageBubble";
 import ForwardModal from "./ForwardModal";
@@ -194,7 +194,7 @@ const ChatWindowComponent = memo(function ChatWindow({
   useEffect(() => {
     if (!conversationId) return;
     const channelName = `presence-conversation-${conversationId}`;
-    const channel = pusherClient.subscribe(channelName);
+    const channel = realtimeClient.subscribe(channelName);
 
     // message:new (+ optimistic replace)
     const onNew = (payload: Msg) => {
@@ -332,11 +332,28 @@ const ChatWindowComponent = memo(function ChatWindow({
       );
     };
 
-    // presence list
-    const onSub = (members: any) => {
-      const s = new Set<string>();
-      members.each((m: any) => s.add(m.id));
-      setOnlineIds(s);
+    // presence list (members: { id, info }[])
+    const onSub = (members: { id: string }[]) => {
+      setOnlineIds(new Set((members || []).map((m) => m.id)));
+    };
+
+    // After a reconnect, pull anything we missed while offline
+    const onReconnected = async () => {
+      try {
+        const res = await fetch(baseKey, { cache: "no-store" });
+        const fresh = await res.json();
+        const latest: Msg[] = fresh?.messages ?? [];
+        chatCache.set(baseKey, { data: fresh, timestamp: Date.now() });
+        setMessages((prev) => {
+          const byId = new Map(prev.map((m) => [m.id, m]));
+          for (const m of latest) byId.set(m.id, { ...byId.get(m.id), ...m });
+          return Array.from(byId.values()).sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        });
+      } catch {
+        /* ignore */
+      }
     };
     const onAdd = (m: any) =>
       setOnlineIds((prev) => {
@@ -356,9 +373,10 @@ const ChatWindowComponent = memo(function ChatWindow({
     channel.bind("receipt:update", onReceiptUpdate);
     channel.bind("reaction:update", onReactionUpdate);
     channel.bind("conversation:read", onConvRead);
-    channel.bind("pusher:subscription_succeeded", onSub);
-    channel.bind("pusher:member_added", onAdd);
-    channel.bind("pusher:member_removed", onRem);
+    channel.bind("presence:subscription_succeeded", onSub);
+    channel.bind("presence:member_added", onAdd);
+    channel.bind("presence:member_removed", onRem);
+    channel.bind("realtime:reconnected", onReconnected);
 
     return () => {
       channel.unbind("message:new", onNew);
@@ -366,12 +384,13 @@ const ChatWindowComponent = memo(function ChatWindow({
       channel.unbind("receipt:update", onReceiptUpdate);
       channel.unbind("reaction:update", onReactionUpdate);
       channel.unbind("conversation:read", onConvRead);
-      channel.unbind("pusher:subscription_succeeded", onSub);
-      channel.unbind("pusher:member_added", onAdd);
-      channel.unbind("pusher:member_removed", onRem);
-      pusherClient.unsubscribe(channelName);
+      channel.unbind("presence:subscription_succeeded", onSub);
+      channel.unbind("presence:member_added", onAdd);
+      channel.unbind("presence:member_removed", onRem);
+      channel.unbind("realtime:reconnected", onReconnected);
+      realtimeClient.unsubscribe(channelName);
     };
-  }, [conversationId, user?.id]);
+  }, [conversationId, user?.id, baseKey]);
 
   // typing expiry
   useEffect(() => {
@@ -495,7 +514,7 @@ const ChatWindowComponent = memo(function ChatWindow({
       });
     });
 
-    // send to server; pusher will reconcile authoritative aggregate
+    // send to server; realtime will reconcile authoritative aggregate
     try {
       await fetch(`/api/chat/messages/${messageId}/reactions`, {
         method: "POST",

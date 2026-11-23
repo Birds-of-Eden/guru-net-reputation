@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import useSWR, { mutate } from "swr";
-import { pusherClient } from "@/lib/pusher/client";
+import { realtimeClient } from "@/lib/realtime/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type ActionType =
@@ -103,7 +103,7 @@ export default function ActivityPage() {
 
   // ⚡ OPTIMIZED: Realtime with SWR mutate
   useEffect(() => {
-    const channel = pusherClient.subscribe("activity");
+    const channel = realtimeClient.subscribe("activity");
     const onNew = (payload: any) => {
       // Optimistic update with SWR mutate
       mutate(
@@ -128,10 +128,13 @@ export default function ActivityPage() {
       // Revalidate after a short delay
       setTimeout(() => mutate(apiUrl), 1200);
     };
+    const onReconnected = () => mutate(apiUrl);
     channel.bind("activity:new", onNew);
+    channel.bind("realtime:reconnected", onReconnected);
     return () => {
       channel.unbind("activity:new", onNew);
-      pusherClient.unsubscribe("activity");
+      channel.unbind("realtime:reconnected", onReconnected);
+      realtimeClient.unsubscribe("activity");
     };
   }, [apiUrl]);
 

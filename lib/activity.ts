@@ -1,7 +1,7 @@
 // @ts-nocheck
 // lib/activity.ts
 import prisma from "@/lib/prisma"
-import { pusherServer } from "@/lib/pusher/server"
+import { realtime } from "@/lib/realtime/server"
 
 type CreateLogArgs = {
   entityType: string
@@ -31,7 +31,7 @@ export async function createActivityLog({
   })
 
   try {
-    await pusherServer.trigger("activity", "activity:new", {
+    await realtime.trigger("activity", "activity:new", {
       id: log.id,
       entityType: log.entityType,
       entityId: log.entityId,

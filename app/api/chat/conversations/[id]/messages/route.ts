@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
+import { notifyConversationChanged } from "@/lib/realtime/chat";
 
 export const dynamic = "force-dynamic";
 
@@ -232,14 +233,14 @@ export async function POST(req: Request, ctx: Ctx) {
   };
 
   // Realtime: message:new
-  await pusherServer.trigger(
+  await realtime.trigger(
     `presence-conversation-${conversationId}`,
     "message:new",
     payload
   );
 
   // Realtime: initial receipts state (sender)
-  await pusherServer.trigger(
+  await realtime.trigger(
     `presence-conversation-${conversationId}`,
     "receipt:update",
     {
@@ -253,6 +254,9 @@ export async function POST(req: Request, ctx: Ctx) {
       ],
     }
   );
+
+  // Conversation lists + unread badges for every participant
+  await notifyConversationChanged(conversationId);
 
   return NextResponse.json({ ok: true, message: payload });
 }

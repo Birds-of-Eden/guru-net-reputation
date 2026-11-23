@@ -5,7 +5,7 @@ import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
 
 export const authConfig = {
   adapter: PrismaAdapter(prisma),
@@ -212,7 +212,7 @@ export const authConfig = {
           },
         });
         try {
-          await pusherServer.trigger("activity", "activity:new", {
+          await realtime.trigger("activity", "activity:new", {
             id: log.id,
             entityType: log.entityType,
             entityId: log.entityId,
@@ -243,7 +243,7 @@ export const authConfig = {
           },
         });
         try {
-          await pusherServer.trigger("activity", "activity:new", {
+          await realtime.trigger("activity", "activity:new", {
             id: log.id,
             entityType: log.entityType,
             entityId: log.entityId,

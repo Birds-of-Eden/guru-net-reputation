@@ -3,6 +3,62 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { realtime } from "./realtime/server";
+
+// ---------- Realtime fan-out for notifications / new conversations ----------
+// Events are derived from query args (not results) so batch $transaction([...])
+// keeps working, and are slightly delayed + coalesced so the DB write is
+// committed before clients refetch.
+const pendingNotifUsers = new Set<string>();
+let notifTimer: ReturnType<typeof setTimeout> | null = null;
+
+function queueNotificationChanged(userIds: string[]) {
+  userIds.forEach((id) => id && pendingNotifUsers.add(id));
+  if (notifTimer) return;
+  notifTimer = setTimeout(() => {
+    notifTimer = null;
+    const ids = Array.from(pendingNotifUsers);
+    pendingNotifUsers.clear();
+    // AMs see their agents' notifications, so they get a ping too
+    void realtime.trigger(
+      [...ids.map((id) => `user-${id}`), "role-am"],
+      "notification:changed",
+      {}
+    );
+  }, 300);
+}
+
+function userIdsFromData(data: any): string[] {
+  const list = Array.isArray(data) ? data : [data];
+  return list
+    .map((d) => (typeof d?.userId === "string" ? d.userId : d?.user?.connect?.id))
+    .filter((id): id is string => typeof id === "string");
+}
+
+function userIdsFromWhere(where: any): string[] {
+  const u = where?.userId;
+  if (typeof u === "string") return [u];
+  if (typeof u?.equals === "string") return [u.equals];
+  if (Array.isArray(u?.in)) return u.in.filter((x: unknown) => typeof x === "string");
+  return [];
+}
+
+function participantIdsFromConversation(data: any): string[] {
+  const p = data?.participants;
+  if (!p) return [];
+  return [...userIdsFromData(p.create ?? []), ...userIdsFromData(p.createMany?.data ?? [])];
+}
+
+function queueChatChanged(userIds: string[]) {
+  if (!userIds.length) return;
+  setTimeout(() => {
+    void realtime.trigger(
+      Array.from(new Set(userIds)).map((id) => `user-${id}`),
+      "chat:changed",
+      {}
+    );
+  }, 300);
+}
 
 const prismaClientSingleton = () => {
   const pool =
@@ -62,6 +118,38 @@ const prisma = prismaBase.$extends({
             );
           }
         }
+        return query(args);
+      },
+    },
+    notification: {
+      create({ args, query }) {
+        queueNotificationChanged(userIdsFromData((args as any).data));
+        return query(args);
+      },
+      createMany({ args, query }) {
+        queueNotificationChanged(userIdsFromData((args as any).data));
+        return query(args);
+      },
+      update({ args, query }) {
+        queueNotificationChanged(userIdsFromWhere((args as any).where));
+        return query(args);
+      },
+      updateMany({ args, query }) {
+        queueNotificationChanged(userIdsFromWhere((args as any).where));
+        return query(args);
+      },
+      delete({ args, query }) {
+        queueNotificationChanged(userIdsFromWhere((args as any).where));
+        return query(args);
+      },
+      deleteMany({ args, query }) {
+        queueNotificationChanged(userIdsFromWhere((args as any).where));
+        return query(args);
+      },
+    },
+    conversation: {
+      create({ args, query }) {
+        queueChatChanged(participantIdsFromConversation((args as any).data));
         return query(args);
       },
     },

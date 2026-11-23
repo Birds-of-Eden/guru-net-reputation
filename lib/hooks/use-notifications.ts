@@ -42,7 +42,7 @@ export function useUnreadCount(
     `${apiBase}/unread-count${querySuffix}`,
     fetcher,
     {
-      refreshInterval: 8000, // poll
+      refreshInterval: 60_000, // fallback only — WebSocket pushes changes instantly
       revalidateOnFocus: true, // ট্যাব ফোকাসে রিফেচ
       dedupingInterval: 4000, // ডুপ রিকোয়েস্ট কমায়
     }

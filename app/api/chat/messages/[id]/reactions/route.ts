@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
 
 export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
@@ -113,7 +113,7 @@ export async function POST(req: Request, ctx: Ctx) {
   });
   const payload = { messageId, reactions: aggregate(recs) };
 
-  await pusherServer.trigger(
+  await realtime.trigger(
     `presence-conversation-${msg.conversationId}`,
     "reaction:update",
     payload

@@ -6,6 +6,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/auth-context";
 import PresencePinger from "@/components/presence/PresencePinger";
+import RealtimeBridge from "@/components/realtime/RealtimeBridge";
 import SWRProvider from "@/components/providers/SWRProvider";
 import SessionProviderClient from "@/components/providers/SessionProviderClient";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
           <SWRProvider>
             <AuthProvider>
               <PresencePinger />
+              <RealtimeBridge />
               {children}
               <Toaster position="bottom-right" richColors />
             </AuthProvider>

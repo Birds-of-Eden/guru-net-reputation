@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
 
 export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
@@ -23,7 +23,7 @@ export async function POST(_req: Request, ctx: Ctx) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
 
   // presence channel এ টাইপিং ইভেন্ট পাঠাই
-  await pusherServer.trigger(`presence-conversation-${id}`, "typing", {
+  await realtime.trigger(`presence-conversation-${id}`, "typing", {
     userId: me.id,
     name: me.name || me.email || "Someone",
   });

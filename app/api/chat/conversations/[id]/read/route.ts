@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
+import { notifyChatChangedForUser } from "@/lib/realtime/chat";
 
 export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
@@ -53,7 +54,7 @@ export async function POST(_req: Request, ctx: Ctx) {
     });
 
     // Notify clients to paint read ticks
-    await pusherServer.trigger(
+    await realtime.trigger(
       `presence-conversation-${id}`,
       "receipt:update",
       {
@@ -67,7 +68,7 @@ export async function POST(_req: Request, ctx: Ctx) {
   }
 
   // Also broadcast conversation-level pointer
-  await pusherServer.trigger(
+  await realtime.trigger(
     `presence-conversation-${id}`,
     "conversation:read",
     {
@@ -75,6 +76,9 @@ export async function POST(_req: Request, ctx: Ctx) {
       lastReadAt: now.toISOString(),
     }
   );
+
+  // Sync unread badges across this user's other tabs/devices
+  await notifyChatChangedForUser(me.id, id);
 
   return NextResponse.json({ ok: true, at: now.toISOString() });
 }

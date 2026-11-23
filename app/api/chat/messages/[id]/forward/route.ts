@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
+import { notifyConversationChanged } from "@/lib/realtime/chat";
 import { getOrCreateDm } from "@/lib/chat/dm";
 
 export const dynamic = "force-dynamic";
@@ -127,7 +128,7 @@ export async function POST(req: Request, ctx: Ctx) {
       },
     });
     results.push({ conversationId: dm.id, messageId: msg.id });
-    await pusherServer.trigger(
+    await realtime.trigger(
       `presence-conversation-${dm.id}`,
       "message:new",
       serialize(msg)
@@ -155,12 +156,14 @@ export async function POST(req: Request, ctx: Ctx) {
       },
     });
     results.push({ conversationId: cid, messageId: msg.id });
-    await pusherServer.trigger(
+    await realtime.trigger(
       `presence-conversation-${cid}`,
       "message:new",
       serialize(msg)
     );
   }
+
+  await notifyConversationChanged(results.map((r) => r.conversationId));
 
   return NextResponse.json({ ok: true, forwarded: results });
 }

@@ -2,7 +2,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { NotificationType } from "@prisma/client";
-import { pusherServer } from "@/lib/pusher/server";
+import { realtime } from "@/lib/realtime/server";
 import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -259,7 +259,7 @@ export async function PATCH(
       });
       // Realtime broadcast for activity
       try {
-        await pusherServer.trigger("activity", "activity:new", {
+        await realtime.trigger("activity", "activity:new", {
           id: log.id,
           entityType: log.entityType,
           entityId: log.entityId,
