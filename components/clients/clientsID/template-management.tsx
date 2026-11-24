@@ -1,35 +1,39 @@
 // @ts-nocheck
 // components/clients/clientsID/template-management.tsx
-//lint error 
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Package,
   Layers,
-  Settings,
   RefreshCw,
-  Plus,
-  Edit,
+  Pencil,
+  ArrowLeftRight,
   Lock,
-  Zap,
-  Calendar,
-  Users,
-  CheckCircle,
   AlertCircle,
-  Loader,
+  PackageOpen,
 } from "lucide-react";
 import { Client } from "@/types/client";
 import { CustomizeTemplateDialog } from "./template-customization/customize-dialog";
 import { SwitchTemplateDialog } from "./template-customization/switch-template-dialog";
-import { AssetCard } from "./template-customization/asset-card";
+import {
+  AssetRow,
+  AssetRowHeader,
+  resolveAssetValues,
+} from "./template-customization/asset-card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { CustomizationHistory } from "./template-customization/customization-history";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { useTemplateManagement } from "@/lib/hooks/use-template-management";
+import { formatAssetTypeLabel } from "@/lib/asset-types";
 import { toast } from "sonner";
 
 interface TemplateManagementProps {
@@ -37,67 +41,74 @@ interface TemplateManagementProps {
   onUpdate?: () => void;
 }
 
-// Skeleton loader component
 function TemplateManagementSkeleton() {
   return (
-    <div className="space-y-6">
-      {/* Header skeleton */}
-      <Card className="shadow-lg border-0">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-            <Skeleton className="h-9 w-24" />
+    <div className="space-y-4">
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-7 w-64" />
+            <Skeleton className="h-4 w-80" />
           </div>
-        </CardHeader>
+          <Skeleton className="h-9 w-40" />
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
       </Card>
-
-      {/* Template overview skeleton */}
-      <Card className="shadow-lg border-0">
-        <CardHeader>
-          <Skeleton className="h-6 w-40" />
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
-          <div className="space-y-3">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Assets skeleton */}
-      <Card className="shadow-lg border-0">
-        <CardHeader>
-          <Skeleton className="h-6 w-40" />
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))}
-          </div>
-        </CardContent>
+      <Card className="p-5 space-y-3">
+        <Skeleton className="h-5 w-40" />
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
       </Card>
     </div>
   );
 }
 
-export function TemplateManagement({
-  clientData,
-  onUpdate,
-}: TemplateManagementProps) {
+function StateCard({
+  tone,
+  title,
+  text,
+}: {
+  tone: "error" | "warning";
+  title: string;
+  text: string;
+}) {
+  const styles =
+    tone === "error"
+      ? "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300"
+      : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300";
+  return (
+    <div className={`flex items-start gap-3 rounded-xl border p-5 ${styles}`}>
+      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+      <div>
+        <p className="font-semibold">{title}</p>
+        <p className="mt-1 text-sm opacity-90">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border bg-muted/30 px-3 py-2.5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-lg font-semibold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+export function TemplateManagement({ clientData, onUpdate }: TemplateManagementProps) {
   const { user } = useUserSession();
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
+  // null = every group open (default); otherwise the groups the user has open
+  const [openGroups, setOpenGroups] = useState<string[] | null>(null);
 
-  // ✅ Use optimized hook with aggressive caching
   const { assignment, templateData, stats, isLoading, error, refresh } =
     useTemplateManagement({
       clientId: clientData.id,
@@ -126,50 +137,19 @@ export function TemplateManagement({
     setSwitchOpen(false);
   };
 
-  // ✅ Show skeleton loader instead of spinner
-  if (isLoading) {
-    return <TemplateManagementSkeleton />;
-  }
+  if (isLoading) return <TemplateManagementSkeleton />;
 
-  // ✅ Show error state
   if (error) {
-    return (
-      <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-red-800 dark:text-red-300">
-                Error Loading Template
-              </h3>
-              <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-                {error}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <StateCard tone="error" title="Couldn't load template" text={error} />;
   }
 
   if (!assignment || !templateData) {
     return (
-      <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">
-                No Template Assigned
-              </h3>
-              <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                This client does not have an assignment or template configured
-                yet.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <StateCard
+        tone="warning"
+        title="No template assigned"
+        text="This client doesn't have an assignment or template configured yet."
+      />
     );
   }
 
@@ -177,227 +157,211 @@ export function TemplateManagement({
     templateData.name?.includes("Custom") ||
     templateData.description?.includes("cloned");
 
-  // ✅ Use stats from hook (pre-computed and memoized)
   const { totalAssets, customOverrides, teamMembers, assetsByType } = stats;
+  const assets: any[] = templateData.sitesAssets ?? [];
+
+  const settingFor = (assetId: number) =>
+    assignment.siteAssetSettings?.find((s: any) => s.templateSiteAssetId === assetId);
+
+  // One accordion group per asset type, with a small summary for its header
+  const groups = Object.keys(assetsByType).map((type) => {
+    const items = assets.filter((a: any) => (a.type || "other") === type);
+    let postsPerMonth = 0;
+    let overrides = 0;
+    let required = 0;
+    for (const a of items) {
+      const v = resolveAssetValues(a, settingFor(a.id));
+      postsPerMonth += v.frequency;
+      if (v.hasOverride) overrides++;
+      if (a.isRequired) required++;
+    }
+    return { type, items, postsPerMonth, overrides, required };
+  });
+  const allGroupIds = groups.map((g) => g.type);
+  const expanded = openGroups ?? allGroupIds;
+  const allExpanded = expanded.length === allGroupIds.length;
 
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <Card className="shadow-lg border-0 bg-linear-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <CardTitle className="flex items-center gap-2 text-2xl">
-                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                Template Management
-              </CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Manage templates and assets for {clientData.name}
-              </p>
+    <div className="space-y-4">
+      {/* Overview */}
+      <Card className="p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 space-y-1">
+            <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <Layers className="h-3.5 w-3.5" />
+              Current template
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-semibold">{templateData.name}</h2>
+              <Badge
+                variant="outline"
+                className={
+                  isCustomTemplate
+                    ? "border-purple-300 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300"
+                    : "text-muted-foreground"
+                }
+              >
+                {isCustomTemplate ? "Custom for this client" : "Shared template"}
+              </Badge>
             </div>
+            {templateData.description && (
+              <p className="text-sm text-muted-foreground">{templateData.description}</p>
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            {canManage && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setSwitchOpen(true)} className="gap-2">
+                  <ArrowLeftRight className="h-4 w-4" />
+                  Switch
+                </Button>
+                <Button size="sm" onClick={() => setCustomizeOpen(true)} className="gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Customize
+                </Button>
+              </>
+            )}
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={handleRefresh}
-              className="gap-2"
+              aria-label="Refresh"
+              title="Refresh"
+              className="h-8 w-8"
             >
               <RefreshCw className="h-4 w-4" />
-              Refresh
             </Button>
           </div>
-        </CardHeader>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Stat label="Assets" value={totalAssets} />
+          <Stat label="Client overrides" value={customOverrides} />
+          <Stat label="Team members" value={teamMembers} />
+          <Stat
+            label="Last modified"
+            value={
+              <span className="text-sm">
+                {templateData.updatedAt
+                  ? new Date(templateData.updatedAt).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </span>
+            }
+          />
+        </div>
+
+        {!canManage ? (
+          <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <Lock className="h-4 w-4" />
+            {isClient ? "Clients" : "Agents"} can view this template but can't change it.
+          </p>
+        ) : (
+          !isCustomTemplate && (
+            <p className="mt-4 text-sm text-muted-foreground">
+              This template is shared with other clients. Use{" "}
+              <span className="font-medium text-foreground">Customize</span> to make changes just
+              for {clientData.name}.
+            </p>
+          )
+        )}
       </Card>
 
-      {/* Current Template Overview */}
-      <Card className="shadow-lg border-0">
-        <CardHeader className="bg-linear-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
-          <CardTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Current Template
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
-          {/* Template Info */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-3 flex-1">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                    {templateData.name}
-                  </h3>
-                  {isCustomTemplate && (
-                    <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                      Custom
-                    </Badge>
-                  )}
-                </div>
-                {templateData.description && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {templateData.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="p-2 bg-blue-500 rounded-lg">
-                    <Layers className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Total Assets
-                    </p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {totalAssets}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <div className="p-2 bg-purple-500 rounded-lg">
-                    <Zap className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Custom Overrides
-                    </p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {customOverrides}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="p-2 bg-green-500 rounded-lg">
-                    <Users className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Team Members
-                    </p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {teamMembers}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <div className="p-2 bg-orange-500 rounded-lg">
-                    <Calendar className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Last Modified
-                    </p>
-                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                      {templateData.updatedAt
-                        ? new Date(templateData.updatedAt).toLocaleDateString()
-                        : "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Assets */}
+      <Card className="overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3">
+          <div>
+            <h3 className="font-semibold">
+              Assets <span className="font-normal text-muted-foreground">({totalAssets})</span>
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {groups.length} {groups.length === 1 ? "type" : "types"}
+              {customOverrides > 0 && (
+                <span className="text-amber-700 dark:text-amber-400">
+                  {" "}· amber values are client overrides
+                </span>
+              )}
+            </p>
           </div>
-
-          {/* Action Buttons */}
-          {canManage && (
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <Button
-                onClick={() => setCustomizeOpen(true)}
-                className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-              >
-                <Edit className="h-4 w-4" />
-                Customize Template
-              </Button>
-              <Button
-                onClick={() => setSwitchOpen(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Switch Template
-              </Button>
-            </div>
+          {groups.length > 1 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpenGroups(allExpanded ? [] : allGroupIds)}
+              className="h-8 text-xs text-muted-foreground"
+            >
+              {allExpanded ? "Collapse all" : "Expand all"}
+            </Button>
           )}
+        </div>
 
-          {!canManage && (
-            <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-              <Lock className="h-4 w-4 text-slate-500 dark:text-muted-foreground" />
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {isClient
-                  ? "Clients can view but not modify templates"
-                  : "Agents can view but not modify templates"}
+        {assets.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-12 text-center">
+            <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">
+              <PackageOpen className="h-5 w-5" />
+            </div>
+            <p className="font-medium">No assets in this template</p>
+            {canManage && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use Customize to add assets for this client.
               </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Assets List */}
-      <Card className="shadow-lg border-0">
-        <CardHeader className="bg-linear-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            Template Assets ({totalAssets})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {templateData.sitesAssets && templateData.sitesAssets.length > 0 ? (
-            <div className="space-y-6">
-              {/* Group by type */}
-              {Object.entries(assetsByType).map(([type, count]) => {
-                const assets = templateData.sitesAssets.filter(
-                  (a: any) => (a.type || "other") === type
-                );
-
-                return (
-                  <div key={type} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-slate-900 dark:text-slate-100 capitalize">
-                        {type.replace(/_/g, " ")} ({String(count)})
-                      </h4>
-                    </div>
-                    <div className="grid gap-4">
-                      {assets.map((asset: any) => {
-                        const setting = assignment.siteAssetSettings?.find(
-                          (s: any) => s.templateSiteAssetId === asset.id
-                        );
-
-                        return (
-                          <AssetCard
-                            key={asset.id}
-                            asset={asset}
-                            setting={setting}
-                            isCustomTemplate={isCustomTemplate}
-                            canManage={canManage}
-                          />
-                        );
-                      })}
-                    </div>
+            )}
+          </div>
+        ) : (
+          <Accordion
+            type="multiple"
+            value={expanded}
+            onValueChange={setOpenGroups}
+            className="space-y-3 p-4"
+          >
+            {groups.map((g) => (
+              <AccordionItem
+                key={g.type}
+                value={g.type}
+                className="overflow-hidden rounded-lg border last:border-b"
+              >
+                <AccordionTrigger className="items-center rounded-none bg-muted/40 px-4 py-3 hover:bg-muted/70 hover:no-underline data-[state=open]:border-b">
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-semibold">{formatAssetTypeLabel(g.type)}</span>
+                    <Badge variant="secondary" className="h-5 px-1.5 tabular-nums">
+                      {g.items.length}
+                    </Badge>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {g.postsPerMonth} posts/mo
+                      {g.required > 0 && ` · ${g.required} required`}
+                    </span>
+                    {g.overrides > 0 && (
+                      <span className="text-xs font-normal text-amber-700 dark:text-amber-400">
+                        {g.overrides} override{g.overrides === 1 ? "" : "s"}
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 dark:text-muted-foreground">
-                No assets configured in this template
-              </p>
-            </div>
-          )}
-        </CardContent>
+                </AccordionTrigger>
+                <AccordionContent className="pb-0">
+                  <AssetRowHeader />
+                  <div className="divide-y">
+                    {g.items.map((asset: any, i: number) => (
+                      <AssetRow
+                        key={asset.id}
+                        asset={asset}
+                        setting={settingFor(asset.id)}
+                        index={i}
+                      />
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
       </Card>
 
-      {/* Customization History */}
-      <CustomizationHistory
-        assignmentId={assignment.id}
-        clientName={clientData.name}
-      />
+      <CustomizationHistory assignmentId={assignment.id} clientName={clientData.name} />
 
-      {/* Dialogs */}
       <CustomizeTemplateDialog
         open={customizeOpen}
         onOpenChange={setCustomizeOpen}
@@ -418,4 +382,3 @@ export function TemplateManagement({
     </div>
   );
 }
-// @ts-nocheck

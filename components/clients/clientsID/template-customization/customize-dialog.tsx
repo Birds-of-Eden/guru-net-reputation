@@ -2,7 +2,7 @@
 //lint error fixed
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,17 +23,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus,
-  X,
-  AlertCircle,
-  CheckCircle,
+  Trash2,
   Loader,
-  Sparkles,
   ArrowRight,
+  ArrowLeftRight,
+  ChevronDown,
+  Info,
+  Settings2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { formatAssetTypeLabel, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -144,6 +146,211 @@ function PostingCycleSelect({
     </Select>
   );
 }
+
+/** Normalized field values shared by "new asset" and "replacement" cards. */
+interface AssetFieldValues {
+  type: string;
+  name: string;
+  url: string;
+  description: string;
+  isRequired: boolean;
+  frequency: number;
+  interval: number;
+  offset: number;
+  duration: number;
+}
+
+function FieldLabel({ children, hint }: { children: ReactNode; hint?: string }) {
+  return (
+    <Label className="text-xs font-medium text-muted-foreground">
+      {children}
+      {hint && <span className="ml-1 font-normal opacity-70">({hint})</span>}
+    </Label>
+  );
+}
+
+/** Compact form body used by both cards: type/name, schedule, and collapsible extras. */
+function AssetFields({
+  idPrefix,
+  values,
+  onChange,
+  typeSelect,
+  namePlaceholder,
+}: {
+  idPrefix: string;
+  values: AssetFieldValues;
+  onChange: (patch: Partial<AssetFieldValues>) => void;
+  typeSelect: ReactNode;
+  namePlaceholder: string;
+}) {
+  const [showMore, setShowMore] = useState(
+    Boolean(values.url || values.description)
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Type + name */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <FieldLabel>Asset type</FieldLabel>
+          {typeSelect}
+        </div>
+        <div className="space-y-1.5">
+          <FieldLabel>Name</FieldLabel>
+          <Input
+            value={values.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            placeholder={namePlaceholder}
+          />
+        </div>
+      </div>
+
+      {/* Schedule */}
+      <div className="grid gap-3 rounded-lg bg-muted/50 p-3 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <FieldLabel>Posts / month</FieldLabel>
+          <Input
+            type="number"
+            min="0"
+            max="30"
+            value={values.frequency}
+            onChange={(e) => onChange({ frequency: parseFrequency(e.target.value) })}
+            className="bg-background"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <FieldLabel>Posting cycle</FieldLabel>
+          <PostingCycleSelect
+            interval={values.interval}
+            offset={values.offset}
+            disabled={values.frequency <= 0}
+            onChange={(interval, offset) => onChange({ interval, offset })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <FieldLabel>Minutes / task</FieldLabel>
+          <Input
+            type="number"
+            min="5"
+            max="480"
+            step="5"
+            value={values.duration}
+            onChange={(e) => onChange({ duration: parseDuration(e.target.value) })}
+            className="bg-background"
+          />
+        </div>
+      </div>
+
+      {/* Required + more details toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Switch
+            id={`${idPrefix}-required`}
+            checked={values.isRequired}
+            onCheckedChange={(checked) => onChange({ isRequired: checked })}
+          />
+          <Label htmlFor={`${idPrefix}-required`} className="cursor-pointer text-sm">
+            Required asset
+          </Label>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowMore((v) => !v)}
+          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          {showMore ? "Hide" : "Add"} URL &amp; notes
+          <ChevronDown
+            className={cn("h-3.5 w-3.5 transition-transform", showMore && "rotate-180")}
+          />
+        </button>
+      </div>
+
+      {showMore && (
+        <div className="space-y-3 border-t pt-3">
+          <div className="space-y-1.5">
+            <FieldLabel hint="optional">URL</FieldLabel>
+            <Input
+              value={values.url}
+              onChange={(e) => onChange({ url: e.target.value })}
+              placeholder="https://"
+              className="font-mono text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <FieldLabel hint="optional">Notes</FieldLabel>
+            <Textarea
+              value={values.description}
+              onChange={(e) => onChange({ description: e.target.value })}
+              placeholder="Instructions for whoever works on this asset"
+              rows={2}
+              className="resize-none"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const newAssetToFields = (a: NewAsset): AssetFieldValues => ({
+  type: a.type,
+  name: a.name,
+  url: a.url,
+  description: a.description,
+  isRequired: a.isRequired,
+  frequency: a.defaultPostingFrequency,
+  interval: a.postingInterval,
+  offset: a.postingStartOffset,
+  duration: a.defaultIdealDurationMinutes,
+});
+
+const replacementToFields = (r: Replacement): AssetFieldValues => ({
+  type: r.newAssetType,
+  name: r.newAssetName,
+  url: r.newAssetUrl,
+  description: r.newAssetDescription,
+  isRequired: r.isRequired,
+  frequency: r.defaultPostingFrequency,
+  interval: r.postingInterval,
+  offset: r.postingStartOffset,
+  duration: r.defaultIdealDurationMinutes,
+});
+
+/** Maps a field patch back onto NewAsset / Replacement keys. */
+const fieldsPatchTo = <T,>(
+  patch: Partial<AssetFieldValues>,
+  keys: Record<keyof AssetFieldValues, keyof T>
+): Partial<T> => {
+  const out: Partial<T> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    (out as any)[keys[k as keyof AssetFieldValues]] = v;
+  }
+  return out;
+};
+
+const NEW_ASSET_KEYS: Record<keyof AssetFieldValues, keyof NewAsset> = {
+  type: "type",
+  name: "name",
+  url: "url",
+  description: "description",
+  isRequired: "isRequired",
+  frequency: "defaultPostingFrequency",
+  interval: "postingInterval",
+  offset: "postingStartOffset",
+  duration: "defaultIdealDurationMinutes",
+};
+
+const REPLACEMENT_KEYS: Record<keyof AssetFieldValues, keyof Replacement> = {
+  type: "newAssetType",
+  name: "newAssetName",
+  url: "newAssetUrl",
+  description: "newAssetDescription",
+  isRequired: "isRequired",
+  frequency: "defaultPostingFrequency",
+  interval: "postingInterval",
+  offset: "postingStartOffset",
+  duration: "defaultIdealDurationMinutes",
+};
 
 export function CustomizeTemplateDialog({
   open,
@@ -456,612 +663,298 @@ export function CustomizeTemplateDialog({
     }
   };
 
+  const totalChanges = newAssets.length + replacements.length;
+  const defaultTemplateName = `${currentTemplate.name} - Custom (${clientName})`;
+
+  const typeSelect = (value: string, onValueChange: (v: string) => void) => (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="w-full" disabled={loadingAssetTypes}>
+        <SelectValue placeholder={loadingAssetTypes ? "Loading types..." : "Select type"} />
+      </SelectTrigger>
+      <SelectContent className="max-h-[400px] overflow-y-auto">
+        {renderTypeSelectItems(typeOptionsWith(value))}
+      </SelectContent>
+    </Select>
+  );
+
+  const emptyState = (
+    icon: ReactNode,
+    title: string,
+    text: string,
+    action?: ReactNode
+  ) => (
+    <div className="flex flex-col items-center rounded-xl border border-dashed px-6 py-10 text-center">
+      <div className="mb-3 rounded-full bg-muted p-3 text-muted-foreground">{icon}</div>
+      <p className="font-medium">{title}</p>
+      <p className="mt-1 mb-4 max-w-sm text-sm text-muted-foreground">{text}</p>
+      {action}
+    </div>
+  );
+
+  const removeButton = (onClick: () => void, label: string) => (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="h-8 w-8 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="p-2 bg-linear-to-br from-purple-500 to-pink-500 rounded-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                Customize Template
-                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700">
-                  {clientName}
-                </Badge>
-              </div>
-              <p className="text-sm font-normal text-slate-500 mt-1 dark:text-muted-foreground">
-                Current Template: <span className="font-semibold">{currentTemplate.name}</span>
-              </p>
-            </div>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+        {/* Header */}
+        <DialogHeader className="space-y-1 border-b px-6 py-4 text-left">
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Settings2 className="h-5 w-5 text-muted-foreground" />
+            Customize template
           </DialogTitle>
-          <DialogDescription className="text-base">
-            ✨ Add new assets or replace existing ones to create a personalized template.
-            <br />
-            💡 Your changes will only affect <span className="font-semibold">{clientName}</span> - other clients remain unchanged.
+          <DialogDescription>
+            Based on <span className="font-medium text-foreground">{currentTemplate.name}</span>.
+            Changes apply only to{" "}
+            <span className="font-medium text-foreground">{clientName}</span>.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Custom Template Name Field */}
-        <div className="space-y-2 p-4 bg-linear-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl">
-          <Label htmlFor="customTemplateName" className="text-sm font-semibold text-purple-900 dark:text-purple-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Custom Template Name
-            <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700">
-              Optional
-            </Badge>
-          </Label>
-          <Input
-            id="customTemplateName"
-            value={customTemplateName}
-            onChange={(e) => setCustomTemplateName(e.target.value)}
-            placeholder={`${currentTemplate.name} - Custom (${clientName})`}
-            className="border-2 border-purple-300 focus:border-purple-500 bg-white dark:bg-slate-800 font-medium dark:border-purple-700"
-          />
-          <p className="text-xs text-purple-700 dark:text-purple-400 flex items-start gap-1">
-            <span>💡</span>
-            <span>
-              If not provided, a default name will be generated: <span className="font-semibold">"{currentTemplate.name} - Custom ({clientName})"</span>
-            </span>
-          </p>
+        {/* Body */}
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="customTemplateName" className="text-sm font-medium">
+              Template name <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="customTemplateName"
+              value={customTemplateName}
+              onChange={(e) => setCustomTemplateName(e.target.value)}
+              placeholder={defaultTemplateName}
+            />
+            <p className="text-xs text-muted-foreground">Leave empty to use the name shown.</p>
+          </div>
+
+          <Tabs defaultValue="add">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="add" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add assets
+                {newAssets.length > 0 && (
+                  <Badge variant="secondary" className="h-5 px-1.5">{newAssets.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="replace" className="gap-2">
+                <ArrowLeftRight className="h-4 w-4" />
+                Replace assets
+                {replacements.length > 0 && (
+                  <Badge variant="secondary" className="h-5 px-1.5">{replacements.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Add */}
+            <TabsContent value="add" className="mt-4 space-y-3">
+              {newAssets.length === 0 ? (
+                emptyState(
+                  <Plus className="h-5 w-5" />,
+                  "No new assets yet",
+                  "Add an asset to this client's template, such as a new social profile.",
+                  <Button onClick={handleAddAsset} disabled={loadingAssetTypes} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add asset
+                  </Button>
+                )
+              ) : (
+                <>
+                  {newAssets.map((asset, index) => (
+                    <div key={index} className="rounded-xl border bg-card p-4 shadow-xs">
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold">
+                          New asset {newAssets.length > 1 && <span className="text-muted-foreground">#{index + 1}</span>}
+                        </p>
+                        {removeButton(() => handleRemoveAsset(index), "Remove asset")}
+                      </div>
+                      <AssetFields
+                        idPrefix={`new-${index}`}
+                        values={newAssetToFields(asset)}
+                        onChange={(patch) => patchAsset(index, fieldsPatchTo<NewAsset>(patch, NEW_ASSET_KEYS))}
+                        typeSelect={typeSelect(asset.type, (v) => handleAssetTypeChange(index, v))}
+                        namePlaceholder="e.g. Company Facebook Page"
+                      />
+                    </div>
+                  ))}
+                  <Button onClick={handleAddAsset} variant="outline" className="w-full gap-2 border-dashed">
+                    <Plus className="h-4 w-4" />
+                    Add another asset
+                  </Button>
+                </>
+              )}
+            </TabsContent>
+
+            {/* Replace */}
+            <TabsContent value="replace" className="mt-4 space-y-3">
+              {templateAssets.length === 0 ? (
+                emptyState(
+                  <Info className="h-5 w-5" />,
+                  "Nothing to replace",
+                  "This template has no assets yet."
+                )
+              ) : replacements.length === 0 ? (
+                emptyState(
+                  <ArrowLeftRight className="h-5 w-5" />,
+                  "No replacements yet",
+                  "Swap an existing template asset for a different one. Its schedule is copied over so you only change what's needed.",
+                  <Button onClick={handleAddReplacement} disabled={loadingAssetTypes} className="gap-2">
+                    <ArrowLeftRight className="h-4 w-4" />
+                    Replace an asset
+                  </Button>
+                )
+              ) : (
+                <>
+                  {replacements.map((replacement, index) => {
+                    const oldAsset = templateAssets.find((a: any) => a.id === replacement.oldAssetId);
+                    const oldSetting = oldAsset ? settingsByAssetId.get(oldAsset.id) : null;
+                    const oldFreq = oldAsset
+                      ? getPostingFrequency({
+                          required: oldSetting?.requiredFrequency,
+                          defaultFreq: oldAsset.defaultPostingFrequency,
+                        })
+                      : 0;
+                    const oldCycle = oldAsset ? resolvePostingCycle(oldAsset, oldSetting) : null;
+                    const selectableOldAssets = templateAssets.filter(
+                      (a: any) => a.id === replacement.oldAssetId || !usedOldAssetIds.has(a.id)
+                    );
+
+                    return (
+                      <div key={index} className="rounded-xl border bg-card p-4 shadow-xs">
+                        <div className="mb-3 flex items-center justify-between">
+                          <p className="text-sm font-semibold">
+                            Replacement {replacements.length > 1 && <span className="text-muted-foreground">#{index + 1}</span>}
+                          </p>
+                          {removeButton(() => handleRemoveReplacement(index), "Remove replacement")}
+                        </div>
+
+                        {/* Which asset is being replaced */}
+                        <div className="mb-4 space-y-1.5 rounded-lg border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-900/60 dark:bg-amber-950/20">
+                          <FieldLabel>Replacing</FieldLabel>
+                          <Select
+                            value={String(replacement.oldAssetId)}
+                            onValueChange={(value) => handleOldAssetChange(index, Number(value))}
+                          >
+                            <SelectTrigger className="w-full bg-background">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[400px] overflow-y-auto">
+                              {selectableOldAssets.map((a: any) => (
+                                <SelectItem key={a.id} value={String(a.id)}>
+                                  {a.name} · {typeLabel(a.type)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {oldAsset && (
+                            <p className="text-xs text-muted-foreground">
+                              Currently {oldFreq}x/month · {postingCycleLabel(oldCycle)}
+                            </p>
+                          )}
+                        </div>
+
+                        <p className="mb-3 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          <ArrowRight className="h-3.5 w-3.5" />
+                          With
+                        </p>
+                        <AssetFields
+                          idPrefix={`rep-${index}`}
+                          values={replacementToFields(replacement)}
+                          onChange={(patch) =>
+                            patchReplacement(index, fieldsPatchTo<Replacement>(patch, REPLACEMENT_KEYS))
+                          }
+                          typeSelect={typeSelect(replacement.newAssetType, (v) =>
+                            patchReplacement(index, { newAssetType: v })
+                          )}
+                          namePlaceholder={oldAsset ? `Replaces "${oldAsset.name}"` : "New asset name"}
+                        />
+                      </div>
+                    );
+                  })}
+                  <Button
+                    onClick={handleAddReplacement}
+                    variant="outline"
+                    className="w-full gap-2 border-dashed"
+                    disabled={availableToReplace.length === 0}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {availableToReplace.length === 0
+                      ? "Every asset already has a replacement"
+                      : "Replace another asset"}
+                  </Button>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          {/* Review */}
+          {totalChanges > 0 && (
+            <div className="rounded-xl border bg-muted/40 p-4">
+              <p className="mb-2 text-sm font-semibold">Review changes</p>
+              <ul className="space-y-1.5 text-sm">
+                {newAssets.map((a, i) => (
+                  <li key={`add-${i}`} className="flex items-start gap-2">
+                    <Badge className="mt-0.5 h-5 bg-emerald-100 px-1.5 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      Add
+                    </Badge>
+                    <span>
+                      <span className="font-medium">{a.customName.trim() || a.name.trim() || "Untitled asset"}</span>
+                      <span className="text-muted-foreground">
+                        {" "}· {typeLabel(a.type)} · {a.defaultPostingFrequency}x/month
+                      </span>
+                    </span>
+                  </li>
+                ))}
+                {replacements.map((r, i) => {
+                  const oldAsset = templateAssets.find((a: any) => a.id === r.oldAssetId);
+                  return (
+                    <li key={`rep-${i}`} className="flex items-start gap-2">
+                      <Badge className="mt-0.5 h-5 bg-amber-100 px-1.5 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/40 dark:text-amber-300">
+                        Swap
+                      </Badge>
+                      <span>
+                        <span className="text-muted-foreground line-through">{oldAsset?.name ?? "asset"}</span>
+                        {" → "}
+                        <span className={cn("font-medium", !r.newAssetName.trim() && "text-red-600 dark:text-red-400")}>
+                          {r.newAssetName.trim() || "name required"}
+                        </span>
+                        <span className="text-muted-foreground"> · {r.defaultPostingFrequency}x/month</span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Saves as <span className="font-medium">{customTemplateName.trim() || defaultTemplateName}</span>.
+                Other clients on this template are not affected.
+              </p>
+            </div>
+          )}
         </div>
 
-        <Tabs defaultValue="add" className="mt-6">
-          <TabsList className="grid w-full grid-cols-2 h-12 bg-slate-100 dark:bg-slate-800 p-1">
-            <TabsTrigger value="add" className="gap-2 data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-500 data-[state=active]:text-white">
-              <Plus className="h-4 w-4" />
-              Add New Assets
-            </TabsTrigger>
-            <TabsTrigger value="replace" className="gap-2 data-[state=active]:bg-linear-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
-              <Sparkles className="h-4 w-4" />
-              Replace Assets
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Add New Assets Tab */}
-          <TabsContent value="add" className="space-y-4 mt-4">
-            {newAssets.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                <Plus className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 mb-4 dark:text-muted-foreground">No new assets added yet</p>
-                <Button onClick={handleAddAsset} className="gap-2" disabled={loadingAssetTypes}>
-                  <Plus className="h-4 w-4" />
-                  Add Your First Asset
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {newAssets.map((asset, index) => (
-                  <div
-                    key={index}
-                    className="p-5 border-2 border-blue-200 dark:border-blue-700 rounded-xl space-y-4 bg-linear-to-br from-blue-50 to-indigo-50 dark:bg-linear-to-br dark:from-blue-900/20 dark:to-indigo-900/20 shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 px-3 py-1 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700">
-                          ✨ New Asset #{index + 1}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs bg-slate-100 dark:bg-muted">
-                          {typeLabel(asset.type)}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveAsset(index)}
-                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-semibold">
-                          📦 Asset Type *
-                        </Label>
-                        <Select
-                          value={asset.type}
-                          onValueChange={(value) => handleAssetTypeChange(index, value)}
-                        >
-                          <SelectTrigger className="border-2 font-medium" disabled={loadingAssetTypes}>
-                            <SelectValue placeholder={loadingAssetTypes ? "Loading types..." : "Select asset type"} />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[400px] overflow-y-auto">
-                            {renderTypeSelectItems(typeOptionsWith(asset.type))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                          The asset will be created under <span className="font-semibold">{typeLabel(asset.type)}</span>
-                        </p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          Asset Name *
-                          <Badge variant="outline" className="text-xs">
-                            Auto-filled
-                          </Badge>
-                        </Label>
-                        <Input
-                          value={asset.name}
-                          onChange={(e) => patchAsset(index, { name: e.target.value })}
-                          placeholder="e.g., Facebook, Instagram"
-                          className="bg-slate-100 dark:bg-slate-800"
-                        />
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Default template asset name</p>
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label className="flex items-center gap-2">
-                          Custom Name
-                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                            Optional
-                          </Badge>
-                        </Label>
-                        <Input
-                          value={asset.customName}
-                          onChange={(e) => patchAsset(index, { customName: e.target.value })}
-                          placeholder="Enter your custom name (e.g., My Company Facebook Page)"
-                          className="border-blue-300 focus:border-blue-500 dark:border-blue-700"
-                        />
-                        <p className="text-xs text-blue-600 dark:text-blue-400">💡 If provided, this custom name will be used instead of the default</p>
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label className="flex items-center gap-2">
-                          🔗 URL
-                          <Badge variant="outline" className="text-xs">Optional</Badge>
-                        </Label>
-                        <Input
-                          value={asset.url}
-                          onChange={(e) => patchAsset(index, { url: e.target.value })}
-                          placeholder="https://example.com/your-asset"
-                          className="font-mono text-sm"
-                        />
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Link to the asset (if applicable)</p>
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label className="flex items-center gap-2">
-                          📝 Description
-                          <Badge variant="outline" className="text-xs">Optional</Badge>
-                        </Label>
-                        <Textarea
-                          value={asset.description}
-                          onChange={(e) => patchAsset(index, { description: e.target.value })}
-                          placeholder="Add any notes or special instructions for this asset..."
-                          rows={2}
-                          className="resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          🗓️ Posting Frequency (per month)
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                            {asset.defaultPostingFrequency}x
-                          </Badge>
-                        </Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="30"
-                            value={asset.defaultPostingFrequency}
-                            onChange={(e) =>
-                              patchAsset(index, {
-                                defaultPostingFrequency: parseFrequency(e.target.value),
-                              })
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-slate-600 dark:text-muted-foreground">tasks/month</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          🔁 Posting Cycle
-                        </Label>
-                        <PostingCycleSelect
-                          interval={asset.postingInterval}
-                          offset={asset.postingStartOffset}
-                          disabled={asset.defaultPostingFrequency <= 0}
-                          onChange={(interval, offset) =>
-                            patchAsset(index, {
-                              postingInterval: interval,
-                              postingStartOffset: offset,
-                            })
-                          }
-                        />
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Which months the posting tasks run</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          ⏱️ Duration (minutes)
-                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                            {asset.defaultIdealDurationMinutes}min
-                          </Badge>
-                        </Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            type="number"
-                            min="5"
-                            max="480"
-                            step="5"
-                            value={asset.defaultIdealDurationMinutes}
-                            onChange={(e) =>
-                              patchAsset(index, {
-                                defaultIdealDurationMinutes: parseDuration(e.target.value),
-                              })
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-slate-600 dark:text-muted-foreground">minutes</span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Estimated time to complete each task</p>
-                      </div>
-
-                      <div className="flex items-center space-x-2 col-span-2">
-                        <Checkbox
-                          id={`required-${index}`}
-                          checked={asset.isRequired}
-                          onCheckedChange={(checked) =>
-                            patchAsset(index, { isRequired: checked === true })
-                          }
-                        />
-                        <Label htmlFor={`required-${index}`} className="cursor-pointer">
-                          This asset is required
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <Button onClick={handleAddAsset} variant="outline" className="w-full gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Another Asset
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Replace Assets Tab */}
-          <TabsContent value="replace" className="space-y-4 mt-4">
-            {templateAssets.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 dark:text-muted-foreground">No assets available to replace</p>
-              </div>
-            ) : replacements.length === 0 ? (
-              <div className="text-center py-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                <Plus className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 mb-4 dark:text-muted-foreground">No replacements added yet</p>
-                <Button onClick={handleAddReplacement} className="gap-2" disabled={loadingAssetTypes}>
-                  <Plus className="h-4 w-4" />
-                  Add Your First Replacement
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {replacements.map((replacement, index) => {
-                  const oldAsset = templateAssets.find(
-                    (a: any) => a.id === replacement.oldAssetId
-                  );
-                  const oldSetting = oldAsset ? settingsByAssetId.get(oldAsset.id) : null;
-                  const oldFreq = oldAsset
-                    ? getPostingFrequency({
-                        required: oldSetting?.requiredFrequency,
-                        defaultFreq: oldAsset.defaultPostingFrequency,
-                      })
-                    : 0;
-                  const oldCycle = oldAsset ? resolvePostingCycle(oldAsset, oldSetting) : null;
-                  // The asset picked here plus everything not picked elsewhere
-                  const selectableOldAssets = templateAssets.filter(
-                    (a: any) =>
-                      a.id === replacement.oldAssetId || !usedOldAssetIds.has(a.id)
-                  );
-
-                  return (
-                  <div
-                    key={index}
-                    className="p-5 border-2 border-amber-200 dark:border-amber-700 rounded-xl space-y-4 bg-linear-to-br from-amber-50 to-orange-50 dark:bg-linear-to-br dark:from-amber-900/20 dark:to-orange-900/20 shadow-md hover:shadow-lg transition-shadow"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300 px-3 py-1 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700">
-                          🔄 Replacement #{index + 1}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs bg-slate-100 dark:bg-muted">
-                          {typeLabel(replacement.newAssetType)}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveReplacement(index)}
-                        className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Old -> New preview */}
-                    {oldAsset && (
-                      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-xs dark:border-amber-800 dark:bg-slate-900/40">
-                        <span className="text-slate-500 dark:text-muted-foreground">Current:</span>
-                        <span className="font-semibold line-through decoration-red-400">{oldAsset.name}</span>
-                        <span className="text-slate-500 dark:text-muted-foreground">
-                          ({typeLabel(oldAsset.type)} · {oldFreq}x/month · {postingCycleLabel(oldCycle)})
-                        </span>
-                        <ArrowRight className="h-3.5 w-3.5 text-amber-600" />
-                        <span className="font-semibold text-amber-700 dark:text-amber-300">
-                          {replacement.newAssetName.trim() || "New asset"}
-                        </span>
-                        <span className="text-slate-500 dark:text-muted-foreground">
-                          ({typeLabel(replacement.newAssetType)} · {replacement.defaultPostingFrequency}x/month ·{" "}
-                          {postingCycleLabel({
-                            interval: replacement.postingInterval,
-                            offset: replacement.postingStartOffset,
-                          })})
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-semibold">
-                          🎯 Replace Asset *
-                        </Label>
-                        <Select
-                          value={String(replacement.oldAssetId)}
-                          onValueChange={(value) => handleOldAssetChange(index, Number(value))}
-                        >
-                          <SelectTrigger className="border-2 font-medium">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[400px] overflow-y-auto">
-                            {selectableOldAssets.map((a: any) => (
-                              <SelectItem key={a.id} value={String(a.id)}>
-                                {a.name} ({typeLabel(a.type)})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">The existing asset to replace</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-semibold">
-                          📦 New Asset Type *
-                        </Label>
-                        <Select
-                          value={replacement.newAssetType}
-                          onValueChange={(value) =>
-                            patchReplacement(index, { newAssetType: value })
-                          }
-                        >
-                          <SelectTrigger className="border-2 font-medium" disabled={loadingAssetTypes}>
-                            <SelectValue placeholder={loadingAssetTypes ? "Loading types..." : "Select asset type"} />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[400px] overflow-y-auto">
-                            {renderTypeSelectItems(typeOptionsWith(replacement.newAssetType))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">
-                          The new asset will be under <span className="font-semibold">{typeLabel(replacement.newAssetType)}</span>
-                        </p>
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label>New Asset Name *</Label>
-                        <Input
-                          value={replacement.newAssetName}
-                          onChange={(e) =>
-                            patchReplacement(index, { newAssetName: e.target.value })
-                          }
-                          placeholder={oldAsset ? `Replaces "${oldAsset.name}" (e.g., Instagram)` : "New asset name"}
-                          className="border-amber-300 focus:border-amber-500 dark:border-amber-700"
-                        />
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label className="flex items-center gap-2">
-                          🔗 New Asset URL
-                          <Badge variant="outline" className="text-xs">Optional</Badge>
-                        </Label>
-                        <Input
-                          value={replacement.newAssetUrl}
-                          onChange={(e) =>
-                            patchReplacement(index, { newAssetUrl: e.target.value })
-                          }
-                          placeholder="https://..."
-                          className="font-mono text-sm"
-                        />
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Leave empty if the new asset has no URL yet</p>
-                      </div>
-
-                      <div className="space-y-2 col-span-2">
-                        <Label className="flex items-center gap-2">
-                          📝 Description
-                          <Badge variant="outline" className="text-xs">Optional</Badge>
-                        </Label>
-                        <Textarea
-                          value={replacement.newAssetDescription}
-                          onChange={(e) =>
-                            patchReplacement(index, { newAssetDescription: e.target.value })
-                          }
-                          placeholder="Add any notes or special instructions for this asset..."
-                          rows={2}
-                          className="resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          🗓️ Posting Frequency (per month)
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                            {replacement.defaultPostingFrequency}x
-                          </Badge>
-                        </Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="30"
-                            value={replacement.defaultPostingFrequency}
-                            onChange={(e) =>
-                              patchReplacement(index, {
-                                defaultPostingFrequency: parseFrequency(e.target.value),
-                              })
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-slate-600 dark:text-muted-foreground">tasks/month</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          🔁 Posting Cycle
-                        </Label>
-                        <PostingCycleSelect
-                          interval={replacement.postingInterval}
-                          offset={replacement.postingStartOffset}
-                          disabled={replacement.defaultPostingFrequency <= 0}
-                          onChange={(interval, offset) =>
-                            patchReplacement(index, {
-                              postingInterval: interval,
-                              postingStartOffset: offset,
-                            })
-                          }
-                        />
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Which months the posting tasks run</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                          ⏱️ Duration (minutes)
-                          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                            {replacement.defaultIdealDurationMinutes}min
-                          </Badge>
-                        </Label>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            type="number"
-                            min="5"
-                            max="480"
-                            step="5"
-                            value={replacement.defaultIdealDurationMinutes}
-                            onChange={(e) =>
-                              patchReplacement(index, {
-                                defaultIdealDurationMinutes: parseDuration(e.target.value),
-                              })
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-slate-600 dark:text-muted-foreground">minutes</span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-muted-foreground">Estimated time to complete each task</p>
-                      </div>
-
-                      <div className="flex items-center space-x-2 col-span-2">
-                        <Checkbox
-                          id={`replacement-required-${index}`}
-                          checked={replacement.isRequired}
-                          onCheckedChange={(checked) =>
-                            patchReplacement(index, { isRequired: checked === true })
-                          }
-                        />
-                        <Label htmlFor={`replacement-required-${index}`} className="cursor-pointer">
-                          This asset is required
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-                );
-                })}
-
-                <Button
-                  onClick={handleAddReplacement}
-                  variant="outline"
-                  className="w-full gap-2"
-                  disabled={availableToReplace.length === 0}
-                >
-                  <Plus className="h-4 w-4" />
-                  {availableToReplace.length === 0
-                    ? "All assets already have a replacement"
-                    : "Add Another Replacement"}
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Preview */}
-        {(newAssets.length > 0 || replacements.length > 0) && (
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <h4 className="font-semibold text-blue-900 dark:text-blue-300">
-                Changes Summary
-              </h4>
-            </div>
-            <div className="space-y-1 text-sm text-blue-800 dark:text-blue-300">
-              {customTemplateName.trim() && (
-                <p>• Custom template name: <span className="font-semibold">"{customTemplateName}"</span></p>
-              )}
-              {newAssets.map((a, i) => (
-                <p key={`add-${i}`}>
-                  • Add <span className="font-semibold">{a.customName.trim() || a.name || "New asset"}</span> under{" "}
-                  <span className="font-semibold">{typeLabel(a.type)}</span> ({a.defaultPostingFrequency}x/month ·{" "}
-                  {postingCycleLabel({ interval: a.postingInterval, offset: a.postingStartOffset })})
-                </p>
-              ))}
-              {replacements.map((r, i) => {
-                const oldAsset = templateAssets.find((a: any) => a.id === r.oldAssetId);
-                return (
-                  <p key={`rep-${i}`}>
-                    • Replace <span className="font-semibold">{oldAsset?.name ?? "asset"}</span> with{" "}
-                    <span className="font-semibold">{r.newAssetName.trim() || "(name required)"}</span> under{" "}
-                    <span className="font-semibold">{typeLabel(r.newAssetType)}</span> ({r.defaultPostingFrequency}x/month ·{" "}
-                    {postingCycleLabel({ interval: r.postingInterval, offset: r.postingStartOffset })})
-                  </p>
-                );
-              })}
-              <p>• Will create a custom template for this client</p>
-              {replacements.length > 0 && (
-                <p>• Replaced assets will have pending status and be immediately assignable</p>
-              )}
-              <p>• Other clients using the same template will not be affected</p>
-            </div>
+        {/* Footer */}
+        <DialogFooter className="flex-row items-center justify-between gap-2 border-t bg-muted/30 px-6 py-3 sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            {totalChanges === 0
+              ? "No changes yet"
+              : `${totalChanges} change${totalChanges === 1 ? "" : "s"}`}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={loading || totalChanges === 0} className="gap-2">
+              {loading && <Loader className="h-4 w-4 animate-spin" />}
+              {loading ? "Saving..." : "Apply changes"}
+            </Button>
           </div>
-        )}
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={loading || (newAssets.length === 0 && replacements.length === 0)}
-            className="gap-2 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-          >
-            {loading ? (
-              <>
-                <Loader className="h-4 w-4 animate-spin" />
-                Customizing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                Apply Customization
-              </>
-            )}
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

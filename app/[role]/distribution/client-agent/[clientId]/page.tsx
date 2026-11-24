@@ -1040,8 +1040,10 @@ export default function TaskDistributionForClient() {
       .filter((k) => !base.includes(k))
       .filter((k) => !HIDDEN_CATEGORY_NAMES.has(k));
 
-    // Merge + de-dupe
-    const merged = Array.from(new Set([...base, ...extras]));
+    // Merge + de-dupe, and only keep categories that actually have tasks
+    const merged = Array.from(new Set([...base, ...extras])).filter(
+      (name) => (statsByCategory[name]?.total ?? 0) > 0,
+    );
     const known = CATEGORY_DISPLAY_ORDER.filter((name) =>
       merged.includes(name),
     );
@@ -1059,12 +1061,13 @@ export default function TaskDistributionForClient() {
     // ✅ Force "Asset Creation" to top
   }, [dbCategories, statsByCategory]);
 
+  // Pick the first category with tasks; also move off a category that no longer has any.
   useEffect(() => {
-    if (!selectedCategory) {
-      const first = categoryLabels[0] ?? "Graphics Design";
-      setSelectedCategory(first);
+    if (tasksLoading || categoryLabels.length === 0) return;
+    if (!selectedCategory || !categoryLabels.includes(selectedCategory)) {
+      setSelectedCategory(categoryLabels[0]);
     }
-  }, [categoryLabels, selectedCategory]);
+  }, [categoryLabels, selectedCategory, tasksLoading]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-violet-50 via-indigo-50 to-purple-50 dark:from-violet-950/40 dark:via-indigo-950/40 dark:to-purple-950/40">
@@ -1188,6 +1191,11 @@ export default function TaskDistributionForClient() {
                   {/* Scrollable categories list */}
                   <div className="flex-1 min-h-0 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100">
                     <div className="divide-y divide-purple-100">
+                      {!tasksLoading && categoryLabels.length === 0 && (
+                        <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-muted-foreground">
+                          No categories with tasks yet
+                        </p>
+                      )}
                       {categoryLabels.map((label) => {
                         const s = statsByCategory[label];
                         const fully =
@@ -1294,12 +1302,12 @@ export default function TaskDistributionForClient() {
                           <Button
                             variant="outline"
                             className={cn(
-                              "h-10 md:h-11 justify-start text-left font-medium text-purple-700 rounded-xl border-purple-600 min-w-45 dark:text-purple-300",
+                              "h-9 rounded-lg px-3.5 text-sm font-medium justify-start text-left gap-2",
                               !categoryDueDate && "text-muted-foreground",
                             )}
                             aria-label="Open date picker"
                           >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                             {categoryDueDate
                               ? format(categoryDueDate, "PPP")
                               : "Set due date"}
@@ -1398,7 +1406,7 @@ export default function TaskDistributionForClient() {
                           await handleUnassign(selectedTaskIds);
                         }}
                         disabled={submitting || !canUnassignSelected}
-                        className="bg-purple-800 text-white hover:text-white hover:bg-purple-700"
+                        className="h-9 rounded-lg px-3.5 text-sm font-medium border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
                       >
                         Un-Assign
                       </Button>
@@ -1420,7 +1428,7 @@ export default function TaskDistributionForClient() {
                         disabled={
                           submitting || categoryAssignments.length === 0
                         }
-                        className="bg-red-600 text-white hover:text-white hover:bg-red-700"
+                        className="h-9 rounded-lg px-3.5 text-sm font-medium"
                       >
                         Deselect All
                       </Button>
@@ -1433,10 +1441,10 @@ export default function TaskDistributionForClient() {
                           }
                           setIsReassignModalOpen(true);
                         }}
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
                         disabled={submitting || !canReassignSelected}
-                        className="bg-orange-700 hover:bg-orange-800 text-white hover:text-white"
+                        className="h-9 rounded-lg px-3.5 text-sm font-medium"
                       >
                         Reassign ({selectedTasks.size})
                       </Button>
@@ -1446,11 +1454,8 @@ export default function TaskDistributionForClient() {
                         disabled={
                           submitting || categoryAssignments.length === 0
                         }
-                        className={cn(
-                          "h-10 md:h-11 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-600",
-                          (submitting || categoryAssignments.length === 0) &&
-                            "opacity-60 cursor-not-allowed",
-                        )}
+                        size="sm"
+                        className="h-9 rounded-lg px-3.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
                         aria-disabled={
                           submitting || categoryAssignments.length === 0
                         }
@@ -1558,11 +1563,14 @@ export default function TaskDistributionForClient() {
                       className="rounded-2xl border border-yellow-200 bg-yellow-50 p-6 text-center dark:border-yellow-800 dark:bg-yellow-950/40"
                     >
                       <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-1.5 dark:text-yellow-300">
-                        No Tasks Available for {selectedCategory}
+                        {selectedCategory
+                          ? `No Tasks Available for ${selectedCategory}`
+                          : "No Tasks Available"}
                       </h3>
                       <p className="text-sm text-yellow-800/90 dark:text-yellow-300/90">
-                        Either all tasks in this category are completed or none
-                        exist yet.
+                        {selectedCategory
+                          ? "Either all tasks in this category are completed or none exist yet."
+                          : "This client doesn't have any tasks yet."}
                       </p>
                     </section>
                   )}

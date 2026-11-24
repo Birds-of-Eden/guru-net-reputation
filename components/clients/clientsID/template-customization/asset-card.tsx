@@ -1,172 +1,116 @@
 // components/clients/clientsID/template-customization/asset-card.tsx
-//Lint Error fixed
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Globe,
-  Hash,
-  Clock,
-  Lock,
-  Zap,
-  Link as LinkIcon,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
-import { isEveryMonth, postingCycleLabel, resolvePostingCycle } from "@/lib/posting-cycle";
+import { Link as LinkIcon, Zap } from "lucide-react";
+import { postingCycleLabel, resolvePostingCycle } from "@/lib/posting-cycle";
+import { cn } from "@/lib/utils";
 
-interface AssetCardProps {
-  asset: any;
-  setting?: any;
-  isCustomTemplate: boolean;
-  canManage: boolean;
+/** Shared column layout so the header row and asset rows line up. */
+export const ASSET_ROW_GRID =
+  "grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 sm:grid-cols-[minmax(0,1fr)_88px_180px_80px] sm:items-center";
+
+/** Effective per-client values for an asset (client override wins over template default). */
+export function resolveAssetValues(asset: any, setting?: any) {
+  const frequency = setting?.requiredFrequency ?? asset.defaultPostingFrequency ?? 0;
+  const hasOverride =
+    setting?.requiredFrequency != null &&
+    setting.requiredFrequency !== asset.defaultPostingFrequency;
+  return {
+    frequency,
+    hasOverride,
+    cycle: resolvePostingCycle(asset as any, setting as any),
+    duration: setting?.idealDurationMinutes ?? asset.defaultIdealDurationMinutes ?? 0,
+  };
 }
 
-export function AssetCard({
-  asset,
-  setting,
-  isCustomTemplate,
-  canManage,
-}: AssetCardProps) {
-  const hasOverride = setting?.requiredFrequency !== null &&
-    setting?.requiredFrequency !== asset.defaultPostingFrequency;
+/** Column headings shown above a group's rows (desktop only). */
+export function AssetRowHeader() {
+  return (
+    <div
+      className={cn(
+        ASSET_ROW_GRID,
+        "hidden border-b bg-muted/30 px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:grid"
+      )}
+    >
+      <span>Asset</span>
+      <span className="text-right">Posts / mo</span>
+      <span>Cycle</span>
+      <span className="text-right">Time</span>
+    </div>
+  );
+}
 
-  const displayFrequency = setting?.requiredFrequency ?? asset.defaultPostingFrequency ?? 0;
-  const displayCycle = resolvePostingCycle(asset as any, setting as any);
-  const displayDuration = setting?.idealDurationMinutes ?? asset.defaultIdealDurationMinutes ?? 0;
+interface AssetRowProps {
+  asset: any;
+  setting?: any;
+  index: number;
+}
 
-  const getTypeIcon = (type: string) => {
-    if (type?.includes("social")) return "📱";
-    if (type?.includes("web")) return "🌐";
-    if (type?.includes("graphics")) return "🎨";
-    if (type?.includes("content")) return "✍️";
-    return "📄";
-  };
-
-  const getTypeBadgeColor = (type: string) => {
-    if (type?.includes("social")) return "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300";
-    if (type?.includes("web")) return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300";
-    if (type?.includes("graphics")) return "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300";
-    if (type?.includes("content")) return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
-    return "bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-300";
-  };
+/** One row in a template asset group. */
+export function AssetRow({ asset, setting, index }: AssetRowProps) {
+  const { frequency, hasOverride, cycle, duration } = resolveAssetValues(asset, setting);
 
   return (
-    <Card className="border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          {/* Left Section - Asset Info */}
-          <div className="flex-1 space-y-3">
-            {/* Header */}
-            <div className="flex items-start gap-3">
-              <div className="text-2xl mt-0.5">
-                {getTypeIcon(asset.type)}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-                    {asset.name}
-                  </h4>
-                  <Badge className={getTypeBadgeColor(asset.type)}>
-                    {asset.type?.replace(/_/g, " ")}
-                  </Badge>
-                  {asset.isRequired && (
-                    <Badge variant="outline" className="border-red-300 text-red-700 dark:border-red-700 dark:text-red-400">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Required
-                    </Badge>
-                  )}
-                </div>
-                
-                {asset.description && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    {asset.description}
-                  </p>
-                )}
-
-                {asset.url && (
-                  <a
-                    href={asset.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
-                  >
-                    <LinkIcon className="h-3 w-3" />
-                    {asset.url}
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Settings Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Posting Frequency */}
-              <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                <div className="p-1.5 bg-blue-500 rounded">
-                  <Hash className="h-3.5 w-3.5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Posting Frequency
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                    {displayFrequency > 0 ? `${displayFrequency}/month` : "Not set"}
-                    {displayFrequency > 0 && !isEveryMonth(displayCycle) && (
-                      <span className="ml-1 rounded-full bg-amber-50 dark:bg-amber-900/30 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
-                        {postingCycleLabel(displayCycle)}
-                      </span>
-                    )}
-                    {hasOverride && (
-                      <Zap className="h-3 w-3 text-yellow-500" aria-label="Client Override" />
-                    )}
-                    {!hasOverride && displayFrequency > 0 && (
-                      <Lock className="h-3 w-3 text-slate-400 dark:text-muted-foreground" aria-label="Template Default" />
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Duration */}
-              <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                <div className="p-1.5 bg-purple-500 rounded">
-                  <Clock className="h-3.5 w-3.5 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Duration
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {displayDuration > 0 ? `${displayDuration} min` : "Not set"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Override Info */}
-            {hasOverride && (
-              <div className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-                <Zap className="h-4 w-4 text-yellow-600 dark:text-yellow-400 shrink-0" />
-                <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                  <span className="font-semibold">Client Override:</span> Using custom frequency of {displayFrequency}/month 
-                  (template default: {asset.defaultPostingFrequency}/month)
-                </p>
-              </div>
-            )}
-
-            {/* Template Source */}
-            {!isCustomTemplate && (
-              <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-                <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                <p className="text-xs text-blue-700 dark:text-blue-400">
-                  Shared template asset - customize to make client-specific changes
-                </p>
-              </div>
+    <div className={cn(ASSET_ROW_GRID, "px-4 py-3 transition-colors hover:bg-muted/40")}>
+      {/* Name + meta */}
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-muted text-[11px] font-medium tabular-nums text-muted-foreground">
+          {index + 1}
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-medium">{asset.name}</span>
+            {asset.isRequired && (
+              <Badge variant="outline" className="h-5 px-1.5 text-[11px] font-normal text-muted-foreground">
+                Required
+              </Badge>
             )}
           </div>
+          {(asset.description || asset.url) && (
+            <div className="mt-0.5 flex min-w-0 flex-col gap-0.5 text-xs text-muted-foreground">
+              {asset.url && (
+                <a
+                  href={asset.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex max-w-full items-center gap-1 text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  <LinkIcon className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{asset.url.replace(/^https?:\/\//, "")}</span>
+                </a>
+              )}
+              {asset.description && <span className="line-clamp-1">{asset.description}</span>}
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Posts per month */}
+      <span
+        className={cn(
+          "inline-flex items-center justify-end gap-1 text-sm tabular-nums",
+          hasOverride && "text-amber-700 dark:text-amber-400"
+        )}
+        title={
+          hasOverride
+            ? `Client override (template default: ${asset.defaultPostingFrequency}/month)`
+            : "Template default"
+        }
+      >
+        {hasOverride && <Zap className="h-3.5 w-3.5" />}
+        <span className="font-semibold">{frequency > 0 ? frequency : "—"}</span>
+        <span className="text-muted-foreground sm:hidden">/mo</span>
+      </span>
+
+      {/* Cycle + time: own columns on desktop, one meta line on mobile */}
+      <span className="col-span-2 text-xs text-muted-foreground sm:col-span-1 sm:text-sm">
+        {frequency > 0 ? postingCycleLabel(cycle) : "—"}
+        <span className="sm:hidden"> · {duration > 0 ? `${duration} min` : "—"}</span>
+      </span>
+      <span className="hidden text-right text-sm tabular-nums text-muted-foreground sm:block">
+        {duration > 0 ? `${duration} min` : "—"}
+      </span>
+    </div>
   );
 }
