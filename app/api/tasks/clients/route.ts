@@ -161,12 +161,15 @@ export async function GET(req: Request) {
   const clientsWithTaskStats = clients.map((client) => {
     const bucket = buckets.get(client.id)!;
 
-    const isReadyForTaskCreation = ["social_site", "web2_site", "other_asset"].every(
-      (assetType) => {
+    // Ready when every asset-creation type that HAS tasks is fully QC approved.
+    // A type with 0 tasks (e.g. no Other Asset in the template) has nothing to
+    // approve, so it is skipped. At least one asset-creation task must exist.
+    const isReadyForTaskCreation =
+      bucket.totalAssetCreation > 0 &&
+      ["social_site", "web2_site", "other_asset"].every((assetType) => {
         const stats = bucket.assetTypes[assetType];
-        return stats && stats.total > 0 && stats.completed === stats.total;
-      }
-    );
+        return !stats || stats.total === 0 || stats.completed === stats.total;
+      });
 
     const baseStats: any = {
       categories: bucket.categories,
