@@ -7,12 +7,13 @@ export const dynamic = "force-dynamic";
 import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import {
+  getPostingFrequency as getFrequency,
+  maxSeqForBase,
   cycleFor,
   loadPostingCycles,
   totalPostingCopies,
-  virtualCycleNumber,
+  calendarPostingDueDate,
   type PostingCycle,
 } from "@/lib/posting-schedule";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -95,14 +96,6 @@ function baseNameOf(name: string): string {
   return String(name)
     .replace(/\s*-\s*\d+$/i, "")
     .trim();
-}
-
-function getFrequency(opts: { required?: number | null | undefined; defaultFreq?: number | null | undefined; }): number {
-  const fromRequired = Number(opts.required);
-  if (Number.isFinite(fromRequired) && fromRequired! > 0) return Math.floor(fromRequired);
-  const fromDefault = Number(opts.defaultFreq);
-  if (Number.isFinite(fromDefault) && fromDefault! > 0) return Math.floor(fromDefault);
-  return 1;
 }
 
 function countByStatus(tasks: { status: TaskStatus }[]) {
@@ -351,12 +344,20 @@ export async function POST(req: NextRequest) {
       ensured.map((c) => [c.name, c.id])
     );
 
+    // Keep numbering after earlier packages, but keep this renewal's date slots stable on retry.
+    const previousPostingTasks = await prisma.task.findMany({
+      where: { assignmentId: assignment.id, dueDate: { lt: renewalDate }, category: { name: { in: postingCategories } } },
+      select: { name: true },
+    });
+    const previousNames = previousPostingTasks.map((task) => task.name);
+
     // Expand copies for renewed window (anchor = renewalDate)
     const expandedCopies: {
       src: (typeof sourceTasks)[number];
       name: string;
       catName: string;
       freq: number;
+      seqIndex: number;
       cycle: PostingCycle;
     }[] = [];
     const lastCycleDueByBase = new Map<string, Date>();
@@ -372,17 +373,16 @@ export async function POST(req: NextRequest) {
       );
       const base = baseNameOf(src.name);
       const cycle = cycleFor(cycleByAssetId, assetId);
-      const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
+      const totalCopies = totalPostingCopies(freq, months, cycle);
+      if (totalCopies === 0) continue;
 
+      const sequenceOffset = maxSeqForBase(previousNames, base);
       for (let i = 1; i <= totalCopies; i++) {
-        expandedCopies.push({ src, catName, name: `${base} -${i}`, freq, cycle });
+        expandedCopies.push({ src, catName, name: `${base} -${sequenceOffset + i}`, freq, cycle, seqIndex: i });
       }
 
       if (catName === CAT_SOCIAL_ACTIVITY) {
-        const lastDue = calculateTaskDueDate(
-          renewalDate,
-          virtualCycleNumber(totalCopies, freq, cycle)
-        );
+        const lastDue = calendarPostingDueDate(renewalDate, totalCopies, freq, cycle);
         lastCycleDueByBase.set(base, lastDue);
       }
     }
@@ -401,6 +401,7 @@ export async function POST(req: NextRequest) {
       where: {
         assignmentId: assignment.id,
         name: { in: namesToCheck },
+        dueDate: { gte: renewalDate },
         category: { is: { name: { in: [...postingCategories, CAT_SOCIAL_COMMUNICATION] } } },
       },
       select: { name: true },
@@ -417,12 +418,8 @@ export async function POST(req: NextRequest) {
       if (skipNameSet.has(item.name)) continue;
       const src = item.src;
       const catId = categoryIdByName.get(item.catName)!;
-      const n = extractCycleNumber(item.name);
-      const cycleNumber = Number.isFinite(n) && n > 0 ? n : 1;
-      const dueDate = calculateTaskDueDate(
-        renewalDate,
-        virtualCycleNumber(cycleNumber, item.freq, item.cycle)
-      );
+      const cycleNumber = item.seqIndex;
+      const dueDate = calendarPostingDueDate(renewalDate, cycleNumber, item.freq, item.cycle);
 
       payloads.push({
         id: makeId(),
@@ -454,8 +451,9 @@ export async function POST(req: NextRequest) {
         const assetId = src.templateSiteAsset?.id;
         const freq = getFrequency({ required: assetId ? requiredByAssetId.get(assetId) : undefined, defaultFreq: src.templateSiteAsset?.defaultPostingFrequency });
         const cycle = cycleFor(cycleByAssetId, assetId);
-        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
-        dueDate = calculateTaskDueDate(renewalDate, virtualCycleNumber(totalCopies, freq, cycle));
+        const totalCopies = totalPostingCopies(freq, months, cycle);
+        if (totalCopies === 0) continue;
+        dueDate = calendarPostingDueDate(renewalDate, totalCopies, freq, cycle);
       }
       const catId = categoryIdByName.get(CAT_SOCIAL_COMMUNICATION)!;
       payloads.push({
@@ -477,7 +475,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3) Social Communication for fixed Web2 (guarded by creds), due = max of lastCycleDueByBase
-    const maxLastSocialDue = Array.from(lastCycleDueByBase.values()).sort((a, b) => a.getTime() - b.getTime()).pop() ?? calculateTaskDueDate(renewalDate, 1);
+    const maxLastSocialDue = Array.from(lastCycleDueByBase.values()).sort((a, b) => a.getTime() - b.getTime()).pop() ?? renewalDate;
 
     for (const p of WEB2_FIXED_PLATFORMS) {
       const scName = `${PLATFORM_META[p].label} - ${CAT_SOCIAL_COMMUNICATION}`;

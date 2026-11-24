@@ -546,7 +546,7 @@ export default function TaskDistributionForClient() {
   const [visibleTaskBatches, setVisibleTaskBatches] = useState(1);
 
   // default category (now declared earlier to drive SWR key)
-  const [categoryDueDate, setCategoryDueDate] = useState<Date>();
+  const [categoryDueDate, setCategoryDueDate] = useState<Date | undefined>(() => startOfToday()); // default: today
   const [duePickerOpen, setDuePickerOpen] = useState(false);
 
   // NEW: Reassign modal state at page level
@@ -760,7 +760,7 @@ export default function TaskDistributionForClient() {
         setCategoryAssignments([]);
         setSelectedTasks(new Set());
         setSelectedTasksOrder([]);
-        setCategoryDueDate(undefined);
+        setCategoryDueDate(startOfToday());
         setVisibleTaskBatches(1);
       });
       setDuePickerOpen(false);
@@ -1001,7 +1001,7 @@ export default function TaskDistributionForClient() {
         setCategoryAssignments([]);
         setSelectedTasks(new Set());
         setSelectedTasksOrder([]);
-        setCategoryDueDate(undefined);
+        setCategoryDueDate(startOfToday());
       } else {
         console.error("[category] API error response:", result);
         throw new Error(result.message || "Failed to distribute tasks");

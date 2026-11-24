@@ -5,17 +5,17 @@ export const dynamic = "force-dynamic";
 import { type NextRequest, NextResponse } from "next/server";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { addWorkingDays, calculateTaskDueDate } from "@/utils/working-days";
 import { resolveIdealDurationDynamic } from "@/utils/resolve-ideal-duration";
 import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/config";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
 import {
+  getPostingFrequency as getFrequency,
   cycleFor,
   loadPostingCycles,
   postingCycleLabel,
   totalPostingCopies,
-  virtualCycleNumber,
+  calendarPostingDueDate,
 } from "@/lib/posting-schedule";
 
 // ---------- Constants ----------
@@ -134,19 +134,6 @@ function buildMaxCycleMap(
     if (cycle > prev) map.set(key, cycle);
   }
   return map;
-}
-
-function getFrequency(opts: {
-  required?: number | null | undefined;
-  defaultFreq?: number | null | undefined;
-}): number {
-  const fromRequired = Number(opts.required);
-  if (Number.isFinite(fromRequired) && fromRequired! >= 0)
-    return Math.floor(fromRequired);
-  const fromDefault = Number(opts.defaultFreq);
-  if (Number.isFinite(fromDefault) && fromDefault! >= 0)
-    return Math.floor(fromDefault);
-  return 0;
 }
 
 function countByStatus(tasks: { status: TaskStatus }[]) {
@@ -670,18 +657,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Treat the user-selected date as Cycle-1 due date.
-    // Next cycles follow your cadence: +5 working days per cycle.
-    const dueDateFromFirstCycleDueDate = (cycleNumber: number) => {
-      const n = Math.max(1, Math.floor(cycleNumber));
-      if (n === 1) return new Date(firstCycleDueDate);
-      let d = new Date(firstCycleDueDate);
-      for (let i = 2; i <= n; i++) {
-        d = addWorkingDays(d, 5);
-      }
-      return d;
-    };
-
     // DB preflight
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -971,7 +946,7 @@ export async function POST(req: NextRequest) {
     const postingSources: PostingSource[] = [];
     // Due date of the n-th task, skipping inactive months for alternate cycles
     const dueDateForSource = (item: Pick<PostingSource, "freq" | "cycle">, n: number) =>
-      dueDateFromFirstCycleDueDate(virtualCycleNumber(n, item.freq, item.cycle));
+      calendarPostingDueDate(firstCycleDueDate, n, item.freq, item.cycle);
 
     // NEW: Social Activity সিরিজের প্রতিটি base-এর last cycle dueDate ক্যাশ
     const lastCycleDueByBase = new Map<string, Date>();
@@ -1121,7 +1096,8 @@ export async function POST(req: NextRequest) {
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
         const cycle = cycleFor(cycleByAssetId, assetId);
-        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
+        const totalCopies = totalPostingCopies(freq, months, cycle);
+        if (totalCopies === 0) continue;
         dueDate = dueDateForSource({ freq, cycle }, totalCopies);
       }
 

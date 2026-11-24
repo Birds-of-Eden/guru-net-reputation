@@ -11,10 +11,11 @@ import { getRuntimeTaskDurationConfig } from "@/app/api/settings/task-duration/c
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryFromMap, type AssetTypeRecord } from "@/lib/asset-types.server";
 import {
+  getPostingFrequency as getFrequency,
   cycleFor,
   loadPostingCycles,
   totalPostingCopies,
-  virtualCycleNumber,
+  calendarPostingDueDate,
   type PostingCycle,
 } from "@/lib/posting-schedule";
 
@@ -99,19 +100,6 @@ function baseNameOf(name: string): string {
   return String(name)
     .replace(/\s*-\s*\d+$/i, "")
     .trim();
-}
-
-function getFrequency(opts: {
-  required?: number | null | undefined;
-  defaultFreq?: number | null | undefined;
-}): number {
-  const fromRequired = Number(opts.required);
-  if (Number.isFinite(fromRequired) && fromRequired! > 0)
-    return Math.floor(fromRequired);
-  const fromDefault = Number(opts.defaultFreq);
-  if (Number.isFinite(fromDefault) && fromDefault! > 0)
-    return Math.floor(fromDefault);
-  return 1;
 }
 
 function countByStatus(tasks: { status: TaskStatus }[]) {
@@ -423,10 +411,7 @@ export async function GET(req: NextRequest) {
         fallbackCategoryMap
       );
       const base = baseNameOf(src.name);
-      const totalCopies = Math.max(
-        1,
-        totalPostingCopies(freq, packageTotalMonths, cycleFor(cycleByAssetId, assetId))
-      );
+      const totalCopies = totalPostingCopies(freq, packageTotalMonths, cycleFor(cycleByAssetId, assetId));
       for (let i = 1; i <= totalCopies; i++) {
         expandedCopies.push({ name: `${base} -${i}`, catName });
       }
@@ -546,6 +531,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const scheduleAnchor = body?.firstCycleDueDate
+      ? new Date(String(body.firstCycleDueDate))
+      : calculateTaskDueDate(new Date(), 1);
+    if (!Number.isFinite(scheduleAnchor.getTime())) {
+      return NextResponse.json({ message: "Invalid firstCycleDueDate" }, { status: 400 });
+    }
     const clientId: string | undefined = body?.clientId;
     const templateIdRaw: string | undefined = body?.templateId;
     const onlyType: string | undefined = body?.onlyType;
@@ -798,18 +789,15 @@ export async function POST(req: NextRequest) {
 
       // total copies = freq * active months
       const cycle = cycleFor(cycleByAssetId, assetId);
-      const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
+      const totalCopies = totalPostingCopies(freq, months, cycle);
+      if (totalCopies === 0) continue;
       for (let i = 1; i <= totalCopies; i++) {
         expandedCopies.push({ src, catName, name: `${base} -${i}`, freq, cycle });
       }
 
       // NEW: কেবল Social Activity-এর জন্য last cycle dueDate ক্যাশ করো
       if (catName === CAT_SOCIAL_ACTIVITY) {
-        const anchor = src.createdAt || new Date();
-        const lastDue = calculateTaskDueDate(
-          anchor,
-          virtualCycleNumber(totalCopies, freq, cycle)
-        ); // uses your working-days rules
+        const lastDue = calendarPostingDueDate(scheduleAnchor, totalCopies, freq, cycle); // uses your working-days rules
         lastCycleDueByBase.set(base, lastDue);
       }
     }
@@ -868,12 +856,7 @@ export async function POST(req: NextRequest) {
       const n = extractCycleNumber(item.name);
       const cycleNumber = Number.isFinite(n) && n > 0 ? n : 1;
 
-      // Anchor to the creation moment of the new copy (not the source task time)
-      const anchor = new Date();
-      const dueDate = calculateTaskDueDate(
-        anchor,
-        virtualCycleNumber(cycleNumber, item.freq, item.cycle)
-      );
+      const dueDate = calendarPostingDueDate(scheduleAnchor, cycleNumber, item.freq, item.cycle);
 
       payloads.push({
         id: makeId(),
@@ -921,9 +904,9 @@ export async function POST(req: NextRequest) {
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
         const cycle = cycleFor(cycleByAssetId, assetId);
-        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
-        const anchor = src.createdAt || new Date();
-        dueDate = calculateTaskDueDate(anchor, virtualCycleNumber(totalCopies, freq, cycle));
+        const totalCopies = totalPostingCopies(freq, months, cycle);
+        if (totalCopies === 0) continue;
+        dueDate = calendarPostingDueDate(scheduleAnchor, totalCopies, freq, cycle);
       }
 
       const catId = categoryIdByName.get("Social Communication")!;
@@ -958,7 +941,7 @@ export async function POST(req: NextRequest) {
     const maxLastSocialDue =
       Array.from(lastCycleDueByBase.values())
         .sort((a, b) => a.getTime() - b.getTime())
-        .pop() ?? calculateTaskDueDate(new Date(), 1); // fallback = today + 15 days (cycle 1)
+        .pop() ?? scheduleAnchor; // fallback = today + 15 days (cycle 1)
 
     // --- REPLACE: Fixed Web2 SC creation (creds optional; always create unless duplicate)
     for (const p of ["medium", "tumblr", "wordpress"] as const) {

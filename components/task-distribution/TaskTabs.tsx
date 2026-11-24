@@ -21,6 +21,7 @@ import {
   TaskAssignment,
   Task,
 } from "./distribution-types";
+import { groupTasksByCycle } from "@/lib/posting-task-cycles";
 import { TaskListItem } from "./TaskListItem";
 
 /**
@@ -31,14 +32,6 @@ type AgentWithLoad = Agent & {
   activeCount?: number;
   weightedScore?: number;
   byStatus?: Record<string, number>;
-};
-
-type CycleGroup = {
-  cycle: number;
-  label: string;
-  baseName: string;
-  tasks: Task[];
-  isManual?: boolean;
 };
 
 interface TaskTabsProps {
@@ -76,63 +69,6 @@ interface TaskTabsProps {
   ) => void;
   priorityUpdating: Record<string, boolean>;
 }
-
-const extractCycleInfo = (taskName: string) => {
-  // Check if this is a Manual task first
-  const isManualTask = taskName.toLowerCase().startsWith('manual');
-  
-  // Handle various patterns: "Task -1", "manual task -1", "SlideShare Task -55", etc.
-  const match = taskName.match(/^(.+?)\s*-\s*(\d+)$/);
-  if (match) {
-    return {
-      baseName: match[1].trim(),
-      cycle: parseInt(match[2], 10),
-      cycleLabel: `-${match[2]}`,
-      isManual: isManualTask,
-    };
-  }
-  return { 
-    baseName: taskName, 
-    cycle: 0, 
-    cycleLabel: "",
-    isManual: isManualTask,
-  };
-};
-
-const groupTasksByCycle = (tasks: Task[]): CycleGroup[] => {
-  const grouped: Record<string, CycleGroup> = {};
-
-  tasks.forEach((task) => {
-    const cycleInfo = extractCycleInfo(task.name);
-    // Create separate keys for Manual and regular tasks, even with same cycle number
-    const key = cycleInfo.isManual 
-      ? `manual_${cycleInfo.cycleLabel || "nocycle"}`
-      : cycleInfo.cycleLabel || "_nocycle";
-
-    if (!grouped[key]) {
-      grouped[key] = {
-        cycle: cycleInfo.cycle,
-        label: cycleInfo.cycleLabel,
-        baseName: cycleInfo.baseName,
-        tasks: [],
-        isManual: cycleInfo.isManual,
-      };
-    }
-
-    grouped[key].tasks.push(task);
-  });
-
-  return Object.values(grouped).sort((a, b) => {
-    // Manual tasks always come first
-    if (a.isManual && !b.isManual) return -1;
-    if (!a.isManual && b.isManual) return 1;
-    
-    // Then sort by cycle number (ascending)
-    if (a.cycle === 0) return 1;
-    if (b.cycle === 0) return -1;
-    return a.cycle - b.cycle;
-  });
-};
 
 const getTaskStatusBreakdown = (tasks: Task[], taskAssignments: TaskAssignment[]) => {
   const statusCounts = {

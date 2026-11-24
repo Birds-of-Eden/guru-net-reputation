@@ -9,10 +9,12 @@ import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-ty
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 import {
   activeMonthCount,
-  calendarMonthIndex,
+  calendarPostingDueDate,
   cycleFor,
-  isActiveMonth,
   loadPostingCycles,
+  loadRequiredFrequencies,
+  maxSeqForBase,
+  postsPerMonth,
 } from "@/lib/posting-schedule";
 
 // ---- constants
@@ -492,31 +494,7 @@ export async function POST(req: NextRequest) {
       [CAT_GUEST_POSTING]: [30, 60, 90],
     };
 
-    // Cadence dates generator: first = +1WD, then +7WD cycles, starting from last task or renewalDate
-    function* cadenceDates(
-      from: Date,
-      end: Date,
-      lastTaskDueDate: Date | null
-    ) {
-      let cur: Date;
-
-      if (lastTaskDueDate && lastTaskDueDate >= from) {
-        // Continue cycle from last task
-        cur = addWorkingDays(lastTaskDueDate, 7); // changed to 7 WD
-      } else {
-        // First task after renewal
-        cur = addWorkingDays(from, 1); // changed to 1 WD
-      }
-
-      if (cur > end) return;
-      yield cur;
-
-      while (true) {
-        cur = addWorkingDays(cur, 7); // cycle every 7 WD after the first
-        if (cur > end) break;
-        yield cur;
-      }
-    }
+    // Posting periods start at the renewal date.
 
     type FutureItem = {
       src: (typeof sourceTasks)[number];
@@ -528,10 +506,13 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
-    const cycleByAssetId = await loadPostingCycles(
-      sourceTasks.map((s) => s.templateSiteAsset?.id),
-      assignment.id
-    );
+    const sourceAssetIds = sourceTasks.map((s) => s.templateSiteAsset?.id);
+    const [cycleByAssetId, requiredByAssetId] = await Promise.all([
+      loadPostingCycles(sourceAssetIds, assignment.id),
+      loadRequiredFrequencies(sourceAssetIds, assignment.id),
+    ]);
+    // Calendar schedule anchor (Posts/Month + Posting Cycle)
+    const scheduleAnchor = dateOnly(renewalDate);
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(
@@ -546,6 +527,7 @@ export async function POST(req: NextRequest) {
         where: {
           assignmentId: assignment.id,
           name: { startsWith: base + " -" },
+          dueDate: { lt: renewalDate },
           category: { name: { in: ALL_CATEGORY_NAMES } },
         },
         select: { name: true, dueDate: true },
@@ -582,50 +564,41 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const freqPerMonthRaw =
-        src.templateSiteAsset?.defaultPostingFrequency ?? 0;
-      const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
+      // Posts/Month (per-client override, else template default)
+      const assetId = src.templateSiteAsset?.id;
+      const freqPerMonth = postsPerMonth(
+        requiredByAssetId,
+        assetId,
+        src.templateSiteAsset?.defaultPostingFrequency
+      );
       if (freqPerMonth === 0) continue;
 
-      // Total months from renewalDate to dueDate
-      // Active months only (alternate-month cycles skip the rest)
-      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
-      const totalMonths = monthsBetweenInclusive(renewalDate, dueDate);
+      // Total = Posts/Month x ACTIVE months (Posting Cycle: alternate etc.)
+      const cycle = cycleFor(cycleByAssetId, assetId);
+      const totalMonths = months;
       const totalNeeded = activeMonthCount(totalMonths, cycle) * freqPerMonth;
       if (totalNeeded === 0) continue;
 
-      // Per-month cap implementation
-      const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
-      let accepted = 0;
+      const alreadyMax = maxSeqForBase(
+        existingTasksForSource.map((t) => t.name),
+        base
+      );
 
-      const startingSeqIndex = existingTasksForSource.length + 1;
-
-      for (const d of cadenceDates(renewalDate, dueDate, lastTaskDueDate)) {
-        const dOnly = dateOnly(d);
-        if (dOnly.getTime() > cutoff.getTime()) break; // Stop at cutoff (today or dueDate)
-        if (!isActiveMonth(calendarMonthIndex(renewalDate, dOnly), cycle)) continue;
-
-        const key = `${dOnly.getFullYear()}-${String(
-          dOnly.getMonth() + 1
-        ).padStart(2, "0")}`;
-        const used = perMonthCount.get(key) ?? 0;
-
-        if (used < freqPerMonth) {
-          perMonthCount.set(key, used + 1);
-          accepted++;
-
-          const seqIndex = startingSeqIndex + accepted - 1;
-          future.push({
-            src,
-            catName,
-            base,
-            name: `${base} -${seqIndex}`,
-            dueDate: dOnly,
-            seqIndex,
-          });
-
-          if (accepted >= totalNeeded) break;
-        }
+      // Exactly freqPerMonth tasks in each active month, none in inactive months
+      for (let k = 1; k <= totalNeeded; k++) {
+        const seqIndex = alreadyMax + k;
+        const d = dateOnly(
+          calendarPostingDueDate(scheduleAnchor, k, freqPerMonth, cycle)
+        );
+        if (d.getTime() > cutoff.getTime()) break;
+        future.push({
+          src,
+          catName,
+          base,
+          name: `${base} -${seqIndex}`,
+          dueDate: d,
+          seqIndex,
+        });
       }
     }
 
@@ -633,7 +606,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "No occurrences fall within the requested window (renewalDate+7WD to cutoff).",
+            "No occurrences fall within the requested window (renewalDate to cutoff).",
           created: 0,
           cutoff,
           scheduleCount: 0,
@@ -843,13 +816,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        message: `Created ${created.length} task(s) for renewal up to cutoff with per-month caps and 1WD cadence.`,
+        message: `Created ${created.length} task(s) for renewal up to cutoff using active 30-day posting periods.`,
         created: created.length,
         cutoff,
         scheduleCount: created.length,
         assignmentId: assignment.id,
         cadence:
-          "first at renewalDate + 1 working days, then every +7 working days (per-month capped)",
+          "evenly spaced in active 30-day periods from renewalDate, with weekend adjustments",
         tasks: created,
         renewalDate,
         dueDate,

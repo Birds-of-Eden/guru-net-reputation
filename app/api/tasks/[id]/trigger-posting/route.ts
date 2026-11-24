@@ -8,11 +8,14 @@ import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-ty
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 import {
   cycleFor,
+  loadRequiredFrequencies,
+  postsPerMonth,
+  postingPeriodCount,
   loadPostingCycles,
   postingCycleLabel,
   resolvePostingCycle,
   totalPostingCopies,
-  virtualCycleNumber,
+  calendarPostingDueDate,
 } from "@/lib/posting-schedule";
 
 const CAT_SOCIAL_ACTIVITY = "Social Activity";
@@ -124,7 +127,7 @@ export async function POST(
   const { id: taskId } = await params;
   try {
     const body = await request.json().catch(() => ({}));
-    const { frequency = 3, startDate } = body as {
+    const { startDate } = body as {
       frequency: number;
       startDate: string;
     };
@@ -135,7 +138,7 @@ export async function POST(
       include: {
         assignment: {
           include: {
-            client: true,
+            client: { include: { package: { select: { totalMonths: true } } } },
           },
         },
         templateSiteAsset: true,
@@ -174,12 +177,19 @@ export async function POST(
       );
     }
 
-    const start = new Date(startDate || qcTask.createdAt);
+    if (qcTask.status !== "qc_approved") {
+      return NextResponse.json({ message: "Source task must be qc_approved" }, { status: 400 });
+    }
+    const frequencies = await loadRequiredFrequencies([qcTask.templateSiteAssetId], qcTask.assignmentId);
+    const frequency = postsPerMonth(frequencies, qcTask.templateSiteAssetId, qcTask.templateSiteAsset?.defaultPostingFrequency);
+    const start = startDate ? new Date(startDate) : addWorkingDays(new Date(qcTask.assignment.client.startDate ?? qcTask.createdAt), 7);
+    if (!Number.isFinite(start.getTime())) {
+      return NextResponse.json({ message: "Invalid start date" }, { status: 400 });
+    }
     const due = new Date(clientDueDate);
 
     // === 2️⃣ Compute total months between start and due ===
-    const totalDays = Math.max(1, differenceInCalendarDays(due, start));
-    const totalMonths = Math.ceil(totalDays / 30);
+    const totalMonths = qcTask.assignment.client.package?.totalMonths ?? postingPeriodCount(start, due);
     const cycleMap = await loadPostingCycles([qcTask.templateSiteAssetId], qcTask.assignmentId);
     const cycle = cycleFor(cycleMap, qcTask.templateSiteAssetId);
     const totalTasks = totalPostingCopies(frequency, totalMonths, cycle);
@@ -202,8 +212,14 @@ export async function POST(
     const plannedTotal = totalTasks;
     const endDue = new Date(clientDueDate);
 
+    const existingTasks = await prisma.task.findMany({
+      where: { assignmentId: qcTask.assignmentId, templateSiteAssetId: qcTask.templateSiteAssetId, categoryId: category.id },
+      select: { name: true },
+    });
+    const existingNames = new Set(existingTasks.map((task) => task.name));
     for (let i = 1; i <= plannedTotal; i++) {
-      const due = calculateTaskDueDate(anchor, virtualCycleNumber(i, frequency, cycle));
+      if (existingNames.has(`${qcTask.templateSiteAsset?.name || "Asset"} - ${i}`)) continue;
+      const due = calendarPostingDueDate(anchor, i, frequency, cycle);
       if (endDue && due > endDue) break;
       const task = await prisma.task.create({
         data: {
@@ -218,10 +234,10 @@ export async function POST(
           priority: TaskPriority.medium,
           idealDurationMinutes:
             qcTask.templateSiteAsset?.defaultIdealDurationMinutes ?? 30,
-          notes: `[AUTO-GENERATED] Posting ${i + 1}/${totalTasks}
+          notes: `[AUTO-GENERATED] Posting ${i}/${totalTasks}
 Frequency: ${frequency}/month × ${totalMonths} months (${postingCycleLabel(cycle)})
 Client Due: ${endDue.toDateString()}
-Spacing: every 7 working days`,
+Spacing: evenly within active 30-day periods`,
         },
         select: { id: true, name: true, dueDate: true },
       });

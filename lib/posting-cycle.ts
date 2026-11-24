@@ -24,6 +24,19 @@ export type PostingCycle = { interval: number; offset: number };
 
 export const EVERY_MONTH: PostingCycle = { interval: 1, offset: 0 };
 
+/** A missing override inherits the template; an explicit zero disables posting. */
+export function getPostingFrequency(opts: {
+  required?: number | null;
+  defaultFreq?: number | null;
+}): number {
+  for (const value of [opts.required, opts.defaultFreq]) {
+    if (value === null || value === undefined) continue;
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 0) return Math.floor(n);
+  }
+  return 0;
+}
+
 export const POSTING_INTERVAL_OPTIONS = [
   { value: 1, label: "Every month" },
   { value: 2, label: "Alternate months" },
@@ -161,6 +174,70 @@ export function virtualCycleNumber(
   const month = packageMonthOfCycle(n, freq, cycle);
   const pos = (n - 1) % freq;
   return month * freq + pos + 1;
+}
+
+// ---------- Calendar schedule (Posts/Month + Posting Cycle) ----------
+
+function isWeekendDay(d: Date) {
+  const w = d.getDay();
+  return w === 0 || w === 6;
+}
+
+/** Length of one posting "month" (period), counted from the start date. */
+export const POSTING_PERIOD_DAYS = 30;
+
+/** Fallback period count for legacy clients without a package length. */
+export function postingPeriodCount(start: Date, end: Date): number {
+  const day = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.max(0, Math.ceil((day(end) - day(start)) / (POSTING_PERIOD_DAYS * 86400000)));
+}
+
+/**
+ * Due date of the n-th (1-based) posting task, using 30-DAY PERIODS counted
+ * from the start (anchor) date:
+ *  - period 0 = [anchor, anchor+30d), period 1 = [anchor+30d, anchor+60d), ...
+ *  - only ACTIVE periods (per Posting Cycle) get tasks; inactive ones get none
+ *  - each active period gets exactly `freqPerMonth` (Posts/Month) tasks,
+ *    spread evenly across its 30 days
+ *  - weekend dates move to the next working day (or back to Friday if that
+ *    would leave the period)
+ * Task 1 starts at `anchor`, subject to the same weekend adjustment as other tasks.
+ *
+ * Example (anchor 15 Dec, 3/month):
+ *   every month -> 15 Dec–13 Jan: 3 | 14 Jan–12 Feb: 3 | 13 Feb–14 Mar: 3 | ...
+ *   alternate   -> 15 Dec–13 Jan: 3 | 14 Jan–12 Feb: 0 | 13 Feb–14 Mar: 3 | ...
+ */
+export function calendarPostingDueDate(
+  anchor: Date,
+  cycleNumber: number,
+  freqPerMonth: number,
+  cycle: PostingCycle = EVERY_MONTH
+): Date {
+  const freq = Math.max(1, Math.floor(Number(freqPerMonth) || 1));
+  const n = Math.max(1, Math.floor(cycleNumber));
+  const monthIdx = packageMonthOfCycle(n, freq, cycle);
+  const pos = (n - 1) % freq;
+
+  const anchorDay = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate());
+  const windowStart = new Date(anchorDay);
+  windowStart.setDate(windowStart.getDate() + monthIdx * POSTING_PERIOD_DAYS);
+  const windowEnd = new Date(windowStart); // exclusive
+  windowEnd.setDate(windowEnd.getDate() + POSTING_PERIOD_DAYS);
+  const spanDays = POSTING_PERIOD_DAYS;
+
+  const d = new Date(windowStart);
+  d.setDate(d.getDate() + Math.floor((pos * spanDays) / freq));
+
+  if (isWeekendDay(d)) {
+    const fwd = new Date(d);
+    while (isWeekendDay(fwd)) fwd.setDate(fwd.getDate() + 1);
+    if (fwd.getTime() < windowEnd.getTime()) return fwd;
+    const back = new Date(d);
+    while (isWeekendDay(back)) back.setDate(back.getDate() - 1);
+    if (back.getTime() >= windowStart.getTime()) return back;
+    return d; // tiny window: keep the date inside the month
+  }
+  return d;
 }
 
 /** Dropdown options for the template UI. Value format: "interval:offset". */

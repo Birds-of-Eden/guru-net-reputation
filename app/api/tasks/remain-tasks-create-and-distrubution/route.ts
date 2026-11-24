@@ -9,10 +9,13 @@ import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import {
   activeMonthCount,
-  calendarMonthIndex,
+  calendarPostingDueDate,
+  postingPeriodCount,
   cycleFor,
-  isActiveMonth,
   loadPostingCycles,
+  loadRequiredFrequencies,
+  maxSeqForBase,
+  postsPerMonth,
 } from "@/lib/posting-schedule";
 import {
   fetchAssetTypeMap,
@@ -309,7 +312,7 @@ export async function POST(req: NextRequest) {
     // Dates
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, startDate: true, dueDate: true },
+      select: { id: true, startDate: true, dueDate: true, package: { select: { totalMonths: true } } },
     });
     if (!client)
       return NextResponse.json(
@@ -327,8 +330,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
 
-    const startDate = new Date(client.startDate);
-    const dueDate = new Date(client.dueDate);
+    const startDate = dateOnly(new Date(client.startDate));
+    const dueDate = dateOnly(new Date(client.dueDate));
 
     const today = new Date();
     const todayMidnight = new Date(
@@ -465,30 +468,6 @@ export async function POST(req: NextRequest) {
     };
 
     // 👇 NEW: per-month capped schedule builder (+7WD cycles), starting from last task or today
-    function* cadenceDates(
-      from: Date,
-      end: Date,
-      lastTaskDueDate: Date | null
-    ) {
-      let cur: Date;
-
-      if (lastTaskDueDate && lastTaskDueDate >= from) {
-        // Existing tasks → continue 7WD cycle
-        cur = addWorkingDays(lastTaskDueDate, 7);
-      } else {
-        // FIRST task only → today/startDate + 1WD
-        cur = addWorkingDays(from, 1);
-      }
-
-      if (cur > end) return;
-      yield cur;
-
-      while (true) {
-        cur = addWorkingDays(cur, 7);
-        if (cur > end) break;
-        yield cur;
-      }
-    }
 
     type FutureItem = {
       src: (typeof sourceTasks)[number];
@@ -500,10 +479,13 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
-    const cycleByAssetId = await loadPostingCycles(
-      sourceTasks.map((s) => s.templateSiteAsset?.id),
-      assignment.id
-    );
+    const sourceAssetIds = sourceTasks.map((s) => s.templateSiteAsset?.id);
+    const [cycleByAssetId, requiredByAssetId] = await Promise.all([
+      loadPostingCycles(sourceAssetIds, assignment.id),
+      loadRequiredFrequencies(sourceAssetIds, assignment.id),
+    ]);
+    // Calendar schedule anchor (Posts/Month + Posting Cycle)
+    const scheduleAnchor = addWorkingDays(dateOnly(startDate), 7);
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(
@@ -555,57 +537,41 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const freqPerMonthRaw =
-        src.templateSiteAsset?.defaultPostingFrequency ?? 0;
-      const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
+      // Posts/Month (per-client override, else template default)
+      const assetId = src.templateSiteAsset?.id;
+      const freqPerMonth = postsPerMonth(
+        requiredByAssetId,
+        assetId,
+        src.templateSiteAsset?.defaultPostingFrequency
+      );
       if (freqPerMonth === 0) continue;
 
-      // Total campaign months always based on full startDate → dueDate
-      // Active months only (alternate-month cycles skip the rest)
-      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
-      const totalMonths = monthsBetweenInclusive(startDate, dueDate);
-      const totalCopies = activeMonthCount(totalMonths, cycle) * freqPerMonth;
+      // Total = Posts/Month x ACTIVE months (Posting Cycle: alternate etc.)
+      const cycle = cycleFor(cycleByAssetId, assetId);
+      const totalMonths = client.package?.totalMonths ?? postingPeriodCount(startDate, dueDate);
+      const totalNeeded = activeMonthCount(totalMonths, cycle) * freqPerMonth;
+      if (totalNeeded === 0) continue;
 
-      // Already created cycles for this asset
-      const alreadyCreated = existingTasksForSource.length;
+      const alreadyMax = maxSeqForBase(
+        existingTasksForSource.map((t) => t.name),
+        base
+      );
 
-      // Remaining tasks needed
-      const remainingNeeded = Math.max(totalCopies - alreadyCreated, 0);
-      if (remainingNeeded === 0) continue;
-
-      // Per-month cap implementation
-      const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
-      let accepted = 0;
-
-      const startingSeqIndex = existingTasksForSource.length + 1;
-
-      for (const d of cadenceDates(todayMidnight, dueDate, lastTaskDueDate)) {
-        if (d > dueDate) break;
-        // Month index counted from the campaign start, not from today
-        if (!isActiveMonth(calendarMonthIndex(startDate, d), cycle)) continue;
-
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-          2,
-          "0"
-        )}`;
-        const used = perMonthCount.get(key) ?? 0;
-
-        if (used < freqPerMonth) {
-          perMonthCount.set(key, used + 1);
-          accepted++;
-
-          const seqIndex = startingSeqIndex + accepted - 1;
-          future.push({
-            src,
-            catName,
-            base,
-            name: `${base} -${seqIndex}`,
-            dueDate: d,
-            seqIndex,
-          });
-
-          if (accepted >= remainingNeeded) break;
-        }
+      // Exactly freqPerMonth tasks in each active month, none in inactive months
+      for (let seqIndex = alreadyMax + 1; seqIndex <= totalNeeded; seqIndex++) {
+        const d = dateOnly(
+          calendarPostingDueDate(scheduleAnchor, seqIndex, freqPerMonth, cycle)
+        );
+        if (d.getTime() > dueDate.getTime()) break;
+        if (d.getTime() <= todayMidnight.getTime()) continue;
+        future.push({
+          src,
+          catName,
+          base,
+          name: `${base} -${seqIndex}`,
+          dueDate: d,
+          seqIndex,
+        });
       }
     }
 

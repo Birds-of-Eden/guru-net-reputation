@@ -73,7 +73,14 @@ async function main() {
     }
   });
 
-  server.on("upgrade", (req, socket, head) => {
+  // Single upgrade router.
+  // NOTE: Next's getRequestHandler() auto-attaches its OWN "upgrade" listener to
+  // this server on the first HTTP request (next/dist/server/next.js
+  // setupWebSocketHandler). That listener would also receive /realtime
+  // connections and destroy them (instant close 1006 -> endless reconnects),
+  // and would double-handle HMR. So we intercept "upgrade" at emit level and
+  // route every upgrade exactly once; extra listeners never see it.
+  const routeUpgrade = (req: any, socket: any, head: any) => {
     const pathname = (req.url || "").split("?")[0];
     if (pathname === "/realtime") {
       hub.handleUpgrade(req, socket, head);
@@ -81,7 +88,16 @@ async function main() {
     }
     // Next.js HMR (dev) and any other upgrade requests
     nextUpgrade(req, socket, head);
-  });
+  };
+  const originalEmit = server.emit.bind(server) as (event: string, ...args: any[]) => boolean;
+  (server as any).emit = (event: string, ...args: any[]) => {
+    if (event === "upgrade") {
+      const [req, socket, head] = args;
+      routeUpgrade(req, socket, head);
+      return true;
+    }
+    return originalEmit(event, ...args);
+  };
 
   server.listen(port, hostname, () => {
     console.log(

@@ -10,6 +10,11 @@ import {
   resolveCategoryFromMap,
 } from "@/lib/asset-types.server";
 import { isApprovedTemplateStatus } from "@/lib/template-status";
+import {
+  cycleFor,
+  loadPostingCycles,
+  postingCycleLabel,
+} from "@/lib/posting-schedule";
 
 // --- helpers ---
 function coerceSocialMedia(input: any): any[] | undefined {
@@ -193,6 +198,10 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
                 id: true,
                 name: true,
                 type: true,
+                defaultPostingFrequency: true,
+                // Posting Cycle (interval / start offset) - see lib/posting-cycle.ts
+                templatesiteasset_field_03: true,
+                templatesiteasset_field_04: true,
               },
             },
           },
@@ -302,6 +311,25 @@ export async function GET(
     // Extract template name from assignments
     const templateName =
       (client as any).assignments?.[0]?.template?.name || null;
+
+    // Readable Posting Cycle per site (per-client override wins over template)
+    const assignments = ((client as any).assignments ?? []) as any[];
+    await Promise.all(
+      assignments.map(async (a) => {
+        const assets = (a?.template?.sitesAssets ?? []) as any[];
+        if (!assets.length) return;
+        const cycles = await loadPostingCycles(
+          assets.map((s) => s.id),
+          a.id,
+        );
+        for (const s of assets) {
+          const c = cycleFor(cycles, s.id);
+          s.postingInterval = c.interval;
+          s.postingStartOffset = c.offset;
+          s.postingCycle = postingCycleLabel(c);
+        }
+      }),
+    );
 
     const response = {
       ...client,

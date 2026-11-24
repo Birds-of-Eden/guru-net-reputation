@@ -4,10 +4,11 @@ import prisma from "@/lib/prisma";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import { calculateTaskDueDate, extractCycleNumber } from "@/utils/working-days";
 import {
+  getPostingFrequency as getFrequency,
   cycleFor,
   loadPostingCycles,
   totalPostingCopies,
-  virtualCycleNumber,
+  calendarPostingDueDate,
   type PostingCycle,
 } from "@/lib/posting-schedule";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -111,17 +112,6 @@ function baseNameOf(name: string): string {
   return stripTaskSuffix(String(name).replace(/\s*-\s*\d+$/i, "").trim());
 }
 
-function getFrequency(opts: {
-  required?: number | null | undefined;
-  defaultFreq?: number | null | undefined;
-}): number {
-  const a = Number(opts.required);
-  if (Number.isFinite(a) && a > 0) return Math.floor(a);
-  const b = Number(opts.defaultFreq);
-  if (Number.isFinite(b) && b > 0) return Math.floor(b);
-  return 1;
-}
-
 function countByStatus(tasks: { status: TaskStatus }[]) {
   const base: Record<TaskStatus, number> = {
     pending: 0,
@@ -221,6 +211,12 @@ function collectWeb2PlatformSources(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const scheduleAnchor = body?.firstCycleDueDate
+      ? new Date(String(body.firstCycleDueDate))
+      : calculateTaskDueDate(new Date(), 1);
+    if (!Number.isFinite(scheduleAnchor.getTime())) {
+      return NextResponse.json({ message: "Invalid firstCycleDueDate" }, { status: 400 });
+    }
     const clientId: string | undefined = body?.clientId;
     const templateIdRaw: string | undefined = body?.templateId;
     const onlyType: string | undefined = body?.onlyType;
@@ -428,18 +424,15 @@ export async function POST(req: NextRequest) {
       const base = baseNameOf(src.name);
 
       const cycle = cycleFor(cycleByAssetId, assetId);
-      const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
+      const totalCopies = totalPostingCopies(freq, months, cycle);
+      if (totalCopies === 0) continue;
       for (let i = 1; i <= totalCopies; i++) {
         // <-- Ensure " Task" suffix on posting copies
         expandedCopies.push({ src, catName, name: `${base} Task -${i}`, freq, cycle });
       }
 
       if (catName === CAT_SOCIAL_ACTIVITY) {
-        const anchor = src.createdAt || new Date();
-        const lastDue = calculateTaskDueDate(
-          anchor,
-          virtualCycleNumber(totalCopies, freq, cycle)
-        );
+        const lastDue = calendarPostingDueDate(scheduleAnchor, totalCopies, freq, cycle);
         lastCycleDueByBase.set(base, lastDue);
       }
     }
@@ -541,11 +534,7 @@ export async function POST(req: NextRequest) {
       const n = extractCycleNumber(item.name);
       const cycleNumber = Number.isFinite(n) && n > 0 ? n : 1;
 
-      const anchor = new Date();
-      const dueDate = calculateTaskDueDate(
-        anchor,
-        virtualCycleNumber(cycleNumber, item.freq, item.cycle)
-      );
+      const dueDate = calendarPostingDueDate(scheduleAnchor, cycleNumber, item.freq, item.cycle);
 
       payloads.push({
         id: makeId(),
@@ -590,9 +579,9 @@ export async function POST(req: NextRequest) {
           defaultFreq: src.templateSiteAsset?.defaultPostingFrequency,
         });
         const cycle = cycleFor(cycleByAssetId, assetId);
-        const totalCopies = Math.max(1, totalPostingCopies(freq, months, cycle));
-        const anchor = src.createdAt || new Date();
-        dueDate = calculateTaskDueDate(anchor, virtualCycleNumber(totalCopies, freq, cycle));
+        const totalCopies = totalPostingCopies(freq, months, cycle);
+        if (totalCopies === 0) continue;
+        dueDate = calendarPostingDueDate(scheduleAnchor, totalCopies, freq, cycle);
       }
 
       const catId = categoryIdByName.get(CAT_SOCIAL_COMMUNICATION)!;
@@ -621,7 +610,7 @@ export async function POST(req: NextRequest) {
     const maxLastSocialDue =
       Array.from(lastCycleDueByBase.values())
         .sort((a, b) => a.getTime() - b.getTime())
-        .pop() ?? calculateTaskDueDate(new Date(), 1);
+        .pop() ?? scheduleAnchor;
 
     for (const p of WEB2_FIXED_PLATFORMS) {
       const scName = `${PLATFORM_META[p].label} - ${CAT_SOCIAL_COMMUNICATION} Task`;

@@ -9,10 +9,12 @@ import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-ty
 import { fetchAssetTypeMap, resolveCategoryFromMap } from "@/lib/asset-types.server";
 import {
   activeMonthCount,
-  calendarMonthIndex,
+  calendarPostingDueDate,
+  postingPeriodCount,
   cycleFor,
-  isActiveMonth,
   loadPostingCycles,
+  loadRequiredFrequencies,
+  postsPerMonth,
 } from "@/lib/posting-schedule";
 
 // ================== CONSTANTS ==================
@@ -259,7 +261,7 @@ export async function POST(req: NextRequest) {
     // Client dates
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { id: true, startDate: true, dueDate: true },
+      select: { id: true, startDate: true, dueDate: true, package: { select: { totalMonths: true } } },
     });
 
     if (!client) return NextResponse.json({ message: "Client not found" }, { status: 404 });
@@ -380,14 +382,6 @@ export async function POST(req: NextRequest) {
     };
 
     // 👇 NEW: per-month capped schedule builder (first = +15WD, then +7WD), cut at `cutoff`
-    function* cadenceDates(from: Date) {
-      let cur = addWorkingDays(from, 7);
-      yield cur;
-      while (true) {
-        cur = addWorkingDays(cur, 7);
-        yield cur;
-      }
-    }
 
     type FutureItem = {
       src: (typeof sourceTasks)[number];
@@ -399,10 +393,14 @@ export async function POST(req: NextRequest) {
     };
 
     const future: FutureItem[] = [];
-    const cycleByAssetId = await loadPostingCycles(
-      sourceTasks.map((s) => s.templateSiteAsset?.id),
-      assignment.id
-    );
+    const sourceAssetIds = sourceTasks.map((s) => s.templateSiteAsset?.id);
+    const [cycleByAssetId, requiredByAssetId] = await Promise.all([
+      loadPostingCycles(sourceAssetIds, assignment.id),
+      loadRequiredFrequencies(sourceAssetIds, assignment.id),
+    ]);
+    // First posting = start + 7 working days (same as before); later ones
+    // follow the calendar schedule from this anchor.
+    const scheduleAnchor = addWorkingDays(startDate, 7);
 
     for (const src of sourceTasks) {
       const catName = resolveCategoryFromType(src.templateSiteAsset?.type);
@@ -427,49 +425,38 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const freqPerMonthRaw = src.templateSiteAsset?.defaultPostingFrequency ?? 0;
-      const freqPerMonth = Math.max(0, Number(freqPerMonthRaw) || 0);
+      // Posts/Month (per-client override, else template default)
+      const assetId = src.templateSiteAsset?.id;
+      const freqPerMonth = postsPerMonth(
+        requiredByAssetId,
+        assetId,
+        src.templateSiteAsset?.defaultPostingFrequency
+      );
       if (freqPerMonth === 0) continue;
 
-      // মোট লাগবে: active months (alternate etc.) × freqPerMonth
-      const cycle = cycleFor(cycleByAssetId, src.templateSiteAsset?.id);
-      const totalMonths = monthsBetweenInclusive(startDate, dueDate);
+      // Total = Posts/Month x ACTIVE months (Posting Cycle: alternate etc.)
+      const cycle = cycleFor(cycleByAssetId, assetId);
+      const totalMonths = client.package?.totalMonths ?? postingPeriodCount(startDate, dueDate);
       const totalNeeded = activeMonthCount(totalMonths, cycle) * freqPerMonth;
       if (totalNeeded === 0) continue;
 
-      // প্রতি মাসে cap ধরে, cutoff পর্যন্ত fill
-      const perMonthCount = new Map<string, number>(); // "YYYY-MM" -> count for THIS src
-      let accepted = 0;
-
-      for (const d of cadenceDates(startDate)) {
-        const dOnly = dateOnly(d);
-        if (dOnly.getTime() > cutoff.getTime()) break; // এই API cutoff পর্যন্তই বানাবে
-        // Skip inactive months (alternate-month cycles)
-        if (!isActiveMonth(calendarMonthIndex(startDate, dOnly), cycle)) continue;
-
-        const key = `${dOnly.getFullYear()}-${String(dOnly.getMonth() + 1).padStart(2, "0")}`;
-        const used = perMonthCount.get(key) ?? 0;
-
-        if (used < freqPerMonth) {
-          perMonthCount.set(key, used + 1);
-          accepted++;
-
-          // নাম্বারিং: ক্যাম্পেইন স্টার্ট থেকে ধারাবাহিক -1, -2, ...
-          // seqIndex = already accepted overall for this src
-          const seqIndex = accepted;
-          future.push({
-            src,
-            catName,
-            base,
-            name: `${base} -${seqIndex}`,
-            dueDate: dOnly,
-            seqIndex,
-          });
-
-          if (accepted >= totalNeeded) break; // theoretical guard; practically cutoff-এ থামবে
-        }
+      // Calendar schedule: exactly freqPerMonth tasks in each active month,
+      // nothing in inactive months. This API only creates up to `cutoff`;
+      // remain-tasks continues the same schedule afterwards.
+      for (let seqIndex = 1; seqIndex <= totalNeeded; seqIndex++) {
+        const due = dateOnly(
+          calendarPostingDueDate(scheduleAnchor, seqIndex, freqPerMonth, cycle)
+        );
+        if (due.getTime() > cutoff.getTime()) break;
+        future.push({
+          src,
+          catName,
+          base,
+          name: `${base} -${seqIndex}`,
+          dueDate: due,
+          seqIndex,
+        });
       }
-      // নোট: যদি accepted < totalNeeded হয়, বাকি অংশ remain-tasks API dueDate-এর পর extend করে পূরণ করবে।
     }
 
     if (future.length === 0) {
