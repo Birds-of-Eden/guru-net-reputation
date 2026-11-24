@@ -290,8 +290,18 @@ function buildNav(role: Role): NavItem[] {
 
     {
       title: "Package",
-      url: p(r, "/packages"),
-      permission: "view_packages_list",
+      children: [
+        {
+          title: "Packages",
+          url: p(r, "/packages"),
+          permission: "view_packages_list",
+        },
+        {
+          title: "Task Category",
+          url: p(r, "/asset-types"),
+          permission: "asset_type_manage",
+        },
+      ],
     },
     { title: "sales", url: p(r, "/sales"), permission: "view_sales" },
 
@@ -420,11 +430,6 @@ function buildNav(role: Role): NavItem[] {
           title: "Activity Logs",
           url: p(r, "/activity"),
           permission: "view_activity_logs",
-        },
-        {
-          title: "Task Category",
-          url: p(r, "/asset-types"),
-          permission: "asset_type_manage",
         },
       ],
     },

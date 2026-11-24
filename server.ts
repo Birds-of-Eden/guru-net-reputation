@@ -18,10 +18,10 @@ async function main() {
   const port = Number(process.env.PORT) || 3000;
   const hostname = process.env.HOSTNAME || "0.0.0.0";
 
-  const app = next({ dev: !isProd, hostname, port });
+  // Webpack keeps dev HMR stable when localhost and a tunnel are used together.
+  const app = next({ dev: !isProd, webpack: !isProd, hostname, port });
   const handle = app.getRequestHandler();
   await app.prepare();
-  const nextUpgrade = app.getUpgradeHandler();
 
   const hub = createRealtimeHub(authorizeChannel);
   (globalThis as any).__realtimeHub = hub;
@@ -79,22 +79,18 @@ async function main() {
   // setupWebSocketHandler). That listener would also receive /realtime
   // connections and destroy them (instant close 1006 -> endless reconnects),
   // and would double-handle HMR. So we intercept "upgrade" at emit level and
-  // route every upgrade exactly once; extra listeners never see it.
-  const routeUpgrade = (req: any, socket: any, head: any) => {
-    const pathname = (req.url || "").split("?")[0];
-    if (pathname === "/realtime") {
-      hub.handleUpgrade(req, socket, head);
-      return;
-    }
-    // Next.js HMR (dev) and any other upgrade requests
-    nextUpgrade(req, socket, head);
-  };
+  // intercept only /realtime. Other upgrades must reach Next's registered
+  // listener, which also handles HMR and the React debug channel needed for
+  // development hydration. app.getUpgradeHandler() bypasses that dev routing.
   const originalEmit = server.emit.bind(server) as (event: string, ...args: any[]) => boolean;
   (server as any).emit = (event: string, ...args: any[]) => {
     if (event === "upgrade") {
       const [req, socket, head] = args;
-      routeUpgrade(req, socket, head);
-      return true;
+      const pathname = (req.url || "").split("?")[0];
+      if (pathname === "/realtime") {
+        hub.handleUpgrade(req, socket, head);
+        return true;
+      }
     }
     return originalEmit(event, ...args);
   };

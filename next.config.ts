@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["levels-quotes-fin-pose.trycloudflare.com"],
   images: {
     remotePatterns: [
       {

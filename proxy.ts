@@ -72,6 +72,9 @@ export async function proxy(req: NextRequest) {
   const token = (await getToken({
     req,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secureCookie:
+      req.nextUrl.protocol === "https:" ||
+      req.headers.get("x-forwarded-proto")?.split(",")[0].trim() === "https",
   })) as DecodedToken | null;
 
   // 🎭 IMPERSONATION FIX: Check for impersonation cookies
