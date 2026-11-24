@@ -50,8 +50,14 @@ export async function GET(request: NextRequest) {
                 name: true,
                 type: true,
                 url: true,
+                description: true,
+                isRequired: true,
                 defaultPostingFrequency: true,
                 defaultIdealDurationMinutes: true,
+                defaultIdealDurationMinutesForPosting: true,
+                // Posting cycle (interval / start offset)
+                templatesiteasset_field_03: true,
+                templatesiteasset_field_04: true,
               },
             },
             // ✅ Team members - only essential fields
@@ -78,6 +84,9 @@ export async function GET(request: NextRequest) {
             requiredFrequency: true,
             period: true,
             idealDurationMinutes: true,
+            // Per-client posting cycle override (interval / start offset)
+            assignmentsiteassetsetting_field_03: true,
+            assignmentsiteassetsetting_field_04: true,
             templateSiteAsset: {
               select: {
                 id: true,

@@ -1,7 +1,12 @@
 // app/api/assignments/[id]/customize-template/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { copyPostingCycleFields, postingCycleFromInput } from "@/lib/posting-cycle";
+import {
+  copyPostingCycleFields,
+  postingCycleFromInput,
+  SETTING_INTERVAL_FIELD,
+  SETTING_OFFSET_FIELD,
+} from "@/lib/posting-cycle";
 import { TaskStatus, TaskPriority, PeriodType } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
@@ -84,6 +89,8 @@ export async function POST(
         description?: string;
         isRequired: boolean;
         defaultPostingFrequency?: number;
+        postingInterval?: number;
+        postingStartOffset?: number;
         defaultIdealDurationMinutes?: number;
         defaultIdealDurationMinutesForPosting?: number;
       }>;
@@ -95,6 +102,8 @@ export async function POST(
         newAssetDescription?: string;
         isRequired?: boolean;
         defaultPostingFrequency?: number;
+        postingInterval?: number;
+        postingStartOffset?: number;
         defaultIdealDurationMinutes?: number;
         defaultIdealDurationMinutesForPosting?: number;
       }>;
@@ -298,6 +307,9 @@ export async function POST(
                 requiredFrequency: oldSetting.requiredFrequency,
                 period: oldSetting.period,
                 idealDurationMinutes: oldSetting.idealDurationMinutes,
+                // Keep the per-client posting cycle override
+                [SETTING_INTERVAL_FIELD]: oldSetting[SETTING_INTERVAL_FIELD] ?? null,
+                [SETTING_OFFSET_FIELD]: oldSetting[SETTING_OFFSET_FIELD] ?? null,
               },
             });
 
@@ -355,8 +367,13 @@ export async function POST(
       const assetsReplaced: any[] = [];
 
       // 7) Handle REPLACEMENTS
+      const seenOldAssetIds = new Set<number>();
       for (const replacement of replacements) {
-        const oldAssetId = replacement.oldAssetId;
+        const oldAssetId = Number(replacement.oldAssetId);
+        if (seenOldAssetIds.has(oldAssetId)) {
+          throw new Error("DUPLICATE_REPLACEMENT");
+        }
+        seenOldAssetIds.add(oldAssetId);
         const newAssetInClonedTemplate = clonedAssetMap.get(oldAssetId);
 
         if (!newAssetInClonedTemplate) {
@@ -375,22 +392,32 @@ export async function POST(
           throw new Error("INVALID_ASSET_TYPE");
         }
 
+        // A sent field (even "") is authoritative for the new asset; only an
+        // omitted field falls back to the old asset's value.
+        const textOrOld = (value: string | undefined, old: string | null | undefined) =>
+          value !== undefined ? value.trim() || null : old ?? null;
+        const cycleProvided =
+          replacement.postingInterval !== undefined &&
+          replacement.postingInterval !== null;
+
         // Update the cloned asset with new values
         const updatedAsset = await tx.templateSiteAsset.update({
           where: { id: newAssetInClonedTemplate },
           data: {
-            name: replacement.newAssetName,
+            name: replacement.newAssetName.trim(),
             type: normalizedType || oldAsset?.type,
-            url: replacement.newAssetUrl ?? oldAsset?.url,
-            description:
-              replacement.newAssetDescription ?? oldAsset?.description,
+            url: textOrOld(replacement.newAssetUrl, oldAsset?.url),
+            description: textOrOld(
+              replacement.newAssetDescription,
+              oldAsset?.description
+            ),
             isRequired:
               replacement.isRequired ?? oldAsset?.isRequired ?? false,
             defaultPostingFrequency:
               replacement.defaultPostingFrequency ??
               oldAsset?.defaultPostingFrequency,
-            ...((replacement as any).postingInterval !== undefined
-              ? postingCycleFromInput(replacement as any)
+            ...(cycleProvided
+              ? postingCycleFromInput(replacement)
               : copyPostingCycleFields(oldAsset)),
             defaultIdealDurationMinutes:
               replacement.defaultIdealDurationMinutes ??
@@ -408,6 +435,18 @@ export async function POST(
           newName: updatedAsset.name,
         });
 
+        // Category follows the (possibly changed) asset type
+        const replacementCategoryName = resolveCategoryName(
+          normalizeAssetTypeSlug(updatedAsset.type),
+          assetTypeMap,
+          CATEGORY_NAME_BY_TYPE
+        );
+        const replacementCategoryId =
+          categoryIdByName.get(replacementCategoryName) ?? null;
+        const typeChanged =
+          normalizeAssetTypeSlug(updatedAsset.type) !==
+          normalizeAssetTypeSlug(oldAsset?.type ?? "");
+
         // Direct replacement: Update existing tasks instead of archiving them
         const existingTasks = assignment.tasks.filter(
           (t) => t.templateSiteAssetId === oldAssetId
@@ -418,6 +457,9 @@ export async function POST(
             where: { id: task.id },
             data: {
               templateSiteAssetId: updatedAsset.id, // Update to new asset
+              ...(typeChanged && replacementCategoryId
+                ? { categoryId: replacementCategoryId }
+                : {}),
               name: `${updatedAsset.name} Task`,
               status: TaskStatus.pending, // Reset to pending for reassignment
               notes: `${task.notes || ""}\n\n[DIRECT REPLACEMENT] Replaced: ${oldAsset?.name || "old asset"} → ${updatedAsset.name}`,
@@ -440,12 +482,7 @@ export async function POST(
 
         // Only create new tasks if there were no existing tasks for this asset
         if (existingTasks.length === 0) {
-          const categoryName = resolveCategoryName(
-            normalizeAssetTypeSlug(updatedAsset.type),
-            assetTypeMap,
-            CATEGORY_NAME_BY_TYPE
-          );
-          const categoryId = categoryIdByName.get(categoryName) ?? null;
+          const categoryId = replacementCategoryId;
 
           const newTask = {
             id: randomUUID(),
@@ -482,6 +519,11 @@ export async function POST(
             requiredFrequency: updatedAsset.defaultPostingFrequency ?? null,
             idealDurationMinutes:
               updatedAsset.defaultIdealDurationMinutes ?? null,
+            // A cycle chosen for the replacement wins over any old per-client
+            // override: clear it so the new asset's own cycle applies.
+            ...(cycleProvided
+              ? { [SETTING_INTERVAL_FIELD]: null, [SETTING_OFFSET_FIELD]: null }
+              : {}),
           },
         });
       }
@@ -505,7 +547,7 @@ export async function POST(
             isRequired: newAssetData.isRequired,
             defaultPostingFrequency:
               newAssetData.defaultPostingFrequency ?? 3,  // Default to 3 instead of null
-            ...postingCycleFromInput(newAssetData as any),
+            ...postingCycleFromInput(newAssetData),
             defaultIdealDurationMinutes:
               newAssetData.defaultIdealDurationMinutes ?? null,
             defaultIdealDurationMinutesForPosting:
@@ -693,6 +735,12 @@ export async function POST(
       return NextResponse.json(
         { message: "Client not found" },
         { status: 404 }
+      );
+    }
+    if (error?.message === "DUPLICATE_REPLACEMENT") {
+      return NextResponse.json(
+        { message: "The same asset cannot be replaced more than once" },
+        { status: 400 }
       );
     }
     if (error?.message === "INVALID_ASSET_TYPE") {
