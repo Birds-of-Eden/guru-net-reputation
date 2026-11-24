@@ -9,6 +9,7 @@ import {
   amScopeCheck,
   amCeoScopeCheck,
 } from "@/lib/impersonation";
+import { signImpersonationRole } from "@/lib/impersonation-cookie";
 
 function isSecure(req: NextRequest) {
   const proto =
@@ -143,7 +144,9 @@ export async function POST(req: NextRequest) {
     // Reason: Middleware runs in Edge Runtime where Prisma/Database access is not available
     // Therefore, middleware can read the impersonated user's role directly from cookie
     // This enables proper route access control and fixes menu navigation issues
-    res.cookies.set("impersonation-role", targetRole, {
+    // Signed so users cannot forge it (verified in proxy.ts)
+    const signedRole = await signImpersonationRole(session.user.id, target.id, String(targetRole));
+    res.cookies.set("impersonation-role", signedRole, {
       httpOnly: true,
       secure,
       sameSite: "lax",

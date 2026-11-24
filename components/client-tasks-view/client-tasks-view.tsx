@@ -2166,47 +2166,52 @@ export function ClientTasksView({
 
   const overdueCount = stats.overdue;
 
+  // Latest timer state for the ticking interval below. Side effects (overdue
+  // API call, toast, storage save) must not run inside a setState updater:
+  // React may call updaters twice, which could fire them twice.
+  const latestTimerRef = useRef(timerState);
+  latestTimerRef.current = timerState;
+
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     if (timerState?.isRunning) {
       interval = setInterval(() => {
         const nowMs = Date.now();
-        setTimerState((prev) => {
-          if (!prev || !prev.isRunning) return prev;
-          const task = getTaskById(prev.taskId);
-          const nextRemaining = calculateRemainingSeconds(task, prev, nowMs);
-          if (nextRemaining === prev.remainingSeconds) {
-            return prev;
-          }
+        const prev = latestTimerRef.current;
+        if (!prev || !prev.isRunning) return;
+        const task = getTaskById(prev.taskId);
+        const nextRemaining = calculateRemainingSeconds(task, prev, nowMs);
+        if (nextRemaining === prev.remainingSeconds) return;
 
-          const updatedTimer = {
-            ...prev,
-            remainingSeconds: nextRemaining,
-          };
+        const updatedTimer = {
+          ...prev,
+          remainingSeconds: nextRemaining,
+        };
+        // Only apply if nothing else changed the timer since we read it
+        // (the next render refreshes latestTimerRef either way)
+        setTimerState((cur) => (cur === prev ? updatedTimer : cur));
 
-          const crossedOverdue =
-            prev.remainingSeconds > 0 && nextRemaining <= 0;
-          if (crossedOverdue) {
-            if (task && task.status === "in_progress") {
-              handleUpdateTask(prev.taskId, { status: "overdue" })
-                .then(() => {
-                  toast.warning(`Task "${task.name}" is now overdue!`, {
-                    description: "Timer has exceeded the ideal duration",
-                    duration: 4000,
-                  });
-                })
-                .catch(() => console.error("Failed to set overdue"));
-            }
+        const crossedOverdue =
+          prev.remainingSeconds > 0 && nextRemaining <= 0;
+        if (crossedOverdue) {
+          if (task && task.status === "in_progress") {
+            handleUpdateTask(prev.taskId, { status: "overdue" })
+              .then(() => {
+                toast.warning(`Task "${task.name}" is now overdue!`, {
+                  description: "Timer has exceeded the ideal duration",
+                  duration: 4000,
+                });
+              })
+              .catch(() => console.error("Failed to set overdue"));
           }
+        }
 
-          const shouldSave =
-            crossedOverdue || nowMs - lastTimerSaveRef.current >= 5000;
-          if (shouldSave) {
-            lastTimerSaveRef.current = nowMs;
-            saveTimerToStorage(updatedTimer);
-          }
-          return updatedTimer;
-        });
+        const shouldSave =
+          crossedOverdue || nowMs - lastTimerSaveRef.current >= 5000;
+        if (shouldSave) {
+          lastTimerSaveRef.current = nowMs;
+          saveTimerToStorage(updatedTimer);
+        }
       }, 1000);
     }
     return () => {

@@ -317,7 +317,9 @@ export default function QCDashboardPro({
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       dedupingInterval: 5000,
-      refreshInterval: 10000, // poll every 10s to feel more real-time
+      // Fallback only: updates arrive in real time via "task:changed"
+      // (components/realtime/RealtimeBridge.tsx). Was a 400-task poll every 10s.
+      refreshInterval: 60000,
       keepPreviousData: true,
     }
   );

@@ -1,6 +1,7 @@
 // app/api/permissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAccess } from "@/lib/api-guard";
 
 // GET: Fetch all permissions
 export async function GET() {
@@ -21,6 +22,8 @@ export async function GET() {
 
 // POST: Create a new permission
 export async function POST(req: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { id, name, description } = await req.json();
 

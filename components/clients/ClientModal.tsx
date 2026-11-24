@@ -21,6 +21,7 @@ import {
 import { Calendar, Globe, Building, MapPin, Trash2, Edit, ExternalLink, User } from "lucide-react"
 import { toast } from "sonner"
 import { ClientEditModal } from "./EditModal"
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 interface Client {
   id: string
@@ -239,7 +240,7 @@ export function ClientModal({ client, isOpen, onClose, onDelete, onUpdate }: Cli
                     <h3 className="text-lg font-semibold mb-3">Biography</h3>
                     <div
                       className="prose prose-sm max-w-none p-4 bg-gray-50 rounded-lg dark:bg-muted/40"
-                      dangerouslySetInnerHTML={{ __html: client.biography }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(client.biography) }}
                     />
                   </div>
                   <Separator />

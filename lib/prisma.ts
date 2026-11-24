@@ -4,6 +4,28 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { realtime } from "./realtime/server";
+import { invalidateAuthCache } from "./auth-cache-store";
+
+// Clear the short-lived auth cache (lib/auth-cache.ts) when users, roles or
+// permissions change. Done now and again shortly after, so a request that reads
+// between "invalidate" and "commit" cannot keep stale permissions cached.
+// (No await on the query: keeps batch $transaction([...]) working.)
+function authDataChanged() {
+  invalidateAuthCache();
+  setTimeout(() => invalidateAuthCache(), 1000);
+}
+
+const WRITE_OPS = new Set([
+  "create",
+  "createMany",
+  "createManyAndReturn",
+  "update",
+  "updateMany",
+  "updateManyAndReturn",
+  "upsert",
+  "delete",
+  "deleteMany",
+]);
 
 // ---------- Realtime fan-out for notifications / new conversations ----------
 // Events are derived from query args (not results) so batch $transaction([...])
@@ -49,6 +71,45 @@ function participantIdsFromConversation(data: any): string[] {
   return [...userIdsFromData(p.create ?? []), ...userIdsFromData(p.createMany?.data ?? [])];
 }
 
+// ---------- Realtime: task changes ----------
+// Any task write pings staff role channels (+ the assigned agent when known),
+// coalesced to at most one event per second. Browsers refresh their task lists
+// on this event (components/realtime/RealtimeBridge.tsx), which replaces the
+// old 10-second polling.
+const TASK_EVENT_ROLES = ["admin", "manager", "qc", "am", "am_ceo", "data_entry", "agent"];
+const pendingTaskUsers = new Set<string>();
+let taskTimer: ReturnType<typeof setTimeout> | null = null;
+
+function assigneeIdsFrom(args: any): string[] {
+  const out: string[] = [];
+  const push = (v: any) => {
+    if (typeof v === "string") out.push(v);
+    else if (typeof v?.connect?.id === "string") out.push(v.connect.id);
+  };
+  const datas = Array.isArray(args?.data) ? args.data : [args?.data, args?.create, args?.update];
+  for (const d of datas) {
+    push(d?.assignedToId);
+    push(d?.assignedTo);
+  }
+  push(args?.where?.assignedToId);
+  return out;
+}
+
+function queueTaskChanged(args: any) {
+  assigneeIdsFrom(args).forEach((id) => pendingTaskUsers.add(id));
+  if (taskTimer) return;
+  taskTimer = setTimeout(() => {
+    taskTimer = null;
+    const ids = Array.from(pendingTaskUsers);
+    pendingTaskUsers.clear();
+    void realtime.trigger(
+      [...TASK_EVENT_ROLES.map((r) => `role-${r}`), ...ids.map((id) => `user-${id}`)],
+      "task:changed",
+      {}
+    );
+  }, 1000);
+}
+
 function queueChatChanged(userIds: string[]) {
   if (!userIds.length) return;
   setTimeout(() => {
@@ -60,17 +121,33 @@ function queueChatChanged(userIds: string[]) {
   }, 300);
 }
 
+function isOnlyLastSeen(data: any) {
+  if (!data || typeof data !== "object") return false;
+  const keys = Object.keys(data);
+  return keys.length > 0 && keys.every((k) => k === "lastSeenAt" || k === "updatedAt");
+}
+
 const prismaClientSingleton = () => {
   const pool =
     globalForPrisma.pgPool ??
     new Pool({
       connectionString: process.env.DATABASE_URL,
+      // pg defaults to 10; parallel route queries + realtime refetches exceed that.
+      // Override with DATABASE_POOL_MAX if the database allows fewer connections.
+      max: Number(process.env.DATABASE_POOL_MAX) || 20,
+      idleTimeoutMillis: 30_000,
     });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-    // ✅ Connection pool configuration for better performance
+    // Never return password hashes from any query (API responses used to leak
+    // them via `include: { assignedTo: true }` etc.). The login check opts back
+    // in explicitly with `omit: { passwordHash: false }` (see lib/auth.ts).
+    omit: {
+      user: { passwordHash: true },
+      account: { password: true },
+    },
   });
 };
 
@@ -99,7 +176,52 @@ async function initRoleCache() {
 // ✅ Prisma v6: use $extends query hook instead of $use middleware
 const prisma = prismaBase.$extends({
   query: {
+    task: {
+      $allOperations({ operation, args, query }) {
+        if (WRITE_OPS.has(operation)) queueTaskChanged(args);
+        return query(args);
+      },
+    },
+    role: {
+      $allOperations({ operation, args, query }) {
+        if (WRITE_OPS.has(operation)) authDataChanged();
+        return query(args);
+      },
+    },
+    permission: {
+      $allOperations({ operation, args, query }) {
+        if (WRITE_OPS.has(operation)) authDataChanged();
+        return query(args);
+      },
+    },
+    rolePermission: {
+      $allOperations({ operation, args, query }) {
+        if (WRITE_OPS.has(operation)) authDataChanged();
+        return query(args);
+      },
+    },
     user: {
+      update({ args, query }) {
+        // Skip high-frequency presence writes; everything else may change role/client link
+        if (!isOnlyLastSeen((args as any).data)) authDataChanged();
+        return query(args);
+      },
+      updateMany({ args, query }) {
+        if (!isOnlyLastSeen((args as any).data)) authDataChanged();
+        return query(args);
+      },
+      upsert({ args, query }) {
+        authDataChanged();
+        return query(args);
+      },
+      delete({ args, query }) {
+        authDataChanged();
+        return query(args);
+      },
+      deleteMany({ args, query }) {
+        authDataChanged();
+        return query(args);
+      },
       async create({ args, query }) {
         const data = args.data as any;
         if (data?.role && typeof data.role === "string") {

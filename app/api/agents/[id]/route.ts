@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireAccess } from "@/lib/api-guard";
 
 export async function PUT(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const updatedAgentData = await request.json();
 

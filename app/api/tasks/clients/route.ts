@@ -43,31 +43,60 @@ export async function GET(req: Request) {
 
   const clientIds = clients.map((c) => c.id);
 
-  const baseTaskSelect = {
-    id: true,
-    name: true,
-    status: true,
-    dueDate: true,
-    clientId: true,
-    templateSiteAsset: { select: { type: true } },
-    category: { select: { name: true } },
-  } as const;
-
-  const taskSelect = includeTasks
-    ? {
-        ...baseTaskSelect,
-        assignedTo: { select: { name: true, email: true } },
-      }
-    : baseTaskSelect;
-
-  // OPTIMIZATION (batched aggregation query): pull all relevant tasks in a single query and reduce in memory.
-  const tasks = await prisma.task.findMany({
-    where: {
-      clientId: {
-        in: clientIds,
+  // OPTIMIZATION: select plain foreign keys and resolve them from small lookup
+  // tables, instead of letting Prisma resolve 2-3 relations for every task row
+  // (this endpoint reads every task of every client). Output shape is unchanged.
+  const [rawTasks, categoryRows, assetRows] = await Promise.all([
+    prisma.task.findMany({
+      where: { clientId: { in: clientIds } },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        dueDate: true,
+        clientId: true,
+        templateSiteAssetId: true,
+        categoryId: true,
+        assignedToId: includeTasks,
       },
-    },
-    select: taskSelect,
+    }),
+    prisma.taskCategory.findMany({ select: { id: true, name: true } }),
+    prisma.templateSiteAsset.findMany({ select: { id: true, type: true } }),
+  ]);
+
+  const categoryNameById = new Map(categoryRows.map((c) => [c.id, c.name]));
+  const assetTypeById = new Map(assetRows.map((a) => [a.id, a.type]));
+
+  const assigneeById = new Map<string, { name: string | null; email: string }>();
+  if (includeTasks) {
+    const assigneeIds = Array.from(
+      new Set(rawTasks.map((t) => t.assignedToId).filter((id): id is string => !!id))
+    );
+    if (assigneeIds.length) {
+      const users = await prisma.user.findMany({
+        where: { id: { in: assigneeIds } },
+        select: { id: true, name: true, email: true },
+      });
+      for (const u of users) assigneeById.set(u.id, { name: u.name, email: u.email });
+    }
+  }
+
+  const tasks = rawTasks.map((t) => {
+    const categoryName = t.categoryId ? categoryNameById.get(t.categoryId) : undefined;
+    const assetType =
+      t.templateSiteAssetId != null ? assetTypeById.get(t.templateSiteAssetId) : undefined;
+    return {
+      id: t.id,
+      name: t.name,
+      status: t.status,
+      dueDate: t.dueDate,
+      clientId: t.clientId,
+      templateSiteAsset: assetType !== undefined ? { type: assetType } : null,
+      category: categoryName !== undefined ? { name: categoryName } : null,
+      ...(includeTasks
+        ? { assignedTo: (t.assignedToId && assigneeById.get(t.assignedToId)) || null }
+        : {}),
+    };
   });
 
   type Bucket = {

@@ -556,7 +556,7 @@ export async function GET(req: Request) {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=20, stale-while-revalidate=40",
+          "Cache-Control": "private, no-store",
         },
       },
     );

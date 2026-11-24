@@ -29,6 +29,7 @@ import { QCScores } from "@/app/qc/tasks/QCReview";
 import { Client } from "@/types/client";
 import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
 import { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 const ClientDashboard = lazy(() =>
   import("@/components/clients/clientsID/client-dashboard").then((m) => ({
@@ -367,7 +368,7 @@ export function TaskCard({
               <div className="space-y-2">
                 <h3 
                   className="font-bold text-lg text-slate-900 dark:text-slate-100 leading-tight group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
-                  dangerouslySetInnerHTML={{ __html: truncateTaskName(task.name) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(truncateTaskName(task.name)) }}
                 />
                 <div className="flex items-center gap-2 flex-wrap">
                   {priorityBadge(task.priority)}

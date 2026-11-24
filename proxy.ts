@@ -1,6 +1,7 @@
 // proxy.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { verifyImpersonationRole } from "@/lib/impersonation-cookie";
 
 /**
  * The app areas we consider "role-scoped" (must match the first path segment).
@@ -36,6 +37,40 @@ interface DecodedToken {
   iat?: number;
   exp?: number;
 }
+
+/**
+ * API endpoints a "client" (or plain "user") account may call. Everything else
+ * under /api is staff-only. Covers the client dashboard, notifications, chat,
+ * realtime and presence. Routes that return per-client data also check
+ * ownership themselves.
+ */
+const CLIENT_API_RULES: { re: RegExp; methods?: string[] }[] = [
+  { re: /^\/api\/realtime\/token$/, methods: ["GET"] },
+  { re: /^\/api\/notifications(\/.*)?$/ },
+  { re: /^\/api\/chat(\/.*)?$/ },
+  { re: /^\/api\/clients\/[^/]+$/, methods: ["GET"] },
+  { re: /^\/api\/assignments(\/[^/]+)?$/, methods: ["GET"] },
+  { re: /^\/api\/activity-logs$/, methods: ["GET"] },
+  { re: /^\/api\/activity$/, methods: ["POST"] },
+  { re: /^\/api\/asset-types$/, methods: ["GET"] },
+  { re: /^\/api\/templates$/, methods: ["GET"] },
+  { re: /^\/api\/packages$/, methods: ["GET"] },
+  { re: /^\/api\/teams$/, methods: ["GET"] },
+  { re: /^\/api\/users$/, methods: ["GET"] },
+  { re: /^\/api\/role-permissions\/[^/]+$/, methods: ["GET"] },
+  { re: /^\/api\/drive$/, methods: ["GET"] },
+  { re: /^\/api\/presence\/heartbeat$/, methods: ["POST"] },
+  { re: /^\/api\/impersonate\/stop$/, methods: ["POST"] },
+];
+
+function clientMayCall(path: string, method: string) {
+  return CLIENT_API_RULES.some(
+    (r) => r.re.test(path) && (!r.methods || r.methods.includes(method))
+  );
+}
+
+/** Developer/test endpoints: never in production, admin-only otherwise. */
+const DEV_API_RE = /^\/api\/(dev|test|check-routes)(\/|$)/;
 
 const ROUTE_PERMISSION_RULES: { re: RegExp; perm: string }[] = [
   // Add fine-grained rules if needed
@@ -128,9 +163,24 @@ export async function proxy(req: NextRequest) {
   // 3. But route access control requires the impersonated user's role
   // 4. Therefore, "impersonation-role" cookie is set in /api/impersonate/start
   // 5. Reading role from this cookie enables proper route access control
-  const impersonationRole = req.cookies.get("impersonation-role")?.value;
-  if (impersonationTarget && impersonationOrigin && token?.sub === impersonationOrigin && impersonationRole) {
-    role = impersonationRole.toLowerCase() as Role;
+  // The cookie is HMAC-signed by /api/impersonate/start, so it cannot be forged.
+  if (impersonationTarget && impersonationOrigin && token?.sub === impersonationOrigin) {
+    const verifiedRole = await verifyImpersonationRole(
+      req.cookies.get("impersonation-role")?.value,
+      impersonationOrigin,
+      impersonationTarget
+    );
+    if (verifiedRole) role = verifiedRole.toLowerCase() as Role;
+  }
+
+  if (isApi) {
+    if (DEV_API_RE.test(path) && (process.env.NODE_ENV === "production" || role !== "admin")) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    // Client / plain user accounts may only reach their own small set of endpoints
+    if ((role === "client" || role === "user") && !clientMayCall(path, req.method)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   // ⚠️ If role is missing from token, this is a config issue

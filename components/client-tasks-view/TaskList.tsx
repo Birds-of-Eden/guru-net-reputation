@@ -375,7 +375,9 @@ export default function TaskList({
       }
     };
 
-    const interval = setInterval(tick, 10000); // Reduced interval for better real-time updates
+    // Fallback only: task changes now arrive in real time ("task:changed" via
+    // components/realtime/RealtimeBridge.tsx), so this no longer polls every 10s.
+    const interval = setInterval(tick, 60000);
     return () => clearInterval(interval);
   }, [refreshTasks]);
 

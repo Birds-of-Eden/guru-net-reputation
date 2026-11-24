@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireAccess } from "@/lib/api-guard";
 
 export async function POST(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { agentId, teamId, role = "Member", assignmentType = "template" } = await request.json()
     console.log("Assigning agent to team:", { agentId, teamId, role, assignmentType })
@@ -106,6 +109,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { agentId, teamId, assignmentType = "template" } = await request.json()
 
@@ -137,6 +142,8 @@ export async function DELETE(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await request.json();
     const {

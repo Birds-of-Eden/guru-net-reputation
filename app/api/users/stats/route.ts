@@ -2,8 +2,11 @@
 
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireStaff } from "@/lib/api-guard";
 
 export async function GET() {
+  const __access = await requireStaff();
+  if (__access instanceof NextResponse) return __access;
   try {
     const [totalUsers, activeUsers, inactiveUsers, verifiedUsers] = await Promise.all([
       prisma.user.count(),

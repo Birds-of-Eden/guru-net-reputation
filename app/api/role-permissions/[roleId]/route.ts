@@ -1,6 +1,7 @@
 // app/api/role-permissions/[roleId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isStaff, requireAccess } from "@/lib/api-guard";
 
 // GET: Get all permissions for a given role
 export async function GET(
@@ -9,6 +10,12 @@ export async function GET(
 ) {
   try {
     const { roleId } = await params;
+    // Staff may read any role (role-permissions screen); others only their own (sidebar)
+    const me = await requireAccess();
+    if (me instanceof NextResponse) return me;
+    if (!isStaff(me) && me.roleId !== roleId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     const role = await prisma.role.findUnique({
       where: { id: roleId },
       include: {
@@ -42,6 +49,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ roleId: string }> }
 ) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { permissionId } = await req.json();
 

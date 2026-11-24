@@ -1,15 +1,10 @@
 // lib/impersonation.ts
 import prisma from "@/lib/prisma";
+import { getCachedAuthUser } from "@/lib/auth-cache";
 
 export async function canImpersonate(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: { rolePermissions: { include: { permission: true } } },
-      },
-    },
-  });
+  // Runs on every request while impersonating: use the short-lived auth cache
+  const user = await getCachedAuthUser(userId);
   if (!user) return { ok: false as const };
 
   const roleName = user.role?.name?.toLowerCase();

@@ -1,9 +1,12 @@
 // app/api/role-permissions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAccess, requireStaff } from "@/lib/api-guard";
 
 // GET: List all role-permission mappings
 export async function GET() {
+  const __access = await requireStaff();
+  if (__access instanceof NextResponse) return __access;
   try {
     const mappings = await prisma.rolePermission.findMany({
       include: {
@@ -24,6 +27,8 @@ export async function GET() {
 
 // POST: Assign a permission to a role
 export async function POST(req: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { roleId, permissionId } = await req.json();
 

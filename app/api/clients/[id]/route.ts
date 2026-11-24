@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import type { TaskStatus } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { STAFF_ROLES } from "@/lib/api-guard";
 import { getDefaultCategoryBySlug } from "@/lib/asset-types";
 import {
   fetchAssetTypeMap,
@@ -276,6 +277,13 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const isDistributionView =
     searchParams.get("view")?.toLowerCase() === "distribution";
+
+  // Client accounts may only read their own client record
+  const me: any = await getAuthUser();
+  if (!me) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!STAFF_ROLES.includes(String(me.role ?? "").toLowerCase()) && me.clientId !== id) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
 
   try {
     const [client, fresh] = await Promise.all([

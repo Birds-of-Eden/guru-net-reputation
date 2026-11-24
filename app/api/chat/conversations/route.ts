@@ -238,25 +238,33 @@ export async function GET(req: Request) {
 
   const conversations = conversationsRaw.map(applyConversationContext);
 
-  const lastReadBy: Record<string, Date | null> = {};
-  cps.forEach((c) => (lastReadBy[c.conversationId] = c.lastReadAt ?? null));
+
+  // compute unread counts for all conversations in ONE grouped query
+  // (previously one COUNT per conversation, re-run on every chat event).
+  // Same rules: messages after my lastReadAt, not sent by me (null senders are
+  // excluded, like Prisma's `not`), not deleted.
+  const unreadById = new Map<string, number>();
+  const ids = conversations.map((c) => c.id);
+  if (ids.length) {
+    const rows = await prisma.$queryRaw<{ conversationId: string; count: number }[]>`
+      SELECT m."conversationId", COUNT(*)::int AS "count"
+      FROM "ChatMessage" m
+      JOIN "ConversationParticipant" cp
+        ON cp."conversationId" = m."conversationId" AND cp."userId" = ${me.id}
+      WHERE m."conversationId" = ANY(${ids}::text[])
+        AND m."createdAt" > COALESCE(cp."lastReadAt", to_timestamp(0))
+        AND m."senderId" <> ${me.id}
+        AND m."deletedAt" IS NULL
+      GROUP BY m."conversationId"`;
+    for (const r of rows) unreadById.set(r.conversationId, Number(r.count));
+  }
 
   // compute unread and last activity time
-  const withUnread = await Promise.all(
-    conversations.map(async (conv) => {
-      const lastReadAt = lastReadBy[conv.id] ?? new Date(0);
-      const unreadCount = await prisma.chatMessage.count({
-        where: {
-          conversationId: conv.id,
-          createdAt: { gt: lastReadAt },
-          senderId: { not: me.id },
-          deletedAt: null,
-        },
-      });
-      const lastMsgAt = conv.messages?.[0]?.createdAt || conv.updatedAt;
-      return { ...conv, unreadCount, _lastActivityAt: lastMsgAt } as any;
-    })
-  );
+  const withUnread = conversations.map((conv) => {
+    const unreadCount = unreadById.get(conv.id) ?? 0;
+    const lastMsgAt = conv.messages?.[0]?.createdAt || conv.updatedAt;
+    return { ...conv, unreadCount, _lastActivityAt: lastMsgAt } as any;
+  });
 
   // Sort by most recent activity desc
   withUnread.sort((a: any, b: any) => {

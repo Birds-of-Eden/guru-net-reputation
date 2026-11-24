@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { logActivity } from "@/lib/logActivity";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { isStaff, requireAccess } from "@/lib/api-guard";
 
 // ============================ GET Users ============================
 export async function GET(request: NextRequest) {
@@ -51,7 +52,9 @@ export async function GET(request: NextRequest) {
 
     const roleName = (me as any)?.role?.name?.toLowerCase?.() || "";
 
-    if (roleName === "client") {
+    // Client accounts only see their own account manager. (getAuthUser returns
+    // `role` as a string, so the `roleName` check above never matched clients.)
+    if (!me || !isStaff(me as any)) {
       const clientId = (me as any)?.clientId || null;
       if (!clientId) {
         return NextResponse.json(
@@ -78,7 +81,14 @@ export async function GET(request: NextRequest) {
         take: 1,
         where: { id: amId, ...(Object.keys(where).length ? where : {}) },
         orderBy: { createdAt: "desc" },
-        include: { role: { select: { id: true, name: true } } },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          status: true,
+          role: { select: { id: true, name: true } },
+        },
       });
 
       return NextResponse.json(
@@ -152,7 +162,7 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+          "Cache-Control": "private, no-store",
         },
       }
     );
@@ -167,6 +177,8 @@ export async function GET(request: NextRequest) {
 
 // ============================ CREATE User ============================
 export async function POST(request: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_user_management", "user_edit", "user_delete"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await request.json();
     const {
@@ -298,6 +310,8 @@ export async function POST(request: NextRequest) {
 
 // ============================ UPDATE User ============================
 export async function PUT(request: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_user_management", "user_edit", "user_delete"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await request.json();
     const { id, password, biography, actorId, qcId, ...rest } = body;
@@ -388,6 +402,8 @@ export async function PUT(request: NextRequest) {
 
 // ============================ DELETE User ============================
 export async function DELETE(request: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_user_management", "user_edit", "user_delete"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get("id");

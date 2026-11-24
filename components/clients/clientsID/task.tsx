@@ -46,6 +46,7 @@ import DOMPurify from "dompurify";
 import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
 import type { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 // Sanitize HTML to prevent XSS attacks
 const sanitizeHtml = (html: string) => {
@@ -630,7 +631,7 @@ export function Tasks({ clientData }: TasksProps) {
               <div
                 className="prose prose-sm max-w-none dark:prose-invert"
                 // NOTE: ensure server-side sanitization; this trusts your API.
-                dangerouslySetInnerHTML={{ __html: it.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(it.content) }}
               />
             ) : (
               <p className="text-sm text-slate-500 dark:text-muted-foreground">No content provided.</p>
@@ -784,7 +785,7 @@ export function Tasks({ clientData }: TasksProps) {
           {text ? (
             <div
               className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: text }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(text) }}
             />
           ) : (
             <p className="text-sm text-slate-500 dark:text-muted-foreground">No report text provided.</p>
@@ -1230,7 +1231,7 @@ export function Tasks({ clientData }: TasksProps) {
                                           className="prose prose-sm max-w-none dark:prose-invert"
                                           // NOTE: ensure server-side sanitization; this trusts your API.
                                           dangerouslySetInnerHTML={{
-                                            __html: notes,
+                                            __html: sanitizeRichHtml(notes),
                                           }}
                                         />
                                       </div>

@@ -1,11 +1,13 @@
 // @ts-nocheck
 // lib/getAuthUser.ts
+import { cache } from "react";
 import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { getCachedAuthUser, permissionIdsOf } from "@/lib/auth-cache";
 import { amScopeCheck, amCeoScopeCheck, canImpersonate } from "./impersonation";
 
-export async function getAuthUser() {
+// Memoized per request: many routes/components call this more than once.
+export const getAuthUser = cache(async function getAuthUser() {
   const session = await auth();
   const baseUser = session?.user ?? null;
   if (!baseUser?.id) return null;
@@ -20,31 +22,24 @@ export async function getAuthUser() {
     // পারমিশন ভেরিফাই (সেফটি)
     const perm = await canImpersonate(originId);
     if (!perm.ok) {
-      return baseUser; // পারমিশন নেই → ইগনোর
+      return normalUser(baseUser); // পারমিশন নেই → ইগনোর
     }
     if (perm.roleName === "am") {
       const scope = await amScopeCheck(originId, targetId);
       if (!scope.ok) {
-        return baseUser; // স্কোপ মিলেনি → ইগনোর
+        return normalUser(baseUser); // স্কোপ মিলেনি → ইগনোর
       }
     }
     if (perm.roleName === "am_ceo") {
       const scope = await amCeoScopeCheck(originId, targetId);
       if (!scope.ok) {
-        return baseUser; // Scope failed
+        return normalUser(baseUser); // Scope failed
       }
     }
 
     // টার্গেট ইউজার ফুল ডেটা (রোল + পারমিশনসহ)
-    const dbUser = await prisma.user.findUnique({
-      where: { id: targetId },
-      include: {
-        role: {
-          include: { rolePermissions: { include: { permission: true } } },
-        },
-      },
-    });
-    if (!dbUser) return baseUser;
+    const dbUser = await getCachedAuthUser(targetId);
+    if (!dbUser) return normalUser(baseUser);
 
     return {
       id: dbUser.id,
@@ -54,32 +49,24 @@ export async function getAuthUser() {
       role: dbUser.role?.name ?? null,
       roleId: dbUser.roleId ?? null,
       clientId: dbUser.clientId ?? null,
-      permissions:
-        dbUser.role?.rolePermissions.map((rp) => rp.permission.id) ?? [],
+      permissions: permissionIdsOf(dbUser),
       __impersonating: true,
       __impersonatedBy: originId,
     } as any;
   }
 
-  // নরমাল কেস: সেশন ইউজারকে এনরিচ করে রিটার্ন
-  const dbUser = await prisma.user.findUnique({
-    where: { id: baseUser.id },
-    include: {
-      role: {
-        include: { rolePermissions: { include: { permission: true } } },
-      },
-    },
-  });
+  return normalUser(baseUser);
+});
 
+// নরমাল কেস: the session callback already loaded role, clientId and
+// permissions (see lib/auth.ts), so no second database query is needed.
+function normalUser(baseUser: any) {
   return {
     ...baseUser,
-    role: dbUser?.role?.name ?? null,
-    roleId: dbUser?.roleId ?? null,
-    clientId: dbUser?.clientId ?? null,
-    permissions:
-      dbUser?.role?.rolePermissions.map((rp) => rp.permission.id) ?? [],
+    role: baseUser.role ?? null,
+    roleId: baseUser.roleId ?? null,
+    clientId: baseUser.clientId ?? null,
+    permissions: baseUser.permissions ?? [],
     __impersonating: false,
   } as any;
 }
-
-// @ts-nocheck

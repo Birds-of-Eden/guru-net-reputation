@@ -204,7 +204,8 @@ function useTasks(params: URLSearchParams) {
     isLoading,
     mutate,
   } = useSWR<TaskRow[]>(key, fetcher, {
-    refreshInterval: 30000,
+    // Fallback only: updates arrive in real time via "task:changed"
+    refreshInterval: 60000,
     revalidateOnFocus: true,
     dedupingInterval: 5000,
     errorRetryCount: 3,

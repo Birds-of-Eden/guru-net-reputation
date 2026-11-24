@@ -6,6 +6,7 @@ import {
   getRuntimeTaskDurationConfig,
   updateRuntimeTaskDurationConfig,
 } from './config';
+import { requireAccess } from "@/lib/api-guard";
 
 export async function GET() {
   try {
@@ -23,6 +24,8 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const __access = await requireAccess({ roles: ["admin"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await request.json();
     

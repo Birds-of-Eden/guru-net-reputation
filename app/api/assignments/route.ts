@@ -6,12 +6,24 @@ import { randomUUID } from "crypto";
 import prisma from "@/lib/prisma";
 import { getDefaultCategoryBySlug, normalizeAssetTypeSlug } from "@/lib/asset-types";
 import { fetchAssetTypeMap, resolveCategoryName } from "@/lib/asset-types.server";
+import { getAuthUser } from "@/lib/getAuthUser";
+import { isStaff } from "@/lib/api-guard";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get("clientId");
+    let clientId = searchParams.get("clientId");
     const status = searchParams.get("status");
+
+    // Client accounts only ever see their own assignments
+    const me: any = await getAuthUser();
+    if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!isStaff(me)) {
+      if (!me.clientId || (clientId && clientId !== me.clientId)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      clientId = me.clientId;
+    }
 
     const where: any = {};
     if (clientId) where.clientId = clientId;
@@ -106,8 +118,7 @@ export async function GET(request: NextRequest) {
     // ✅ Add aggressive cache headers
     return NextResponse.json(assignments, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
-        "CDN-Cache-Control": "public, s-maxage=30",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {

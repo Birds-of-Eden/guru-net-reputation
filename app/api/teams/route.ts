@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireAccess } from "@/lib/api-guard";
 
 export async function GET() {
   try {
@@ -73,6 +74,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_teams_manage"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     console.log("POST /api/teams - Starting request")
 
@@ -186,6 +189,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_teams_manage"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     console.log("PUT /api/teams - Starting request")
 
@@ -285,6 +290,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_teams_manage"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     console.log("DELETE /api/teams - Starting request")
 

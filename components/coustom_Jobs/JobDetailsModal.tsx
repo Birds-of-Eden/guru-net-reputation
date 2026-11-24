@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, User2, ShieldCheck, Flag, Link2, ExternalLink } from "lucide-react";
 import { CustomJob } from "./customJobsTypes";
 import { BackgroundGradient } from "../ui/background-gradient";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 interface JobDetailsModalProps {
   open: boolean;
@@ -165,7 +166,7 @@ export default function JobDetailsModal({
               </h3>
               <div 
                 className="rounded-xl bg-indigo-50 p-4 text-sm leading-7 text-slate-800 whitespace-pre-wrap wrap-break-word [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:bg-indigo-950/40 dark:text-foreground dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
-                dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.name) || "-" }}
               />
             </div>
 
@@ -274,7 +275,7 @@ export default function JobDetailsModal({
                 </div>
                 <div
                   className="rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-800 whitespace-pre-wrap wrap-break-word [&_p]:my-0 [&_a]:text-blue-600 [&_a]:underline dark:border-sky-800 dark:bg-sky-950/40 dark:text-foreground dark:[&_a]:text-blue-400"
-                  dangerouslySetInnerHTML={{ __html: amUpdateNote || "<p>-</p>" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(amUpdateNote) || "<p>-</p>" }}
                 />
               </div>
             )}

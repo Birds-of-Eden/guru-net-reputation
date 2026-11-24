@@ -2,6 +2,8 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getAuthUser } from "@/lib/getAuthUser";
+import { isStaff } from "@/lib/api-guard";
 
 function extractIdFromUrl(url: URL): string | null {
   const segments = url.pathname.split("/");
@@ -50,6 +52,12 @@ export async function GET(request: NextRequest) {
         { error: "Assignment not found" },
         { status: 404 }
       );
+    }
+
+    // Client accounts may only read their own assignment
+    const me: any = await getAuthUser();
+    if (!isStaff(me) && (!me?.clientId || assignment.clientId !== me.clientId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json(assignment);

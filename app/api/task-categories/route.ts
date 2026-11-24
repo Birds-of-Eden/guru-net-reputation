@@ -2,8 +2,11 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAccess } from "@/lib/api-guard";
 
 export async function POST(req: Request) {
+  const __access = await requireAccess({ permissions: ["view_tasks_list"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await req.json();
 

@@ -1,6 +1,7 @@
 // app/api/permissions/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAccess } from "@/lib/api-guard";
 
 // GET: Get a single permission by ID
 export async function GET(
@@ -35,6 +36,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { name, description } = await req.json();
 
@@ -59,6 +62,8 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { id } = await params;
     await prisma.permission.delete({ where: { id } });

@@ -5,7 +5,34 @@ import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { getCachedAuthUser } from "@/lib/auth-cache";
 import { realtime } from "@/lib/realtime/server";
+
+// ---- Login brute-force protection (in-memory, per email) ----
+const LOGIN_MAX_FAILURES = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const loginFailures = new Map<string, { count: number; first: number }>();
+
+function isLoginLocked(email: string) {
+  const entry = loginFailures.get(email);
+  if (!entry) return false;
+  if (Date.now() - entry.first > LOGIN_WINDOW_MS) {
+    loginFailures.delete(email);
+    return false;
+  }
+  return entry.count >= LOGIN_MAX_FAILURES;
+}
+
+function recordLoginFailure(email: string) {
+  const now = Date.now();
+  const entry = loginFailures.get(email);
+  if (!entry || now - entry.first > LOGIN_WINDOW_MS) {
+    if (loginFailures.size > 10_000) loginFailures.clear();
+    loginFailures.set(email, { count: 1, first: now });
+  } else {
+    entry.count += 1;
+  }
+}
 
 export const authConfig = {
   adapter: PrismaAdapter(prisma),
@@ -35,9 +62,12 @@ export const authConfig = {
         const email = credentials?.email?.toString().trim().toLowerCase();
         const password = credentials?.password?.toString() || "";
         if (!email || !password) return null;
+        if (isLoginLocked(email)) return null;
 
         const user = await prisma.user.findUnique({
           where: { email },
+          // passwordHash is omitted globally (lib/prisma.ts); opt in for the login check only
+          omit: { passwordHash: false },
           include: {
             role: {
               include: {
@@ -46,10 +76,17 @@ export const authConfig = {
             },
           },
         });
-        if (!user || !user.passwordHash) return null;
+        if (!user || !user.passwordHash) {
+          recordLoginFailure(email);
+          return null;
+        }
 
         const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return null;
+        if (!ok) {
+          recordLoginFailure(email);
+          return null;
+        }
+        loginFailures.delete(email);
 
         await prisma.user.update({
           where: { id: user.id },
@@ -169,14 +206,8 @@ export const authConfig = {
     async session({ session, token }: { session: any; token: any }) {
       if (!session.user || !token?.sub) return session;
 
-      const dbUser = await prisma.user.findUnique({
-        where: { id: token.sub },
-        include: {
-          role: {
-            include: { rolePermissions: { include: { permission: true } } },
-          },
-        },
-      });
+      // Cached for a few seconds: this callback runs on every auth() call.
+      const dbUser = await getCachedAuthUser(token.sub);
 
       session.user.id = token.sub;
       (session.user as any).role = dbUser?.role?.name ?? null;

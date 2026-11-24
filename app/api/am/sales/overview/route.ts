@@ -195,8 +195,7 @@ export async function GET() {
       groupedClients,
     }, {
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
-        "CDN-Cache-Control": "public, s-maxage=60",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {

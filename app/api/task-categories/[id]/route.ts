@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAccess } from "@/lib/api-guard";
 
 export async function GET(
   req: Request,
@@ -30,6 +31,8 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const __access = await requireAccess({ permissions: ["view_tasks_list"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { id } = await context.params;
     const body = await req.json();
@@ -53,6 +56,8 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const __access = await requireAccess({ permissions: ["view_tasks_list"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { id } = await context.params;
 

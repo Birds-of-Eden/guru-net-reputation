@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isStaff, requireAccess } from "@/lib/api-guard";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,20 @@ export async function GET(request: NextRequest) {
     const limit = Number.isFinite(limitParam) ? Math.max(1, limitParam) : 20;
     const page = Number.isFinite(pageParam) ? Math.max(1, pageParam) : 1;
     const skip = (page - 1) * limit;
+
+    // Client accounts: only the history of their own assignment
+    const me = await requireAccess();
+    if (me instanceof NextResponse) return me;
+    if (!isStaff(me)) {
+      if (entityType !== "Assignment" || !entityId || !me.clientId) {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+      const own = await prisma.assignment.findFirst({
+        where: { id: entityId, clientId: me.clientId },
+        select: { id: true },
+      });
+      if (!own) return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     const where = {
       ...(entityType ? { entityType } : {}),

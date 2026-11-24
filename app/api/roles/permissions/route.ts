@@ -1,8 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { requireAccess } from "@/lib/api-guard";
 
 // PUT: Update role permissions
 export async function PUT(req: NextRequest) {
+  const __access = await requireAccess({ permissions: ["view_role_permissions"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { roleId, permissions } = await req.json()
     if (!roleId || !Array.isArray(permissions)) {

@@ -12,9 +12,18 @@ export async function GET(
       return NextResponse.json({ error: "clientId is required" }, { status: 400 });
     }
 
+    // Same as OR [{clientId}, {assignment: {clientId}}], but filters on plain
+    // columns (Task.clientId / Task.assignmentId) instead of a relation subquery.
+    const assignmentIds = (
+      await prisma.assignment.findMany({ where: { clientId }, select: { id: true } })
+    ).map((a) => a.id);
+
     const tasks = await prisma.task.findMany({
       where: {
-        OR: [{ clientId }, { assignment: { clientId } }],
+        OR: [
+          { clientId },
+          ...(assignmentIds.length ? [{ assignmentId: { in: assignmentIds } }] : []),
+        ],
       },
       select: {
         id: true,

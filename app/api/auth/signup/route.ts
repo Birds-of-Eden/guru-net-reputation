@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { getAuthUser } from "@/lib/getAuthUser";
 
 export async function POST(request: NextRequest) {
   try {
+    // This route is public (it lives under /api/auth) and can create any role,
+    // including admin. Allow it only for the very first account (initial setup)
+    // or when a signed-in admin is calling it.
+    const userCount = await prisma.user.count();
+    if (userCount > 0) {
+      const me: any = await getAuthUser();
+      if (String(me?.role ?? "").toLowerCase() !== "admin") {
+        return NextResponse.json(
+          { message: "Sign up is disabled. Ask an administrator to create your account." },
+          { status: 403 }
+        );
+      }
+    }
+
     const { name, email, password, role } = await request.json();
 
     if (!name || !email || !password) {

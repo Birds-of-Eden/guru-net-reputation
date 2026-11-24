@@ -3,8 +3,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { requireAccess } from "@/lib/api-guard";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const __access = await requireAccess({ permissions: ["view_user_management", "user_edit", "user_delete"] });
+  if (__access instanceof NextResponse) return __access;
   const { id } = await params
 
   try {
@@ -52,6 +55,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const __access = await requireAccess({ permissions: ["view_user_management", "user_edit", "user_delete"] });
+  if (__access instanceof NextResponse) return __access;
   const { id } = await params
 
   try {

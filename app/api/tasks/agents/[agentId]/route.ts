@@ -59,19 +59,8 @@ export async function GET(
             image: true,
           },
         },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: { date: "desc" },
-        },
+        // `comments` used to be included for every task; no caller reads it
+        // (social-activity pages), and it made this unbounded list much heavier.
       },
       orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
     });

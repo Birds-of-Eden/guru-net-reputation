@@ -2,11 +2,14 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { requireAccess, requireStaff } from "@/lib/api-guard";
 
 /* ================================
     GET ALL AGENTS
 ================================ */
 export async function GET() {
+  const __access = await requireStaff();
+  if (__access instanceof NextResponse) return __access;
   try {
     const agents = await prisma.user.findMany({
       where: {
@@ -62,6 +65,8 @@ export async function GET() {
     CREATE NEW AGENT
 ================================ */
 export async function POST(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const data = await request.json();
 
@@ -181,6 +186,8 @@ export async function POST(request: Request) {
     DELETE AGENT
 ================================ */
 export async function DELETE(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const { id } = await request.json();
 
@@ -214,6 +221,8 @@ export async function DELETE(request: Request) {
     UPDATE AGENT
 ================================ */
 export async function PUT(request: Request) {
+  const __access = await requireAccess({ permissions: ["view_agents_list", "view_agents_create", "view_user_management"] });
+  if (__access instanceof NextResponse) return __access;
   try {
     const body = await request.json();
 

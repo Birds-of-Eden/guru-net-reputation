@@ -50,6 +50,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 function priorityBadgeClass(priority: string) {
   switch (priority) {
@@ -513,7 +514,7 @@ export default function CustomJobsTable({
                           <TooltipTrigger asChild>
                             <div 
                               className="line-clamp-2 text-sm text-slate-700 leading-relaxed dark:text-foreground"
-                              dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.name) || "-" }}
                             />
                           </TooltipTrigger>
                           <TooltipContent
@@ -522,7 +523,7 @@ export default function CustomJobsTable({
                           >
                             <div 
                               className="text-sm whitespace-pre-wrap [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
-                              dangerouslySetInnerHTML={{ __html: job.name || "-" }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.name) || "-" }}
                             />
                           </TooltipContent>
                         </Tooltip>
