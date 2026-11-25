@@ -1,4 +1,5 @@
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -248,7 +249,7 @@ export function ClientSelectModal({ isOpen, onClose, onSelect }: ClientSelectMod
                   onClick={() => handleSelect(client.id)}
                 >
                   <Avatar className="h-10 w-10 border border-gray-100 dark:border-border">
-                    <AvatarImage src={client.avatar || undefined} alt={client.name} />
+                    <AvatarImage src={toDisplayImageUrl(client.avatar)} alt={client.name} />
                     <AvatarFallback
                       className="text-white font-medium"
                       style={{ backgroundColor: nameToColor(client.name) }}

@@ -1,4 +1,5 @@
 // app/api/clients/[id]/route.ts
+import { toDisplayImageUrl } from "@/lib/image-url";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import type { TaskStatus } from "@prisma/client";
@@ -475,7 +476,11 @@ export async function PUT(
         imageDrivelink: hasImageDrivelink
           ? normalizeImageDrivelink(imageDrivelink)
           : undefined,
-        avatar: cleanString(avatar),
+        // Present in body → normalize (Drive share links → direct image) or clear;
+        // absent → leave unchanged
+        avatar: Object.prototype.hasOwnProperty.call(body, "avatar")
+          ? (toDisplayImageUrl(avatar) ?? null)
+          : undefined,
         status: hasStatus ? statusValue : undefined,
         // only update packageId if provided; undefined leaves current value
         packageId: hasPackageId ? packageIdValue : undefined,

@@ -1,4 +1,5 @@
 // app/api/clients/route.ts
+import { toDisplayImageUrl } from "@/lib/image-url";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -687,7 +688,7 @@ export async function POST(req: NextRequest) {
           companyaddress,
           biography,
           imageDrivelink: normalizeImageDrivelink(imageDrivelink),
-          avatar,
+          avatar: toDisplayImageUrl(avatar) ?? null,
           progress: progressNumber as any,
           status: isAmCreator ? "draft" : status,
           packageId,
@@ -981,7 +982,7 @@ export async function PUT(req: NextRequest) {
         imageDrivelink: hasImageDrivelink
           ? normalizeImageDrivelink(imageDrivelink)
           : undefined,
-        avatar,
+        avatar: toDisplayImageUrl(avatar) ?? null,
         progress,
         status,
         packageId,

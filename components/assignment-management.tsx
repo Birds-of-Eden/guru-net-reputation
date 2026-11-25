@@ -1,5 +1,6 @@
 //app/components/assignment-management.tsx
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -1330,7 +1331,7 @@ export default function TaskDistribution() {
                 <div className="flex items-center space-x-6 p-6 bg-blue-50 border border-blue-200 rounded-xl shadow-md transition-all duration-300 dark:bg-blue-950/40 dark:border-blue-800">
                   <Avatar className="h-16 w-16 ring-2 ring-blue-400">
                     <AvatarImage
-                      src={selectedClient.avatar || "/placeholder.svg"}
+                      src={toDisplayImageUrl(selectedClient.avatar) || "/placeholder.svg"}
                     />
                     <AvatarFallback className="bg-blue-600 text-white text-xl font-bold">
                       {selectedClient.name.charAt(0)}

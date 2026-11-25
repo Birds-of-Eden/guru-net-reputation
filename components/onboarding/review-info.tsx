@@ -1,6 +1,7 @@
 // app/components/onboarding/review-info.tsx
 
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useMemo, useState, FC, ReactNode, useCallback, memo } from "react";
 import useSWR from "swr";
@@ -512,7 +513,7 @@ export function ReviewInfo({
     if (formData.profilePicture instanceof File) {
       return URL.createObjectURL(formData.profilePicture);
     }
-    return formData.avatar || null;
+    return toDisplayImageUrl(formData.avatar) || null;
   }, [formData.profilePicture, formData.avatar]);
 
   const handleDownload = () => {

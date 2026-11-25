@@ -1,6 +1,7 @@
 // components/onboarding/DataEntryReviewInfo.tsx
 
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useMemo, useState, memo, useCallback } from "react";
 import useSWR from "swr";
@@ -317,7 +318,7 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
     if (formData?.profilePicture instanceof File) {
       return URL.createObjectURL(formData.profilePicture);
     }
-    return formData.avatar || null;
+    return toDisplayImageUrl(formData.avatar) || null;
   }, [formData?.profilePicture, formData.avatar]);
 
   const handleSubmit = async () => {

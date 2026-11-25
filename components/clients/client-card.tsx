@@ -2,6 +2,7 @@
 //lint error fixed
 
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import {
   memo,
@@ -327,7 +328,7 @@ const ClientCardComponent = function ClientCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-white shadow-md dark:border-border">
-              <AvatarImage src={client.avatar || undefined} alt={client.name} />
+              <AvatarImage src={toDisplayImageUrl(client.avatar)} alt={client.name} />
               <AvatarFallback
                 className="text-white text-2xl font-bold"
                 style={{ backgroundColor: nameToColor(client.name) }}

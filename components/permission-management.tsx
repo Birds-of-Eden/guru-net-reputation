@@ -1,5 +1,6 @@
 // @ts-nocheck
 "use client"
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
@@ -402,7 +403,7 @@ export default function AssignmentManagement() {
               >
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12 border-2 border-purple-200 dark:border-purple-800">
-                    <AvatarImage src={assignment.client?.avatar || "/placeholder.svg"} alt={assignment.client?.name} />
+                    <AvatarImage src={toDisplayImageUrl(assignment.client?.avatar) || "/placeholder.svg"} alt={assignment.client?.name} />
                     <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold dark:bg-purple-900/40 dark:text-purple-300">
                       {assignment.client?.name.substring(0, 2)}
                     </AvatarFallback>
@@ -623,7 +624,7 @@ export default function AssignmentManagement() {
                       <CardContent className="space-y-2">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={selectedAssignment.client?.avatar || "/placeholder.svg"} />
+                            <AvatarImage src={toDisplayImageUrl(selectedAssignment.client?.avatar) || "/placeholder.svg"} />
                             <AvatarFallback>{selectedAssignment.client?.name.substring(0, 2)}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -768,7 +769,7 @@ function AssignmentCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-4 border-white shadow-md dark:border-border">
-              <AvatarImage src={assignment.client?.avatar || "/placeholder.svg"} alt={assignment.client?.name} />
+              <AvatarImage src={toDisplayImageUrl(assignment.client?.avatar) || "/placeholder.svg"} alt={assignment.client?.name} />
               <AvatarFallback className="bg-purple-200 text-purple-800 font-bold text-xl dark:bg-purple-800/50 dark:text-purple-300">
                 {assignment.client?.name.substring(0, 2)}
               </AvatarFallback>

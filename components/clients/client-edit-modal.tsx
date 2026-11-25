@@ -39,6 +39,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AvatarInput } from "@/components/shared/avatar-input";
 
 import type { Client } from "@/types/client";
 
@@ -178,6 +179,7 @@ export default function ClientEditModal({
   const [newDriveLink, setNewDriveLink] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const currentAmId = clientData.amId ?? null;
 
   const { register, handleSubmit, reset, setValue, watch } =
@@ -1102,17 +1104,17 @@ export default function ClientEditModal({
                     Media & Bio
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="avatar"
-                        className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground"
-                      >
-                        Avatar URL
+                    <div className="md:col-span-2">
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block dark:text-foreground">
+                        Profile Picture
                       </Label>
-                      <Input
-                        id="avatar"
-                        className="border-slate-300 focus:border-rose-500 dark:border-border"
-                        {...register("avatar")}
+                      <AvatarInput
+                        accent="rose"
+                        value={watch("avatar") ?? ""}
+                        onChange={(url) =>
+                          setValue("avatar", url, { shouldDirty: true })
+                        }
+                        onUploadingChange={setAvatarUploading}
                       />
                     </div>
                     <div>
@@ -1245,9 +1247,13 @@ export default function ClientEditModal({
             form="edit-client-form"
             type="submit"
             className="bg-linear-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
-            disabled={isSaving}
+            disabled={isSaving || avatarUploading}
           >
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving
+              ? "Saving..."
+              : avatarUploading
+                ? "Uploading photo..."
+                : "Save Changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

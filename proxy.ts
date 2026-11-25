@@ -59,6 +59,8 @@ const CLIENT_API_RULES: { re: RegExp; methods?: string[] }[] = [
   { re: /^\/api\/users$/, methods: ["GET"] },
   { re: /^\/api\/role-permissions\/[^/]+$/, methods: ["GET"] },
   { re: /^\/api\/drive$/, methods: ["GET"] },
+  // Viewing uploaded avatar images (upload itself stays staff-only)
+  { re: /^\/api\/uploads\/avatar\/[^/]+$/, methods: ["GET"] },
   { re: /^\/api\/presence\/heartbeat$/, methods: ["POST"] },
   { re: /^\/api\/impersonate\/stop$/, methods: ["POST"] },
 ];

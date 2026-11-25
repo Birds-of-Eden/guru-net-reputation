@@ -16,6 +16,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  List,
   ArrowDownToLine,
   ArrowLeftToLine,
   ArrowRightToLine,
@@ -33,6 +37,12 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -380,6 +390,49 @@ export function SpreadsheetEditor({
 
   const [headerEditing, setHeaderEditing] = useState<number | null>(null);
   const [tabEditing, setTabEditing] = useState<number | null>(null);
+
+  // ---- sheet tab strip scrolling ----
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [tabScroll, setTabScroll] = useState({ left: false, right: false });
+  const updateTabScroll = () => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const left = el.scrollLeft > 2;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+    setTabScroll((p) => (p.left === left && p.right === right ? p : { left, right }));
+  };
+  const scrollTabs = (dir: 1 | -1) =>
+    tabsRef.current?.scrollBy({
+      left: dir * Math.max(160, tabsRef.current.clientWidth * 0.7),
+      behavior: "smooth",
+    });
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    updateTabScroll();
+    const ro = new ResizeObserver(updateTabScroll);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Keep the active tab visible (after switching, adding or deleting sheets)
+  useEffect(() => {
+    const strip = tabsRef.current;
+    const tab = strip?.querySelector<HTMLElement>(`[data-tab="${sheetIdx}"]`);
+    if (strip && tab) {
+      const { offsetLeft, offsetWidth } = tab;
+      if (offsetLeft < strip.scrollLeft) {
+        strip.scrollTo({ left: offsetLeft - 8, behavior: "smooth" });
+      } else if (offsetLeft + offsetWidth > strip.scrollLeft + strip.clientWidth) {
+        strip.scrollTo({
+          left: offsetLeft + offsetWidth - strip.clientWidth + 8,
+          behavior: "smooth",
+        });
+      }
+    }
+    updateTabScroll();
+  }, [sheetIdx, sheets.length]);
   const [sheetToDelete, setSheetToDelete] = useState<number | null>(null);
   const [menu, setMenu] = useState<MenuState>(null);
   const [resizing, setResizing] = useState<{ c: number; w: number } | null>(null);
@@ -910,24 +963,47 @@ export function SpreadsheetEditor({
     <div
       className={cn(
         // `isolate` creates a stacking context so the sticky headers' z-index
-        // never leaks above dialogs/modals (the app Dialog uses z-10)
-        "isolate overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900",
+        // never leaks above dialogs/modals (the app Dialog uses z-10).
+        // `contain:inline-size` stops many sheets / wide columns from making the
+        // whole page wider — they scroll inside the editor instead.
+        "isolate w-full min-w-0 max-w-full overflow-hidden [contain:inline-size] rounded-lg border border-slate-300 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900",
         className,
       )}
     >
-      {/* Sheet tabs (top) */}
-      <div className="flex items-end gap-1.5 border-b-2 border-emerald-500 bg-linear-to-r from-emerald-50 via-teal-50 to-sky-50 px-2 pt-2 dark:border-emerald-600 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-sky-950/30">
-        <div className="flex min-w-0 flex-1 items-end gap-1.5 overflow-x-auto">
+      {/* Sheet tabs (top) — scrollable strip, never widens the page */}
+      <div className="flex min-w-0 items-end gap-1 border-b-2 border-emerald-500 bg-linear-to-r from-emerald-50 via-teal-50 to-sky-50 px-1.5 pt-2 sm:gap-1.5 sm:px-2 dark:border-emerald-600 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-sky-950/30">
+        {tabScroll.left && (
+          <button
+            type="button"
+            onClick={() => scrollTabs(-1)}
+            title="Scroll left"
+            className="mb-1 flex h-8 w-7 shrink-0 items-center justify-center rounded-md text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
+        <div
+          ref={tabsRef}
+          onScroll={updateTabScroll}
+          onWheel={(e) => {
+            // vertical mouse wheel scrolls the tab strip sideways
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && tabsRef.current) {
+              tabsRef.current.scrollLeft += e.deltaY;
+            }
+          }}
+          className="relative flex min-w-0 flex-1 items-end gap-1 overflow-x-auto [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
+        >
           {sheets.map((s, i) => {
             const isActive = i === sheetIdx;
             return (
               <div
                 key={s.id}
+                data-tab={i}
                 onClick={() => !isActive && switchSheet(i)}
                 onDoubleClick={() => setTabEditing(i)}
-                title="Double-click to rename"
+                title={`${s.name} — double-click to rename`}
                 className={cn(
-                  "group flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-t-lg px-4 text-sm font-bold transition-all",
+                  "group flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-t-lg px-2.5 text-xs font-bold transition-all sm:gap-1.5 sm:px-4 sm:text-sm",
                   isActive
                     ? "bg-linear-to-r from-emerald-500 to-teal-600 text-white shadow-md"
                     : "border border-b-0 border-emerald-200 bg-white/80 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-slate-900/60 dark:text-emerald-300 dark:hover:bg-emerald-900/40",
@@ -944,10 +1020,10 @@ export function SpreadsheetEditor({
                       if (e.key === "Enter") renameSheet(i, e.currentTarget.value);
                       if (e.key === "Escape") setTabEditing(null);
                     }}
-                    className="h-6 w-32 rounded border border-blue-500 bg-white px-1.5 text-sm font-semibold text-slate-900 outline-none dark:bg-slate-900 dark:text-slate-100"
+                    className="h-6 w-28 rounded border border-blue-500 bg-white px-1.5 text-sm font-semibold text-slate-900 outline-none sm:w-32 dark:bg-slate-900 dark:text-slate-100"
                   />
                 ) : (
-                  <span className="max-w-[180px] truncate">{s.name}</span>
+                  <span className="max-w-[110px] truncate sm:max-w-[180px]">{s.name}</span>
                 )}
                 {sheets.length > 1 && (
                   <button
@@ -971,14 +1047,60 @@ export function SpreadsheetEditor({
             );
           })}
         </div>
+        {tabScroll.right && (
+          <button
+            type="button"
+            onClick={() => scrollTabs(1)}
+            title="Scroll right"
+            className="mb-1 flex h-8 w-7 shrink-0 items-center justify-center rounded-md text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* All sheets list (like Google Sheets) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              title="All sheets"
+              className="mb-1 h-8 shrink-0 gap-1 rounded-lg border-emerald-300 bg-white px-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:bg-slate-900 dark:text-emerald-300"
+            >
+              <List className="h-4 w-4" />
+              <span className="tabular-nums">{sheets.length}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="max-h-80 w-60 overflow-y-auto">
+            {sheets.map((s, i) => (
+              <DropdownMenuItem
+                key={s.id}
+                onSelect={() => switchSheet(i)}
+                className={cn(
+                  "gap-2",
+                  i === sheetIdx && "font-bold text-emerald-700 dark:text-emerald-300",
+                )}
+              >
+                <span className="w-5 shrink-0 text-right text-xs tabular-nums text-slate-400">
+                  {i + 1}
+                </span>
+                <span className="truncate">{s.name}</span>
+                {i === sheetIdx && <Check className="ml-auto h-4 w-4 shrink-0" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Button
           type="button"
           size="sm"
           onClick={addSheet}
           title="Add sheet"
-          className="mb-1 h-8 shrink-0 gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white hover:bg-emerald-700"
+          className="mb-1 h-8 shrink-0 gap-1 rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white hover:bg-emerald-700 sm:px-3"
         >
-          <Plus className="h-4 w-4" /> Sheet
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Sheet</span>
         </Button>
       </div>
 
@@ -1026,7 +1148,10 @@ export function SpreadsheetEditor({
           <Eraser className="h-4 w-4" /> Clear
         </Button>
         <div className="flex-1" />
-        <span className="hidden text-xs text-slate-500 sm:inline dark:text-slate-400">
+        <span className="text-xs text-slate-500 lg:hidden dark:text-slate-400">
+          {rowCount}×{colCount}
+        </span>
+        <span className="hidden text-xs text-slate-500 lg:inline dark:text-slate-400">
           {rowCount} rows × {colCount} columns · Paste from Excel / Google Sheets with Ctrl+V
         </span>
       </div>

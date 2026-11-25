@@ -4,9 +4,7 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import {
-  Upload,
   User,
   Building2,
   MapPin,
@@ -38,6 +36,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useUserSession } from "@/lib/hooks/use-user-session";
 import { KeywordInput } from "./KeywordInput";
+import { AvatarInput } from "@/components/shared/avatar-input";
 
 type AMUser = {
   id: string;
@@ -46,8 +45,6 @@ type AMUser = {
 };
 
 export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
   // ----- AM fetching state -----
   const [ams, setAms] = useState<AMUser[]>([]);
   const [amsLoading, setAmsLoading] = useState<boolean>(false);
@@ -102,18 +99,6 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
       updateFormData({ amId: currentUserId });
     }
   }, [isAM, currentUserId]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateFormData({ profilePicture: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const amLabel = (u: AMUser) => {
     const n = u.name?.trim();
@@ -171,58 +156,12 @@ export function GeneralInfo({ formData, updateFormData, onNext }: StepProps) {
             <Label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-foreground">
               Profile Picture
             </Label>
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="relative h-28 w-28 rounded-2xl overflow-hidden border-4 border-white shadow-xl ring-2 ring-violet-200 group-hover:ring-violet-400 transition-all duration-300 dark:border-border">
-                  {previewUrl ? (
-                    <Image
-                      src={previewUrl || "/placeholder.svg"}
-                      alt="Profile preview"
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-linear-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center dark:from-violet-900/40 dark:to-fuchsia-900/40">
-                      <User className="w-12 h-12 text-violet-400" />
-                    </div>
-                  )}
-                </div>
-                {previewUrl && (
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center dark:border-border">
-                    <svg
-                      className="w-4 h-4 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <label className="cursor-pointer flex-1">
-                <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-violet-300 rounded-xl hover:border-violet-500 hover:bg-violet-50 transition-all duration-200 group dark:border-violet-700 dark:hover:bg-violet-950/40">
-                  <Upload className="w-5 h-5 text-violet-500 group-hover:scale-110 transition-transform" />
-                  <div className="text-left">
-                    <span className="block text-sm font-semibold text-gray-700 dark:text-foreground">
-                      Upload Photo
-                    </span>
-                    <span className="block text-xs text-gray-500 dark:text-muted-foreground">
-                      PNG, JPG up to 10MB
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-              </label>
-            </div>
+            <AvatarInput
+              value={formData.avatar ?? ""}
+              onChange={(url) =>
+                updateFormData({ avatar: url || undefined, profilePicture: null } as any)
+              }
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

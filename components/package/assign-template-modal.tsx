@@ -1,4 +1,5 @@
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useState, useEffect } from "react";
 import { Check, Loader2, Search, User } from "lucide-react";
@@ -261,7 +262,7 @@ export function AssignTemplateModal({
                       >
                         <Avatar className="h-10 w-10">
                           <AvatarImage
-                            src={client.avatar || "/placeholder.svg"}
+                            src={toDisplayImageUrl(client.avatar) || "/placeholder.svg"}
                             alt={client.name ?? "Client"}
                           />
                           <AvatarFallback>

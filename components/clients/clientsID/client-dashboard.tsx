@@ -1,5 +1,6 @@
 // components/clients/clientsID/client-dashboard.tsx
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -394,7 +395,7 @@ export function ClientDashboard({
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16 ring-4 ring-blue-100 dark:ring-blue-900">
                 <AvatarImage
-                  src={client.avatar || undefined}
+                  src={toDisplayImageUrl(client.avatar)}
                   alt={client.name}
                 />
                 <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">

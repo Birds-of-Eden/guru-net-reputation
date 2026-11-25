@@ -1,5 +1,6 @@
 //lint error fixed
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -163,7 +164,7 @@ export function ClientSelectModal({
                   className="flex items-start p-4 rounded-xl border hover:border-blue-300 hover:shadow-sm transition-all text-left group dark:hover:border-blue-700"
                 >
                   <Avatar className="h-12 w-12 ring-2 ring-blue-100 group-hover:ring-blue-200 mr-4 transition-all">
-                    <AvatarImage src={client.avatar || undefined} />
+                    <AvatarImage src={toDisplayImageUrl(client.avatar)} />
                     <AvatarFallback
                       className="text-white font-medium"
                       style={{ backgroundColor: nameToColor(client.name) }}

@@ -2,6 +2,7 @@
 //lint error fixed
 
 "use client";
+import { toDisplayImageUrl } from "@/lib/image-url";
 
 import { useState, useMemo } from "react";
 import { useDashboardStats } from "@/lib/hooks/use-dashboard-stats";
@@ -699,7 +700,7 @@ export function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm dark:border-border">
                           {c.avatar ? (
-                            <AvatarImage src={c.avatar} alt={c.name} />
+                            <AvatarImage src={toDisplayImageUrl(c.avatar)} alt={c.name} />
                           ) : null}
                           <AvatarFallback className="bg-linear-to-r from-blue-100 to-cyan-100 text-blue-800 font-medium dark:from-blue-900/40 dark:to-cyan-900/40 dark:text-blue-300">
                             {c.name.substring(0, 2).toUpperCase()}
