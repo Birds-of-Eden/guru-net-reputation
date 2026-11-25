@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["levels-quotes-fin-pose.trycloudflare.com"],
+  // Any Cloudflare quick-tunnel host (the subdomain changes on every run)
+  allowedDevOrigins: ["*.trycloudflare.com", "localhost", "127.0.0.1"],
   images: {
     remotePatterns: [
       {

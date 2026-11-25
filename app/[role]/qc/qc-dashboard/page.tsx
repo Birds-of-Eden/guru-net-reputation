@@ -2,13 +2,10 @@ import QCDashboard from "@/components/QCDashboard";
 import { headers, cookies } from "next/headers";
 import { unstable_noStore as noStore } from "next/cache";
 import { getAuthUser } from "@/lib/getAuthUser";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 export const dynamic = "force-dynamic";
 
-// ✅ helper
-function buildBaseUrl(proto: string, host: string) {
-  return `${proto}://${host}`;
-}
 
 function todayRangeParams(qcSupervisorId?: string) {
   const start = new Date();
@@ -51,20 +48,8 @@ export default async function Page() {
 
     // ✅ await dynamic APIs
     const h = await headers();
-    const host =
-      h.get("x-forwarded-host") ||
-      h.get("host") ||
-      `localhost:${process.env.PORT || 4175}`; // fallback for dev
-
-    const proto =
-      h.get("x-forwarded-proto") ||
-      (host.startsWith("localhost") ? "http" : "https");
-
-    // ✅ prefer env for production
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      process.env.NEXTAUTH_URL ||
-      buildBaseUrl(proto, host);
+    // Use the host this request came in on (localhost / Cloudflare tunnel / prod)
+    const baseUrl = getRequestOrigin(h);
 
     // ✅ cookies() is async now
     const cookieStore = await cookies();

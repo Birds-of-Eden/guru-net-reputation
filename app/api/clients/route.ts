@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/getAuthUser";
 import { notifyDraftClientCreated } from "@/lib/client-onboarding-notifications";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -894,6 +895,7 @@ export async function POST(req: NextRequest) {
       createdByRole: currentUserRole,
       amName: assignedAm?.name ?? null,
       amEmail: assignedAm?.email ?? null,
+      baseUrl: getRequestOrigin(req.headers),
     });
 
     return NextResponse.json(client, { status: 201 });

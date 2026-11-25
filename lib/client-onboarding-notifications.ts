@@ -18,6 +18,8 @@ type NotifyPayload = {
   createdByRole?: string | null;
   amName?: string | null;
   amEmail?: string | null;
+  /** Origin of the request that created the client (e.g. Cloudflare tunnel URL) */
+  baseUrl?: string | null;
 };
 
 const splitEmails = (value?: string | null) =>
@@ -204,10 +206,13 @@ export async function notifyDraftClientCreated(payload: NotifyPayload) {
       payload.clientStatus || (isDraftClient ? "draft" : "active"),
     );
 
-    const baseUrl =
-      process.env.APP_URL?.replace(/\/$/, "") ||
-      process.env.NEXTAUTH_URL?.replace(/\/$/, "") ||
-      "http://localhost:3000";
+    const baseUrl = (
+      payload.baseUrl ||
+      process.env.APP_URL ||
+      process.env.NEXTAUTH_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "http://localhost:3000"
+    ).replace(/\/+$/, "");
     const roleSegment =
       String(payload.createdByRole ?? "")
         .trim()

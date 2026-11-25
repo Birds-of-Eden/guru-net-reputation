@@ -121,72 +121,54 @@ export function OtherInformation({ clientData, onRefreshClient, onRegisterCheck 
 
   // Handle paste from Excel
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, rowIndex: number, colIndex: number) => {
-    e.preventDefault();
-    
     const pastedText = e.clipboardData.getData('text');
-    
+
     if (!pastedText) return;
 
-    // Parse tab-separated values (Excel format)
-    const rows = pastedText.split('\n').filter(row => row.trim() !== '');
-    const parsedData = rows.map(row => row.split('\t').map(cell => cell.trim()));
+    // Normalize line endings and drop a single trailing newline (Excel adds one)
+    const normalized = pastedText.replace(/\r\n?/g, '\n').replace(/\n$/, '');
 
-    if (parsedData.length === 0) return;
-
-    // Check if first row contains headers (all uppercase or mixed case)
-    const firstRowHasHeaders = parsedData.length > 0 && parsedData[0].every(cell => 
-      /^[A-Z_]+$/.test(cell) || /^[A-Za-z\s]+$/.test(cell)
-    );
-
-    let dataToPaste = parsedData;
-    let newColumns = [...activeSheet.columns];
-
-    // If first row looks like headers, use them as column names
-    if (firstRowHasHeaders && parsedData.length > 1) {
-      newColumns = parsedData[0];
-      dataToPaste = parsedData.slice(1);
+    // Plain single-value paste: let the browser handle it natively
+    // (inserts at cursor / replaces selection, onChange fires as usual)
+    if (!normalized.includes('\t') && !normalized.includes('\n')) {
+      return;
     }
 
-    // Calculate max columns needed
+    e.preventDefault();
+
+    // Multi-cell paste (tab/newline separated, e.g. from Excel / Google Sheets)
+    const dataToPaste = normalized.split('\n').map(row => row.split('\t'));
+
+    if (dataToPaste.length === 0) return;
+
+    const newColumns = [...activeSheet.columns];
+
+    // Ensure enough columns starting from the target column
     const maxCols = Math.max(
-      ...dataToPaste.map(row => row.length),
-      newColumns.length
+      newColumns.length,
+      ...dataToPaste.map(row => colIndex + row.length)
     );
-
-    // Update column headers if needed
-    if (maxCols > newColumns.length) {
-      for (let i = newColumns.length; i < maxCols; i++) {
-        newColumns.push(`Field ${i + 1}`);
-      }
+    for (let i = newColumns.length; i < maxCols; i++) {
+      newColumns.push(`Field ${i + 1}`);
     }
 
-    // Update rows
-    const newRows = [...activeSheet.rows];
+    const padRow = (row: string[]) => {
+      const r = [...row];
+      while (r.length < newColumns.length) r.push('');
+      return r;
+    };
+
+    // Pad existing rows to the new column count
+    const newRows = activeSheet.rows.map(padRow);
+
     dataToPaste.forEach((pastedRow, i) => {
       const targetRowIndex = rowIndex + i;
-      
-      if (targetRowIndex < newRows.length) {
-        // Update existing row
-        newRows[targetRowIndex] = newRows[targetRowIndex].map((cell, c) => 
-          c < pastedRow.length ? pastedRow[c] : cell
-        );
-        
-        // Add extra columns if pasted data has more columns
-        if (pastedRow.length > newRows[targetRowIndex].length) {
-          for (let c = newRows[targetRowIndex].length; c < pastedRow.length; c++) {
-            newRows[targetRowIndex].push(pastedRow[c]);
-          }
-        }
-      } else {
-        // Add new row
-        const newRow = Array(newColumns.length).fill('');
-        pastedRow.forEach((cell, c) => {
-          if (c < newRow.length) {
-            newRow[c] = cell;
-          }
-        });
-        newRows.push(newRow);
+      while (targetRowIndex >= newRows.length) {
+        newRows.push(Array(newColumns.length).fill(''));
       }
+      pastedRow.forEach((cell, c) => {
+        newRows[targetRowIndex][colIndex + c] = cell;
+      });
     });
 
     setSheets(prev => prev.map((sheet, idx) => 

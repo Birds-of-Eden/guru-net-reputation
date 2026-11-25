@@ -1,4 +1,5 @@
 
+import { getRequestOrigin } from "@/lib/request-origin";
 
 import { headers, cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -41,16 +42,8 @@ function normalizeClientData(apiData: any): Client {
 
 async function fetchClient(clientId: string): Promise<Client | null> {
   const h = await headers();
-  const host = h.get("x-forwarded-host") || h.get("host") || "localhost:3000";
-  const proto =
-    h.get("x-forwarded-proto") ||
-    (host.startsWith("localhost") ? "http" : "https");
-
-  // ✅ FIXED: Use environment variable first, then construct URL
-  const base =
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    `${proto}://${host}`;
+  // Use the host this request came in on (localhost / Cloudflare tunnel / prod)
+  const base = getRequestOrigin(h);
 
   const cookieHeader = (await cookies()).toString();
 
