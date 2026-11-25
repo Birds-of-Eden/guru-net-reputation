@@ -19,8 +19,10 @@ export function getDriveFileId(url: string): string | null {
 
 /**
  * Normalize an image URL for display:
- * - Google Drive share/view links → direct thumbnail image (file must be shared
- *   as "Anyone with the link")
+ * - Google Drive links (share/view/open/uc/thumbnail) → our own proxy route
+ *   `/api/uploads/avatar/drive/<id>`. Hot-linking Drive from the browser is
+ *   throttled by Google (HTTP 429), so the server fetches + caches it instead.
+ *   The Drive file must be shared as "Anyone with the link".
  * - Dropbox share links → raw file
  * - everything else returned unchanged (trimmed)
  */
@@ -29,8 +31,8 @@ export function toDisplayImageUrl(raw?: string | null): string | undefined {
   if (!url) return undefined;
 
   const driveId = getDriveFileId(url);
-  if (driveId && !url.includes("/thumbnail?")) {
-    return `https://drive.google.com/thumbnail?id=${driveId}&sz=w800`;
+  if (driveId) {
+    return `/api/uploads/avatar/drive/${driveId}`;
   }
 
   if (/^https?:\/\/(www\.)?dropbox\.com\//.test(url)) {
