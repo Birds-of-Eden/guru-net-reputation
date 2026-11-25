@@ -14,7 +14,6 @@ const GeneralInfo = lazy(() => import("@/components/onboarding/general-info").th
 const WebsiteInfo = lazy(() => import("@/components/onboarding/website-info").then(m => ({ default: m.WebsiteInfo })));
 const BiographyInfo = lazy(() => import("@/components/onboarding/biography-info").then(m => ({ default: m.BiographyInfo })));
 const ImageGallery = lazy(() => import("@/components/onboarding/image-gallery").then(m => ({ default: m.ImageGallery })));
-const SocialMediaInfo = lazy(() => import("@/components/onboarding/social-media-info").then(m => ({ default: m.SocialMediaInfo })));
 const OtherInfo = lazy(() => import("@/components/onboarding/other-info").then(m => ({ default: m.OtherInfo })));
 const PackageInfo = lazy(() => import("@/components/onboarding/package-info").then(m => ({ default: m.PackageInfo })));
 const TemplateSelection = lazy(() => import("@/components/onboarding/template-selection").then(m => ({ default: m.TemplateSelection })));
@@ -25,11 +24,10 @@ const steps = [
   { id: 2, title: "Website Info", component: WebsiteInfo },
   { id: 3, title: "Biography", component: BiographyInfo },
   { id: 4, title: "Image Gallery", component: ImageGallery },
-  { id: 5, title: "Social Media", component: SocialMediaInfo },
-  { id: 6, title: "Other Info", component: OtherInfo },
-  { id: 7, title: "Package", component: PackageInfo },
-  { id: 8, title: "Template", component: TemplateSelection },
-  { id: 9, title: "Review", component: ReviewInfo },
+  { id: 5, title: "Other Info", component: OtherInfo },
+  { id: 6, title: "Package", component: PackageInfo },
+  { id: 7, title: "Template", component: TemplateSelection },
+  { id: 8, title: "Review", component: ReviewInfo },
 ];
 
 export default function OnboardingPage() {

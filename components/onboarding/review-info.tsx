@@ -475,7 +475,9 @@ export function ReviewInfo({
       "rows" in raw[0]
     ) {
       // New format: SpreadsheetData - display as sheets
-      return (raw as any[]).map(
+      return (raw as any[])
+        .filter((sheet: any) => Array.isArray(sheet?.rows))
+        .map(
         (sheet: any) =>
           [
             sheet.name || "Sheet",

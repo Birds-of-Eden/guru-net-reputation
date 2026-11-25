@@ -233,6 +233,52 @@ export function extractUsernameFromUrl(url: string): string {
 }
 
 // ----------------------
+// Cycle ordering helpers
+// Task names look like "Medium Task -3" → base "Medium Task", cycle 3
+// ----------------------
+
+const CYCLE_RE = /\s*-\s*(\d+)\s*$/;
+
+const getCycleInfo = (name?: string | null) => {
+  const raw = String(name ?? "").trim();
+  const m = raw.match(CYCLE_RE);
+  return m
+    ? { base: raw.replace(CYCLE_RE, "").trim(), cycle: Number(m[1]) }
+    : { base: raw, cycle: Number.POSITIVE_INFINITY }; // no cycle → after numbered ones
+};
+
+const cycleCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
+/** Cycle 1 of every site, then cycle 2, 3, … ; same cycle → site name, then due date */
+const compareByCycle = (a: any, b: any) => {
+  const ca = getCycleInfo(a?.name);
+  const cb = getCycleInfo(b?.name);
+  if (ca.cycle !== cb.cycle) return ca.cycle < cb.cycle ? -1 : 1;
+  const byName = cycleCollator.compare(ca.base, cb.base);
+  if (byName !== 0) return byName;
+  const da = a?.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+  const db = b?.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+  if (da !== db) return da < db ? -1 : 1;
+  return String(a?.id ?? "").localeCompare(String(b?.id ?? ""));
+};
+
+/** Page numbers with ellipsis: 1 … 4 5 [6] 7 8 … 20 */
+const getPageItems = (current: number, total: number): (number | "…")[] => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) items.push("…");
+  for (let p = start; p <= end; p++) items.push(p);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+};
+
+// ----------------------
 // SWR Hooks
 // ----------------------
 
@@ -251,12 +297,32 @@ const useTasksData = (clientId: string, userId?: string) => {
         )}&pageSize=100`
       : null,
     async (url: string) => {
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) throw new Error("Failed to fetch tasks");
-      const data = await response.json();
-      const tasks = Array.isArray(data?.tasks) ? data.tasks : [];
+      // API caps pageSize at 100 → fetch page 1, then the remaining pages in parallel
+      const fetchPage = async (page: number) => {
+        const response = await fetch(`${url}&page=${page}`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Failed to fetch tasks");
+        return response.json();
+      };
+
+      const first = await fetchPage(1);
+      const totalPages = Math.max(1, Number(first?.totalPages) || 1);
+      const rest =
+        totalPages > 1
+          ? await Promise.all(
+              Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2))
+            )
+          : [];
+
+      // Merge + de-duplicate by id
+      const byId = new Map<string, any>();
+      for (const data of [first, ...rest]) {
+        for (const t of Array.isArray(data?.tasks) ? data.tasks : []) {
+          if (t?.id) byId.set(t.id, t);
+        }
+      }
+
       // Keep client-side guard in case server returns extra tasks
-      return tasks.filter(
+      return Array.from(byId.values()).filter(
         (t: any) => t?.assignedTo?.id && userId && t.assignedTo.id === userId
       );
     },
@@ -419,6 +485,7 @@ interface TaskRowProps {
     task: DETask;
     dueDateFormatted: string | null;
     isOverdue: boolean;
+    serial: number;
   };
   openContentWritingModal: (task: DETask) => void;
   openReviewRemovalModal: (task: DETask) => void;
@@ -438,13 +505,16 @@ const TaskRow: React.FC<TaskRowProps> = React.memo(
     openMonitoringModal,
     openComplete,
   }) => {
-    const { task: t, dueDateFormatted, isOverdue } = data;
+    const { task: t, dueDateFormatted, isOverdue, serial } = data;
 
     return (
       <tr
         key={t.id}
         className="group hover:bg-linear-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 ease-in-out dark:hover:from-indigo-950/40 dark:hover:to-purple-950/40"
       >
+        <td className="pl-6 pr-2 py-5 text-sm font-semibold tabular-nums text-slate-400 dark:text-muted-foreground">
+          {serial}
+        </td>
         <td className="px-6 py-5">
           <div
             className="font-bold text-slate-800 truncate max-w-[250px] group-hover:text-indigo-700 transition-colors dark:text-foreground dark:group-hover:text-indigo-300"
@@ -740,10 +810,11 @@ export default function DataEntryCompleteTasksPanel({
       result = result.filter((t) => t.priority === priorityFilter);
     }
 
-    return result;
+    // Cycle-based order: cycle 1 → 2 → 3 … (pagination follows this order)
+    return [...result].sort(compareByCycle);
   }, [tasks, deferredSearch, statusFilter, priorityFilter]);
 
-  // Simple client-side pagination
+  // Client-side pagination (all tasks are loaded, pages follow cycle order)
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
@@ -752,15 +823,33 @@ export default function DataEntryCompleteTasksPanel({
   }, [filteredTasks.length, pageSize]);
 
   useEffect(() => {
-    if (page > totalPages) setPage(1);
+    if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
+
+  // Back to page 1 whenever filters / search change
+  useEffect(() => {
+    setPage(1);
+  }, [deferredSearch, statusFilter, priorityFilter]);
+
+  const pageStart = filteredTasks.length ? (page - 1) * pageSize + 1 : 0;
+  const pageEnd = Math.min(filteredTasks.length, page * pageSize);
+
+  const goToPage = useCallback(
+    (p: number) => {
+      setPage(Math.min(Math.max(1, p), totalPages));
+      document
+        .getElementById("de-tasks-table")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+    [totalPages]
+  );
 
   const paginatedTasks = useMemo(() => {
     const start = (page - 1) * pageSize;
     const slice = filteredTasks.slice(start, start + pageSize);
 
     const now = Date.now();
-    return slice.map((t) => {
+    return slice.map((t, i) => {
       const dueDateObj = t.dueDate ? new Date(t.dueDate) : null;
       const dueDateFormatted =
         dueDateObj && !isNaN(dueDateObj.getTime())
@@ -771,7 +860,7 @@ export default function DataEntryCompleteTasksPanel({
         dueDateObj.getTime() < now &&
         (t.status === "pending" || t.status === "in_progress")
       );
-      return { task: t, dueDateFormatted, isOverdue };
+      return { task: t, dueDateFormatted, isOverdue, serial: start + i + 1 };
     });
   }, [filteredTasks, page, pageSize]);
 
@@ -1365,12 +1454,49 @@ export default function DataEntryCompleteTasksPanel({
             </div>
           </div>
 
+          {/* Page size + range (top) */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm font-medium text-slate-600 dark:text-muted-foreground">
+              Showing{" "}
+              <span className="font-bold text-slate-800 dark:text-foreground">
+                {pageStart}–{pageEnd}
+              </span>{" "}
+              of{" "}
+              <span className="font-bold text-slate-800 dark:text-foreground">
+                {filteredTasks.length}
+              </span>{" "}
+              tasks · sorted by cycle
+            </div>
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-muted-foreground">
+              Rows per page
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="h-10 rounded-lg border-2 border-slate-200 bg-white px-3 font-semibold text-slate-700 dark:border-border dark:bg-card dark:text-foreground"
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+              </select>
+            </label>
+          </div>
+
           {/* Tasks Table */}
-          <div className="border-2 border-slate-200 rounded-3xl overflow-hidden shadow-lg bg-white dark:border-border dark:bg-card">
+          <div
+            id="de-tasks-table"
+            className="scroll-mt-6 border-2 border-slate-200 rounded-3xl overflow-hidden shadow-lg bg-white dark:border-border dark:bg-card"
+          >
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-linear-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200 dark:from-background dark:to-background dark:border-border">
                   <tr className="text-left">
+                    <th className="pl-6 pr-2 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider w-12 dark:text-foreground">
+                      #
+                    </th>
                     <th className="px-6 py-5 font-bold text-sm text-slate-700 uppercase tracking-wider dark:text-foreground">
                       Task
                     </th>
@@ -1394,7 +1520,7 @@ export default function DataEntryCompleteTasksPanel({
                 <tbody className="divide-y divide-slate-100 bg-white dark:divide-border dark:bg-card">
                   {loading ? (
                     <tr>
-                      <td colSpan={6} className="py-24">
+                      <td colSpan={7} className="py-24">
                         <div className="flex flex-col items-center justify-center gap-4">
                           <div className="relative">
                             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 dark:border-indigo-800"></div>
@@ -1408,7 +1534,7 @@ export default function DataEntryCompleteTasksPanel({
                     </tr>
                   ) : filteredTasks.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-24">
+                      <td colSpan={7} className="py-24">
                         <div className="flex flex-col items-center gap-6">
                           <div className="bg-linear-to-br from-slate-100 to-slate-200 p-8 rounded-3xl dark:from-background dark:to-muted">
                             <BarChart3 className="h-20 w-20 text-slate-400 dark:text-muted-foreground" />
@@ -1455,50 +1581,59 @@ export default function DataEntryCompleteTasksPanel({
               </table>
             </div>
             {/* Pagination controls */}
-            <div className="mt-4 px-4 flex items-center justify-between">
-              <div className="text-sm text-slate-600 dark:text-muted-foreground">
-                Showing{" "}
-                {Math.min(filteredTasks.length, page * pageSize) -
-                  (page - 1) * pageSize}{" "}
-                of {filteredTasks.length}
-              </div>
-              <div className="flex items-center gap-3">
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  className="h-10 rounded-lg border px-3"
-                >
-                  <option value={20}>20 / page</option>
-                  <option value={50}>50 / page</option>
-                  <option value={100}>100 / page</option>
-                </select>
-
-                <div className="flex items-center gap-2">
+            {filteredTasks.length > 0 && (
+              <div className="flex flex-col items-center justify-between gap-3 border-t-2 border-slate-100 px-6 py-4 sm:flex-row dark:border-border">
+                <div className="text-sm text-slate-600 dark:text-muted-foreground">
+                  {pageStart}–{pageEnd} of {filteredTasks.length} · Page {page} of{" "}
+                  {totalPages}
+                </div>
+                <nav className="flex flex-wrap items-center gap-1" aria-label="Pagination">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="h-9 rounded-lg"
+                    onClick={() => goToPage(page - 1)}
                     disabled={page <= 1}
                   >
                     Prev
                   </Button>
-                  <span className="text-sm text-slate-600 dark:text-muted-foreground">
-                    Page {page} / {totalPages}
-                  </span>
+                  {getPageItems(page, totalPages).map((item, i) =>
+                    item === "…" ? (
+                      <span
+                        key={`gap-${i}`}
+                        className="px-2 text-sm text-slate-400 dark:text-muted-foreground"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <Button
+                        key={item}
+                        variant={item === page ? "default" : "outline"}
+                        size="sm"
+                        aria-current={item === page ? "page" : undefined}
+                        className={`h-9 min-w-9 rounded-lg px-3 tabular-nums ${
+                          item === page
+                            ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                            : ""
+                        }`}
+                        onClick={() => goToPage(item)}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="h-9 rounded-lg"
+                    onClick={() => goToPage(page + 1)}
                     disabled={page >= totalPages}
                   >
                     Next
                   </Button>
-                </div>
+                </nav>
               </div>
-            </div>
+            )}
           </div>
 
           {isReadyForPostingCreation && (

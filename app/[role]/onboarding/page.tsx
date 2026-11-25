@@ -5,14 +5,12 @@
 import { useState, useCallback } from "react";
 import { GeneralInfo } from "@/components/onboarding/general-info";
 import { WebsiteInfo } from "@/components/onboarding/website-info";
-import { SocialMediaInfo } from "@/components/onboarding/social-media-info";
 import { ReviewInfo } from "@/components/onboarding/review-info";
 import { StepIndicator } from "@/components/onboarding/step-indicator";
 import { BiographyInfo } from "@/components/onboarding/biography-info";
 import { ImageGallery } from "@/components/onboarding/image-gallery";
 import { PackageInfo } from "@/components/onboarding/package-info";
 import { TemplateSelection } from "@/components/onboarding/template-selection";
-import { ArticlesSelection } from "@/components/onboarding/articles-selection";
 import type { OnboardingFormData } from "@/types/onboarding";
 import { useOnboardingAutosave } from "@/hooks/use-onboarding-autosave";
 import { AutosaveIndicator } from "@/components/onboarding/autosave-indicator";
@@ -23,10 +21,9 @@ const steps = [
   { id: 2, title: "Website Info", component: WebsiteInfo },
   { id: 3, title: "Biography", component: BiographyInfo },
   { id: 4, title: "Image Gallery", component: ImageGallery },
-  { id: 5, title: "Social Media", component: SocialMediaInfo },
-  { id: 6, title: "Package", component: PackageInfo },
-  { id: 7, title: "Template", component: TemplateSelection },
-  { id: 8, title: "Review", component: ReviewInfo },
+  { id: 5, title: "Package", component: PackageInfo },
+  { id: 6, title: "Template", component: TemplateSelection },
+  { id: 7, title: "Review", component: ReviewInfo },
 ];
 
 export default function OnboardingPage() {

@@ -63,6 +63,7 @@ export interface OnboardingFormData {
     name: string; // Sheet name
     columns: string[]; // Column headers
     rows: string[][]; // 2D array of cell values
+    colWidths?: number[]; // Optional column widths (px) set by resizing
   }>;
 
   // Package & Template

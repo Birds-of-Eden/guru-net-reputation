@@ -16,11 +16,9 @@ const GeneralInfo = lazy(() => import("@/components/onboarding/general-info").th
 const WebsiteInfo = lazy(() => import("@/components/onboarding/website-info").then(m => ({ default: m.WebsiteInfo })));
 const BiographyInfo = lazy(() => import("@/components/onboarding/biography-info").then(m => ({ default: m.BiographyInfo })));
 const ImageGallery = lazy(() => import("@/components/onboarding/image-gallery").then(m => ({ default: m.ImageGallery })));
-const SocialMediaInfo = lazy(() => import("@/components/onboarding/social-media-info").then(m => ({ default: m.SocialMediaInfo })));
 const OtherInfo = lazy(() => import("@/components/onboarding/other-info").then(m => ({ default: m.OtherInfo })));
 const PackageInfo = lazy(() => import("@/components/onboarding/package-info").then(m => ({ default: m.PackageInfo })));
 const TemplateSelection = lazy(() => import("@/components/onboarding/template-selection").then(m => ({ default: m.TemplateSelection })));
-const ArticlesSelection = lazy(() => import("@/components/onboarding/articles-selection").then(m => ({ default: m.ArticlesSelection })));
 const ReviewInfo = lazy(() => import("@/components/onboarding/review-info").then(m => ({ default: m.ReviewInfo })));
 
 const steps = [
@@ -29,11 +27,10 @@ const steps = [
   { id: 3, title: "Website Info", component: WebsiteInfo },
   { id: 4, title: "Biography", component: BiographyInfo },
   { id: 5, title: "Image Gallery", component: ImageGallery },
-  { id: 6, title: "Social Media", component: SocialMediaInfo },
-  { id: 7, title: "Other Info", component: OtherInfo },
-  { id: 8, title: "Package", component: PackageInfo },
-  { id: 9, title: "Template", component: TemplateSelection },
-  { id: 10, title: "Review", component: ReviewInfo },
+  { id: 6, title: "Other Info", component: OtherInfo },
+  { id: 7, title: "Package", component: PackageInfo },
+  { id: 8, title: "Template", component: TemplateSelection },
+  { id: 9, title: "Review", component: ReviewInfo },
 ];
 
 export default function OnboardingPage() {

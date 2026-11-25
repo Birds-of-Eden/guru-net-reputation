@@ -212,6 +212,7 @@ export async function GET(
           { priority: "desc" },
           { dueDate: "asc" },
           { createdAt: "desc" },
+          { id: "asc" }, // unique tie-breaker → stable pages (no skips/duplicates)
         ],
         skip,
         take: pageSize,

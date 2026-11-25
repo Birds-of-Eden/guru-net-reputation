@@ -351,10 +351,8 @@ export function DataEntryReviewInfo({ formData, onPrevious }: any) {
           formData.articleTopics || formData.articleCategories || [],
         amId: formData.amId || null,
         socialLinks: formData.socialLinks || [],
-        otherField: (formData.otherField || []).map((r: any) => ({
-          title: String(r.title || ""),
-          data: String(r.data || ""),
-        })),
+        // Send spreadsheet sheets as-is (mapping to {title,data} wiped all sheet data)
+        otherField: Array.isArray(formData.otherField) ? formData.otherField : [],
       };
 
       // Debug: Log article data being sent
