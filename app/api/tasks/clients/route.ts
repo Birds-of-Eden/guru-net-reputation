@@ -30,11 +30,10 @@ export async function GET(req: Request) {
       avatar: true,
       package: { select: { name: true } },
       amId: true,
+      createdAt: true,
       accountManager: { select: { id: true, name: true, email: true } },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 
   if (clients.length === 0) {
@@ -107,6 +106,7 @@ export async function GET(req: Request) {
     completedAssetCreation: number;
     totalPosting: number;
     completedPosting: number;
+    totalAll: number;
     createdTasks?: {
       id: string;
       name: string | null;
@@ -128,6 +128,7 @@ export async function GET(req: Request) {
       completedAssetCreation: 0,
       totalPosting: 0,
       completedPosting: 0,
+      totalAll: 0,
       createdTasks: includeTasks ? [] : undefined,
     });
   }
@@ -135,6 +136,7 @@ export async function GET(req: Request) {
   for (const task of tasks) {
     const bucket = buckets.get(task.clientId);
     if (!bucket) continue;
+    bucket.totalAll += 1;
 
     const categoryName = task.category?.name ?? null;
     const assetType = task.templateSiteAsset?.type ?? null;
@@ -227,6 +229,8 @@ export async function GET(req: Request) {
       package: client.package ? { name: client.package.name } : null,
       avatar: client.avatar ?? null,
       amId: client.amId ?? null,
+      createdAt: client.createdAt,
+      totalTaskCount: bucket.totalAll,
       accountManager: client.accountManager
         ? {
             id: client.accountManager.id,

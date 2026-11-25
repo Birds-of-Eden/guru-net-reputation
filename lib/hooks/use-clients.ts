@@ -20,10 +20,28 @@ interface ApiResponse {
 export function useClients() {
   // Local UI state for filters + pagination
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<string>("all");
-  const [packageId, setPackageId] = useState<string>("all");
-  const [amId, setAmId] = useState<string>("all");
-  const [search, setSearch] = useState<string>("");
+  const [status, setStatusState] = useState<string>("all");
+  const [packageId, setPackageIdState] = useState<string>("all");
+  const [amId, setAmIdState] = useState<string>("all");
+  const [search, setSearchState] = useState<string>("");
+
+  // Changing any filter jumps back to page 1
+  const setStatus = useCallback((v: string) => {
+    setStatusState(v);
+    setPage(1);
+  }, []);
+  const setPackageId = useCallback((v: string) => {
+    setPackageIdState(v);
+    setPage(1);
+  }, []);
+  const setAmId = useCallback((v: string) => {
+    setAmIdState(v);
+    setPage(1);
+  }, []);
+  const setSearch = useCallback((v: string) => {
+    setSearchState(v);
+    setPage(1);
+  }, []);
 
   // Build API URL dynamically
   const query = useMemo(() => {
@@ -50,21 +68,11 @@ export function useClients() {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse>(query, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 3000,
+    keepPreviousData: true,
   });
 
-  const clients = useMemo(() => {
-    const items = [...(data?.clients ?? [])];
-    items.sort((a, b) => {
-      const aDraft = String(a.status ?? "").trim().toLowerCase() === "draft";
-      const bDraft = String(b.status ?? "").trim().toLowerCase() === "draft";
-      if (aDraft !== bDraft) return aDraft ? -1 : 1;
-
-      const aCreated = new Date(a.createdAt ?? 0).getTime();
-      const bCreated = new Date(b.createdAt ?? 0).getTime();
-      return bCreated - aCreated;
-    });
-    return items;
-  }, [data?.clients]);
+  // Server already returns newest-first (createdAt desc), keep that order
+  const clients = useMemo(() => data?.clients ?? [], [data?.clients]);
   const pagination = data?.pagination;
 
   // Helpers
@@ -79,16 +87,17 @@ export function useClients() {
   }, [page]);
 
   const resetFilters = useCallback(() => {
-    setStatus("all");
-    setPackageId("all");
-    setAmId("all");
-    setSearch("");
+    setStatusState("all");
+    setPackageIdState("all");
+    setAmIdState("all");
+    setSearchState("");
     setPage(1);
   }, []);
 
   return {
     clients,
-    loading: isLoading,
+    loading: isLoading && !data,
+    isValidating: isLoading,
     error: error ?? null,
     refetch: async () => mutate(),
     pagination,

@@ -98,6 +98,8 @@ type Client = {
 
   postingTasksCreated?: boolean;
   existingPostingTasksCount?: number;
+  createdAt?: string | Date | null;
+  totalTaskCount?: number;
 };
 
 // OPTIMIZATION (virtual batching): hard-cap initial DOM work to small slices to keep Time To Interactive low.
@@ -141,6 +143,23 @@ const TASK_CATEGORY_FILTER_OPTIONS: Array<{
   { value: "Social Activity", label: "Social Activity" },
   { value: "Blog Posting", label: "Blog Posting" },
 ];
+
+// "Virgin" client: brand new, no task of any kind created yet.
+const isVirginClient = (client: Client) => {
+  if (typeof client.totalTaskCount === "number") {
+    return client.totalTaskCount === 0;
+  }
+  return (
+    (client.taskStats?.totalTasks ?? 0) === 0 &&
+    !hasExistingPostingFlow(client) &&
+    (client.taskStats?.createdTasks?.length ?? 0) === 0
+  );
+};
+
+const getCreatedTime = (client: Client) => {
+  const t = client.createdAt ? new Date(client.createdAt).getTime() : NaN;
+  return Number.isFinite(t) ? t : 0;
+};
 
 const hasExistingPostingFlow = (client: Client) =>
   client.postingTasksCreated === true ||
@@ -565,6 +584,16 @@ export default function ClientUnifiedDashboard() {
       .sort((aEntry, bEntry) => {
         const a = aEntry.client;
         const b = bEntry.client;
+
+        // 1) Brand-new (virgin) clients always on top, newest first
+        const aVirgin = isVirginClient(a);
+        const bVirgin = isVirginClient(b);
+        if (aVirgin !== bVirgin) return aVirgin ? -1 : 1;
+        if (aVirgin && bVirgin) {
+          const diff = getCreatedTime(b) - getCreatedTime(a);
+          return diff !== 0 ? diff : aEntry.index - bEntry.index;
+        }
+
         const aHasPostingFlow = hasExistingPostingFlow(a);
         const bHasPostingFlow = hasExistingPostingFlow(b);
 
@@ -572,9 +601,13 @@ export default function ClientUnifiedDashboard() {
           return aHasPostingFlow ? 1 : -1;
         }
 
+        // 2) No posting flow yet: newest first
         if (!aHasPostingFlow && !bHasPostingFlow) {
-          return aEntry.index - bEntry.index;
+          const diff = getCreatedTime(b) - getCreatedTime(a);
+          return diff !== 0 ? diff : aEntry.index - bEntry.index;
         }
+
+        // 3) Existing posting flow: overdue → today → upcoming by date
 
         const aMeta = getPostingSortMeta(a);
         const bMeta = getPostingSortMeta(b);

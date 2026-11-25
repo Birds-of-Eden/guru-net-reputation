@@ -21,6 +21,89 @@ import type { Client } from "@/types/client";
 import { useRoleSegment } from "@/lib/hooks/use-role-segment";
 import { useClients } from "@/lib/hooks/use-clients";
 
+// Build page list like: 1 … 4 5 [6] 7 8 … 20
+function getPageItems(page: number, totalPages: number): (number | "ellipsis")[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  const items: (number | "ellipsis")[] = [1];
+  const start = Math.max(2, page - 1);
+  const end = Math.min(totalPages - 1, page + 1);
+  if (start > 2) items.push("ellipsis");
+  for (let i = start; i <= end; i++) items.push(i);
+  if (end < totalPages - 1) items.push("ellipsis");
+  items.push(totalPages);
+  return items;
+}
+
+function ClientsPagination({
+  page,
+  totalPages,
+  totalCount,
+  pageSize,
+  onPageChange,
+}: {
+  page: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}) {
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, totalCount);
+  const btn =
+    "min-w-9 h-9 px-3 rounded-md border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  const idle =
+    "bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-card dark:border-border dark:text-foreground dark:hover:bg-muted";
+  const active =
+    "bg-primary border-primary text-primary-foreground";
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10">
+      <p className="text-sm text-gray-500 dark:text-muted-foreground">
+        Showing <span className="font-medium">{from}</span>–
+        <span className="font-medium">{to}</span> of{" "}
+        <span className="font-medium">{totalCount}</span> clients
+      </p>
+
+      {totalPages > 1 && (
+        <nav className="flex flex-wrap items-center gap-1" aria-label="Pagination">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 1}
+            className={`${btn} ${idle}`}
+          >
+            Previous
+          </button>
+          {getPageItems(page, totalPages).map((item, i) =>
+            item === "ellipsis" ? (
+              <span key={`e${i}`} className="px-2 text-gray-400">
+                …
+              </span>
+            ) : (
+              <button
+                key={item}
+                onClick={() => onPageChange(item)}
+                aria-current={item === page ? "page" : undefined}
+                className={`${btn} ${item === page ? active : idle}`}
+              >
+                {item}
+              </button>
+            )
+          )}
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={page === totalPages}
+            className={`${btn} ${idle}`}
+          >
+            Next
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+}
+
 // Client Data Section Component
 function ClientDataSection({ 
   clients, 
@@ -29,8 +112,7 @@ function ClientDataSection({
   handleViewClientDetails,
   pagination,
   page,
-  prevPage,
-  nextPage
+  goToPage,
 }: {
   clients: Client[];
   loading: boolean;
@@ -38,8 +120,7 @@ function ClientDataSection({
   handleViewClientDetails: (client: Client) => void;
   pagination: any;
   page: number;
-  prevPage: () => void;
-  nextPage: () => void;
+  goToPage: (page: number) => void;
 }) {
   if (loading) {
     return (
@@ -88,28 +169,14 @@ function ClientDataSection({
       )}
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-4 mt-10">
-          <button
-            onClick={prevPage}
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 dark:bg-muted"
-          >
-            Previous
-          </button>
-
-          <span className="px-4 py-2 font-medium">
-            Page {page} / {pagination.totalPages}
-          </span>
-
-          <button
-            onClick={nextPage}
-            disabled={page === pagination.totalPages}
-            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 dark:bg-muted"
-          >
-            Next
-          </button>
-        </div>
+      {pagination && pagination.totalCount > 0 && (
+        <ClientsPagination
+          page={page}
+          totalPages={pagination.totalPages}
+          totalCount={pagination.totalCount}
+          pageSize={pagination.pageSize}
+          onPageChange={goToPage}
+        />
       )}
     </>
   );
@@ -126,8 +193,6 @@ export default function ClientsPage() {
     pagination,
     page,
     setPage,
-    nextPage,
-    prevPage,
 
     status,
     setStatus,
@@ -143,6 +208,14 @@ export default function ClientsPage() {
   } = useClients();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const goToPage = useCallback(
+    (p: number) => {
+      setPage(p);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [setPage]
+  );
 
   // Fetch Packages for filter dropdowns
   const [packages, setPackages] = useState<{ id: string; name: string }[]>([]);
@@ -222,8 +295,7 @@ export default function ClientsPage() {
         handleViewClientDetails={handleViewClientDetails}
         pagination={pagination}
         page={page}
-        prevPage={prevPage}
-        nextPage={nextPage}
+        goToPage={goToPage}
       />
     </div>
   );

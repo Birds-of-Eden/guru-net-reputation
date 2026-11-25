@@ -340,7 +340,7 @@ export async function GET(req: Request) {
       },
       skip,
       take: pageSize,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
 
     if (clients.length === 0) {
