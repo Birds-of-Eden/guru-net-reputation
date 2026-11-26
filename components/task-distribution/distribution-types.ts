@@ -52,6 +52,9 @@ export type Task = {
     isRequired: boolean;
   };
   assignedTo: Agent | null;
+  completedAt?: string | null;
+  qcReviewedAt?: string | null;
+  qcReviewer?: { id: string; name: string | null; email: string | null } | null;
   client: {
     id: string;
     name: string;

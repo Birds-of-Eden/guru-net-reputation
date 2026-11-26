@@ -1,6 +1,7 @@
 // app/api/tasks/client/[clientId]/all/route.ts
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { attachQcReviewers } from "@/lib/task-completion";
 
 export async function GET(
   _req: NextRequest,
@@ -31,6 +32,8 @@ export async function GET(
         priority: true,
         status: true,
         dueDate: true,
+        completedAt: true,
+        qcReview: true,
         assignedToId: true,
         assignedTo: {
           select: {
@@ -55,7 +58,8 @@ export async function GET(
       orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
     });
 
-    return NextResponse.json(tasks);
+    const withQc = (await attachQcReviewers(tasks)).map(({ qcReview: _qc, ...t }: any) => t);
+    return NextResponse.json(withQc);
   } catch (error: any) {
     console.error("Error fetching all client tasks (non-paginated):", error);
     return NextResponse.json(

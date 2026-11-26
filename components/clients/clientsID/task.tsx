@@ -47,6 +47,7 @@ import JobDetailsModal from "@/components/coustom_Jobs/JobDetailsModal";
 import type { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
+import { TaskCompletionInfo } from "@/components/shared/task-completion-info";
 
 // Sanitize HTML to prevent XSS attacks
 const sanitizeHtml = (html: string) => {
@@ -1193,6 +1194,10 @@ export function Tasks({ clientData }: TasksProps) {
                                       {link}
                                     </a>
                                   )}
+                                  <TaskCompletionInfo
+                                    task={task as any}
+                                    className="mt-2"
+                                  />
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 self-start md:self-center">

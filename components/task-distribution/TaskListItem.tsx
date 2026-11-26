@@ -38,6 +38,7 @@ import {
   getInitialsFromParts,
 } from "@/utils/avatar";
 import { getLoadStats } from "./load-utils";
+import { TaskCompletionInfo } from "@/components/shared/task-completion-info";
 
 interface TaskListItemProps {
   task: Task;
@@ -371,6 +372,8 @@ export const TaskListItem = memo(function TaskListItem({
                 </div>
               )}
             </div>
+
+            <TaskCompletionInfo task={task as any} className="mt-2" />
           </div>
 
           <div className="w-full max-w-md">

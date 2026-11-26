@@ -1,5 +1,6 @@
 // app/api/clients/[id]/route.ts
 import { toDisplayImageUrl } from "@/lib/image-url";
+import { attachQcReviewers } from "@/lib/task-completion";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import type { TaskStatus } from "@prisma/client";
@@ -250,6 +251,7 @@ function buildClientSelect(compact: boolean): Prisma.ClientSelect {
         assignedTo: {
           select: { id: true, name: true, email: true },
         },
+        qcReview: true,
       },
       orderBy: { createdAt: "desc" },
     };
@@ -340,8 +342,16 @@ export async function GET(
       }),
     );
 
+    // Who QC-approved each task and when (staff only); never send raw QC JSON
+    const isStaffUser = STAFF_ROLES.includes(String(me.role ?? "").toLowerCase());
+    const rawTasks: any[] = Array.isArray((client as any).tasks) ? (client as any).tasks : [];
+    const tasksOut = (isStaffUser ? await attachQcReviewers(rawTasks) : rawTasks).map(
+      ({ qcReview: _qc, ...t }: any) => t,
+    );
+
     const response = {
       ...client,
+      ...((client as any).tasks ? { tasks: tasksOut } : {}),
       socialMedias,
       keywords,
       templateName,
