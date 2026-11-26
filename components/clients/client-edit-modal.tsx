@@ -267,8 +267,14 @@ export default function ClientEditModal({
   // ---- otherField (category + title + data[]) ----
   type KV = { category: string; title: string; data: string[] };
 
-  const normalizeOtherField = (raw: any): KV[] => {
-    if (!raw) return [];
+  // Spreadsheet sheets ({ id, name, columns, rows }) are edited in the
+  // "Other Information" tab — this modal must never touch them.
+  const isSheetItem = (x: any) =>
+    !!x && typeof x === "object" && Array.isArray(x.columns) && Array.isArray(x.rows);
+
+  const normalizeOtherField = (input: any): KV[] => {
+    if (!input) return [];
+    const raw = Array.isArray(input) ? input.filter((x) => !isSheetItem(x)) : input;
     // New shape: [{ category, title, data: [] }]
     if (
       Array.isArray(raw) &&
@@ -492,8 +498,12 @@ export default function ClientEditModal({
           }))
           .filter((p) => p.title || p.data.length);
 
-        // Add keywords to otherField if they exist
-        const finalOtherField = [...cleanedPairs];
+        // Keep spreadsheet sheets exactly as stored, then legacy pairs + keywords
+        const storedOther = (clientData as any).otherField;
+        const sheetItems = Array.isArray(storedOther)
+          ? storedOther.filter(isSheetItem)
+          : [];
+        const finalOtherField: any[] = [...sheetItems, ...cleanedPairs];
         if (keywords.some(k => k.trim())) {
           finalOtherField.push({
             category: "system",

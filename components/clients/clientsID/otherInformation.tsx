@@ -45,8 +45,13 @@ export function OtherInformation({
     setHasUnsavedChanges(v);
   };
 
-  // Reload when the client (or its saved data) changes
+  // Reload only when the client or its *saved content* changes. A refetch that
+  // returns a new object with identical data must not wipe unsaved edits.
+  const loadedKeyRef = useRef<string | null>(null);
   useEffect(() => {
+    const key = `${clientData.id}:${JSON.stringify(clientData.otherField ?? null)}`;
+    if (loadedKeyRef.current === key) return;
+    loadedKeyRef.current = key;
     const next = splitOtherField(clientData.otherField);
     setParsed(next);
     sheetsRef.current = next.sheets;
