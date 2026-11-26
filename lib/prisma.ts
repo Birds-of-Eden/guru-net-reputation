@@ -5,6 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { realtime } from "./realtime/server";
 import { invalidateAuthCache } from "./auth-cache-store";
+import { auditedWrite } from "./audit/server";
 
 // Clear the short-lived auth cache (lib/auth-cache.ts) when users, roles or
 // permissions change. Done now and again shortly after, so a request that reads
@@ -276,7 +277,23 @@ const prisma = prismaBase.$extends({
       },
     },
   },
-});
+})
+  // ✅ System-wide audit trail: every create / update / delete on every audited
+  // model is written to ActivityLog with before/after values and a diff
+  // (lib/audit/server.ts). Snapshots are read and logs written with the raw
+  // client, so logging never recurses and never changes the query result.
+  // NOTE: the hook awaits a snapshot read before the write, so audited models
+  // must be used in interactive `$transaction(async tx => …)`, not batch arrays.
+  .$extends({
+    name: "audit-trail",
+    query: {
+      $allModels: {
+        $allOperations(params) {
+          return auditedWrite(prismaBase, params as any);
+        },
+      },
+    },
+  });
 
 export default prisma;
 

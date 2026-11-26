@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table as TableIcon } from "lucide-react";
 import type { StepProps } from "@/types/onboarding";
@@ -11,6 +11,8 @@ import {
   splitOtherField,
   type SheetData,
 } from "@/components/shared/spreadsheet-editor";
+import { deepDiff } from "@/lib/audit/diff";
+import { createActivityBuffer } from "@/lib/audit/client";
 
 export function OtherInfo({
   formData,
@@ -26,9 +28,40 @@ export function OtherInfo({
   const [sheets, setSheets] = useState<SheetData[]>(initialRef.current.sheets);
   const sheetsRef = useRef(sheets);
 
+  // Activity log: this draft is not in the database until the final submit,
+  // so every edit (cell, row/column, sheet add/rename/delete, paste…) is
+  // diffed here and sent to the activity log in small batches.
+  const formRef = useRef(formData);
+  formRef.current = formData;
+  const trackerRef = useRef<ReturnType<typeof createActivityBuffer> | null>(null);
+  if (!trackerRef.current) {
+    trackerRef.current = createActivityBuffer({
+      entityType: "OnboardingDraft",
+      action: "sheet_edit",
+      summary: "Edited onboarding Campaign Resources",
+      getEntity: () => {
+        const f: any = formRef.current;
+        return {
+          entityId: f.clientId || `draft:${(f.name || "unnamed").trim() || "unnamed"}`,
+          label: f.name || null,
+        };
+      },
+    });
+  }
+  useEffect(() => {
+    const tracker = trackerRef.current!;
+    const onHide = () => tracker.flush(true);
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      tracker.flush();
+    };
+  }, []);
+
   // Every edit is synced to formData immediately so autosave picks it up and
   // nothing is lost when going back with "Previous".
   const handleChange = (next: SheetData[]) => {
+    trackerRef.current?.add(deepDiff(sheetsRef.current, next, { maxChanges: 500 }).changes);
     sheetsRef.current = next;
     setSheets(next);
     updateFormData({ otherField: [...next, ...extras] as any });

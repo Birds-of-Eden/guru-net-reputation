@@ -4,8 +4,11 @@ import prisma from "../prisma";
 import type { RealtimeUser } from "./token";
 
 export async function authorizeChannel(user: RealtimeUser, channel: string): Promise<boolean> {
-  // Global activity feed: any signed-in user (same as the old public Pusher channel)
-  if (channel === "activity") return true;
+  // Activity feed pings: staff only (client accounts never see the audit trail)
+  if (channel === "activity") {
+    const role = String(user.role ?? "").toLowerCase();
+    return !!role && role !== "client" && role !== "user";
+  }
 
   // Personal + role channels are joined automatically; allow explicit re-subscribe of own only
   if (channel.startsWith("user-")) return channel === `user-${user.id}`;
