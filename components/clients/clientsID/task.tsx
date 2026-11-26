@@ -48,6 +48,7 @@ import type { CustomJob } from "@/components/coustom_Jobs/customJobsTypes";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { TaskCompletionInfo } from "@/components/shared/task-completion-info";
+import { TaskCycleTabs } from "./task-cycle-tabs";
 
 // Sanitize HTML to prevent XSS attacks
 const sanitizeHtml = (html: string) => {
@@ -1152,8 +1153,10 @@ export function Tasks({ clientData }: TasksProps) {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-1 md:px-2 pb-4">
-                    <div className="space-y-4 pt-3">
-                      {tasks.map((task) => {
+                    <div className="space-y-2 pt-2">
+                      <TaskCycleTabs
+                        tasks={tasks}
+                        renderTask={(task) => {
                         const platform =
                           task.templateSiteAsset?.name || "Platform";
                         const duration = task.idealDurationMinutes ?? 0;
@@ -1164,93 +1167,94 @@ export function Tasks({ clientData }: TasksProps) {
                         const status = normalizeStatus((task as any).status);
                         const functionalType = getFunctionalType(task);
 
+                        const accent =
+                          status === "completed"
+                            ? "border-l-emerald-500"
+                            : status === "in_progress"
+                              ? "border-l-blue-500"
+                              : status === "overdue"
+                                ? "border-l-rose-500"
+                                : "border-l-amber-400";
+                        const special = renderSpecialByType(task);
+                        const notes =
+                          (task as any)?.taskCompletionJson?.notes ||
+                          (task as any)?.notes;
+
                         return (
                           <div
                             key={task.id}
-                            className="flex flex-col gap-4 p-5 bg-linear-to-br from-white via-white to-slate-50/50 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-900/80 rounded-2xl border-2 border-amber-200/60 dark:border-slate-700/50 shadow-lg shadow-slate-200/50 dark:shadow-black/20 backdrop-blur-sm hover:shadow-xl hover:shadow-slate-300/50 dark:hover:shadow-black/30 transition-all duration-300"
+                            className={`group flex min-w-0 flex-col gap-2 rounded-lg border border-l-4 border-slate-200 bg-white px-4 py-3 transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80 ${accent}`}
                           >
-                            {/* Top line */}
-                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                              <div className="flex items-start gap-3">
-                                <div className="mt-0.5">
+                            {/* Header: title + badges */}
+                            <div className="flex min-w-0 items-start justify-between gap-3">
+                              <div className="flex min-w-0 items-start gap-2.5">
+                                <div className="mt-0.5 shrink-0 [&_svg]:h-4 [&_svg]:w-4">
                                   {getStatusIcon(task.status)}
                                 </div>
-                                <div>
-                                  <h4 
-                                    className="font-medium text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline [&_a:hover]:text-blue-800 dark:[&_a]:text-blue-400 dark:[&_a:hover]:text-blue-300"
+                                <div className="min-w-0">
+                                  <h4
+                                    className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 [&_a]:text-blue-600 [&_a]:underline dark:[&_a]:text-blue-400"
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateToWords(task.name)) }}
                                   />
-                                  <p className="text-sm text-slate-500 dark:text-slate-300">
-                                    {platform} • {duration} min
-                                  </p>
-                                  {link && (
-                                    <a
-                                      href={link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1 break-all dark:text-blue-400"
-                                    >
-                                      <LinkIcon className="h-3.5 w-3.5" />
-                                      {link}
-                                    </a>
-                                  )}
-                                  <TaskCompletionInfo
-                                    task={task as any}
-                                    className="mt-2"
-                                  />
+                                  {/* Meta line */}
+                                  <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                    <span>{platform}</span>
+                                    <span aria-hidden>·</span>
+                                    <span>{duration} min</span>
+                                    {link && (
+                                      <>
+                                        <span aria-hidden>·</span>
+                                        <a
+                                          href={link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          title={link}
+                                          className="inline-flex min-w-0 max-w-full items-center gap-1 text-blue-600 hover:underline sm:max-w-md dark:text-blue-400"
+                                        >
+                                          <LinkIcon className="h-3 w-3 shrink-0" />
+                                          <span className="truncate">{link.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                                        </a>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2 self-start md:self-center">
+                              <div className="flex shrink-0 items-center gap-1.5">
                                 <Badge
-                                  className={getPriorityColor(task.priority)}
+                                  className={`h-5 px-2 text-[11px] font-medium capitalize shadow-none ${getPriorityColor(task.priority)}`}
                                 >
                                   {task.priority}
                                 </Badge>
                                 <Badge
-                                  className={getStatusColor(
-                                    (task as any).status,
-                                  )}
+                                  className={`h-5 px-2 text-[11px] font-medium capitalize shadow-none ${getStatusColor((task as any).status)}`}
                                 >
                                   {status.replace(/_/g, " ")}
                                 </Badge>
                               </div>
                             </div>
 
-                            {/* NEW: Special per-category renderers */}
-                            <div className="rounded-lg bg-white/60 p-3 dark:bg-slate-800/60">
-                              {renderSpecialByType(task) ||
-                                (() => {
-                                  const notes =
-                                    (task as any)?.taskCompletionJson?.notes ||
-                                    (task as any)?.notes;
-                                  if (notes) {
-                                    return (
-                                      <div className="space-y-1">
-                                        <SectionTitle
-                                          icon={
-                                            <FileText className="h-4 w-4" />
-                                          }
-                                          title="Notes"
-                                        />
-                                        <div
-                                          className="prose prose-sm max-w-none dark:prose-invert"
-                                          // NOTE: ensure server-side sanitization; this trusts your API.
-                                          dangerouslySetInnerHTML={{
-                                            __html: sanitizeRichHtml(notes),
-                                          }}
-                                        />
-                                      </div>
-                                    );
-                                  }
-                                  return (
-                                    <p className="text-sm text-slate-500 dark:text-muted-foreground">
-                                      {/* Default: compact note for categories without custom renderer */}
-                                      No extra completion data for this
-                                      category.
-                                    </p>
-                                  );
-                                })()}
-                            </div>
+                            {/* Completed / QC approved */}
+                            <TaskCompletionInfo
+                              task={task as any}
+                              className="pl-6.5 text-[11px] [&>span]:rounded-md [&>span]:px-2 [&>span]:py-0.5 [&_svg]:h-3 [&_svg]:w-3"
+                            />
+
+                            {/* Category-specific completion data, or notes */}
+                            {special ? (
+                              <div className="ml-6.5 rounded-md border border-slate-100 bg-slate-50/70 p-2.5 text-sm dark:border-slate-700 dark:bg-slate-900/40">
+                                {special}
+                              </div>
+                            ) : notes ? (
+                              <div className="ml-6.5 flex min-w-0 items-start gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                                <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                <div
+                                  className="line-clamp-2 min-w-0 [&_*]:m-0 [&_*]:inline"
+                                  title={String(notes).replace(/<[^>]+>/g, " ")}
+                                  // NOTE: ensure server-side sanitization; this trusts your API.
+                                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(notes) }}
+                                />
+                              </div>
+                            ) : null}
 
                             {/* NEW: Posting Task Status for tasks with assets */}
                             {(() => {
@@ -1293,7 +1297,8 @@ export function Tasks({ clientData }: TasksProps) {
                             })()}
                           </div>
                         );
-                      })}
+                      }}
+                      />
                     </div>
                   </AccordionContent>
                 </AccordionItem>
